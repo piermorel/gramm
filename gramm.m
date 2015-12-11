@@ -1,5 +1,6 @@
 classdef gramm < handle
     %GRAMM Implementation of the features from R's ggplot (GRAMmar of graphics plots) in Matlab
+    % Pierre Morel 2015
     
     properties %(Access=protected)
         aes %aesthetics (contains data set by the constructor and used to generate the plots)
