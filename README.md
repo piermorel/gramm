@@ -1,5 +1,5 @@
 # gramm
-## Introduction
+
 Gramm allows to easily plot grouped data in Matlab, and is inspired by R's [ggplot2](http://ggplot2.org) library by [Hadley Wickham](http://had.co.nz)
 
 With gramm, 6 lines of code are enough to create such a figure:
@@ -21,6 +21,14 @@ g.geom_point()
 g.stat_summary('geom','area','type','bootci','bin_in',5)
 g.draw() %Draw method
 ```
+## Using gramm
+### Installation
+Add the folder containing gramm.m to your path
+### Compatibility
+Tested under Matlab 2015 versions. The statistics toolbox is required for some methods: <code>stat_glm()</code>, some <code>stat_summary()</code> methods, <code>stat_density()</code>
+#### Documentation
+Type <code>doc gramm</code> find links to the documentation of each method.
+
 
 ## Features
 - Accepts x and y data as arrays, matrices or cells of arrays
@@ -45,6 +53,7 @@ g.draw() %Draw method
 - Multiple gramm plots can be combined in the same figure by creatin a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix.
 - Matlabs axes properties are acessible through the method <code>axe_property()</code>
 - Custom legend labels with <code>set_names()</code>
+- Plot reference line on the plots with <code>geom_abline()<code>
 
 ## Examples
 
