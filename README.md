@@ -53,10 +53,10 @@ Also shows histograms, categorical x values
 <img src="/img/multiple_gramm_example.png" alt="Multiple gramm" width="800">
 
 ### Fits (carbig data) ###
-<img src="/img/carbig_glm_example.png" alt="Multiple gramm" width="500">
+<img src="/img/carbig_glm_example.png" alt="GLM fits" width="500">
 
 ### Continuous colors
-<img src="/img/continuous_colot_example.png" alt="Multiple gramm" width="500">
+<img src="/img/continuous_color_example.png" alt="Continuous colors" width="500">
 
 ## Acknowledgements
 gramm was inspired and/or used code from:
