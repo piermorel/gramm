@@ -53,7 +53,7 @@ Type <code>doc gramm</code> find links to the documentation of each method.
 - Multiple gramm plots can be combined in the same figure by creatin a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix.
 - Matlabs axes properties are acessible through the method <code>axe_property()</code>
 - Custom legend labels with <code>set_names()</code>
-- Plot reference line on the plots with <code>geom_abline()<code>
+- Plot reference line on the plots with <code>geom_abline()</code>
 
 ## Examples
 
