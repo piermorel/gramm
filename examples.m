@@ -125,3 +125,23 @@ g.set_names('x','Wavelength (nm)','y','NIR','color','octane')
 g.geom_line;
 g.draw;
 
+%% stat_fit
+
+x=repmat(1:10,1,20)
+
+y=x+randn(1,length(x))*3;
+
+figure
+g=gramm('x',x,'y',y)
+g.geom_point()
+g.stat_glm()
+g.draw()
+
+y=random('binomial',1,normcdf(x-5))
+
+figure
+g=gramm('x',x,'y',y)
+g.geom_jitter('width',0.2,'height',0.1)
+g.stat_glm('distribution','binomial')
+g.draw()
+

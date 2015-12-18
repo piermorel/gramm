@@ -112,8 +112,11 @@ classdef gramm < handle
             
             %Initialize facets (using the size of x so that y can be
             %ignored in arguments)
-            obj.row_facet=ones(size(obj.aes.x));
-            obj.col_facet=ones(size(obj.aes.x));
+            %obj.row_facet=ones(size(obj.aes.x));
+            %obj.col_facet=ones(size(obj.aes.x));
+            %Create empty for now 
+            obj.row_facet=[];
+            obj.col_facet=[];
             
             %Initialize axes properties
             obj.axe_properties={};
@@ -167,16 +170,16 @@ classdef gramm < handle
             
             row=shiftdim(row);
             col=shiftdim(col);
-            if isempty(row)
-                obj.row_facet=ones(size(obj.aes.x));
-            else
+%             if isempty(row)
+%                 obj.row_facet=ones(size(obj.aes.x));
+%             else
                 obj.row_facet=row;
-            end
-            if isempty(col)
-                obj.col_facet=ones(size(obj.aes.x));
-            else
+%             end
+%             if isempty(col)
+%                 obj.col_facet=ones(size(obj.aes.x));
+%             else
                 obj.col_facet=col;
-            end
+%             end
             obj.wrap_ncols=-1;
         end
         
@@ -500,6 +503,16 @@ classdef gramm < handle
             end
             
             temp_aes=validate_aes(obj.aes);
+            
+            % Create replacement row_facet and color_facet if they were
+            % empty
+            if isempty(obj.row_facet)
+                 obj.row_facet=ones(size(temp_aes.subset));
+            end
+            
+            if isempty(obj.col_facet)
+                 obj.col_facet=ones(size(temp_aes.subset));
+            end
             
             temp_row_facet=obj.row_facet(temp_aes.subset);
             temp_col_facet=obj.col_facet(temp_aes.subset);
@@ -2257,7 +2270,7 @@ fields=fieldnames(aes);
 %Handle special case when Y is a matrix
 if ~iscell(out.y)
     if size(out.y,2)>1
-        out.y=num2cell(out.y,2); %We convert rows of x to cell elements
+        out.y=num2cell(out.y,2); %We convert rows of y to cell elements
         out.y=cellfun(@(c)shiftdim(c),out.y,'uniformOutput',false);
         %out.y=shiftdim(out.y);
     end
@@ -2266,7 +2279,7 @@ end
 %Handle special case when Y is a matrix/cell and X is a single vector
 if iscell(out.y) && ~iscell(out.x)
     if size(out.x,2)>1 %X is a matrix
-        out.x=num2cell(out.x,2);  %We convert rows of y to cell elements
+        out.x=num2cell(out.x,2);  %We convert rows of x to cell elements
     else %Y is a vector
         %We need to duplicate it
         if length(out.x)==length(out.y)
@@ -2298,7 +2311,7 @@ end
 
 %Special case for size:
 if numel(aes.size)==1
-    out.size=ones(size(aes.y))*aes.size;
+    out.size=ones(size(aes.x))*aes.size;
 end
 
 
