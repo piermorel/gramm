@@ -103,6 +103,16 @@ g.geom_point()
 g.stat_summary('geom','area','type','bootci','bin_in',5)
 g.draw() %Draw method
 
+%% Example for date ticks
+
+t=now;
+
+g=gramm('x',t+[0 0.1 1 5 6],'y',t+[1 2 3 4 5])
+g.geom_line()
+g.set_datetick('x',2)
+g.set_datetick('y',1)
+g.draw()
+
 %% Example of glm fit
 
 load carbig.mat %Load example dataset about cars

@@ -236,10 +236,11 @@ classdef gramm < handle
         function obj=set_datetick(obj,varargin)
             %set_datetick Specify that the x axis has dates
             %
-            % This funciton can receive the same optional arguments as the
+            % This function can receive the same optional arguments as the
             % datetick() function of matlab
             
-            obj.datetick_params=varargin;
+            %This way we can handle multiple calls to set_datetick
+            obj.datetick_params=vertcat(obj.datetick_params,{varargin});
         end
         
         
@@ -1023,9 +1024,11 @@ classdef gramm < handle
                         mysubplot(length(uni_row),length(uni_column),ind_row,ind_column)
                     end
                     
-                    %Do the datetick  ?
+                    %Do the datetick
                     if ~isempty(obj.datetick_params)
-                        datetick(obj.datetick_params{:});
+                        for dtk=1:length(obj.datetick_params)
+                            datetick(obj.datetick_params{dtk}{:});
+                        end
                     end
                     
                     
