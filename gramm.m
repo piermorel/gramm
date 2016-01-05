@@ -2283,7 +2283,7 @@ end
 if iscell(out.y) && ~iscell(out.x)
     if size(out.x,2)>1 %X is a matrix
         out.x=num2cell(out.x,2);  %We convert rows of x to cell elements
-    else %Y is a vector
+    else %X is a vector
         %We need to duplicate it
         if length(out.x)==length(out.y)
             out.x=num2cell(repmat(shiftdim(out.x),1,length(out.y{1})),2);
