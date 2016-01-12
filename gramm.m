@@ -1584,7 +1584,13 @@ classdef gramm < handle
                 obj.extra.raster_position=obj.extra.raster_position+length(draw_data.x);
                 
                 if strcmp(params.geom,'line')
-                    line([temp_x(:) temp_x(:)]',[temp_y(:) temp_y(:)+1]','color',draw_data.color,'lineWidth',draw_data.size/4);
+                    %Slow version
+                    %line([temp_x(:) temp_x(:)]',[temp_y(:) temp_y(:)+1]','color',draw_data.color,'lineWidth',draw_data.size/4);
+                    
+                    %Fast version
+                    allx=[temp_x(:) temp_x(:) temp_x(:)]';
+                    ally=[temp_y(:) temp_y(:)+0.9 repmat(NaN,numel(temp_x),1)]';
+                    plot(allx(:),ally(:),'color',draw_data.color,'lineWidth',draw_data.size/4);
                 else
                     plot(temp_x,temp_y,'o','MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
                 end
