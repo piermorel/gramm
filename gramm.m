@@ -1,5 +1,5 @@
 classdef gramm < handle
-    %GRAMM Implementation of the features from R's ggplot (GRAMmar of graphics plots) in Matlab
+    %GRAMM Implementation of the features from R's ggplot2 (GRAMmar of graphics plots) in Matlab
     % Pierre Morel 2015
     
     properties %(Access=protected)
@@ -48,6 +48,8 @@ classdef gramm < handle
         current_column %What is the currently drawn column of the subplot
         continuous_color %Do we use continuous colors (rather than discrete)
         continuous_color_colormap %Store the continuous color colormap
+        
+        with_legend %Do we have a side legend for colors etc. ?
         
         facet_axes_handles %Store the handles of the facet axes
         legend_axe_handle %Store the handle of the legend axis
@@ -140,6 +142,8 @@ classdef gramm < handle
             obj.multi.active=false;
             
             obj.continuous_color=false;
+            
+            obj.with_legend=true;
         end
         
 %         function disp(obj)
@@ -199,6 +203,10 @@ classdef gramm < handle
             obj.polar.is_polar_closed=p.Results.closed;
             obj.polar.max_polar_y=p.Results.maxy;
             
+        end
+        
+        function obj=no_legend(obj)
+            obj.with_legend=false;
         end
         
         function obj=facet_wrap(obj,col,varargin)
@@ -938,72 +946,73 @@ classdef gramm < handle
             ind_scale=0;
             ind_scale_step=1;
             
-            %Color legend
-            if length(uni_color)>1
-                text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none')
-                ind_scale=ind_scale-ind_scale_step;
-                for ind_color=1:length(uni_color)
-                    plot([1 2],[ind_scale ind_scale],'-','Color',cmap(ind_color,:),'lineWidth',2)
-                    text(2.5,ind_scale,num2str(uni_color{ind_color}),'Interpreter','none')
+            if obj.with_legend
+                %Color legend
+                if length(uni_color)>1
+                    text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none')
                     ind_scale=ind_scale-ind_scale_step;
+                    for ind_color=1:length(uni_color)
+                        plot([1 2],[ind_scale ind_scale],'-','Color',cmap(ind_color,:),'lineWidth',2)
+                        text(2.5,ind_scale,num2str(uni_color{ind_color}),'Interpreter','none')
+                        ind_scale=ind_scale-ind_scale_step;
+                    end
+                end
+                
+                %Continuous color legend
+                if obj.continuous_color
+                    text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none')
+                    ind_scale=ind_scale-ind_scale_step;
+                    
+                    %                 image(ones(1,length(obj.continuous_color_colormap))+0.5,...
+                    %                     linspace(ind_scale-2,ind_scale,length(obj.continuous_color_colormap)),...
+                    %                     reshape(obj.continuous_color_colormap,length(obj.continuous_color_colormap),1,3));
+                    
+                    tmp_N=100;
+                    imagesc([1.3 1.7],[ind_scale-2 ind_scale],linspace(min(min(obj.plot_lim.minc)),max(max(obj.plot_lim.maxc)),tmp_N)')
+                    
+                    colormap(obj.continuous_color_colormap)
+                    caxis([min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
+                    
+                    text(2.5,ind_scale,num2str(max(max(obj.plot_lim.maxc))));
+                    text(2.5,ind_scale-2,num2str(min(min(obj.plot_lim.minc))));
+                    
+                    ind_scale=ind_scale-ind_scale_step*3;
+                end
+                
+                %marker legend
+                if length(uni_marker)>1
+                    text(1,ind_scale,obj.aes_names.marker,'FontWeight','bold','Interpreter','none')
+                    ind_scale=ind_scale-ind_scale_step;
+                    for ind_marker=1:length(uni_marker)
+                        plot([1.5],[ind_scale],markers{ind_marker},'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0])
+                        text(2.5,ind_scale,num2str(uni_marker{ind_marker}),'Interpreter','none')
+                        ind_scale=ind_scale-ind_scale_step;
+                    end
+                end
+                
+                %linestyle legend
+                if length(uni_linestyle)>1
+                    text(1,ind_scale,obj.aes_names.linestyle,'FontWeight','bold','Interpreter','none')
+                    ind_scale=ind_scale-ind_scale_step;
+                    for ind_linestyle=1:length(uni_linestyle)
+                        plot([1 2],[ind_scale ind_scale],line_styles{ind_linestyle},'Color',[0 0 0])
+                        text(2.5,ind_scale,num2str(uni_linestyle{ind_linestyle}),'Interpreter','none')
+                        ind_scale=ind_scale-ind_scale_step;
+                    end
+                end
+                
+                %Size legend
+                if length(uni_size)>1
+                    text(1,ind_scale,obj.aes_names.size,'FontWeight','bold','Interpreter','none')
+                    ind_scale=ind_scale-ind_scale_step;
+                    for ind_size=1:length(uni_size)
+                        plot([1 2],[ind_scale ind_scale],'lineWidth',sizes(ind_size)/4,'Color',[0 0 0])
+                        plot(1.5,ind_scale,'o','markerSize',sizes(ind_size),'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0])
+                        text(2.5,ind_scale,num2str(uni_size{ind_size}),'Interpreter','none')
+                        ind_scale=ind_scale-ind_scale_step;
+                    end
                 end
             end
-            
-            %Continuous color legend
-            if obj.continuous_color
-                text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none')
-                ind_scale=ind_scale-ind_scale_step;
-                
-                %                 image(ones(1,length(obj.continuous_color_colormap))+0.5,...
-                %                     linspace(ind_scale-2,ind_scale,length(obj.continuous_color_colormap)),...
-                %                     reshape(obj.continuous_color_colormap,length(obj.continuous_color_colormap),1,3));
-                
-                tmp_N=100;
-                imagesc([1.3 1.7],[ind_scale-2 ind_scale],linspace(min(min(obj.plot_lim.minc)),max(max(obj.plot_lim.maxc)),tmp_N)')
-                
-                colormap(obj.continuous_color_colormap)
-                caxis([min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
-                
-                text(2.5,ind_scale,num2str(max(max(obj.plot_lim.maxc))));
-                text(2.5,ind_scale-2,num2str(min(min(obj.plot_lim.minc))));
-                
-                ind_scale=ind_scale-ind_scale_step*3;
-            end
-            
-            %marker legend
-            if length(uni_marker)>1
-                text(1,ind_scale,obj.aes_names.marker,'FontWeight','bold','Interpreter','none')
-                ind_scale=ind_scale-ind_scale_step;
-                for ind_marker=1:length(uni_marker)
-                    plot([1.5],[ind_scale],markers{ind_marker},'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0])
-                    text(2.5,ind_scale,num2str(uni_marker{ind_marker}),'Interpreter','none')
-                    ind_scale=ind_scale-ind_scale_step;
-                end
-            end
-            
-            %linestyle legend
-            if length(uni_linestyle)>1
-                text(1,ind_scale,obj.aes_names.linestyle,'FontWeight','bold','Interpreter','none')
-                ind_scale=ind_scale-ind_scale_step;
-                for ind_linestyle=1:length(uni_linestyle)
-                    plot([1 2],[ind_scale ind_scale],line_styles{ind_linestyle},'Color',[0 0 0])
-                    text(2.5,ind_scale,num2str(uni_linestyle{ind_linestyle}),'Interpreter','none')
-                    ind_scale=ind_scale-ind_scale_step;
-                end
-            end
-            
-            %Size legend
-            if length(uni_size)>1
-                text(1,ind_scale,obj.aes_names.size,'FontWeight','bold','Interpreter','none')
-                ind_scale=ind_scale-ind_scale_step;
-                for ind_size=1:length(uni_size)
-                    plot([1 2],[ind_scale ind_scale],'lineWidth',sizes(ind_size)/4,'Color',[0 0 0])
-                    plot(1.5,ind_scale,'o','markerSize',sizes(ind_size),'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0])
-                    text(2.5,ind_scale,num2str(uni_size{ind_size}),'Interpreter','none')
-                    ind_scale=ind_scale-ind_scale_step;
-                end
-            end
-            
             %Set size of legend axes
             xlim([1 8])
             if ind_scale<0
@@ -1723,7 +1732,8 @@ classdef gramm < handle
                 if params.bin_in>0
                     binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.bin_in+1);
                     bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
-                    [~,~,binind]=histcounts(x,binranges);
+                    %[~,~,binind]=histcounts(x,binranges);
+                    [~,binind]=my_histcounts(x,binranges);
                     uni_x=bincenters;
                     x=bincenters(binind);
                 else
@@ -1914,19 +1924,15 @@ classdef gramm < handle
         function hndl=mybin(obj,draw_data,params)
             
             if obj.x_factor
-                binranges=0:length(obj.x_ticks);
+                binranges=1:length(obj.x_ticks)+1;
                 bincenters=1:length(obj.x_ticks);
             else
                 binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.nbins+1);
                 bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
             end
             
-
-            if obj.x_factor
-                bincounts = histcounts(comb(draw_data.x)-0.5,binranges);
-            else
-                bincounts = histcounts(comb(draw_data.x),binranges);
-            end
+            bincounts = my_histcounts(comb(draw_data.x),binranges);
+            
             bincounts=shiftdim(bincounts);
             
             obj.plot_lim.miny(obj.current_row,obj.current_column)=0;
@@ -1956,10 +1962,10 @@ classdef gramm < handle
                 case 'line'
                     hndl=plot(bincenters,bincounts(1:end),'LineStyle',draw_data.line_style,'Color',draw_data.color,'lineWidth',draw_data.size/4);
                 case 'stacked_bar'
-                    hndl=patch([binranges(1:end-1) ; binranges(2:end) ; binranges(2:end) ; binranges(1:end-1)]+(binranges(2)-binranges(1))*0.5,...
+                    hndl=patch([binranges(1:end-1) ; binranges(2:end) ; binranges(2:end) ; binranges(1:end-1)]-(binranges(2)-binranges(1))*0.5,...
                         [obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'],...
                         draw_data.color,'EdgeColor','k');
-                    obj.extra.stacked_bar_height=bincounts'+obj.extra.stacked_bar_height;
+                    obj.extra.stacked_bar_height=obj.extra.stacked_bar_height+bincounts';
             end
             
         end
@@ -2347,6 +2353,23 @@ elseif p<0.05
     s='*';
 else
     s='';
+end
+end
+
+function [n,ind]=my_histcounts(X,edges)
+persistent old_matlab
+if isempty(old_matlab)
+    old_matlab=verLessThan('matlab','8.4');
+end
+if old_matlab
+    %We make histc behave like histcounts
+    [n,ind]=histc(X,edges);
+    ind(ind==length(n))=length(n)-1;
+    n(end-1)=n(end-1)+n(end);
+    n(end)=[];
+    
+else
+    [n, ~, ind]=histcounts(X,edges);
 end
 end
 

@@ -53,6 +53,7 @@ g(2,1).facet_grid(twoaltc,[],'scales','fixed')
 g(2,1).geom_jitter('width',0.2,'height',0) %We can jitter the points in the scatter plot to make the density more apparent
 
 g(2,2)=gramm('x',y,'color',twoaltc)
+g(2,2).no_legend() %It's possible to drop the side legends (useful when the grouping is the same across multiple objects)
 g(2,2).stat_bin('geom','bar') %Using stat_bin we can create histograms
 
 %And call the draw function on the whole array !
