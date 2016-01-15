@@ -1378,10 +1378,14 @@ classdef gramm < handle
             %
             % Example syntax (default arguments): gramm_object.stat_bin('nbins',30,'geom','bar')
             % 'geom' can be 'bar' or 'line' or 'stacked_bar'
+            % The 'normalization' argument allows to optionally normalize
+            % the bin counts (see the doc for Matlab's histcounts() ).
+            % Default is 'count', for normalization to 1 use 'probability'
             
             p=inputParser;
             my_addParameter(p,'nbins',30);
             my_addParameter(p,'geom','bar');
+            my_addParameter(p,'normalization','count');
             parse(p,varargin{:});
             
 
@@ -1733,7 +1737,7 @@ classdef gramm < handle
                     binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.bin_in+1);
                     bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
                     %[~,~,binind]=histcounts(x,binranges);
-                    [~,binind]=my_histcounts(x,binranges);
+                    [~,binind]=my_histcounts(x,binranges,'count');
                     uni_x=bincenters;
                     x=bincenters(binind);
                 else
@@ -1931,7 +1935,7 @@ classdef gramm < handle
                 bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
             end
             
-            bincounts = my_histcounts(comb(draw_data.x),binranges);
+            bincounts = my_histcounts(comb(draw_data.x),binranges,params.normalization);
             
             bincounts=shiftdim(bincounts);
             
@@ -1939,7 +1943,7 @@ classdef gramm < handle
             if obj.firstrun(obj.current_row,obj.current_column)
                 obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(bincounts);
                 %obj.firstrun(obj.current_row,obj.current_column)=0;
-                obj.aes_names.y='Count';
+                obj.aes_names.y=params.normalization;
                 %Initialize stacked bar
                 obj.extra.stacked_bar_height=zeros(size(bincenters));
             else
@@ -2356,7 +2360,7 @@ else
 end
 end
 
-function [n,ind]=my_histcounts(X,edges)
+function [n,ind]=my_histcounts(X,edges,normalization)
 persistent old_matlab
 if isempty(old_matlab)
     old_matlab=verLessThan('matlab','8.4');
@@ -2368,8 +2372,15 @@ if old_matlab
     n(end-1)=n(end-1)+n(end);
     n(end)=[];
     
+    switch normalization
+        case 'probability'
+            n=n./sum(n);
+        case 'count'
+        otherwise
+            warning('Other types of normalization are not supported on older Matlab versions')
+    end
 else
-    [n, ~, ind]=histcounts(X,edges);
+    [n, ~, ind]=histcounts(X,edges,'Normalization',normalization);
 end
 end
 
