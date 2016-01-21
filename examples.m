@@ -16,19 +16,21 @@ fouraltc=repmat({'alpha' 'beta' 'gamma' 'epsilon'},1,N/4);
 eightaltc=repmat({'I' 'II' 'III' 'IV' 'V' 'VI' 'VII' 'VIII'},1,N/8)
 
 %Change data between groups
-y(twoalt==1)=y(twoalt==1)+3
-x(twoaltb==1)=x(twoaltb==1)+50;
+y(twoalt==1)=y(twoalt==1)+8;
+x(twoalt==1)=x(twoalt==1)+30;
+y(twoaltb==1)=y(twoaltb==1)+2;
+x(twoaltb==1)=x(twoaltb==1)-90;
+
 
 %% Example use
 
 figure
 g=gramm('x',x,'y',y,'color',fouraltc,'linestyle',twoaltcb)
-g.facet_grid(twoaltcb,twoaltc,'scales','fixed')
+g.facet_grid(twoaltcb,twoaltc,'scale','fixed')
 g.geom_point()
 g.stat_smooth('lambda',1000,'geom','area')
 %It's possible to set native axis properties
-g.axe_property('XGrid','on')
-g.axe_property('YGrid','on')
+g.axe_property('XGrid','on','YGrid','on')
 g.draw()
 
 %% Plot multiple gramm objects in single window
@@ -49,7 +51,7 @@ g(1,2).geom_point()
  
 % X data can be a cellstr, data will be treated as being categorical
 g(2,1)=gramm('x',fouraltc,'y',y,'color',twoaltcb,'size',4)
-g(2,1).facet_grid(twoaltc,[],'scales','fixed')
+g(2,1).facet_grid(twoaltc,[],'scale','fixed')
 g(2,1).geom_jitter('width',0.2,'height',0) %We can jitter the points in the scatter plot to make the density more apparent
 
 g(2,2)=gramm('x',y,'color',twoaltc)
@@ -60,31 +62,144 @@ g(2,2).stat_bin('geom','bar') %Using stat_bin we can create histograms
 g.draw()
 
 
-%% Example of different scaling options for faceting
+
+%% Example of different scaling options for faceting with facet_grid
 
 clear g
 
-g(1,1)=gramm('x',x,'y',y,'color',twoaltcb)
-g(1,1).facet_grid(twoaltc,twoaltcb,'scales','fixed') %Same x and y scale for all facets
-g(1,1).stat_smooth('lambda',1000,'geom','area')
+%Example with everything in the same plot
+g(1,1)=gramm('x',x,'y',y,'color',fouraltc)
 g(1,1).geom_point()
 
-g(1,2)=gramm('x',x,'y',y,'color',twoaltcb)
-g(1,2).facet_grid(twoaltc,twoaltcb,'scales','free_x') %Facets on the same columns have the same x scale
-g(1,2).stat_smooth('lambda',1000,'geom','area')
+% 'fixed': same x and y scale for all subplots
+g(1,2)=gramm('x',x,'y',y,'color',fouraltc)
+g(1,2).facet_grid(twoaltc,twoaltcb,'scale','fixed') 
 g(1,2).geom_point()
 
-g(2,1)=gramm('x',x,'y',y,'color',twoaltcb)
-g(2,1).facet_grid(twoaltc,twoaltcb,'scales','free_y') %Facets on the same rows have the same y scale
-g(2,1).stat_smooth('lambda',1000,'geom','area')
+% 'free_x': subplots on the same columns have the same x scale
+g(2,1)=gramm('x',x,'y',y,'color',fouraltc)
+g(2,1).facet_grid(twoaltc,twoaltcb,'scale','free_x') 
 g(2,1).geom_point()
 
-g(2,2)=gramm('x',x,'y',y,'color',twoaltcb)
-g(2,2).facet_grid(twoaltc,twoaltcb,'scales','independent') %Scales are independent on each facet
-g(2,2).stat_smooth('lambda',1000,'geom','area')
+% 'free_y': subplots on the same rows have the same y scale
+g(2,2)=gramm('x',x,'y',y,'color',fouraltc)
+g(2,2).facet_grid(twoaltc,twoaltcb,'scale','free_y') 
 g(2,2).geom_point()
 
+% 'free': subplots on the same rows  have the same y scale and facets on the same columns have the same x scale
+g(3,1)=gramm('x',x,'y',y,'color',fouraltc)
+g(3,1).facet_grid(twoaltc,twoaltcb,'scale','free') 
+g(3,1).geom_point()
+
+% 'independent': subplots are independent on each facet
+g(3,2)=gramm('x',x,'y',y,'color',fouraltc)
+g(3,2).facet_grid(twoaltc,twoaltcb,'scale','independent') 
+g(3,2).geom_point()
+
+figure('Position',[100 100 700 800])
 g.draw()
+
+
+%% Example of different scaling options for wrap faceting
+
+clear g
+
+%Example with everything in the same plot
+g(1,1)=gramm('x',x,'y',y,'color',fouraltc)
+g(1,1).geom_point()
+
+% 'fixed': same x and y scale for all subplots
+g(1,2)=gramm('x',x,'y',y,'color',fouraltc)
+g(1,2).facet_wrap(fouraltc,'scale','fixed','ncols',3) 
+g(1,2).geom_point()
+
+% 'free_x': subplots on the same columns have the same x scale -> for wrap, each plot
+%has its own x scale
+g(2,1)=gramm('x',x,'y',y,'color',fouraltc)
+g(2,1).facet_wrap(fouraltc,'scale','free_x','ncols',3) 
+g(2,1).geom_point()
+
+% 'free_y': subplots on the same rows have the same y scale -> for wrap, each plot has
+%its own y scale
+g(2,2)=gramm('x',x,'y',y,'color',fouraltc)
+g(2,2).facet_wrap(fouraltc,'scale','free_y','ncols',3) 
+g(2,2).geom_point()
+
+% 'free': behaves like 'independent' option when using facet_wrap
+g(3,1)=gramm('x',x,'y',y,'color',fouraltc)
+g(3,1).facet_wrap(fouraltc,'scale','free','ncols',3) 
+g(3,1).geom_point()
+
+% 'independent': scales are independent on each subplot
+g(3,2)=gramm('x',x,'y',y,'color',fouraltc)
+g(3,2).facet_wrap(fouraltc,'scale','independent','ncols',3) 
+g(3,2).geom_point()
+
+figure('Position',[100 100 700 800])
+g.draw()
+
+%% Examples for different types of histograms
+
+%Create variables
+x=randn(1200,1)-1;
+cat=repmat([1 1 1 2],300,1)
+x(cat==2)=x(cat==2)+2
+
+%Example of different geoms
+clear g
+g(1,1)=gramm('x',x,'color',cat)
+g(1,1).stat_bin() %by default, 'geom' is 'bar', where color groups are side-by-side (dodged)
+
+g(1,2)=gramm('x',x,'color',cat)
+g(1,2).stat_bin('geom','stacked_bar') %Stacked bars option
+
+g(2,1)=gramm('x',x,'color',cat)
+g(2,1).stat_bin('geom','line') %Draw lines instead of bars, easier to visualize when lots of categories !
+
+g(2,2)=gramm('x',x,'color',cat)
+g(2,2).stat_bin('geom','overlaid_bar') %Overlaid bar automatically changes bar coloring to transparent
+
+g.draw()
+
+%Example of alternative bar coloring options
+figure
+clear f
+f(1,1)=gramm('x',x,'color',cat)
+f(1,1).stat_bin('bar_color','face')
+
+f(1,2)=gramm('x',x,'color',cat)
+f(1,2).stat_bin('bar_color','all')
+
+f(2,1)=gramm('x',x,'color',cat)
+f(2,1).stat_bin('bar_color','edge')
+
+f(2,2)=gramm('x',x,'color',cat)
+f(2,2).stat_bin('bar_color','transparent')
+
+f.draw()
+
+%Example of other histogram-generation examples
+figure
+clear h
+h(1,1)=gramm('x',x,'color',cat)
+h(1,1).stat_bin('geom','overlaid_bar') %Default binning (30 bins)
+
+%Normalization to 'probability'
+h(1,2)=gramm('x',x,'color',cat)
+h(1,2).stat_bin('normalization','probability','geom','overlaid_bar')
+
+%Custom edges for the bins
+h(2,1)=gramm('x',x,'color',cat)
+h(2,1).stat_bin('edges',-1:0.5:10,'geom','overlaid_bar')
+
+%Custom edges with non-constand width (normalization 'countdensity'
+%recommended)
+h(2,2)=gramm('x',x,'color',cat)
+h(2,2).stat_bin('geom','overlaid_bar','normalization','countdensity','edges',[-5 -4 -2 -1 -0.5 -0.25 0 0.25 0.5  1 2 4 5])
+
+h.draw()
+
+
 
 %% Example from the readme
 
@@ -188,6 +303,8 @@ g=gramm('x',X,'y',Y,'color',C)
 g.geom_line()
 g.draw()
 
+
+
 %% When there are too many colors, we switch to a continuous scale
 
 load spectra.mat
@@ -231,4 +348,7 @@ g.geom_jitter('width',0.2,'height',0.1)
 %is represented as a shaded area.
 g.stat_glm('distribution','binomial','geom','area')
 g.draw()
+
+
+
 

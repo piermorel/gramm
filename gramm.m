@@ -2,7 +2,7 @@ classdef gramm < handle
     %GRAMM Implementation of the features from R's ggplot2 (GRAMmar of graphics plots) in Matlab
     % Pierre Morel 2015
     
-    properties %(Access=protected)
+    properties (Access=protected)
         aes %aesthetics (contains data set by the constructor and used to generate the plots)
         aes_names %Name of the aesthetics and column/rows for the legend
         row_facet %Contains data used to set subplot rows
@@ -55,6 +55,7 @@ classdef gramm < handle
         legend_axe_handle %Store the handle of the legend axis
         
         extra %Store extra geom-specific info
+
     end
     
     methods (Access=public)
@@ -119,6 +120,7 @@ classdef gramm < handle
             %Create empty for now 
             obj.row_facet=[];
             obj.col_facet=[];
+            obj.facet_scale='fixed';
             
             %Initialize axes properties
             obj.axe_properties={};
@@ -146,9 +148,9 @@ classdef gramm < handle
             obj.with_legend=true;
         end
         
-%         function disp(obj)
-%             %Empty to silence output
-%         end
+%          function disp(obj)
+%              %Empty to silence output
+%          end
         
         function obj=facet_grid(obj,row,col,varargin)
             % facet_grid Create subplots according to factors for rows and columns
@@ -168,9 +170,9 @@ classdef gramm < handle
             % or x and y adjusted independently per subplot
             
             p=inputParser;
-            my_addParameter(p,'scales','fixed'); %options 'free' 'free_x' 'free_y' 'independent'
+            my_addParameter(p,'scale','fixed'); %options 'free' 'free_x' 'free_y' 'independent'
             parse(p,varargin{:});
-            obj.facet_scale=p.Results.scales;
+            obj.facet_scale=p.Results.scale;
             
             row=shiftdim(row);
             col=shiftdim(col);
@@ -232,13 +234,20 @@ classdef gramm < handle
         
         
         
-        function obj=axe_property(obj,property_name,property_value)
+        function obj=axe_property(obj,varargin)
             % axe_property Add a matlab axes property to apply to all subplots
             %
             % Example syntax: gramm_object.axe_property('ylim',[0 1])
             % Arguments are given as a name,value pair. The accepted
-            % arguments arethe same as in matlab's own set(gca,'propertyname',propertyvalue)
-            obj.axe_properties=vertcat(obj.axe_properties,{property_name,property_value});
+            % arguments are the same as in matlab's own set(gca,'propertyname',propertyvalue)
+            
+            if mod(nargin-1,2)==0
+                for k=1:2:length(varargin)
+                    obj.axe_properties=vertcat(obj.axe_properties,{varargin{k},varargin{k+1}});
+                end
+            else
+                error('Arguments of axe_property() must be given as ''name'',value pairs')
+            end
         end
         
         function obj=set_datetick(obj,varargin)
@@ -386,7 +395,18 @@ classdef gramm < handle
                 %Get positions of the corresponding parent axes
                 %axe_text_pos=get(cell2mat(ancestor(findobj(obj.facet_axes_handles,'Type','text'),'axes')),'Position');
                 %%didn't work with HG2 graphics
-                axe_text_pos=cellfun(@(a)get(a,'Position'),ancestor(findobj(obj.facet_axes_handles,'Type','text'),'axes'),'UniformOutput',false);
+                temp_handles=ancestor(findobj(obj.facet_axes_handles,'Type','text'),'axes');
+                
+                %HACK (when there no color and no legend but a single piece of text from the
+                %glm fits we don't get cells here so the cellfuns get broken
+                if ~iscell(temp_handles)
+                    temp_handles={temp_handles};
+                    facet_text_pos={facet_text_pos}
+                end
+                
+                axe_text_pos=cellfun(@(a)get(a,'Position'),temp_handles,'UniformOutput',false);
+               
+                
                 %Compute rightmost and topmost text
                 max_facet_x_text=max(cellfun(@(tp,ap)ap(1)+ap(3)*tp(1)+tp(3)*ap(3),facet_text_pos,axe_text_pos));
                 max_facet_y_text=max(cellfun(@(tp,ap)ap(2)+ap(4)*tp(2)+tp(4)*ap(4),facet_text_pos,axe_text_pos));
@@ -423,20 +443,21 @@ classdef gramm < handle
             
             
             %Compute additional spacing for x y axis labels if idependent
-            if strcmp(obj.facet_scale,'independent')
+            %(or if free with wrapping)
+            if strcmp(obj.facet_scale,'independent') || (obj.wrap_ncols>0)% && ~isempty(strfind(obj.facet_scale,'free')))
                 %use top left inset as reference
                 top_right_inset=get(obj.facet_axes_handles(1,end),'TightInset');
                 spacing_w=top_right_inset(1)+spacing_w;
                 spacing_h=top_right_inset(2)+spacing_h;
-            else
-                %Compute additional spacing for titles if column wrap (this
-                %is in the else to prevent too large increase of spacing in
-                % facet_wrap
-                if obj.wrap_ncols>0
-                    outerpos=get(obj.facet_axes_handles(1,1),'OuterPosition');
-                    innerpos=get(obj.facet_axes_handles(1,1),'Position');
-                    spacing_h=spacing_h+outerpos(4)-innerpos(4)-(innerpos(2)-outerpos(2));
-                end
+%             else
+%                 %Compute additional spacing for titles if column wrap (this
+%                 %is in the else to prevent too large increase of spacing in
+%                 % facet_wrap
+%                 if obj.wrap_ncols>0
+%                     outerpos=get(obj.facet_axes_handles(1,1),'OuterPosition');
+%                     innerpos=get(obj.facet_axes_handles(1,1),'Position');
+%                     spacing_h=spacing_h+(outerpos(4)-innerpos(4)-(innerpos(2)-outerpos(2)))*1.5;
+%                 end
             end
             
             %Do the move
@@ -468,9 +489,7 @@ classdef gramm < handle
                     end
                 end
             end
-            
-            
-            
+
         end
         
         function draw(obj)
@@ -1050,55 +1069,154 @@ classdef gramm < handle
                     obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)=obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)+0.01;
                     
                     if ~obj.polar.is_polar % XY Limits are only useful for non-polar plots
-                        %Set axes limits properly according to facet_scale
-                        if strcmp(obj.facet_scale,'fixed')
-                            xlim([min(min(obj.plot_lim.minx(:,:))) max(max(obj.plot_lim.maxx(:,:)))])
-                            ylim([min(min(obj.plot_lim.miny(:,:))) max(max(obj.plot_lim.maxy(:,:)))])
-                        end
                         
-                        if strcmp(obj.facet_scale,'free_x')
-                            xlim([min(obj.plot_lim.minx(:,ind_column)) max(obj.plot_lim.maxx(:,ind_column))])
-                            ylim([min(min(obj.plot_lim.miny(:,:))) max(max(obj.plot_lim.maxy(:,:)))])
-                        end
-                        
-                        if strcmp(obj.facet_scale,'free_y')
-                            xlim([min(min(obj.plot_lim.minx(:,:))) max(max(obj.plot_lim.maxx(:,:)))])
-                            ylim([min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))])
-                        end
-                        
-                        if strcmp(obj.facet_scale,'free')
-                            xlim([min(obj.plot_lim.minx(:,ind_column)) max(obj.plot_lim.maxx(:,ind_column))])
-                            ylim([min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))])
-                        end
-                        
-                        has_xtick=true;
-                        if strcmp(obj.facet_scale,'independent') || isempty(obj.facet_scale)
-                            xlim([obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)])
-                            ylim([obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)])
+                        %Set axes limits logic according to facet_scale and
+                        %wrapping
+                        if (obj.wrap_ncols>0) 
+                            switch obj.facet_scale
+                                case 'fixed'
+                                    temp_xscale='global';
+                                    temp_yscale='global';
+                                case 'free_x'
+                                    temp_xscale='per_plot';
+                                    temp_yscale='global';
+                                case 'free_y'
+                                    temp_xscale='global';
+                                    temp_yscale='per_plot';
+                                case 'free'
+                                    temp_xscale='per_plot';
+                                    temp_yscale='per_plot';
+                                case 'independent'
+                                    temp_xscale='per_plot';
+                                    temp_yscale='per_plot';
+                            end
                         else
-                            %Remove tick labels within the plot i similar over
-                            %row or column
-                            if (obj.wrap_ncols>0)
-                                if (mod(ind_column,obj.wrap_ncols)~=1)
-                                    set(gca,'YTickLabel','');
-                                end
-                                if (length(uni_column)-ind_column)>=obj.wrap_ncols
-                                    set(gca,'XTickLabel','');
-                                    has_xtick=false;
-                                end
-                            else
-                                if ind_column~=1
-                                    set(gca,'YTickLabel','');
-                                end
-                                if ind_row~=length(uni_row)
-                                    set(gca,'XTickLabel','');
-                                    has_xtick=false;
-                                end
+                            switch obj.facet_scale
+                                case 'fixed'
+                                    temp_xscale='global';
+                                    temp_yscale='global';
+                                case 'free_x'
+                                    temp_xscale='per_column';
+                                    temp_yscale='global';
+                                case 'free_y'
+                                    temp_xscale='global';
+                                    temp_yscale='per_row';
+                                case 'free'
+                                    temp_xscale='per_column';
+                                    temp_yscale='per_row';
+                                case 'independent'
+                                    temp_xscale='per_plot';
+                                    temp_yscale='per_plot';
                             end
                         end
                         
+                        %Actually set the axes scales and presence of
+                        %labels dependign on logic
+                        switch temp_xscale
+                            case 'global'
+                                xlim([min(min(obj.plot_lim.minx(:,:))) max(max(obj.plot_lim.maxx(:,:)))]);
+                                if (obj.wrap_ncols==-1 && ind_row~=length(uni_row)) || (obj.wrap_ncols>0 && (length(uni_column)-ind_column)>=obj.wrap_ncols)
+                                     set(gca,'XTickLabel','');
+                                     has_xtick=false;
+                                end
+                            case 'per_column'
+                                xlim([min(obj.plot_lim.minx(:,ind_column)) max(obj.plot_lim.maxx(:,ind_column))]);
+                                if (obj.wrap_ncols==-1 && ind_row~=length(uni_row)) || (obj.wrap_ncols>0 && (length(uni_column)-ind_column)>=obj.wrap_ncols)
+                                     set(gca,'XTickLabel','');
+                                     has_xtick=false;
+                                end
+                            case 'per_plot'
+                                xlim([obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)]);
+                        end
                         
-                        %Set appropriate x ticks
+                        switch temp_yscale
+                            case 'global'
+                                ylim([min(min(obj.plot_lim.miny(:,:))) max(max(obj.plot_lim.maxy(:,:)))]);
+                                if (obj.wrap_ncols==-1 && ind_column~=1) || (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)~=1)
+                                     set(gca,'YTickLabel','');
+                                end
+                            case 'per_row'
+                                ylim([min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))]);
+                                if (obj.wrap_ncols==-1 && ind_column~=1) || (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)~=1)
+                                     set(gca,'YTickLabel','');
+                                end
+                            case 'per_plot'
+                                ylim([obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)]);
+                        end
+                               
+%                         
+%                         if strcmp(obj.facet_scale,'fixed')
+%                             %Global scale for both axes
+%                             xlim([min(min(obj.plot_lim.minx(:,:))) max(max(obj.plot_lim.maxx(:,:)))])
+%                             ylim([min(min(obj.plot_lim.miny(:,:))) max(max(obj.plot_lim.maxy(:,:)))])
+%                         end
+%                         
+%                         if strcmp(obj.facet_scale,'free_x')
+%                             if (obj.wrap_ncols>0) 
+%                                 %Per plot X scale if wrap
+%                                 xlim([obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)])
+%                             else
+%                                 %Per column X scale if grid
+%                                 xlim([min(obj.plot_lim.minx(:,ind_column)) max(obj.plot_lim.maxx(:,ind_column))])
+%                             end
+%                             %Global scale for Y
+%                             ylim([min(min(obj.plot_lim.miny(:,:))) max(max(obj.plot_lim.maxy(:,:)))])
+%                         end
+%                         
+%                         if strcmp(obj.facet_scale,'free_y')
+%                             %Global scale for X
+%                             xlim([min(min(obj.plot_lim.minx(:,:))) max(max(obj.plot_lim.maxx(:,:)))])
+%                             
+%                             if (obj.wrap_ncols>0)
+%                                 %Per plot Y scale if wrap
+%                                 ylim([obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)])
+%                             else
+%                                 %Per row Y scale if grid
+%                                 ylim([min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))])
+%                             end
+%                         end
+%                         
+%                         if strcmp(obj.facet_scale,'free')
+%                             if (obj.wrap_ncols>0)
+%                                 %Per plot X and Y scale if wrap (becomes
+%                                 %like independant)
+%                                 xlim([obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)])
+%                                 ylim([obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)])
+%                             else
+%                                 %Per row X and Y scale if grid
+%                                 xlim([min(obj.plot_lim.minx(:,ind_column)) max(obj.plot_lim.maxx(:,ind_column))])
+%                                 ylim([min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))])
+%                             end
+%                         end
+%                         
+%                         has_xtick=true;
+%                         if strcmp(obj.facet_scale,'independent') || isempty(obj.facet_scale)
+%                             xlim([obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)])
+%                             ylim([obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)])
+%                         else
+%                             %Remove tick labels within the plot if similar over
+%                             %row or column
+%                             if (obj.wrap_ncols>0) %Special case for facet wrap 
+%                                 if (mod(ind_column,obj.wrap_ncols)~=1) &&  ~strcmp(obj.facet_scale,'free_y') && ~strcmp(obj.facet_scale,'free') && ~strcmp(obj.facet_scale,'independant')
+%                                     set(gca,'YTickLabel','');
+%                                 end
+%                                 if (length(uni_column)-ind_column)>=obj.wrap_ncols  &&  ~strcmp(obj.facet_scale,'free_x') &&  ~strcmp(obj.facet_scale,'free') && ~strcmp(obj.facet_scale,'independant')
+%                                     set(gca,'XTickLabel','');
+%                                     has_xtick=false;
+%                                 end
+%                             else
+%                                 if ind_column~=1
+%                                     set(gca,'YTickLabel','');
+%                                 end
+%                                 if ind_row~=length(uni_row)
+%                                     set(gca,'XTickLabel','');
+%                                     has_xtick=false;
+%                                 end
+%                             end
+%                         end
+%                         
+                        
+                        %Set appropriate x ticks if labeled
                         if obj.x_factor
                             temp_xlim=get(gca,'xlim');
                             xlim([temp_xlim(1)-1 temp_xlim(2)+1])
@@ -1377,19 +1495,25 @@ classdef gramm < handle
             % geom_point Displays an histogram of the data in x
             %
             % Example syntax (default arguments): gramm_object.stat_bin('nbins',30,'geom','bar')
-            % 'geom' can be 'bar' or 'line' or 'stacked_bar'
+            % 'geom' can be 'bar', 'overlaid_bar' or 'line' or 'stacked_bar'
             % The 'normalization' argument allows to optionally normalize
             % the bin counts (see the doc for Matlab's histcounts() ).
             % Default is 'count', for normalization to 1 use 'probability'
+            % Instead of 'nbins', it is possible to directly specify bin
+            % edges with 'edges'. If the specified bin widths are not
+            % equal, it's recommended to use 'countdensity'
+            % or 'pdf' for normalization
             
             p=inputParser;
             my_addParameter(p,'nbins',30);
+            my_addParameter(p,'edges',[]);
             my_addParameter(p,'geom','bar');
             my_addParameter(p,'normalization','count');
+            my_addParameter(p,'bar_color','face');
+            my_addParameter(p,'bar_spacing',[]);
             parse(p,varargin{:});
-            
 
-            
+
             %obj.geom=vertcat(obj.geom,{@(x,y,c,s,lt,sz,bs)obj.mybin(comb(x),p.Results.nbins,c,lt,sz,bs,p.Results.geom)});
             obj.geom=vertcat(obj.geom,{@(dd)obj.mybin(dd,p.Results)});
         end
@@ -1397,8 +1521,8 @@ classdef gramm < handle
         function obj=stat_bin2d(obj,varargin)
             
             p=inputParser;
-            my_addParameter(p,'nxbins',30);
-            my_addParameter(p,'nybins',30);
+            my_addParameter(p,'nbins',[30 30]);
+            my_addParameter(p,'edges',{});
             my_addParameter(p,'geom','contour'); %image
             
             parse(p,varargin{:});
@@ -1928,10 +2052,14 @@ classdef gramm < handle
         function hndl=mybin(obj,draw_data,params)
             
             if obj.x_factor
-                binranges=1:length(obj.x_ticks)+1;
+                binranges=(0:length(obj.x_ticks))+0.5;
                 bincenters=1:length(obj.x_ticks);
             else
-                binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.nbins+1);
+                if isempty(params.edges)
+                    binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.nbins+1);
+                else
+                    binranges=params.edges;
+                end
                 bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
             end
             
@@ -1942,6 +2070,12 @@ classdef gramm < handle
             obj.plot_lim.miny(obj.current_row,obj.current_column)=0;
             if obj.firstrun(obj.current_row,obj.current_column)
                 obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(bincounts);
+                
+                if ~isempty(params.edges) %If edges are specified we use those for x scale
+                    obj.plot_lim.minx(obj.current_row,obj.current_column)=binranges(1)-nanmean(diff(binranges));
+                    obj.plot_lim.maxx(obj.current_row,obj.current_column)=binranges(end)+nanmean(diff(binranges));
+                end
+                
                 %obj.firstrun(obj.current_row,obj.current_column)=0;
                 obj.aes_names.y=params.normalization;
                 %Initialize stacked bar
@@ -1955,20 +2089,69 @@ classdef gramm < handle
                 end
             end
             
+            %Automatically set to transparent for overlaid bars
+            if strcmp(params.geom,'overlaid_bar')
+                params.bar_color='transparent';
+            end
+            
+            if isempty(params.bar_spacing)
+                if strcmp(params.geom,'bar') && draw_data.n_colors>1
+                    params.bar_spacing=0.2;
+                else
+                    params.bar_spacing=0;
+                end
+                    
+            end
+            
+            
+            
+            face_alpha=1;
+            edge_alpha=0.8;
+            switch params.bar_color
+                case 'edge'
+                    edge_color=draw_data.color;
+                    face_color='none';
+                case 'face'
+                    edge_color='k';
+                    face_color=draw_data.color;
+                case 'all'
+                    edge_color='none';
+                    face_color=draw_data.color;
+                case 'transparent'
+                    edge_color=draw_data.color;
+                    face_color=draw_data.color;
+                    face_alpha=0.4;
+            end
+            
+            spacing=0.5*params.bar_spacing*diff(binranges);
             
             switch params.geom
                 case 'bar'
                     if draw_data.n_colors==1
-                        hndl=bar(bincenters,bincounts(1:end),1,'faceColor',draw_data.color,'EdgeColor','k');
+                        %hndl=bar(bincenters,bincounts(1:end),1,'faceColor',draw_data.color,'EdgeColor','k');
+                        hndl=patch([binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing],...
+                        [zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'],...
+                        [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
                     else
-                        hndl=bar(bincenters+(draw_data.color_index/(draw_data.n_colors+1)-0.5)*(binranges(2)-binranges(1)),bincounts(1:end),1/(draw_data.n_colors+1),'faceColor',draw_data.color,'EdgeColor','k');
+                        %hndl=bar(bincenters+(draw_data.color_index/(draw_data.n_colors+1)-0.5)*(binranges(2)-binranges(1)),bincounts(1:end),1/(draw_data.n_colors+1),'faceColor',draw_data.color,'EdgeColor','k');
+                        barleft=binranges(1:end-1)+spacing+(1-params.bar_spacing)*(draw_data.color_index-1)*diff(binranges)./draw_data.n_colors;
+                        barright=binranges(1:end-1)+spacing+(1-params.bar_spacing)*(draw_data.color_index)*diff(binranges)./draw_data.n_colors;
+                        hndl=patch([barleft ; barright ; barright ; barleft],...
+                        [zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'],...
+                        [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
+                        %set(gca,'XTick',binranges);
+                        %plot(binranges,zeros(length(binranges),1),'k.','MarkerSize',10);
                     end
+                case 'overlaid_bar'
+                    hndl=patch([binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing],...
+                        [zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'],...
+                        [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
                 case 'line'
                     hndl=plot(bincenters,bincounts(1:end),'LineStyle',draw_data.line_style,'Color',draw_data.color,'lineWidth',draw_data.size/4);
                 case 'stacked_bar'
-                    hndl=patch([binranges(1:end-1) ; binranges(2:end) ; binranges(2:end) ; binranges(1:end-1)]-(binranges(2)-binranges(1))*0.5,...
+                    hndl=patch([binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing],...
                         [obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'],...
-                        draw_data.color,'EdgeColor','k');
+                        [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
                     obj.extra.stacked_bar_height=obj.extra.stacked_bar_height+bincounts';
             end
             
@@ -2005,7 +2188,26 @@ classdef gramm < handle
             x=comb(draw_data.x);
             y=comb(draw_data.y);
             
-            [N,C] = hist3([shiftdim(x),shiftdim(y)],[params.nxbins,params.nybins]);
+            if isempty(params.edges)
+                [N,C] = hist3([shiftdim(x),shiftdim(y)],params.nbins);
+            else
+                [N,C] = hist3([shiftdim(x),shiftdim(y)],'Edges',params.edges);
+                
+                obj.plot_lim.minx(obj.current_row,obj.current_column)=params.edges{1}(1);
+                obj.plot_lim.maxx(obj.current_row,obj.current_column)=params.edges{1}(end);
+                obj.plot_lim.miny(obj.current_row,obj.current_column)=params.edges{2}(1);
+                obj.plot_lim.maxy(obj.current_row,obj.current_column)=params.edges{2}(end);
+                
+                %Put values on the upper edges as if they were in the last
+                %bin
+                N(:,end-1)=N(:,end-1)+N(:,end);
+                N(end-1,:)=N(end-1,:)+N(end,:);
+                
+                %Remove upper edge
+                N(:,end)=[];
+                N(end,:)=[];
+                
+            end
             
             switch params.geom
                 case 'contour'
@@ -2022,23 +2224,58 @@ classdef gramm < handle
                     %Useless because there is only one colormap per subplot
                     %cmap=pa_statcolor(256,'sequential','luminancechromahue',[70 0 100 80 draw_data.hue draw_data.hue])
                     
-                    
-                    %Get polygon half widths
-                    wx=(C{1}(2)-C{1}(1))/2;
-                    wy=(C{2}(2)-C{2}(1))/2;
-                    
-                    %Generate polygon edges
-                    [X,Y] = meshgrid(C{1},C{2});
-                    X=reshape(X,1,numel(X));
-                    Y=reshape(Y,1,numel(Y));
-                    
                     Nr=reshape(N',1,numel(N));
-                    patchesx=[X(Nr>0)-wx ; X(Nr>0)-wx ; X(Nr>0)+wx ; X(Nr>0)+wx ];
-                    patchesy=[Y(Nr>0)-wy ; Y(Nr>0)+wy ; Y(Nr>0)+wy ; Y(Nr>0)-wy ];
-                    %patchesz=[Nr(Nr>0) ; Nr(Nr>0) ; Nr(Nr>0) ; Nr(Nr>0) ];
+                    sel=Nr>0;
+                    %sel=true(size(Nr));
                     
-                    %p=patch(patchesx,patchesy,patchesz,Nr(Nr>0));
-                    p=patch(patchesx,patchesy,Nr(Nr>0));
+                    if isempty(params.edges)
+                        %Get polygon half widths
+                        wx=(C{1}(2)-C{1}(1))/2;
+                        wy=(C{2}(2)-C{2}(1))/2;
+                        
+                        %Generate polygon edges
+                        [X,Y] = meshgrid(C{1},C{2});
+                        
+                        X=reshape(X,1,numel(X));
+                        Y=reshape(Y,1,numel(Y));
+                        
+                        
+                        patchesx=[X(sel)-wx ; X(sel)-wx ; X(sel)+wx ; X(sel)+wx ];
+                        patchesy=[Y(sel)-wy ; Y(sel)+wy ; Y(sel)+wy ; Y(sel)-wy ];
+                        
+                        
+                    else
+                        [Xs, Ys]=meshgrid(params.edges{1}(1:end-1),params.edges{2}(1:end-1));
+                        [Xe, Ye]=meshgrid(params.edges{1}(2:end),params.edges{2}(2:end));
+                        
+                        Xs=reshape(Xs,1,numel(Xs));
+                        Ys=reshape(Ys,1,numel(Ys));
+                        Xe=reshape(Xe,1,numel(Xe));
+                        Ye=reshape(Ye,1,numel(Ye));
+                        
+                        patchesx=[Xs(sel) ; Xs(sel) ; Xe(sel) ; Xe(sel)];
+                        patchesy=[Ys(sel) ; Ye(sel) ; Ye(sel) ; Ys(sel)];
+                        
+                        %If we have varied-size patches (we use rounding to
+                        %get away with numerical issues of unique
+                        if length(unique(round(diff(params.edges{1})*1e10)))>1 || length(unique(round(diff(params.edges{2})*1e10)))>1
+                            %Correct values by the area of each patch ?
+                            Nr=Nr./((Xe-Xs).*(Ye-Ys));
+                            obj.aes_names.color='Count/area';
+                        else
+                            obj.aes_names.color='Count';
+                        end
+                        
+                    end
+                    
+                    
+                    
+
+                    
+                    %patchesz=[Nr(sel) ; Nr(sel) ; Nr(sel) ; Nr(sel) ];
+                    
+                    %p=patch(patchesx,patchesy,patchesz,Nr(sel));
+                    p=patch(patchesx,patchesy,Nr(sel));
                     set(p,'edgeColor','none')
                     
                     %Store color values
@@ -2046,7 +2283,7 @@ classdef gramm < handle
                     obj.plot_lim.minc(obj.current_row,obj.current_column)=min(Nr);
                     
                     obj.continuous_color=true;
-                    obj.aes_names.color='Count';
+                    
                     %imagesc([C{1}(1)-(C{1}(2)-C{1}(1))/2 C{1}(end)+(C{1}(2)-C{1}(1))/2],...
                     %   [C{2}(1)-(C{2}(2)-C{2}(1))/2 C{2}(end)+(C{2}(2)-C{2}(1))/2],...
                     %   N);
