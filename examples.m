@@ -249,7 +249,8 @@ Y=[1 2 3 4 5 2 3 4 5 6 3 4 5 6 7];
 X=[1 2 3 4 5 0 1 2 3 4 -1 0 1 2 3];
 C=[1 1 1 1 1 2 2 2 2 2 2 2 2 2 2];
 
-%Note the continuous line connecting all blue data points
+%Note the continuous line connecting all blue data points, gramm can't know
+%when to start a new line in this case
 figure
 g=gramm('x',X,'y',Y,'color',C)
 g.geom_line()

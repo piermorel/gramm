@@ -207,6 +207,12 @@ classdef gramm < handle
             
         end
         
+        function obj=set_continuous_color(obj)
+            %set_continuous_color Force the use of a continuous color
+            %scheme
+            obj.continuous_color=true;
+        end
+        
         function obj=no_legend(obj)
             obj.with_legend=false;
         end
@@ -630,7 +636,6 @@ classdef gramm < handle
             %If the color is in a cell array of doubles, we set it as
             %continuous color
             if iscell(temp_aes.color) && ~iscellstr(temp_aes.color)
-                uni_color={1};
                 obj.continuous_color=true;
             else
                 uni_color=unique_no_nan(temp_aes.color);
@@ -640,8 +645,10 @@ classdef gramm < handle
                 %switch to continuous color
                 if length(uni_color)>15 && ~iscellstr(uni_color)
                     obj.continuous_color=true;
-                    uni_color={1};
                 end
+            end
+            if obj.continuous_color
+                uni_color={1};
             end
             
             uni_size=unique_no_nan(temp_aes.size);
@@ -686,8 +693,8 @@ classdef gramm < handle
             obj.plot_lim.maxx=nan(n_rows,n_columns);
             obj.plot_lim.miny=nan(n_rows,n_columns);
             obj.plot_lim.maxy=nan(n_rows,n_columns);
-            obj.plot_lim.minc=zeros(n_rows,n_columns);
-            obj.plot_lim.maxc=ones(n_rows,n_columns);
+            obj.plot_lim.minc=nan(n_rows,n_columns);
+            obj.plot_lim.maxc=nan(n_rows,n_columns);
             
             %Create color map (HSV color map)
             %cmap=colormap(hsv(length(uni_color)));
@@ -1651,21 +1658,24 @@ classdef gramm < handle
             if obj.continuous_color
                 
                 obj.plot_lim.maxc(obj.current_row,obj.current_column)=max(obj.plot_lim.maxc(obj.current_row,obj.current_column),max(comb(draw_data.continuous_color)));
-                obj.plot_lim.minc(obj.current_row,obj.current_column)=min(obj.plot_lim.maxc(obj.current_row,obj.current_column),min(comb(draw_data.continuous_color)));
+                obj.plot_lim.minc(obj.current_row,obj.current_column)=min(obj.plot_lim.minc(obj.current_row,obj.current_column),min(comb(draw_data.continuous_color)));
                 
                 
                 if iscell(x)
                     for k=1:length(x)
                         %p=patch(draw_data.x{k},draw_data.y{k},draw_data.continuous_color,'faceColor','none','EdgeColor','interp','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
                         if iscell(draw_data.continuous_color)
-                            p=patch([obj.var_lim.minx-obj.var_lim.maxx ; x{k} ; obj.var_lim.maxx*2],[obj.var_lim.miny-10 ;y{k} ; obj.var_lim.miny-10],[draw_data.continuous_color{k}(1) ; draw_data.continuous_color{k} ; draw_data.continuous_color{k}(end)],'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
+                            %p=patch([obj.var_lim.minx-obj.var_lim.maxx ; x{k} ; obj.var_lim.maxx*2],[obj.var_lim.miny-10 ;y{k} ; obj.var_lim.miny-10],[draw_data.continuous_color{k}(1) ; draw_data.continuous_color{k} ; draw_data.continuous_color{k}(end)],'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
+                           p=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],[shiftdim(y{k}) ; flipud(shiftdim(y{k}))],[shiftdim(draw_data.continuous_color{k}) ; flipud(shiftdim(draw_data.continuous_color{k}))],'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
                         else
-                           p=patch([obj.var_lim.minx-obj.var_lim.maxx ; x{k} ; obj.var_lim.maxx*2],[obj.var_lim.miny-10 ;y{k} ; obj.var_lim.miny-10],repmat(draw_data.continuous_color(k),length(x{k})+2,1),'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
+                           %p=patch([obj.var_lim.minx-obj.var_lim.maxx ; x{k} ; obj.var_lim.maxx*2],[obj.var_lim.miny-10 ;y{k} ; obj.var_lim.miny-10],repmat(draw_data.continuous_color(k),length(x{k})+2,1),'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
+                           p=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],[shiftdim(y{k}) ; flipud(shiftdim(y{k}))],repmat(draw_data.continuous_color(k),length(x{k})*2,1),'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
                         end
                     end
                 else
                     %p=patch([draw_data.x;flipud(draw_data.x)],[draw_data.y;flipud(draw_data.y)],[draw_data.continuous_color;flipud(draw_data.continuous_color)],'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
-                    p=patch([obj.var_lim.minx-obj.var_lim.maxx ; x ; obj.var_lim.maxx*2],[obj.var_lim.miny-10 ; y ; obj.var_lim.miny-10],[draw_data.continuous_color(1) ; draw_data.continuous_color ; draw_data.continuous_color(end)],'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
+                    %p=patch([obj.var_lim.minx-obj.var_lim.maxx ; x ; obj.var_lim.maxx*2],[obj.var_lim.miny-10 ; y ; obj.var_lim.miny-10],[draw_data.continuous_color(1) ; draw_data.continuous_color ; draw_data.continuous_color(end)],'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
+                    p=patch([shiftdim(x) ; flipud(shiftdim(x))],[shiftdim(y) ; flipud(shiftdim(y))],[shiftdim(draw_data.continuous_color) ; flipud(shiftdim(draw_data.continuous_color))],'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
                 end
                 
                 
@@ -2673,7 +2683,7 @@ width =(1-(marg_w(1)+marg_w(2))-(n-1)*gap(2))/n;
 % merged subplot position:
 bottom=(m-subplot_row)*(height+gap(1)) +marg_h(1);
 left=(subplot_col-1)*(width+gap(2)) +marg_w(1);
-pos_vec=[left bottom width height];
+pos_vec=abs([left bottom width height]);
 
 % h_subplot=subplot(m,n,p,varargin{:},'Position',pos_vec);
 % Above line doesn't work as subplot tends to ignore 'position' when same mnp is utilized
