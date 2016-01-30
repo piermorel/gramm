@@ -314,6 +314,7 @@ load spectra.mat
 %for y. Color applies to the M rows of y.
 g=gramm('x',900:2:1700,'y',NIR,'color',octane);
 g.set_names('x','Wavelength (nm)','y','NIR','color','octane')
+g.set_continuous_color('colormap','hot')
 g.geom_line;
 g.draw;
 

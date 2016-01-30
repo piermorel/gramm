@@ -144,6 +144,10 @@ classdef gramm < handle
             obj.multi.active=false;
             
             obj.continuous_color=false;
+            %Default to hot colormap
+            obj.continuous_color_colormap=pa_LCH2RGB([linspace(0,100,256)'...
+                repmat(100,256,1)...
+                linspace(30,90,256)']);
             
             obj.with_legend=true;
         end
@@ -207,10 +211,33 @@ classdef gramm < handle
             
         end
         
-        function obj=set_continuous_color(obj)
+        function obj=set_continuous_color(obj,varargin)
             %set_continuous_color Force the use of a continuous color
             %scheme
             obj.continuous_color=true;
+            
+            p=inputParser;
+            my_addParameter(p,'colormap','hot');
+            parse(p,varargin{:});
+            
+            switch p.Results.colormap
+                case 'hot'
+                    obj.continuous_color_colormap=pa_LCH2RGB([linspace(0,100,256)'...
+                        repmat(100,256,1)...
+                        linspace(30,90,256)']);
+                case 'parula'
+                    obj.continuous_color_colormap=colormap('parula');
+                case 'cool'
+                    obj.continuous_color_colormap=pa_LCH2RGB([linspace(0,80,256)'...
+                        repmat(100,256,1)...
+                        linspace(200,260,256)']);
+                otherwise
+                    obj.continuous_color_colormap=pa_LCH2RGB([linspace(0,100,256)'...
+                        repmat(100,256,1)...
+                        linspace(30,90,256)']);
+            end
+                
+            
         end
         
         function obj=no_legend(obj)
@@ -735,10 +762,7 @@ classdef gramm < handle
             
             %Original
             %obj.continuous_color_colormap=pa_statcolor(256,'sequential','luminancechromahue',[100 0 100 100 90 30]);
-            %Without pa_statcolor
-            obj.continuous_color_colormap=pa_LCH2RGB([linspace(0,100,256)'...
-                repmat(100,256,1)...
-                linspace(30,90,256)']);
+
             
             %Continuous blue
             %cmap=pa_statcolor(length(uni_color),'sequential','luminancechroma',[0
@@ -1068,7 +1092,7 @@ classdef gramm < handle
                     
                     
                     %Set color limits the same way on each plot
-                    %caxis([min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
+                    caxis([min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
                     
                     
                     %Ad hoc limit correction
