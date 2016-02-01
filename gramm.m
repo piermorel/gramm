@@ -1090,9 +1090,10 @@ classdef gramm < handle
                         end
                     end
                     
-                    
-                    %Set color limits the same way on each plot
-                    caxis([min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
+                    if obj.continuous_color
+                        %Set color limits the same way on each plot
+                        caxis([min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
+                    end
                     
                     
                     %Ad hoc limit correction
