@@ -46,7 +46,7 @@ Type <code>doc gramm</code> find links to the documentation of each method.
   - y data summarized by x values (uniques or binned) with confidence intervals (<code>stat_summary()</code>)
   - spline-smoothed y data with optional confidence interval (<code>stat_smooth()</code>)
   - histograms and density plots of x values (<code>stat_bin()</code> and <code>stat_density()</code>)
-  - 2D binning, histograms (<code>stat_bin2d()</code>)
+  - 2D binning (<code>stat_bin2d()</code>)
   - GLM fits (<code>stat_glm()</code>, requires statistics toolbox)
   - Ellipses of confidence (<code>stat_ellipse()</code>)
 - Subplots are created without too much empty space in between (and resize properly !)
@@ -58,6 +58,7 @@ Type <code>doc gramm</code> find links to the documentation of each method.
 - Matlabs axes properties are acessible through the method <code>axe_property()</code>
 - Custom legend labels with <code>set_names()</code>
 - Plot reference line on the plots with <code>geom_abline()</code>, <code>geom_vline()</code>,<code>geom_hline()</code>
+- Date ticks with set_datetick()
 
 ## Examples
 
