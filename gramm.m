@@ -2,6 +2,10 @@ classdef gramm < handle
     %GRAMM Implementation of the features from R's ggplot2 (GRAMmar of graphics plots) in Matlab
     % Pierre Morel 2015
     
+    properties (Access=public)
+        facet_axes_handles %Store the handles of the facet axes
+    end
+        
     properties (Access=protected)
         aes %aesthetics (contains data set by the constructor and used to generate the plots)
         aes_names %Name of the aesthetics and column/rows for the legend
@@ -42,16 +46,17 @@ classdef gramm < handle
         wrap_ncols %After how many columns do we wrap around subplots
         facet_scale %Do we have independent scales between facets ?
         
-        abline %structure containing the abline parameters: on, slope, intercept,style
+        abline %structure containing the abline parameters: on, slope, intercept,style,xintercept,yintecept
         datetick_params %cell containng datetick parameters
         current_row %What is the currently drawn row of the subplot
         current_column %What is the currently drawn column of the subplot
         continuous_color %Do we use continuous colors (rather than discrete)
         continuous_color_colormap %Store the continuous color colormap
+        color_options %Store options for generating colors
         
         with_legend %Do we have a side legend for colors etc. ?
         
-        facet_axes_handles %Store the handles of the facet axes
+        
         legend_axe_handle %Store the handle of the legend axis
         
         extra %Store extra geom-specific info
@@ -71,7 +76,8 @@ classdef gramm < handle
             %   - 'x' for the data to plot as abcissa, or the data that
             %      will be used to construct histograms/density estimates
             %   - 'y' for the data to plot as ordinate
-            %   - 'color' for the data that determines color
+            %   - 'color' for the data that determines color (hue)
+            %   - 'lightness' for the data that determines lightness
             %   - 'linestyle' for the data that determines line style
             %   - 'size' for the data that determines line/point size
             %   - 'marker' for the data that determines point shape
@@ -79,7 +85,7 @@ classdef gramm < handle
             %
             % The arguments can be of the following type, N being te number
             % of observations:
-            %   - color, linestyle, size or marker can be 1D numerical arrays
+            %   - color, lightness, linestyle, size or marker can be 1D numerical arrays
             %     or 1D cell arrays of strings of length N. Note that they are used to
             %     represent categories.
             %   - y can be a 1D numerical array of length N. It can also be
@@ -108,7 +114,7 @@ classdef gramm < handle
             obj.aes_names.size='Size';
             obj.aes_names.row='Row';
             obj.aes_names.column='Column';
-            
+            obj.aes_names.lightness='Lightness';
             
             %Initialize geoms
             obj.geom={};
@@ -126,9 +132,13 @@ classdef gramm < handle
             obj.axe_properties={};
             
             obj.abline.on=false;
-            obj.abline.slope=1;
-            obj.abline.intercept=0;
-            obj.abline.style='k-';
+            obj.abline.slope=[];
+            obj.abline.intercept=[];
+            obj.abline.xintercept=[];
+            obj.abline.yintercept=[];
+            obj.abline.style={};
+            
+
             
             obj.datetick_params={};
             
@@ -148,6 +158,12 @@ classdef gramm < handle
             obj.continuous_color_colormap=pa_LCH2RGB([linspace(0,100,256)'...
                 repmat(100,256,1)...
                 linspace(30,90,256)']);
+            
+            obj.color_options.lightness_range=[85 15];
+            obj.color_options.chroma_range=[30 90];
+            obj.color_options.hue_range=[25 385];
+            obj.color_options.lightness=60;
+            obj.color_options.chroma=70;
             
             obj.with_legend=true;
         end
@@ -211,13 +227,54 @@ classdef gramm < handle
             
         end
         
+        function obj=set_color_options(obj,varargin)
+            % set_color_options() Set options used to generate colors in
+            % the LCH colorspace
+            %
+            % Parameters
+            % 'lightness_range': 2-element vector indicating the range of 
+            % lightness values (0-100) used when generating plots with
+            % lightness variations. Default is [85 15] (light to dark)
+            % 'chroma_range': 2-element vector indicating the range of 
+            % chroma values (0-100) used when generating plots with
+            % lightness variations (chroma is the intensity of the color).
+            % Default is [30 90] (light color to deeper color)
+            % 'hue_range': 2-element vector indicating the range of 
+            % hue values (0-360) used when generating color plots. Default is
+            % [25 385] (red to blue).
+            % 'lightness': Lightness used when generating plots without
+            % lightness variations. Default is 60
+            % 'chroma': Chroma used when generating plots without chroma
+            % variations. Default is 70
+            
+            p=inputParser;
+            my_addParameter(p,'lightness_range',[85 15]);
+            my_addParameter(p,'chroma_range',[30 90]);
+            my_addParameter(p,'hue_range',[25 385]);
+            my_addParameter(p,'lightness',60);
+            my_addParameter(p,'chroma',70);
+            parse(p,varargin{:});
+            
+            obj.color_options=p.Results;
+            
+        end
+        
         function obj=set_continuous_color(obj,varargin)
             %set_continuous_color Force the use of a continuous color
             %scheme
+            %
+            % Parameters as name,value pairs:
+            % 'colormap' set continuous colormap by
+            % name: 'hot,'cool', or 'parula'
+            % 'LCH_colormap' set colormap by Lightness-Chroma-Hue values
+            % using a matrix organized this way:
+            % [L_start L_end; C_start C_end ; H_start H_end]
+            
             obj.continuous_color=true;
             
             p=inputParser;
             my_addParameter(p,'colormap','hot');
+            my_addParameter(p,'LCH_colormap',[]);
             parse(p,varargin{:});
             
             switch p.Results.colormap
@@ -236,11 +293,22 @@ classdef gramm < handle
                         repmat(100,256,1)...
                         linspace(30,90,256)']);
             end
-                
+            
+            if ~isempty(p.Results.LCH_colormap) 
+                obj.continuous_color_colormap=pa_LCH2RGB([linspace(p.Results.LCH_colormap(1,1),p.Results.LCH_colormap(1,2),256)'...
+                        linspace(p.Results.LCH_colormap(2,1),p.Results.LCH_colormap(2,2),256)'...
+                        linspace(p.Results.LCH_colormap(3,1),p.Results.LCH_colormap(3,2),256)'])        
+            end
+            
             
         end
         
         function obj=no_legend(obj)
+            % no_legend() remove side legend on the plot
+            %
+            % Useful when plotting multiple gramm objects with the same
+            % legend
+            
             obj.with_legend=false;
         end
         
@@ -271,7 +339,7 @@ classdef gramm < handle
             % axe_property Add a matlab axes property to apply to all subplots
             %
             % Example syntax: gramm_object.axe_property('ylim',[0 1])
-            % Arguments are given as a name,value pair. The accepted
+            % Arguments are given as a name,value pairs. The accepted
             % arguments are the same as in matlab's own set(gca,'propertyname',propertyvalue)
             
             if mod(nargin-1,2)==0
@@ -434,7 +502,7 @@ classdef gramm < handle
                 %glm fits we don't get cells here so the cellfuns get broken
                 if ~iscell(temp_handles)
                     temp_handles={temp_handles};
-                    facet_text_pos={facet_text_pos}
+                    facet_text_pos={facet_text_pos};
                 end
                 
                 axe_text_pos=cellfun(@(a)get(a,'Position'),temp_handles,'UniformOutput',false);
@@ -522,7 +590,7 @@ classdef gramm < handle
                     end
                 end
             end
-
+                  
         end
         
         function draw(obj)
@@ -678,6 +746,10 @@ classdef gramm < handle
                 uni_color={1};
             end
             
+            %Set lightness 
+            uni_lightness=unique_no_nan(temp_aes.lightness);
+            uni_lightness=sort(uni_lightness); %We do the sorting here 
+            
             uni_size=unique_no_nan(temp_aes.size);
             
             %Sort
@@ -696,6 +768,9 @@ classdef gramm < handle
             end
             if ~iscell(uni_color)
                 uni_color=num2cell(uni_color);
+            end
+            if ~iscell(uni_lightness)
+                uni_lightness=num2cell(uni_lightness);
             end
             if ~iscell(uni_linestyle)
                 uni_linestyle=num2cell(uni_linestyle);
@@ -747,10 +822,22 @@ classdef gramm < handle
             %Original
             %cmap=pa_statcolor(length(uni_color)+1,'sequential','luminancechromahue',[65 65 75 75 385 25]);
             %without pa_statcolor
-             cmap=pa_LCH2RGB([repmat(65,length(uni_color)+1,1) ...
-                 repmat(75,length(uni_color)+1,1)...
-                 linspace(25,385,length(uni_color)+1)']);
-            
+            %Original without lightness
+%              cmap=pa_LCH2RGB([repmat(65,length(uni_color)+1,1) ...
+%                  repmat(75,length(uni_color)+1,1)...
+%                  linspace(25,385,length(uni_color)+1)']);
+             
+if length(uni_lightness)==1
+    %Was 65,75
+    cmap=pa_LCH2RGB([repmat(linspace(obj.color_options.lightness,obj.color_options.lightness,length(uni_lightness))',length(uni_color)+1,1) ...
+        repmat(linspace(obj.color_options.chroma,obj.color_options.chroma,length(uni_lightness))',length(uni_color)+1,1)...
+        reshape(repmat(linspace(obj.color_options.hue_range(1),obj.color_options.hue_range(2),length(uni_color)+1),length(uni_lightness),1),length(uni_lightness)*(length(uni_color)+1),1)]);
+else
+    cmap=pa_LCH2RGB([repmat(linspace(obj.color_options.lightness_range(1),obj.color_options.lightness_range(2),length(uni_lightness))',length(uni_color)+1,1) ...
+        repmat(linspace(obj.color_options.chroma_range(1),obj.color_options.chroma_range(2),length(uni_lightness))',length(uni_color)+1,1)...
+        reshape(repmat(linspace(obj.color_options.hue_range(1),obj.color_options.hue_range(2),length(uni_color)+1),length(uni_lightness),1),length(uni_lightness)*(length(uni_color)+1),1)]);
+    
+end
             %pmkmp colors
             %cmap=pmkmp(length(uni_color)+1,'IsoAZ');
             
@@ -788,6 +875,7 @@ classdef gramm < handle
             
             %Create array to store handles for different line colors.
             color_handle=zeros(size(uni_color));
+            lightness_handle=zeros(size(uni_lightness));
             
             
             %Store different line styles
@@ -876,47 +964,61 @@ classdef gramm < handle
                                     end
                                     
                                     
-                                    %We create the groups only within colors and subplots for speed
-                                    uni_group=unique_no_nan(temp_aes.group(sel_color));
-                                    if isnumeric(uni_group)
-                                        uni_group=num2cell(uni_group);
-                                    end
+%                                     %We create the groups only within colors and subplots for speed
+%                                     uni_lightness=unique_no_nan(temp_aes.lightness(sel_color));
+%                                     if isnumeric(uni_lightness)
+%                                         uni_lightness=num2cell(uni_lightness);
+%                                     end
                                     
+                                    %loop over lightness
                                     
-                                    
-                                    %Loop over groups
-                                    for ind_group=1:length(uni_group)
+                                    for ind_lightness=1:length(uni_lightness)
                                         
-                                        sel=sel_color & multi_sel(temp_aes.group,uni_group{ind_group});
+                                        sel_lightness=sel_color & multi_sel(temp_aes.lightness,uni_lightness{ind_lightness});
                                         
-                                        if ~isempty(sel)
-                                            
-                                            %Loop over geoms
-                                            for geom_ind=1:length(obj.geom)
-                                                
-                                                %Fill up the draw_data
-                                                %structure passed to the
-                                                %individual geoms
-                                                draw_data.x=temp_aes.x(sel);
-                                                draw_data.y=temp_aes.y(sel);
-                                                draw_data.continuous_color=temp_aes.color(sel);
-                                                draw_data.color=cmap(ind_color,:);
-                                                %draw_data.hue=hue_map(ind_color);
-                                                draw_data.marker=markers{1+mod(ind_marker-1,length(markers))};
-                                                draw_data.line_style=line_styles{1+mod(ind_linestyle-1,length(line_styles))};
-                                                draw_data.size=sizes(ind_size);
-                                                draw_data.color_index=ind_color;
-                                                draw_data.n_colors=length(uni_color);
-                                                
-                                                obj.geom{geom_ind}(draw_data);
-                                                
-                                                
-
-                                            end
-                                            
-                                            obj.firstrun(obj.current_row,obj.current_column)=0;
+                                        %We create the groups only within lightness and subplots for speed
+                                        uni_group=unique_no_nan(temp_aes.group(sel_lightness));
+                                        if isnumeric(uni_group)
+                                            uni_group=num2cell(uni_group);
                                         end
                                         
+                                        %Loop over groups
+                                        for ind_group=1:length(uni_group)
+                                            
+                                            sel=sel_lightness & multi_sel(temp_aes.group,uni_group{ind_group});
+                                            
+                                            if ~isempty(sel)
+                                                
+                                                %Loop over geoms
+                                                for geom_ind=1:length(obj.geom)
+                                                    
+                                                    %Fill up the draw_data
+                                                    %structure passed to the
+                                                    %individual geoms
+                                                    draw_data.x=temp_aes.x(sel);
+                                                    draw_data.y=temp_aes.y(sel);
+                                                    draw_data.continuous_color=temp_aes.color(sel);
+                                                    draw_data.color=cmap((ind_color-1)*length(uni_lightness)+ind_lightness,:);
+                                                    %draw_data.hue=hue_map(ind_color);
+                                                    draw_data.marker=markers{1+mod(ind_marker-1,length(markers))};
+                                                    draw_data.line_style=line_styles{1+mod(ind_linestyle-1,length(line_styles))};
+                                                    draw_data.size=sizes(ind_size);
+                                                    %Pre lightness
+                                                    %draw_data.color_index=ind_color;
+                                                    %draw_data.n_colors=length(uni_color);
+                                                    draw_data.color_index=(ind_color-1)*length(uni_lightness)+ind_lightness;
+                                                    draw_data.n_colors=length(uni_color)*length(uni_lightness);
+                                                    
+                                                    obj.geom{geom_ind}(draw_data);
+                                                    
+                                                    
+                                                    
+                                                end
+                                                
+                                                obj.firstrun(obj.current_row,obj.current_column)=0;
+                                            end
+                                            
+                                        end
                                     end
                                 end
                             end
@@ -999,11 +1101,30 @@ classdef gramm < handle
             if obj.with_legend
                 %Color legend
                 if length(uni_color)>1
+                    color_legend_map=pa_LCH2RGB([repmat(obj.color_options.lightness,length(uni_color)+1,1) ...
+                        repmat(obj.color_options.chroma,length(uni_color)+1,1)...
+                        linspace(obj.color_options.hue_range(1),obj.color_options.hue_range(2),length(uni_color)+1)']);
                     text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none')
                     ind_scale=ind_scale-ind_scale_step;
                     for ind_color=1:length(uni_color)
-                        plot([1 2],[ind_scale ind_scale],'-','Color',cmap(ind_color,:),'lineWidth',2)
+                        plot([1 2],[ind_scale ind_scale],'-','Color',color_legend_map(ind_color,:),'lineWidth',2)
                         text(2.5,ind_scale,num2str(uni_color{ind_color}),'Interpreter','none')
+                        ind_scale=ind_scale-ind_scale_step;
+                    end
+                end
+                
+                %Lightness legend
+                if length(uni_lightness)>1
+                    
+                    lightness_legend_map=pa_LCH2RGB([linspace(obj.color_options.lightness_range(1),obj.color_options.lightness_range(2),length(uni_lightness))' ...
+                        repmat(0,length(uni_lightness),1)...
+                        repmat(0,length(uni_lightness),1)]);
+                    
+                    text(1,ind_scale,obj.aes_names.lightness,'FontWeight','bold','Interpreter','none')
+                    ind_scale=ind_scale-ind_scale_step;
+                    for ind_lightness=1:length(uni_lightness)
+                        plot([1 2],[ind_scale ind_scale],'-','Color',lightness_legend_map(ind_lightness,:),'lineWidth',2)
+                        text(2.5,ind_scale,num2str(uni_lightness{ind_lightness}),'Interpreter','none')
                         ind_scale=ind_scale-ind_scale_step;
                     end
                 end
@@ -1144,6 +1265,7 @@ classdef gramm < handle
                         
                         %Actually set the axes scales and presence of
                         %labels dependign on logic
+                        has_xtick=true;
                         switch temp_xscale
                             case 'global'
                                 xlim([min(min(obj.plot_lim.minx(:,:))) max(max(obj.plot_lim.maxx(:,:)))]);
@@ -1280,18 +1402,35 @@ classdef gramm < handle
                         end
                     end
                     
-                    %Set abline
-                    if obj.abline.on
-                        xl=get(gca,'xlim');
-                        plot(xl,xl*obj.abline.slope+obj.abline.intercept,obj.abline.style);
-                    end
-                    
 
                     %Set custom axes properties
                     if ~isempty(obj.axe_properties)
                         for ap=1:size(obj.axe_properties,1)
                             set(gca,obj.axe_properties{ap,1},obj.axe_properties{ap,2})
                         end
+                    end
+                    
+                    %Set abline (after axe properties in case the limits
+                    %are changed there
+                    if obj.abline.on
+                        for line_ind=1:length(obj.abline.intercept)
+                            if ~isnan(obj.abline.intercept(line_ind))
+                                %abline
+                                xl=get(gca,'xlim');
+                                plot(xl,xl*obj.abline.slope(line_ind)+obj.abline.intercept(line_ind),obj.abline.style{line_ind});
+                            else
+                                if ~isnan(obj.abline.xintercept(line_ind))
+                                    %vline
+                                     yl=get(gca,'ylim');
+                                     plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,obj.abline.style{line_ind});
+                                else
+                                    %hline
+                                    xl=get(gca,'xlim');
+                                    plot(xl,[obj.abline.yintercept(line_ind) obj.abline.yintercept(line_ind)],obj.abline.style{line_ind});
+                                end
+                            end
+                        end
+
                     end
                     
                     
@@ -1336,6 +1475,16 @@ classdef gramm < handle
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_point(dd)});
         end
         
+        function obj=geom_count(obj,varargin)
+            
+            p=inputParser;
+            my_addParameter(p,'scale',20);
+            my_addParameter(p,'point_color','all'); %edge,face,all
+            parse(p,varargin{:});
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_count(dd,p.Results)});
+            
+        end
+        
         function obj=geom_jitter(obj,varargin)
             % geom_jitter Display data as jittered points
             %
@@ -1352,18 +1501,53 @@ classdef gramm < handle
         end
         
         function obj=geom_abline(obj,varargin)
-            % geom_abline Display a reference line in each facet
+            % geom_abline Display y=ax+b reference lines in each facet
             %
             % Example syntax: gramm_object.geom_abline('slope',1,'intercept',0,'style','k--')
+            % 'slope' and 'intercept' can be 1D arrays of the same size in
+            % order to draw multiple lines. In that case, 'style' can
+            % either be a single style string (all lines will have the same
+            % style), or a cell array of strings to define one style per
+            % line.
             
             p=inputParser;
             my_addParameter(p,'slope',1);
             my_addParameter(p,'intercept',0);
             my_addParameter(p,'style','k--');
             parse(p,varargin{:});
-            obj.abline=p.Results;
-            obj.abline.on=true;
+            
+            obj.abline=fill_abline(obj.abline,p.Results.slope,p.Results.intercept,NaN,NaN,p.Results.style);
         end
+        
+        function obj=geom_vline(obj,varargin)
+            % geom_abline Display vertical reference lines in each facet
+            %
+            % Example syntax: gramm_object.geom_abline('xintercept',1,'style','k--')
+            % See geom_abline for details
+            
+            p=inputParser;
+            my_addParameter(p,'xintercept',0);
+            my_addParameter(p,'style','k--');
+            parse(p,varargin{:});
+            
+            obj.abline=fill_abline(obj.abline,NaN,NaN,p.Results.xintercept,NaN,p.Results.style);
+        end
+        
+        function obj=geom_hline(obj,varargin)
+            % geom_abline Display an horizontal reference lines in each facet
+            %
+            % Example syntax: gramm_object.geom_abline('yintercept',1,'style','k--')
+            % See geom_abline for details
+            
+            p=inputParser;
+            my_addParameter(p,'yintercept',0);
+            my_addParameter(p,'style','k--');
+            parse(p,varargin{:});
+            
+            obj.abline=fill_abline(obj.abline,NaN,NaN,NaN,p.Results.yintercept,p.Results.style);
+        end
+        
+        
         
         function obj=geom_raster(obj,varargin)
             % geom_raster Plot X data as a spike raster plot
@@ -1457,8 +1641,8 @@ classdef gramm < handle
             
             
             p=inputParser;
-            my_addParameter(p,'type','ci');
-            my_addParameter(p,'geom','lines');
+            my_addParameter(p,'type','ci'); %'95percentile'
+            my_addParameter(p,'geom','area');
             my_addParameter(p,'setylim',false);
             my_addParameter(p,'interp','none');
             my_addParameter(p,'interp_in',-1);
@@ -1470,7 +1654,16 @@ classdef gramm < handle
             obj.geom=vertcat(obj.geom,{@(dd)obj.mysummary(dd,p.Results)});
         end
         
-        
+        function obj=stat_ellipse(obj,varargin)
+            
+            p=inputParser;
+            my_addParameter(p,'type','95percentile'); %ci
+            my_addParameter(p,'geom','area'); %line
+            my_addParameter(p,'patch_opts',{});
+            parse(p,varargin{:});
+            
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_ellipse(dd,p.Results)});
+        end
         
         
         function obj=stat_glm(obj,varargin)
@@ -1494,7 +1687,7 @@ classdef gramm < handle
             %Accepted distributions: 'normal' (default) | 'binomial' | 'poisson' | 'gamma' | 'inverse gaussian'
             p=inputParser;
             my_addParameter(p,'distribution','normal');
-            my_addParameter(p,'geom','lines');
+            my_addParameter(p,'geom','area');
             my_addParameter(p,'fullrange',false);
             my_addParameter(p,'disp_fit',false);
             parse(p,varargin{:});
@@ -1539,9 +1732,9 @@ classdef gramm < handle
             p=inputParser;
             my_addParameter(p,'nbins',30);
             my_addParameter(p,'edges',[]);
-            my_addParameter(p,'geom','bar');
+            my_addParameter(p,'geom','bar'); %line, bar, overlaid_bar, stacked_bar,stairs, point
             my_addParameter(p,'normalization','count');
-            my_addParameter(p,'bar_color','face');
+            my_addParameter(p,'bar_color','face'); %edge,face,all,transparent
             my_addParameter(p,'bar_spacing',[]);
             parse(p,varargin{:});
 
@@ -1602,6 +1795,7 @@ classdef gramm < handle
             my_addParameter(p,'marker','Marker');
             my_addParameter(p,'row','Row');
             my_addParameter(p,'column','Column');
+            my_addParameter(p,'lightness','Lightness');
             
             parse(p,varargin{:});
             
@@ -1739,6 +1933,36 @@ classdef gramm < handle
             
             hndl=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
         end
+        
+        function hndl=my_count(obj,draw_data,params)
+            
+           if obj.continuous_color
+               disp('geom_count() unsupported with continuous color')               
+            else
+                [x,y]=obj.to_polar(comb(draw_data.x),comb(draw_data.y));
+                
+                [C,ia,ic]=unique([shiftdim(x) shiftdim(y)],'rows');
+                counts=accumarray(ic,1);
+                
+                switch params.point_color
+                    case 'face'
+                        edge='k';
+                        face=draw_data.color;
+                    case 'edge'
+                        edge=draw_data.color;
+                        face='none';
+                    otherwise
+                        edge='none';
+                        face=draw_data.color;
+                end
+                
+                hndl=scatter(C(:,1),C(:,2),counts*params.scale,draw_data.marker,'MarkerEdgeColor',edge,'MarkerFaceColor',face);
+                
+            end
+            
+            
+        end
+        
         
         function hndl=my_raster(obj,draw_data,params)
             
@@ -2005,6 +2229,57 @@ classdef gramm < handle
             
         end
         
+        function hndl=my_ellipse(obj,draw_data,params)
+            
+            
+            persistent elpoints
+
+            %Cache unity ellipse points
+            if isempty(elpoints)
+                res=30;
+                ang=0:pi/(0.5*res):2*pi;
+                elpoints=[cos(ang); sin(ang)];
+            end
+            
+            combx=shiftdim(comb(draw_data.x));
+            comby=shiftdim(comb(draw_data.y));
+            
+            if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
+                
+                r=[combx comby];
+                
+                %If a CI on the mean is requested, we replace the points
+                %with bootstrapped mean samples
+                if strcmp(params.type,'ci')
+                    r=bootstrp(1000,@nanmean,r);
+                end
+                
+                m=nanmean(r);
+                cv=nancov(r);
+                
+                %Using a chi square with 2 degrees of freedom is proper
+                %here (tested: generated ellipse do contain 1-alpha of the
+                %points)
+                k=@(alpha) sqrt(chi2inv(1-alpha,2));
+                
+                conf_elpoints=sqrtm(cv)*elpoints*k(0.05);
+                
+                switch params.geom
+                    case 'area'
+                        hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor',draw_data.color,'EdgeColor',draw_data.color,'LineWidth',2,'FaceAlpha',0.2);
+                        
+                    case 'line'
+                        hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor','none','EdgeColor',draw_data.color,'LineWidth',2);
+                end
+                hndl=set(hndl,params.patch_opts{:}); %displays a lot of stuff if we don't have an output value !
+                
+                plot(m(1),m(2),'+','MarkerFaceColor',draw_data.color,'MarkerEdgeColor',draw_data.color,'MarkerSize',10);
+                
+            else
+                warning('Not enough points for ellipse')
+            end
+        end
+        
         
         function hndl=myglm(obj,draw_data,params)
             combx=comb(draw_data.x)';
@@ -2188,6 +2463,10 @@ classdef gramm < handle
                         [obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'],...
                         [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
                     obj.extra.stacked_bar_height=obj.extra.stacked_bar_height+bincounts';
+                case 'stairs'
+                    hndl=stairs(binranges,[bincounts' bincounts(end)],'LineStyle',draw_data.line_style,'Color',draw_data.color,'lineWidth',draw_data.size/4);
+                case 'point'
+                    hndl=plot(bincenters,bincounts(1:end),draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
             end
             
         end
@@ -2247,7 +2526,7 @@ classdef gramm < handle
             switch params.geom
                 case 'contour'
                     
-                    contour(C{1},C{2},N',5,'Color',draw_data.color);
+                    hndl=contour(C{1},C{2},N',5,'Color',draw_data.color);
                     
                 case 'image'
                     %Set colormap
@@ -2310,8 +2589,8 @@ classdef gramm < handle
                     %patchesz=[Nr(sel) ; Nr(sel) ; Nr(sel) ; Nr(sel) ];
                     
                     %p=patch(patchesx,patchesy,patchesz,Nr(sel));
-                    p=patch(patchesx,patchesy,Nr(sel));
-                    set(p,'edgeColor','none')
+                    hndl=patch(patchesx,patchesy,Nr(sel));
+                    set(hndl,'edgeColor','none')
                     
                     %Store color values
                     obj.plot_lim.maxc(obj.current_row,obj.current_column)=max(Nr);
@@ -2322,6 +2601,14 @@ classdef gramm < handle
                     %imagesc([C{1}(1)-(C{1}(2)-C{1}(1))/2 C{1}(end)+(C{1}(2)-C{1}(1))/2],...
                     %   [C{2}(1)-(C{2}(2)-C{2}(1))/2 C{2}(end)+(C{2}(2)-C{2}(1))/2],...
                     %   N);
+                case 'point'
+                    [X,Y] = meshgrid(C{1},C{2});
+                    X=reshape(X,1,numel(X));
+                    Y=reshape(Y,1,numel(Y));
+                    Nr=reshape(N',1,numel(N));
+                    sel=Nr>0;
+                    hndl=point_patch(X(sel),Y(sel),Nr(sel)*(C{1}(2)-C{1}(1))/30,draw_data.color,20);
+                    %p=scatter(X(sel),Y(sel),Nr(sel),draw_data.marker,'MarkerEdgeColor',draw_data.color,'MarkerFaceColor','none');
             end
             
         end
@@ -2426,6 +2713,21 @@ classdef gramm < handle
     
 end
 
+function ab=fill_abline(ab,varargin)
+            ab.on=true;
+            
+            l=max(cellfun(@length,varargin(1:4)));
+            ab.slope(end+1:end+l)=shiftdim(varargin{1});
+            ab.intercept(end+1:end+l)=shiftdim(varargin{2});
+            ab.xintercept(end+1:end+l)=shiftdim(varargin{3});
+            ab.yintercept(end+1:end+l)=shiftdim(varargin{4});
+            if iscell(varargin{5})
+                ab.style(end+1:end+l)=shiftdim(varargin{5});
+            else
+                ab.style(end+1:end+l)=repmat({varargin{5}},l,1);
+            end
+end
+
 
 function res=comb(dat)
 %Combines data in single array if originally in cells
@@ -2491,6 +2793,7 @@ my_addParameter(p,'y',[]);
 
 % Other aesthetics are string-value pairs
 my_addParameter(p,'color',[]);
+my_addParameter(p,'lightness',[]);
 my_addParameter(p,'group',[]);
 my_addParameter(p,'linestyle',[]);
 my_addParameter(p,'size',[]);
@@ -2669,6 +2972,40 @@ else
 end
 
 end
+
+function [ h ] = point_patch(x,y,s,c,resolution)
+%point_patch Create nice looking scatter plot
+%Example point_patch(0:pi/19:2*pi,sin(0:pi/19:2*pi),(1:39)/40,[0 0 1],20)
+
+if nargin<5
+    resolution=10;
+end
+
+persistent circlex
+persistent circley
+persistent res
+
+if isempty(res) || res~=resolution
+    res=resolution;
+    circlex=cos(0:pi/(0.5*res):2*pi)/pi;
+    circley=sin(0:pi/(0.5*res):2*pi)/pi;
+end
+
+x=shiftdim(x);
+y=shiftdim(y);
+%s=shiftdim(s);
+s=sqrt(shiftdim(s)/pi);
+
+trans=@(in,shift,sz)bsxfun(@plus,bsxfun(@times,in,sz),shift);
+
+h=patch(trans(circlex,x,s)',trans(circley,y,s)',c,...
+    'EdgeColor',c,'EdgeAlpha',0.8,...
+    'FaceColor',c,'FaceAlpha',0.2)
+
+end
+
+
+
 
 function h=my_tightplot(m,n,p,gap,marg_h,marg_w,varargin)
 %function h=subtightplot(m,n,p,gap,marg_h,marg_w,varargin)

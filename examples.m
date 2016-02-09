@@ -142,8 +142,8 @@ g.draw()
 
 %Create variables
 x=randn(1200,1)-1;
-cat=repmat([1 1 1 2],300,1)
-x(cat==2)=x(cat==2)+2
+cat=repmat([1 1 1 2],300,1);
+x(cat==2)=x(cat==2)+2;
 
 %Example of different geoms
 clear g
@@ -158,6 +158,15 @@ g(2,1).stat_bin('geom','line') %Draw lines instead of bars, easier to visualize 
 
 g(2,2)=gramm('x',x,'color',cat)
 g(2,2).stat_bin('geom','overlaid_bar') %Overlaid bar automatically changes bar coloring to transparent
+
+g(1,3)=gramm('x',x,'color',cat)
+g(1,3).stat_bin('geom','point') %Overlaid bar automatically changes bar coloring to transparent
+
+
+g(2,3)=gramm('x',x,'color',cat)
+g(2,3).stat_bin('geom','stairs') %Overlaid bar automatically changes bar coloring to transparent
+
+
 
 g.draw()
 
@@ -185,17 +194,27 @@ h(1,1)=gramm('x',x,'color',cat)
 h(1,1).stat_bin('geom','overlaid_bar') %Default binning (30 bins)
 
 %Normalization to 'probability'
+h(2,1)=gramm('x',x,'color',cat)
+h(2,1).stat_bin('normalization','probability','geom','overlaid_bar')
+
+%Normalization to cumulative count
 h(1,2)=gramm('x',x,'color',cat)
-h(1,2).stat_bin('normalization','probability','geom','overlaid_bar')
+h(1,2).stat_bin('normalization','cumcount','geom','stairs')
+
+%Normalization to cumulative density
+h(2,2)=gramm('x',x,'color',cat)
+h(2,2).stat_bin('normalization','cdf','geom','stairs')
 
 %Custom edges for the bins
-h(2,1)=gramm('x',x,'color',cat)
-h(2,1).stat_bin('edges',-1:0.5:10,'geom','overlaid_bar')
+h(1,3)=gramm('x',x,'color',cat)
+h(1,3).stat_bin('edges',-1:0.5:10,'geom','overlaid_bar')
 
 %Custom edges with non-constand width (normalization 'countdensity'
 %recommended)
-h(2,2)=gramm('x',x,'color',cat)
-h(2,2).stat_bin('geom','overlaid_bar','normalization','countdensity','edges',[-5 -4 -2 -1 -0.5 -0.25 0 0.25 0.5  1 2 4 5])
+h(2,3)=gramm('x',x,'color',cat)
+h(2,3).stat_bin('geom','overlaid_bar','normalization','countdensity','edges',[-5 -4 -2 -1 -0.5 -0.25 0 0.25 0.5  1 2 4 5])
+
+
 
 h.draw()
 
