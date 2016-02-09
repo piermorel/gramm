@@ -34,27 +34,30 @@ Type <code>doc gramm</code> find links to the documentation of each method.
 - Accepts x and y data as arrays, matrices or cells of arrays
 - Accepts grouping data as arrays or cellstr
 - Multiple ways of separating data by groups: 
-  - Colors, point markers, line styles, and point/line size (<code>'color'</code>, <code>'marker'</code>, <code>'linestyle'</code>,  <code>'size'</code>)
+  - Colors, lightness, point markers, line styles, and point/line size (<code>'color'</code>, <code>'lightness'</code>, <code>'marker'</code>, <code>'linestyle'</code>,  <code>'size'</code>)
   - Subplots by row and/or columns, or wrapping columns (<code>facet_grid()</code> and <code>facet_wrap()</code>)
 - Multiple ways of directly plotting the data: 
   - scatter plots (<code>geom_point()</code>) and jittered scatter plot (<code>geom_jitter()</code>)
   - lines (<code>geom_line()</code>)
   - bars plots (<code>geom_bar()</code>)
   - raster plots (<code>geom_raster()</code>)
+  - point counts (<code>point_count()</code>)
 - Multiple ways of plotting transformed data:
   - y data summarized by x values (uniques or binned) with confidence intervals (<code>stat_summary()</code>)
   - spline-smoothed y data with optional confidence interval (<code>stat_smooth()</code>)
   - histograms and density plots of x values (<code>stat_bin()</code> and <code>stat_density()</code>)
-  - 2D binning (<code>stat_bin2d()</code>)
+  - 2D binning, histograms (<code>stat_bin2d()</code>)
   - GLM fits (<code>stat_glm()</code>, requires statistics toolbox)
+  - Ellipses of confidence (<code>stat_ellipse()</code>)
 - Subplots are created without too much empty space in between (and resize properly !)
 - Polar plots (<code>set_polar()</code>)
 - Color data can also be displayed as a continous variable, not as a grouping factor (<code>set_continuous_color()</code>)
+- Possibility to customize color generations in the LCH color space (<code>set_color_options()</code>)
 - Confidence intervals as shaded areas, error bars or thin lines
 - Multiple gramm plots can be combined in the same figure by creatin a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix.
 - Matlabs axes properties are acessible through the method <code>axe_property()</code>
 - Custom legend labels with <code>set_names()</code>
-- Plot reference line on the plots with <code>geom_abline()</code>
+- Plot reference line on the plots with <code>geom_abline()</code>, <code>geom_vline()</code>,<code>geom_hline()</code>
 
 ## Examples
 
