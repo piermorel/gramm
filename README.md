@@ -48,6 +48,7 @@ Type <code>doc gramm</code> find links to the documentation of each method.
   - histograms and density plots of x values (<code>stat_bin()</code> and <code>stat_density()</code>)
   - 2D binning (<code>stat_bin2d()</code>)
   - GLM fits (<code>stat_glm()</code>, requires statistics toolbox)
+  - Custom fits with user-provided anonymous function (<code>stat_fit()</code>)
   - Ellipses of confidence (<code>stat_ellipse()</code>)
 - Subplots are created without too much empty space in between (and resize properly !)
 - Polar plots (<code>set_polar()</code>)
