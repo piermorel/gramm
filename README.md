@@ -65,25 +65,31 @@ Type <code>doc gramm</code> find links to the documentation of each method.
 
 ### Multiple gramm objects in a single figure 
 Also shows histograms, categorical x values
+
 <img src="/img/multiple_gramm_example.png" alt="Multiple gramm" width="800">
 
 ### GLM fits (carbig data) ###
 <code>stat_glm()</code>
+
 <img src="/img/carbig_glm_example.png" alt="GLM fits" width="500">
 
 ### Custom fits ###
 <code>stat_fit()</code>
+
 <img src="/img/fit_example.png" alt="Custom fits" width="500">
 
 ### Histograms ###
 <code>stat_bin()</code> with different <code>'geom'</code> options: <code>'bar'</code>, <code>'stacked_bar'</code>,<code>'point'</code>,<code>'line'</code>, <code>'overlaid_bar'</code>,<code>'stairs'</code>
+
 <img src="/img/histograms_example.png" alt="Histograms example" width="500">
 
 ### 2D density visualizations ###
 <code>stat_ellipse()</code> and <code>stat_bin2d()</code> with <code>'geom'</code> set to <code>'contour'</code>,<code>'point'</code>,<code>'image'</code>
+
 <img src="/img/2D_densities_example.png" alt="2D density" width="500">
 
 ### Continuous colors
+
 <img src="/img/continuous_color_example.png" alt="Continuous colors" width="500">
 
 ## Acknowledgements
