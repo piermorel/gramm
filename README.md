@@ -25,7 +25,7 @@ g.draw() %Draw method
 ### Installation
 Add the folder containing gramm.m to your path
 ### Compatibility
-Tested under Matlab 2015 versions. The statistics toolbox is required for some methods: <code>stat_glm()</code>, some <code>stat_summary()</code> methods, <code>stat_density()</code>
+Tested under Matlab 2015 versions. The statistics toolbox is required for some methods: <code>stat_glm()</code>, some <code>stat_summary()</code> methods, <code>stat_density()</code>. The curve fitting toolbox is required for <code>stat_fit()</code/>.
 #### Documentation
 Type <code>doc gramm</code> find links to the documentation of each method.
 
