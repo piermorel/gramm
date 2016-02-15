@@ -344,34 +344,38 @@ y=x+randn(1,N);
 test=repmat([0 1 0 0],1,N/4);
 y(test==0)=y(test==0)+3;
 
-%Plot points
-g(1,1)=gramm('x',x,'y',y,'color',test,'size',3)
+    clear g
+
+% Display points and 95% percentile confidence ellipse
+g(1,1)=gramm('x',x,'y',y,'color',test,'size',2)
+g(1,1).set_names('color','grp')
 g(1,1).geom_point()
+%'patch_opts' can be used to provide more options to the patch() internal
+%call
+g(1,1).stat_ellipse('type','95percentile','geom','area','patch_opts',{'FaceAlpha',0.1,'LineWidth',2})
 
 %Plot point density as contour plot
 g(1,2)=gramm('x',x,'y',y,'color',test)
 g(1,2).stat_bin2d('nbins',[10 10],'geom','contour')
-
-%Plot density as heatmaps (Heatmaps don't work with multiple colors, so we separate
-%the categories with facets). With the heatmap we see better the
-%distribution in high-density areas
-g(1,3)=gramm('x',x,'y',y)
-g(1,3).facet_grid([],test)
-g(1,3).stat_bin2d('nbins',[20 20],'geom','image')
-g(1,3).set_continuous_color('LCH_colormap',[0 100 ; 100 20 ;30 20]) %Let's try a custom LCH colormap !
+g(1,2).set_names('color','grp')
 
 %Plot density as point size (looks good only when axes have the same
 %scale, hence the 'DataAspectRatio' option, equivalent to axis equal)
 g(2,1)=gramm('x',x,'y',y,'color',test)
 g(2,1).stat_bin2d('nbins',{-10:0.4:10 ; -10:0.4:10},'geom','point')
 g(2,1).axe_property('DataAspectRatio',[1 1 1])
+g(2,1).set_names('color','grp')
 
-% Display points and 95% percentile confidence ellipse
-g(2,2)=gramm('x',x,'y',y,'color',test,'size',3)
-g(2,2).geom_point()
-%'patch_opts' can be used to provide more options to the patch() internal
-%call
-g(2,2).stat_ellipse('type','95percentile','geom','area','patch_opts',{'FaceAlpha',0.1,'LineWidth',2})
+%Plot density as heatmaps (Heatmaps don't work with multiple colors, so we separate
+%the categories with facets). With the heatmap we see better the
+%distribution in high-density areas
+g(2,2)=gramm('x',x,'y',y)
+g(2,2).facet_grid([],test)
+g(2,2).stat_bin2d('nbins',[20 20],'geom','image')
+g(2,2).set_continuous_color('LCH_colormap',[0 100 ; 100 20 ;30 20]) %Let's try a custom LCH colormap !
+g(2,2).set_names('column','grp','color','count')
+
+
 g.draw()
 
 %% stat_glm examples (statistics toolbox required)
@@ -413,7 +417,7 @@ g.draw()
 fun=@(alpha,beta,gamma,x)alpha*exp(cos(x-beta)*gamma);
 
 %Create X and categories
-x=repmat(linspace(0,4*pi,100),1,20);
+x=repmat(linspace(0,3*pi,100),1,20);
 cat=repmat([1 2],1,1000);
 
 %Create Y from function and categories, add noise
