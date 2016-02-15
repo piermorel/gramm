@@ -119,11 +119,7 @@ classdef gramm < handle
             %Initialize geoms
             obj.geom={};
             
-            %Initialize facets (using the size of x so that y can be
-            %ignored in arguments)
-            %obj.row_facet=ones(size(obj.aes.x));
-            %obj.col_facet=ones(size(obj.aes.x));
-            %Create empty for now 
+            %Initialize facets
             obj.row_facet=[];
             obj.col_facet=[];
             obj.facet_scale='fixed';
@@ -196,24 +192,43 @@ classdef gramm < handle
             
             row=shiftdim(row);
             col=shiftdim(col);
-%             if isempty(row)
-%                 obj.row_facet=ones(size(obj.aes.x));
-%             else
-                obj.row_facet=row;
-%             end
-%             if isempty(col)
-%                 obj.col_facet=ones(size(obj.aes.x));
-%             else
-                obj.col_facet=col;
-%             end
+            obj.row_facet=row;
+            obj.col_facet=col;
             obj.wrap_ncols=-1;
         end
+        
+        function obj=facet_wrap(obj,col,varargin)
+            % facet_grid Create subplots according to one factor, with wrap
+            %
+            % Example syntax (default arguments): gramm_object.facet_wrap(variable,'ncols',4,'scale','fixed')
+            % This is similar to faced_grid except that only one variable
+            % is given, and subplots are arranged by column, with a wrap
+            % around to the tnext row after 'ncols' columns.
+            
+            p=inputParser;
+            my_addParameter(p,'ncols',4);
+            my_addParameter(p,'scale','fixed'); %options 'free' 'free_x' 'free_y'
+            parse(p,varargin{:});
+            
+            obj.facet_scale=p.Results.scale;
+            
+            col=shiftdim(col);
+            obj.wrap_ncols=p.Results.ncols;
+            obj.col_facet=col;
+            obj.row_facet=ones(size(obj.aes.y));
+        end
+        
         
         function obj=set_polar(obj,varargin)
             % set_polar Activate polar axes
             %
             % This command changes axes to polar form. 'x' then corresponds
             % to theta
+            % Additional parameters:
+            % 'closed': When plotting lines, connect the first
+            % and last points when set to true
+            % 'maxy': set the maximum y value (automatic scaling can't work
+            % properly on polar plots.
             
             obj.polar.is_polar=true;
             
@@ -229,16 +244,16 @@ classdef gramm < handle
         
         function obj=set_color_options(obj,varargin)
             % set_color_options() Set options used to generate colors in
-            % the LCH colorspace
+            % the LCH (Lightness-Chroma-Hue) colorspace
             %
-            % Parameters
+            % Parameters:
             % 'lightness_range': 2-element vector indicating the range of 
             % lightness values (0-100) used when generating plots with
             % lightness variations. Default is [85 15] (light to dark)
             % 'chroma_range': 2-element vector indicating the range of 
             % chroma values (0-100) used when generating plots with
             % lightness variations (chroma is the intensity of the color).
-            % Default is [30 90] (light color to deeper color)
+            % Default is [30 90] (weak color to deeper color)
             % 'hue_range': 2-element vector indicating the range of 
             % hue values (0-360) used when generating color plots. Default is
             % [25 385] (red to blue).
@@ -312,27 +327,7 @@ classdef gramm < handle
             obj.with_legend=false;
         end
         
-        function obj=facet_wrap(obj,col,varargin)
-            % facet_grid Create subplots according to one factor, with wrap
-            %
-            % Example syntax (default arguments): gramm_object.facet_wrap(variable,'ncols',4,'scale','fixed')
-            % This is similar to faced_grid except that only one variable
-            % is given, and subplots are arranged by column, with a wrap
-            % around to the tnext row after 'ncols' columns.
-            
-            p=inputParser;
-            my_addParameter(p,'ncols',4);
-            my_addParameter(p,'scale','fixed'); %options 'free' 'free_x' 'free_y'
-            parse(p,varargin{:});
-            
-            obj.facet_scale=p.Results.scale;
-            
-            col=shiftdim(col);
-            obj.wrap_ncols=p.Results.ncols;
-            obj.col_facet=col;
-            obj.row_facet=ones(size(obj.aes.y));
-        end
-        
+
         
         
         function obj=axe_property(obj,varargin)
@@ -719,9 +714,6 @@ classdef gramm < handle
             %legend
             mysubplot_wrap=@(ncol,col)mysubtightplot(ceil(ncol/obj.wrap_ncols),obj.wrap_ncols,col,[0.09 0.03],[0.1 0.08],[0.1 0.2]);
             
-
-
-            
             %Find uniques in aesthetics
             uni_row=unique_no_nan(temp_row_facet);
             uni_column=unique_no_nan(temp_col_facet);
@@ -811,22 +803,8 @@ classdef gramm < handle
             %             ind_color=makecform('lab2srgb');
             %             cmap=applycform(map,ind_color);
             
-            %Create color map (version found on  https://code.google.com/p/p-and-a/
-            %cmap=pa_statcolor(length(uni_color),'qualitative','harmonic',[])
-            %cmap=pa_statcolor(length(uni_color),'qualitative','dynamic',[]);
-            
-            %Categorical
-            %cmap=pa_statcolor(length(uni_color),'qualitative','full',[]);
-            
-            %PA colors
-            %Original
-            %cmap=pa_statcolor(length(uni_color)+1,'sequential','luminancechromahue',[65 65 75 75 385 25]);
-            %without pa_statcolor
-            %Original without lightness
-%              cmap=pa_LCH2RGB([repmat(65,length(uni_color)+1,1) ...
-%                  repmat(75,length(uni_color)+1,1)...
-%                  linspace(25,385,length(uni_color)+1)']);
-             
+% Generate colormap using low-level function found on https://code.google.com/p/p-and-a/
+
 if length(uni_lightness)==1
     %Was 65,75
     cmap=pa_LCH2RGB([repmat(linspace(obj.color_options.lightness,obj.color_options.lightness,length(uni_lightness))',length(uni_color)+1,1) ...
@@ -838,39 +816,10 @@ else
         reshape(repmat(linspace(obj.color_options.hue_range(1),obj.color_options.hue_range(2),length(uni_color)+1),length(uni_lightness),1),length(uni_lightness)*(length(uni_color)+1),1)]);
     
 end
-            %pmkmp colors
-            %cmap=pmkmp(length(uni_color)+1,'IsoAZ');
-            
-            
-            %hue_map=linspace(385,25,length(uni_color)+1);
-            
-            %obj.continuous_color_colormap=pa_statcolor(256,'sequential','luminancechromahue',[100 0 100 80 240 240]);
-            %obj.continuous_color_colormap=pa_statcolor(256,'sequential','luminancechromahue',[100 0 30 100 240 240]);
-            
-            %Original
-            %obj.continuous_color_colormap=pa_statcolor(256,'sequential','luminancechromahue',[100 0 100 100 90 30]);
 
-            
-            %Continuous blue
-            %cmap=pa_statcolor(length(uni_color),'sequential','luminancechroma',[0
-            %100 100 240]); %White to dark blue
-            %cmap=pa_statcolor(length(uni_color),'sequential','luminancechromahue',[90 0 10 100 240 240]); %Light blue to dark blue
-            
-            %Diverging red-blue
-            %cmap=pa_statcolor(length(uni_color),'diverging',[],[00 100 100 260 30]);
-            
-            %Visualize cmap
-            %image(reshape(cmap,length(cmap),1,3))
-            
-            %cmap=pa_statcolor(length(uni_color),'sequential','luminance',[]);
-            %cmap=pa_statcolor(length(uni_color),'sequential','luminancechroma',[0 100 100 240]);
-            %cmap=pa_statcolor(length(uni_color),'sequential','luminancechromahue',[0 100 100 100 30 90]);
-            %cmap=pa_statcolor(length(uni_color),'sequential','luminancechromahue',[70 70 70 70 0 360]);
-            
             %R2014 colormap
             %cmap=colormap('lines');
             %cmap=cmap(1:length(uni_color)+1,:);
-            %obj.continuous_color_colormap=colormap('parula');
             
             
             %Create array to store handles for different line colors.
@@ -963,15 +912,7 @@ end
                                         sel_color=sel_size & multi_sel(temp_aes.color,uni_color{ind_color});
                                     end
                                     
-                                    
-%                                     %We create the groups only within colors and subplots for speed
-%                                     uni_lightness=unique_no_nan(temp_aes.lightness(sel_color));
-%                                     if isnumeric(uni_lightness)
-%                                         uni_lightness=num2cell(uni_lightness);
-%                                     end
-                                    
                                     %loop over lightness
-                                    
                                     for ind_lightness=1:length(uni_lightness)
                                         
                                         sel_lightness=sel_color & multi_sel(temp_aes.lightness,uni_lightness{ind_lightness});
@@ -989,29 +930,24 @@ end
                                             
                                             if ~isempty(sel)
                                                 
+                                                %Fill up the draw_data
+                                                %structure passed to the
+                                                %individual geoms
+                                                draw_data.x=temp_aes.x(sel);
+                                                draw_data.y=temp_aes.y(sel);
+                                                draw_data.continuous_color=temp_aes.color(sel);
+                                                draw_data.color=cmap((ind_color-1)*length(uni_lightness)+ind_lightness,:);
+                                                draw_data.marker=markers{1+mod(ind_marker-1,length(markers))};
+                                                draw_data.line_style=line_styles{1+mod(ind_linestyle-1,length(line_styles))};
+                                                draw_data.size=sizes(ind_size);
+                                                draw_data.color_index=(ind_color-1)*length(uni_lightness)+ind_lightness;
+                                                draw_data.n_colors=length(uni_color)*length(uni_lightness);
+                                                
                                                 %Loop over geoms
                                                 for geom_ind=1:length(obj.geom)
                                                     
-                                                    %Fill up the draw_data
-                                                    %structure passed to the
-                                                    %individual geoms
-                                                    draw_data.x=temp_aes.x(sel);
-                                                    draw_data.y=temp_aes.y(sel);
-                                                    draw_data.continuous_color=temp_aes.color(sel);
-                                                    draw_data.color=cmap((ind_color-1)*length(uni_lightness)+ind_lightness,:);
-                                                    %draw_data.hue=hue_map(ind_color);
-                                                    draw_data.marker=markers{1+mod(ind_marker-1,length(markers))};
-                                                    draw_data.line_style=line_styles{1+mod(ind_linestyle-1,length(line_styles))};
-                                                    draw_data.size=sizes(ind_size);
-                                                    %Pre lightness
-                                                    %draw_data.color_index=ind_color;
-                                                    %draw_data.n_colors=length(uni_color);
-                                                    draw_data.color_index=(ind_color-1)*length(uni_lightness)+ind_lightness;
-                                                    draw_data.n_colors=length(uni_color)*length(uni_lightness);
-                                                    
+                                                    %Call each geom !
                                                     obj.geom{geom_ind}(draw_data);
-                                                    
-                                                    
                                                     
                                                 end
                                                 
@@ -1298,78 +1234,6 @@ end
                                 ylim([obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)]);
                         end
                                
-%                         
-%                         if strcmp(obj.facet_scale,'fixed')
-%                             %Global scale for both axes
-%                             xlim([min(min(obj.plot_lim.minx(:,:))) max(max(obj.plot_lim.maxx(:,:)))])
-%                             ylim([min(min(obj.plot_lim.miny(:,:))) max(max(obj.plot_lim.maxy(:,:)))])
-%                         end
-%                         
-%                         if strcmp(obj.facet_scale,'free_x')
-%                             if (obj.wrap_ncols>0) 
-%                                 %Per plot X scale if wrap
-%                                 xlim([obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)])
-%                             else
-%                                 %Per column X scale if grid
-%                                 xlim([min(obj.plot_lim.minx(:,ind_column)) max(obj.plot_lim.maxx(:,ind_column))])
-%                             end
-%                             %Global scale for Y
-%                             ylim([min(min(obj.plot_lim.miny(:,:))) max(max(obj.plot_lim.maxy(:,:)))])
-%                         end
-%                         
-%                         if strcmp(obj.facet_scale,'free_y')
-%                             %Global scale for X
-%                             xlim([min(min(obj.plot_lim.minx(:,:))) max(max(obj.plot_lim.maxx(:,:)))])
-%                             
-%                             if (obj.wrap_ncols>0)
-%                                 %Per plot Y scale if wrap
-%                                 ylim([obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)])
-%                             else
-%                                 %Per row Y scale if grid
-%                                 ylim([min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))])
-%                             end
-%                         end
-%                         
-%                         if strcmp(obj.facet_scale,'free')
-%                             if (obj.wrap_ncols>0)
-%                                 %Per plot X and Y scale if wrap (becomes
-%                                 %like independant)
-%                                 xlim([obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)])
-%                                 ylim([obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)])
-%                             else
-%                                 %Per row X and Y scale if grid
-%                                 xlim([min(obj.plot_lim.minx(:,ind_column)) max(obj.plot_lim.maxx(:,ind_column))])
-%                                 ylim([min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))])
-%                             end
-%                         end
-%                         
-%                         has_xtick=true;
-%                         if strcmp(obj.facet_scale,'independent') || isempty(obj.facet_scale)
-%                             xlim([obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)])
-%                             ylim([obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)])
-%                         else
-%                             %Remove tick labels within the plot if similar over
-%                             %row or column
-%                             if (obj.wrap_ncols>0) %Special case for facet wrap 
-%                                 if (mod(ind_column,obj.wrap_ncols)~=1) &&  ~strcmp(obj.facet_scale,'free_y') && ~strcmp(obj.facet_scale,'free') && ~strcmp(obj.facet_scale,'independant')
-%                                     set(gca,'YTickLabel','');
-%                                 end
-%                                 if (length(uni_column)-ind_column)>=obj.wrap_ncols  &&  ~strcmp(obj.facet_scale,'free_x') &&  ~strcmp(obj.facet_scale,'free') && ~strcmp(obj.facet_scale,'independant')
-%                                     set(gca,'XTickLabel','');
-%                                     has_xtick=false;
-%                                 end
-%                             else
-%                                 if ind_column~=1
-%                                     set(gca,'YTickLabel','');
-%                                 end
-%                                 if ind_row~=length(uni_row)
-%                                     set(gca,'XTickLabel','');
-%                                     has_xtick=false;
-%                                 end
-%                             end
-%                         end
-%                         
-                        
                         %Set appropriate x ticks if labeled
                         if obj.x_factor
                             temp_xlim=get(gca,'xlim');
@@ -1410,7 +1274,7 @@ end
                         end
                     end
                     
-                    %Set abline (after axe properties in case the limits
+                    %Set ablines, hlines and vlines (after axe properties in case the limits
                     %are changed there
                     if obj.abline.on
                         for line_ind=1:length(obj.abline.intercept)
@@ -1458,10 +1322,8 @@ end
             % geom_line Display data as lines
             %
             % This will add a layer that will display data as lines
-            % If the data is not properly grouped things can look weird.
+            % If the data is not properly grouped/ordered things can look weird.
             
-            %obj.geom=vertcat(obj.geom,{@(x,y,c,s,lt,sz,bs)cellfun(@(x,y)plot(x,y,'LineStyle',lt,'Color',c,'lineWidth',sz/4),tocell(x),tocell(y))});
-            %obj.geom=vertcat(obj.geom,{@(dd)cellfun(@(x,y)plot(x,y,'LineStyle',dd.line_style,'Color',dd.color,'lineWidth',dd.size/4),tocell(dd.x),tocell(dd.y))});
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_line(dd)});
         end
         
@@ -1470,12 +1332,17 @@ end
             %
             % This will add a layer that will display data as points
             
-            %obj.geom=vertcat(obj.geom,{@(x,y,c,s,lt,sz,bs)plot(comb(x),comb(y),s,'MarkerEdgeColor','none','markerSize',sz,'MarkerFaceColor',c)});
-            %obj.geom=vertcat(obj.geom,{@(dd)plot(comb(dd.x),comb(dd.y),dd.marker_marker,'MarkerEdgeColor','none','markerSize',dd.size,'MarkerFaceColor',dd.color)});
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_point(dd)});
         end
         
         function obj=geom_count(obj,varargin)
+            %geom_count Display data as points which size vary with with
+            %count
+            %
+            % Parameters:
+            % 'scale': set the scaling factor between count and area
+            % 'point_color': set how the points are colored 'edge', 'face',
+            % 'all'
             
             p=inputParser;
             my_addParameter(p,'scale',20);
@@ -1497,6 +1364,7 @@ end
             my_addParameter(p,'width',0.2);
             my_addParameter(p,'height',0.2);
             parse(p,varargin{:});
+            
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_jitter(dd,p.Results)});
         end
         
@@ -1550,7 +1418,7 @@ end
         
         
         function obj=geom_raster(obj,varargin)
-            % geom_raster Plot X data as a spike raster plot
+            % geom_raster Plot X data as a raster plot
             %
             % Option 'geom': 'line' or 'point'
             p=inputParser;
@@ -1572,8 +1440,8 @@ end
             my_addParameter(p,'lambda',1000);
             my_addParameter(p,'geom','lines');
             parse(p,varargin{:});
-            %obj.geom=vertcat(obj.geom,{@(x,y,c,s,lt,sz,bs)obj.mysmooth(x,y,c,lt,sz,p.Results.lambda,p.Results.geom)});
-            obj.geom=vertcat(obj.geom,{@(dd)obj.mysmooth(dd,p.Results)});
+            
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_smooth(dd,p.Results)});
         end
         
         
@@ -1611,7 +1479,7 @@ end
             %       - 'area': displays a line that connects the locations
             %       and a transparent area for the variabilities. WARNING:
             %       this changes the renderer to opengl and disables proper
-            %       vector output.
+            %       vector output on older matlab versions
             %       - 'solid_area': displays a line that connects the locations
             %       and a solid area for the variabilities. Use this for
             %       export to vector output.
@@ -1649,13 +1517,24 @@ end
             my_addParameter(p,'bin_in',-1);
             parse(p,varargin{:});
             
-            %obj.geom=vertcat(obj.geom,{@(x,y,c,s,lt,sz,bs)obj.mysummary(comb(x),comb(y),c,lt,sz,p.Results.type,p.Results.geom)})
-            %obj.geom=vertcat(obj.geom,{@(x,y,c,s,lt,sz,bs)obj.mysummary(x,y,c,lt,sz,p.Results.type,p.Results.geom,p.Results.setylim)})
-            obj.geom=vertcat(obj.geom,{@(dd)obj.mysummary(dd,p.Results)});
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_summary(dd,p.Results)});
         end
         
         function obj=stat_ellipse(obj,varargin)
-            
+            %stat_ellipse() Create confidence ellipses around 2D groups of
+            % points
+            %
+            % Parameters:
+            % 'type': The default '95percentile' displays an ellipse that
+            % contains 95% of the points (assuming a bivariate normal
+            % distribution). The option 'ci' will first compute boostrapped
+            % 2D means and plot the 95% ellipse around these means
+            % 'geom': Sets how to display the result 'area' for a shaded
+            % area or 'line' for a simple contour line.
+            % 'patch_opts': Provide additional patch properties as name-value 
+            % pairs in a cell array (as if those were options for Matlab's
+            % built in patch() function)
+
             p=inputParser;
             my_addParameter(p,'type','95percentile'); %ci
             my_addParameter(p,'geom','area'); %line
@@ -1691,8 +1570,36 @@ end
             my_addParameter(p,'fullrange',false);
             my_addParameter(p,'disp_fit',false);
             parse(p,varargin{:});
-            %obj.geom=vertcat(obj.geom,{@(x,y,c,s,lt,sz,bs)obj.myglm(x,y,c,lt,sz,p.Results.distribution,p.Results.geom,p.Results.fullrange)});
-            obj.geom=vertcat(obj.geom,{@(dd)obj.myglm(dd,p.Results)});
+            
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_glm(dd,p.Results)});
+        end
+        
+        function obj=stat_fit(obj,varargin)
+            % stat_fit() Display a custom fit of the data
+            %
+            % Example syntax gramm_object.stat_fit('fun',@(alpha,beta,x)alpha*cos(x-beta),'disp_fit',true)
+            %
+            % This fuction uses the curve fitting toolbox function fit() to
+            % fit a provided anonymous function with arguments
+            % (param1,param2,...paramN,x) to the data. 
+            % Parameters:
+            % - 'fun': anonymous function used for the fit
+            % - 'StartPoint': Array containing starting values for the
+            % parameter to be fitted [start_param1,start_param2,...start_paramN]
+            % - 'intopt': Option passed to predint() for the type of bounds
+            % to compute, 'observation' for bounds of a new observation
+            % (default), or 'functional' for bounds of the fitted curve.
+            % - 'geom', 'fullrange', 'disp_fit' options: see stat_glm()
+            
+            p=inputParser;
+            my_addParameter(p,'fun',@(a,b,x)a*x+b);
+            my_addParameter(p,'StartPoint',[]);
+            my_addParameter(p,'intopt','observation');
+            my_addParameter(p,'geom','area');
+            my_addParameter(p,'fullrange',false);
+            my_addParameter(p,'disp_fit',false);
+            parse(p,varargin{:});
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_fit(dd,p.Results)});
         end
         
         
@@ -1710,7 +1617,7 @@ end
             my_addParameter(p,'stacked',false);
             parse(p,varargin{:});
             
-            obj.geom=vertcat(obj.geom,{@(dd)obj.mybar(dd,p.Results)});
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_bar(dd,p.Results)});
             
         end
         
@@ -1720,40 +1627,69 @@ end
             % geom_point Displays an histogram of the data in x
             %
             % Example syntax (default arguments): gramm_object.stat_bin('nbins',30,'geom','bar')
-            % 'geom' can be 'bar', 'overlaid_bar' or 'line' or 'stacked_bar'
+            % 'geom' can be 'bar', 'overlaid_bar', 'line', 'stairs', 'point' or 'stacked_bar'
             % The 'normalization' argument allows to optionally normalize
             % the bin counts (see the doc for Matlab's histcounts() ).
             % Default is 'count', for normalization to 1 use 'probability'
             % Instead of 'nbins', it is possible to directly specify bin
             % edges with 'edges'. If the specified bin widths are not
             % equal, it's recommended to use 'countdensity'
-            % or 'pdf' for normalization
+            % or 'pdf' for normalization. Aspect of the geoms can be
+            % customized with the 'fill' option
+            % ('edge','face','all','transparent')
             
             p=inputParser;
             my_addParameter(p,'nbins',30);
             my_addParameter(p,'edges',[]);
             my_addParameter(p,'geom','bar'); %line, bar, overlaid_bar, stacked_bar,stairs, point
             my_addParameter(p,'normalization','count');
-            my_addParameter(p,'bar_color','face'); %edge,face,all,transparent
+            my_addParameter(p,'fill',[]); %edge,face,all,transparent
             my_addParameter(p,'bar_spacing',[]);
             parse(p,varargin{:});
 
-
-            %obj.geom=vertcat(obj.geom,{@(x,y,c,s,lt,sz,bs)obj.mybin(comb(x),p.Results.nbins,c,lt,sz,bs,p.Results.geom)});
-            obj.geom=vertcat(obj.geom,{@(dd)obj.mybin(dd,p.Results)});
+            temp=p.Results;
+            
+            %Set up default fill options for the different geoms
+            if isempty(temp.fill)
+                switch temp.geom
+                    case 'bar'
+                        temp.fill='face';
+                    case 'line'
+                        temp.fill='edge';
+                    case 'overlaid_bar'
+                        temp.fill='transparent';
+                    case 'stacked_bar'
+                        temp.fill='face';
+                    case 'stairs'
+                        temp.fill='edge';
+                    case 'point'
+                        temp.fill='edge';
+                end
+            end
+            
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_bin(dd,temp)});
         end
         
         function obj=stat_bin2d(obj,varargin)
+            % stat_bin2d() Makes 2D bins of X and Y data and displays count
+            %
+            % Parameters as 'name',value pairs:
+            % - 'nbins': Array in the form of [nxbins nybins] to set the
+            % number of bins in each dimension
+            % - 'edges': Cell in the form of {[x__edges] [y_edges]} to set
+            % custom bin edges for each dimension
+            % - 'geom': Set how results are displayed. 'image' uses a
+            % heatmap (default), 'contour' uses a contour plot. 'point'
+            % uses circles of varying size.
             
             p=inputParser;
             my_addParameter(p,'nbins',[30 30]);
             my_addParameter(p,'edges',{});
-            my_addParameter(p,'geom','contour'); %image
+            my_addParameter(p,'geom','image'); %contour
             
             parse(p,varargin{:});
             
-            %obj.geom=vertcat(obj.geom,{@(x,y,c,s,lt,sz,bs)obj.mybin2d(comb(x),comb(y),p.Results.nxbins,p.Results.nybins,c,p.Results.geom)});
-            obj.geom=vertcat(obj.geom,{@(dd)obj.mybin2d(dd,p.Results)});
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_bin2d(dd,p.Results)});
             
         end
         
@@ -1765,6 +1701,12 @@ end
             % Example syntax (default arguments): gramm_object.stat_density('function','pdf','kernel','normal','npoints',100)
             % the 'function','kernel', and 'bandwidth' arguments are the
             % ones used by the underlying matlab function ksdensity
+            % 'npoints' is used to set how many x values are used to
+            % display the density estimates.
+            % 'extra_x' is used to increase the range of x values over
+            % which the estimated density function is displayed. Values
+            % will be extended to the right and to the left by extra_x
+            % times the range of x data.
             
             p=inputParser;
             my_addParameter(p,'bandwidth',-1);
@@ -1774,8 +1716,7 @@ end
             my_addParameter(p,'extra_x',0.1)
             parse(p,varargin{:});
             
-            %obj.geom=vertcat(obj.geom,{@(x,y,c,s,lt,sz,bs)obj.mydensity(comb(x),c,lt,sz,bs,p.Results.bandwidth,p.Results.function,p.Results.kernel,p.Results.npoints)})
-            obj.geom=vertcat(obj.geom,{@(dd)obj.mydensity(dd,p.Results)});
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_density(dd,p.Results)});
         end
         
         
@@ -1831,7 +1772,7 @@ end
                     end
                 else
                     [x,y]=pol2cart(theta,rho);
-                    if obj.polar.is_polar_closed
+                    if obj.polar.is_polar_closed && size(shiftdim(x),2)==1 && size(shiftdim(y),2)==1
                         x(end+1)=x(1);
                         y(end+1)=y(1);
                     end
@@ -2009,7 +1950,7 @@ end
             obj.plot_lim.maxy(obj.current_row,obj.current_column)=obj.extra.raster_position;
         end
         
-        function hndl=mysmooth(obj,draw_data,params)
+        function hndl=my_smooth(obj,draw_data,params)
             combx=comb(draw_data.x);
             [combx,i]=sort(combx);
             comby=comb(draw_data.y);
@@ -2057,7 +1998,7 @@ end
         end
         
         
-        function hndl=mysummary(obj,draw_data,params)
+        function hndl=my_summary(obj,draw_data,params)
             
             if iscell(draw_data.x) || iscell(draw_data.y)
                 
@@ -2244,16 +2185,18 @@ end
             combx=shiftdim(comb(draw_data.x));
             comby=shiftdim(comb(draw_data.y));
             
+            %If we have "enough" points
             if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
                 
                 r=[combx comby];
                 
-                %If a CI on the mean is requested, we replace the points
+                %If a CI on the mean is requested, we replace the original points
                 %with bootstrapped mean samples
                 if strcmp(params.type,'ci')
                     r=bootstrp(1000,@nanmean,r);
                 end
                 
+                %Extract mean and covariance
                 m=nanmean(r);
                 cv=nancov(r);
                 
@@ -2281,7 +2224,7 @@ end
         end
         
         
-        function hndl=myglm(obj,draw_data,params)
+        function hndl=my_glm(obj,draw_data,params)
             combx=comb(draw_data.x)';
             comby=comb(draw_data.y)';
             
@@ -2316,7 +2259,57 @@ end
             
         end
         
-        function hndl=mybar(obj,draw_data,params)
+        
+        function hndl=my_fit(obj,draw_data,params)
+            
+            combx=comb(draw_data.x)';
+            comby=comb(draw_data.y)';
+            
+            %Do the fit depending on options
+            if isempty(params.StartPoint)
+                mdl=fit(combx',comby',params.fun);
+            else
+                mdl=fit(combx',comby',params.fun,'StartPoint',params.StartPoint);
+            end
+            
+            %Create x values for the fit plot
+            if params.fullrange
+                newx=linspace(obj.var_lim.minx,obj.var_lim.maxx,100)';
+            else
+                newx=linspace(min(combx),max(combx),100)';
+            end
+            %Get fit value and CI
+            newy=feval(mdl,newx);
+            yci=predint(mdl,newx,0.95,params.intopt);
+            
+            %Plot fit
+            hndl=obj.plotci(newx,newy,yci,draw_data.color,draw_data.line_style,draw_data.size,params.geom);
+            
+            %Do we display the results ?
+            if params.disp_fit
+                %Set Y position of display
+                if obj.firstrun(obj.current_row,obj.current_column)
+                    obj.extra.mdltext(obj.current_row,obj.current_column)=0.05;
+                else
+                    obj.extra.mdltext(obj.current_row,obj.current_column)=obj.extra.mdltext(obj.current_row,obj.current_column)+0.03;
+                end
+                %Get formula and parameters
+                form=formula(mdl)
+                cvals=coeffvalues(mdl);
+                cnames=coeffnames(mdl);
+                %Replace parameter names by their value in the formula
+                for c=1:length(cnames)
+                    form=strrep(form,cnames{c},num2str(cvals(c),2));
+                end
+                text('Units','normalized','Position',[0.1 obj.extra.mdltext(obj.current_row,obj.current_column)],'color',draw_data.color,...
+                    'String',form);
+            end
+            
+            
+            
+        end
+        
+        function hndl=my_bar(obj,draw_data,params)
             width=params.width;
             x=comb(draw_data.x);
             y=comb(draw_data.y);
@@ -2359,16 +2352,29 @@ end
         end
         
         
-        function hndl=mybin(obj,draw_data,params)
+        function hndl=my_bin(obj,draw_data,params)
             
             if obj.x_factor
                 binranges=(0:length(obj.x_ticks))+0.5;
                 bincenters=1:length(obj.x_ticks);
             else
-                if isempty(params.edges)
-                    binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.nbins+1);
+                if obj.polar.is_polar
+                    %Make data modulo 2pi
+                    draw_data.x=mod(comb(draw_data.x),2*pi);
+                    if isempty(params.edges)
+                        binranges=linspace(0,2*pi,params.nbins+1);
+                    else
+                        if max(params.edges)>2*pi || min(params.edges)<0
+                            warning('Bin edges exceed the polar ranges (O-2pi)')
+                        end
+                        binranges=params.edges;
+                    end
                 else
-                    binranges=params.edges;
+                    if isempty(params.edges)
+                        binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.nbins+1);
+                    else
+                        binranges=params.edges;
+                    end
                 end
                 bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
             end
@@ -2399,10 +2405,6 @@ end
                 end
             end
             
-            %Automatically set to transparent for overlaid bars
-            if strcmp(params.geom,'overlaid_bar')
-                params.bar_color='transparent';
-            end
             
             if isempty(params.bar_spacing)
                 if strcmp(params.geom,'bar') && draw_data.n_colors>1
@@ -2417,7 +2419,7 @@ end
             
             face_alpha=1;
             edge_alpha=0.8;
-            switch params.bar_color
+            switch params.fill
                 case 'edge'
                     edge_color=draw_data.color;
                     face_color='none';
@@ -2439,42 +2441,93 @@ end
                 case 'bar'
                     if draw_data.n_colors==1
                         %hndl=bar(bincenters,bincounts(1:end),1,'faceColor',draw_data.color,'EdgeColor','k');
-                        hndl=patch([binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing],...
-                        [zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'],...
+%                         hndl=patch([binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing],...
+%                         [zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'],...
+%                         [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
+                        xpatch=[binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing];
+                        ypatch=[zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'];
+                        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+                        hndl=patch(xpatch,...
+                        ypatch,...
                         [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
                     else
                         %hndl=bar(bincenters+(draw_data.color_index/(draw_data.n_colors+1)-0.5)*(binranges(2)-binranges(1)),bincounts(1:end),1/(draw_data.n_colors+1),'faceColor',draw_data.color,'EdgeColor','k');
                         barleft=binranges(1:end-1)+spacing+(1-params.bar_spacing)*(draw_data.color_index-1)*diff(binranges)./draw_data.n_colors;
                         barright=binranges(1:end-1)+spacing+(1-params.bar_spacing)*(draw_data.color_index)*diff(binranges)./draw_data.n_colors;
-                        hndl=patch([barleft ; barright ; barright ; barleft],...
-                        [zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'],...
+%                         hndl=patch([barleft ; barright ; barright ; barleft],...
+%                         [zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'],...
+%                         [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
+                        xpatch=[barleft ; barright ; barright ; barleft];
+                        ypatch=[zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'];
+                        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+                        hndl=patch(xpatch,...
+                        ypatch,...
                         [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
                         %set(gca,'XTick',binranges);
                         %plot(binranges,zeros(length(binranges),1),'k.','MarkerSize',10);
                     end
                 case 'overlaid_bar'
-                    hndl=patch([binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing],...
-                        [zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'],...
+                    xpatch=[binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing];
+                    ypatch=[zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'];
+                    [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+                    hndl=patch(xpatch,...
+                        ypatch,...
                         [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
                 case 'line'
-                    hndl=plot(bincenters,bincounts(1:end),'LineStyle',draw_data.line_style,'Color',draw_data.color,'lineWidth',draw_data.size/4);
+                    xtemp=bincenters;
+                    ytemp=bincounts(1:end)';
+                    [xtemp,ytemp]=to_polar(obj,xtemp,ytemp);
+                    hndl=plot(xtemp,ytemp,'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.size/4);
+                    xpatch=[bincenters(1:end-1) ; bincenters(2:end) ; bincenters(2:end);bincenters(1:end-1)];
+                    ypatch=[zeros(1,length(bincounts)-1) ; zeros(1,length(bincounts)-1) ; bincounts(2:end)' ; bincounts(1:end-1)'];
+                    [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+                    patch(xpatch,ypatch,[1 1 1],'FaceColor',face_color,'EdgeColor','none','FaceAlpha',face_alpha);
+                    
                 case 'stacked_bar'
-                    hndl=patch([binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing],...
-                        [obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'],...
+                    xpatch=[binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing];
+                    ypatch=[obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'];
+                    [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+                    hndl=patch(xpatch,...
+                        ypatch,...
                         [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
                     obj.extra.stacked_bar_height=obj.extra.stacked_bar_height+bincounts';
                 case 'stairs'
-                    hndl=stairs(binranges,[bincounts' bincounts(end)],'LineStyle',draw_data.line_style,'Color',draw_data.color,'lineWidth',draw_data.size/4);
+                    xtemp=[binranges(1:end-1) ; binranges(2:end)];
+                    ytemp=[bincounts' ; bincounts'];
+                    [xtemp,ytemp]=to_polar(obj,xtemp(:),ytemp(:));
+                    hndl=plot(xtemp,ytemp,'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.size/4);
+                    
+                    xpatch=[binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing];
+                    ypatch=[obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'];
+                    [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+                    patch(xpatch,ypatch,[1 1 1],'FaceColor',face_color,'EdgeColor','none','FaceAlpha',face_alpha);
+                    
+                    %hndl=stairs(binranges,[bincounts' bincounts(end)],'LineStyle',draw_data.line_style,'Color',draw_data.color,'lineWidth',draw_data.size/4);
                 case 'point'
-                    hndl=plot(bincenters,bincounts(1:end),draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+                    xtemp=bincenters;
+                    ytemp=bincounts(1:end)';
+                    [xtemp,ytemp]=to_polar(obj,xtemp,ytemp);
+                    hndl=plot(xtemp,ytemp,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
             end
             
         end
         
-        function hndl=mydensity(obj,draw_data,params)
+        function hndl=my_density(obj,draw_data,params)
             
-            extra_x=(obj.var_lim.maxx-obj.var_lim.minx)*params.extra_x;
-            binranges=linspace(obj.var_lim.minx-extra_x,obj.var_lim.maxx+extra_x,params.npoints);
+
+            if obj.polar.is_polar
+                %Make x data modulo 2 pi
+                draw_data.x=mod(comb(draw_data.x),2*pi);
+                warning('Polar density estimate is probably not proper for circular data, use custom bandwidth');
+                %Let's try to make boundaries a bit more proper by
+                %repeating values below 0 and above 2 pi
+                draw_data.x=[draw_data.x-2*pi;draw_data.x;draw_data.x+2*pi];
+                extra_x=0;
+                binranges=linspace(0,2*pi,params.npoints);
+            else
+                extra_x=(obj.var_lim.maxx-obj.var_lim.minx)*params.extra_x;
+                binranges=linspace(obj.var_lim.minx-extra_x,obj.var_lim.maxx+extra_x,params.npoints);
+            end
             
             if params.bandwidth>0
                 [f,xi] = ksdensity(comb(draw_data.x),binranges,'function',params.function,'bandwidth',params.bandwidth,'kernel',params.kernel);
@@ -2494,10 +2547,11 @@ end
                     obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(f);
                 end
             end
+            [xi,f]=to_polar(obj,xi,f);
             hndl=plot(xi,f,'LineStyle',draw_data.line_style,'Color',draw_data.color,'lineWidth',draw_data.size/4);
         end
         
-        function hndl=mybin2d(obj,draw_data,params)
+        function hndl=my_bin2d(obj,draw_data,params)
             
             x=comb(draw_data.x);
             y=comb(draw_data.y);
@@ -2675,7 +2729,7 @@ end
                         plot(xci',yci','-','Color',c+([1 1 1]-c)*0.5);
                     case 'area'
                         %Transparent area (This does what we want but prevents a correct eps
-                        %export, and weirdly removes axes)
+                        %export, and weirdly removes axes in older matlab versions)
                         h=fill([xci(2,:) fliplr(xci(1,:))],[yci(2,:) fliplr(yci(1,:))],c);
                         set(h,'FaceAlpha',0.2);
                         set(h,'EdgeColor','none')

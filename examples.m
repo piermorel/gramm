@@ -4,7 +4,7 @@ N=400
 
 %Create a x and y data
 x=linspace(0,100,N);
-y=sin(x/10)+randn(1,N)*0.5;
+y=sin(x/10)+randn(1,N)*0.5; 
 
 %Create groups
 twoalt=repmat([1 2],1,N/2);
@@ -26,7 +26,7 @@ x(twoaltb==1)=x(twoaltb==1)-90;
 
 figure
 g=gramm('x',x,'y',y,'color',fouraltc,'linestyle',twoaltcb)
-g.facet_grid(twoaltcb,twoaltc,'scale','fixed')
+g.facet_grid(twoaltc,twoaltcb,'scale','fixed')
 g.geom_point()
 g.stat_smooth('lambda',1000,'geom','area')
 %It's possible to set native axis properties
@@ -154,36 +154,34 @@ g(1,2)=gramm('x',x,'color',cat)
 g(1,2).stat_bin('geom','stacked_bar') %Stacked bars option
 
 g(2,1)=gramm('x',x,'color',cat)
-g(2,1).stat_bin('geom','line') %Draw lines instead of bars, easier to visualize when lots of categories !
+g(2,1).stat_bin('geom','line') %Draw lines instead of bars, easier to visualize when lots of categories, default fill to edges !
 
 g(2,2)=gramm('x',x,'color',cat)
 g(2,2).stat_bin('geom','overlaid_bar') %Overlaid bar automatically changes bar coloring to transparent
 
 g(1,3)=gramm('x',x,'color',cat)
-g(1,3).stat_bin('geom','point') %Overlaid bar automatically changes bar coloring to transparent
+g(1,3).stat_bin('geom','point') 
 
 
 g(2,3)=gramm('x',x,'color',cat)
-g(2,3).stat_bin('geom','stairs') %Overlaid bar automatically changes bar coloring to transparent
-
-
+g(2,3).stat_bin('geom','stairs') %Default fill is edges
 
 g.draw()
 
-%Example of alternative bar coloring options
+%Example of alternative fill options
 figure
 clear f
 f(1,1)=gramm('x',x,'color',cat)
-f(1,1).stat_bin('bar_color','face')
+f(1,1).stat_bin('fill','face')
 
 f(1,2)=gramm('x',x,'color',cat)
-f(1,2).stat_bin('bar_color','all')
+f(1,2).stat_bin('fill','all')
 
 f(2,1)=gramm('x',x,'color',cat)
-f(2,1).stat_bin('bar_color','edge')
+f(2,1).stat_bin('fill','edge')
 
 f(2,2)=gramm('x',x,'color',cat)
-f(2,2).stat_bin('bar_color','transparent')
+f(2,2).stat_bin('fill','transparent')
 
 f.draw()
 
@@ -337,8 +335,46 @@ g.set_continuous_color('colormap','hot')
 g.geom_line;
 g.draw;
 
+%% Examples for representations of 2D data
 
-%% stat_fit examples (statistics toolbox required)
+%Create point cloud with two categories
+N=10^4;
+x=randn(1,N);
+y=x+randn(1,N);
+test=repmat([0 1 0 0],1,N/4);
+y(test==0)=y(test==0)+3;
+
+%Plot points
+g(1,1)=gramm('x',x,'y',y,'color',test,'size',3)
+g(1,1).geom_point()
+
+%Plot point density as contour plot
+g(1,2)=gramm('x',x,'y',y,'color',test)
+g(1,2).stat_bin2d('nbins',[10 10],'geom','contour')
+
+%Plot density as heatmaps (Heatmaps don't work with multiple colors, so we separate
+%the categories with facets). With the heatmap we see better the
+%distribution in high-density areas
+g(1,3)=gramm('x',x,'y',y)
+g(1,3).facet_grid([],test)
+g(1,3).stat_bin2d('nbins',[20 20],'geom','image')
+g(1,3).set_continuous_color('LCH_colormap',[0 100 ; 100 20 ;30 20]) %Let's try a custom LCH colormap !
+
+%Plot density as point size (looks good only when axes have the same
+%scale, hence the 'DataAspectRatio' option, equivalent to axis equal)
+g(2,1)=gramm('x',x,'y',y,'color',test)
+g(2,1).stat_bin2d('nbins',{-10:0.4:10 ; -10:0.4:10},'geom','point')
+g(2,1).axe_property('DataAspectRatio',[1 1 1])
+
+% Display points and 95% percentile confidence ellipse
+g(2,2)=gramm('x',x,'y',y,'color',test,'size',3)
+g(2,2).geom_point()
+%'patch_opts' can be used to provide more options to the patch() internal
+%call
+g(2,2).stat_ellipse('type','95percentile','geom','area','patch_opts',{'FaceAlpha',0.1,'LineWidth',2})
+g.draw()
+
+%% stat_glm examples (statistics toolbox required)
 
 %Create repeated x values
 x=repmat(1:10,1,20)
@@ -352,7 +388,7 @@ g=gramm('x',x,'y',y)
 g.geom_point()
 %By default, stat_glm assumes a normal distribution and an identity link
 %function (i.e. it performs a linear model fit). The fit is represented as
-%a thick line and 95% CI as thin lighter lines
+%a thick line and 95% CI as a shaded area
 g.stat_glm()
 g.draw()
 
@@ -363,13 +399,34 @@ y=random('binomial',1,1./(1+exp(5-x)))
 figure
 g=gramm('x',x,'y',y)
 %We plot jittered points to get a better idea of the distribution
-g.geom_jitter('width',0.2,'height',0.1)
+%g.geom_jitter('width',0.2,'height',0.1)
+g.geom_count()
 %By specifying that the distribution is binomial, a logit link function is
-%used (see help for glm_fit). By using the option 'geom','area', the 95% CI
-%is represented as a shaded area.
-g.stat_glm('distribution','binomial','geom','area')
+%used (see help for glm_fit).
+g.stat_glm('distribution','binomial','geom','lines')
 g.draw()
 
 
+%% stat_fit() example (requires the curve fitting toolbox).
+
+%Function used to generate the data
+fun=@(alpha,beta,gamma,x)alpha*exp(cos(x-beta)*gamma);
+
+%Create X and categories
+x=repmat(linspace(0,4*pi,100),1,20);
+cat=repmat([1 2],1,1000);
+
+%Create Y from function and categories, add noise
+y=zeros(size(x));
+y(cat==1)=fun(1,1,3,x(cat==1));
+y(cat==2)=fun(3,2,1,x(cat==2));
+y=y+randn(size(y))*1;
+
+%Gramm plot with fit !
+figure
+g=gramm('x',x,'y',y,'color',cat)
+g.geom_point()
+g.stat_fit('fun',fun,'disp_fit',true) %We provide the function for the fit
+g.draw()
 
 
