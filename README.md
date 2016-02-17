@@ -35,7 +35,7 @@ Type <code>doc gramm</code> find links to the documentation of each method.
 - Accepts grouping data as arrays or cellstr
 - Multiple ways of separating data by groups: 
   - Colors, lightness, point markers, line styles, and point/line size (<code>'color'</code>, <code>'lightness'</code>, <code>'marker'</code>, <code>'linestyle'</code>,  <code>'size'</code>)
-  - Subplots by row and/or columns, or wrapping columns (<code>facet_grid()</code> and <code>facet_wrap()</code>)
+  - Subplots by row and/or columns, or wrapping columns (<code>facet_grid()</code> and <code>facet_wrap()</code>). Multiple <code>'scale'</code> options for consistent axis limits across facets, rows, columns, etc.
 - Multiple ways of directly plotting the data: 
   - scatter plots (<code>geom_point()</code>) and jittered scatter plot (<code>geom_jitter()</code>)
   - lines (<code>geom_line()</code>)
@@ -55,7 +55,7 @@ Type <code>doc gramm</code> find links to the documentation of each method.
 - Color data can also be displayed as a continous variable, not as a grouping factor (<code>set_continuous_color()</code>)
 - Possibility to customize color generations in the LCH color space (<code>set_color_options()</code>)
 - Confidence intervals as shaded areas, error bars or thin lines
-- Multiple gramm plots can be combined in the same figure by creatin a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix.
+- Multiple gramm plots can be combined in the same figure by creating a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix.
 - Matlabs axes properties are acessible through the method <code>axe_property()</code>
 - Custom legend labels with <code>set_names()</code>
 - Plot reference line on the plots with <code>geom_abline()</code>, <code>geom_vline()</code>,<code>geom_hline()</code>
