@@ -158,8 +158,8 @@ classdef gramm < handle
             obj.color_options.lightness_range=[85 15];
             obj.color_options.chroma_range=[30 90];
             obj.color_options.hue_range=[25 385];
-            obj.color_options.lightness=60;
-            obj.color_options.chroma=70;
+            obj.color_options.lightness=65;
+            obj.color_options.chroma=75;
             
             obj.with_legend=true;
         end
@@ -190,10 +190,8 @@ classdef gramm < handle
             parse(p,varargin{:});
             obj.facet_scale=p.Results.scale;
             
-            row=shiftdim(row);
-            col=shiftdim(col);
-            obj.row_facet=row;
-            obj.col_facet=col;
+            obj.row_facet=shiftdim(row);
+            obj.col_facet=shiftdim(col);
             obj.wrap_ncols=-1;
         end
         
@@ -212,10 +210,9 @@ classdef gramm < handle
             
             obj.facet_scale=p.Results.scale;
             
-            col=shiftdim(col);
             obj.wrap_ncols=p.Results.ncols;
-            obj.col_facet=col;
-            obj.row_facet=ones(size(obj.aes.y));
+            obj.col_facet=shiftdim(col);
+            obj.row_facet=[];
         end
         
         
@@ -266,12 +263,11 @@ classdef gramm < handle
             my_addParameter(p,'lightness_range',[85 15]);
             my_addParameter(p,'chroma_range',[30 90]);
             my_addParameter(p,'hue_range',[25 385]);
-            my_addParameter(p,'lightness',60);
-            my_addParameter(p,'chroma',70);
+            my_addParameter(p,'lightness',65);
+            my_addParameter(p,'chroma',75);
             parse(p,varargin{:});
             
-            obj.color_options=p.Results;
-            
+            obj.color_options=p.Results;  
         end
         
         function obj=set_continuous_color(obj,varargin)
@@ -312,7 +308,7 @@ classdef gramm < handle
             if ~isempty(p.Results.LCH_colormap) 
                 obj.continuous_color_colormap=pa_LCH2RGB([linspace(p.Results.LCH_colormap(1,1),p.Results.LCH_colormap(1,2),256)'...
                         linspace(p.Results.LCH_colormap(2,1),p.Results.LCH_colormap(2,2),256)'...
-                        linspace(p.Results.LCH_colormap(3,1),p.Results.LCH_colormap(3,2),256)'])        
+                        linspace(p.Results.LCH_colormap(3,1),p.Results.LCH_colormap(3,2),256)']); 
             end
             
             
@@ -560,8 +556,8 @@ classdef gramm < handle
             if obj.wrap_ncols>0
                 nr=ceil(length(obj.facet_axes_handles)/obj.wrap_ncols);
                 nc=obj.wrap_ncols;
-                neww=(max_available_x-min_facet_x-spacing_w*(nc-1))/nc;
-                newh=(max_available_y-min_facet_y-spacing_h*(nr-1))/nr;
+                neww=abs(max_available_x-min_facet_x-spacing_w*(nc-1))/nc;
+                newh=abs(max_available_y-min_facet_y-spacing_h*(nr-1))/nr;
                 ind=1;
                 for r=1:nr
                     for c=1:nc
@@ -809,11 +805,11 @@ if length(uni_lightness)==1
     %Was 65,75
     cmap=pa_LCH2RGB([repmat(linspace(obj.color_options.lightness,obj.color_options.lightness,length(uni_lightness))',length(uni_color)+1,1) ...
         repmat(linspace(obj.color_options.chroma,obj.color_options.chroma,length(uni_lightness))',length(uni_color)+1,1)...
-        reshape(repmat(linspace(obj.color_options.hue_range(1),obj.color_options.hue_range(2),length(uni_color)+1),length(uni_lightness),1),length(uni_lightness)*(length(uni_color)+1),1)]);
+        reshape(repmat(linspace(obj.color_options.hue_range(1),obj.color_options.hue_range(2),length(uni_color)+1),length(uni_lightness),1),length(uni_lightness)*(length(uni_color)+1),1)],false);
 else
     cmap=pa_LCH2RGB([repmat(linspace(obj.color_options.lightness_range(1),obj.color_options.lightness_range(2),length(uni_lightness))',length(uni_color)+1,1) ...
         repmat(linspace(obj.color_options.chroma_range(1),obj.color_options.chroma_range(2),length(uni_lightness))',length(uni_color)+1,1)...
-        reshape(repmat(linspace(obj.color_options.hue_range(1),obj.color_options.hue_range(2),length(uni_color)+1),length(uni_lightness),1),length(uni_lightness)*(length(uni_color)+1),1)]);
+        reshape(repmat(linspace(obj.color_options.hue_range(1),obj.color_options.hue_range(2),length(uni_color)+1),length(uni_lightness),1),length(uni_lightness)*(length(uni_color)+1),1)],false);
     
 end
 
@@ -821,12 +817,7 @@ end
             %cmap=colormap('lines');
             %cmap=cmap(1:length(uni_color)+1,:);
             
-            
-            %Create array to store handles for different line colors.
-            color_handle=zeros(size(uni_color));
-            lightness_handle=zeros(size(uni_lightness));
-            
-            
+
             %Store different line styles
             line_styles={'-' '--' ':' '-.'};
             %Store different sizes
@@ -857,7 +848,7 @@ end
                     
                     obj.current_column=ind_column;
                     
-                    %Record limits of the subplots
+                    %Store limits of the subplots
                     if sum(sel_column)>0
                         if iscell(temp_aes.x(sel_column))
                             obj.plot_lim.maxx(obj.current_row,obj.current_column)=cellmax(temp_aes.x(sel_column));
@@ -968,13 +959,10 @@ end
                     
                     
                     %Show facet values in titles
-                    title_string={};
                     if length(uni_column)>1
                         if ~isempty(obj.aes_names.column)
-                            %title_string=vertcat(title_string,[obj.aes_names.column ': ' num2str(uni_column{ind_column})]);
                             column_string=[obj.aes_names.column ': ' num2str(uni_column{ind_column})];
                         else
-                            %title_string=vertcat(title_string,[num2str(uni_column{ind_column})]);
                             column_string=num2str(uni_column{ind_column});
                         end
                         
@@ -992,10 +980,8 @@ end
                     end
                     if length(uni_row)>1
                         if ~isempty(obj.aes_names.row)
-                            %                             title_string=vertcat(title_string,[obj.aes_names.row ': ' num2str(uni_row{ind_row})]);
                             row_string=[obj.aes_names.row ': ' num2str(uni_row{ind_row})];
                         else
-                            %                             title_string=vertcat(title_string,[num2str(uni_row{ind_row})]);
                             row_string=num2str(uni_row{ind_row});
                         end
                         
@@ -1053,8 +1039,8 @@ end
                 if length(uni_lightness)>1
                     
                     lightness_legend_map=pa_LCH2RGB([linspace(obj.color_options.lightness_range(1),obj.color_options.lightness_range(2),length(uni_lightness))' ...
-                        repmat(0,length(uni_lightness),1)...
-                        repmat(0,length(uni_lightness),1)]);
+                        zeros(length(uni_lightness),1)...
+                        zeros(length(uni_lightness),1)]);
                     
                     text(1,ind_scale,obj.aes_names.lightness,'FontWeight','bold','Interpreter','none')
                     ind_scale=ind_scale-ind_scale_step;
@@ -1091,7 +1077,7 @@ end
                     text(1,ind_scale,obj.aes_names.marker,'FontWeight','bold','Interpreter','none')
                     ind_scale=ind_scale-ind_scale_step;
                     for ind_marker=1:length(uni_marker)
-                        plot([1.5],[ind_scale],markers{ind_marker},'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0])
+                        plot(1.5,ind_scale,markers{ind_marker},'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0])
                         text(2.5,ind_scale,num2str(uni_marker{ind_marker}),'Interpreter','none')
                         ind_scale=ind_scale-ind_scale_step;
                     end
@@ -1133,12 +1119,8 @@ end
                 %Loop over columns
                 for ind_column=1:length(uni_column)
                     
-                    %Set subplot
-                    if obj.wrap_ncols>0
-                        mysubplot_wrap(length(uni_column),ind_column)
-                    else
-                        mysubplot(length(uni_row),length(uni_column),ind_row,ind_column)
-                    end
+                    %Set current axes
+                    axes(obj.facet_axes_handles(ind_row,ind_column));
                     
                     %Do the datetick
                     if ~isempty(obj.datetick_params)
@@ -1153,25 +1135,43 @@ end
                     end
                     
                     
-                    %Ad hoc limit correction
+                    %Ad hoc limit correction for empty facets
                     obj.plot_lim.maxy(obj.plot_lim.miny==obj.plot_lim.maxy)=obj.plot_lim.maxy(obj.plot_lim.miny==obj.plot_lim.maxy)+0.01;
                     obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)=obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)+0.01;
                     
                     if ~obj.polar.is_polar % XY Limits are only useful for non-polar plots
                         
                         %Set axes limits logic according to facet_scale and
-                        %wrapping
+                        %wrapping. Also set up corresponding axis linking, using tip from 
+                        % http://undocumentedmatlab.com/blog/using-linkaxes-vs-linkprop#more-5928
                         if (obj.wrap_ncols>0) 
                             switch obj.facet_scale
                                 case 'fixed'
                                     temp_xscale='global';
                                     temp_yscale='global';
+                                    
+                                    %Both XLims and YLims are linked across
+                                    %all plots
+                                    if ind_row==1 && ind_column==1
+                                        obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
+                                        obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
+                                    end  
                                 case 'free_x'
                                     temp_xscale='per_plot';
                                     temp_yscale='global';
+                                    
+                                    %XLims are linked across all plots
+                                    if ind_row==1 && ind_column==1
+                                        obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
+                                    end
                                 case 'free_y'
                                     temp_xscale='global';
                                     temp_yscale='per_plot';
+                                    
+                                    %YLims are linked across all plots
+                                    if ind_row==1 && ind_column==1
+                                        obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
+                                    end
                                 case 'free'
                                     temp_xscale='per_plot';
                                     temp_yscale='per_plot';
@@ -1184,15 +1184,49 @@ end
                                 case 'fixed'
                                     temp_xscale='global';
                                     temp_yscale='global';
+                                    
+                                    %Both XLim and YLim are linked across
+                                    %all plots
+                                    if ind_row==1 && ind_column==1
+                                         obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
+                                         obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
+                                    end
                                 case 'free_x'
                                     temp_xscale='per_column';
                                     temp_yscale='global';
+
+                                    %YLims are linked across all plots,
+                                    %XLims are linked within columns
+                                     if ind_row==1 && ind_column==1
+                                         obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
+                                     end
+                                    if ind_row==1
+                                        obj.extra.XLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(:,ind_column),'XLim');
+                                    end
                                 case 'free_y'
                                     temp_xscale='global';
                                     temp_yscale='per_row';
+
+                                    %XLims are linked across all plots,
+                                    %YLims are linked within rows
+                                     if ind_row==1 && ind_column==1
+                                         obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
+                                     end
+                                    if ind_column==1
+                                        obj.extra.YLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'YLim');
+                                    end
                                 case 'free'
                                     temp_xscale='per_column';
                                     temp_yscale='per_row';
+                                    
+                                    %XLims are linked within columns
+                                    %YLims are linked within rows
+                                    if ind_row==1
+                                        obj.extra.XLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(:,ind_column),'XLim');
+                                    end
+                                    if ind_column==1
+                                        obj.extra.YLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'YLim');
+                                    end 
                                 case 'independent'
                                     temp_xscale='per_plot';
                                     temp_yscale='per_plot';
@@ -1200,7 +1234,7 @@ end
                         end
                         
                         %Actually set the axes scales and presence of
-                        %labels dependign on logic
+                        %labels depending on logic determined above
                         has_xtick=true;
                         switch temp_xscale
                             case 'global'
@@ -1225,11 +1259,13 @@ end
                                 if (obj.wrap_ncols==-1 && ind_column~=1) || (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)~=1)
                                      set(gca,'YTickLabel','');
                                 end
+
                             case 'per_row'
                                 ylim([min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))]);
                                 if (obj.wrap_ncols==-1 && ind_column~=1) || (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)~=1)
                                      set(gca,'YTickLabel','');
                                 end
+
                             case 'per_plot'
                                 ylim([obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)]);
                         end
@@ -1244,7 +1280,6 @@ end
                                 %set(gca,'XTickLabelRotation',30)
                             end
                         end
-                        
                         
                         %Add axes labels on right and botttom graphs only
                         if ind_column==1 || (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)==1)
@@ -1314,7 +1349,6 @@ end
                     set(gcf,'SizeChangedFcn',@(a,b)redraw(obj,0.04));
                 end
             end
-
 
         end
         
@@ -1926,7 +1960,7 @@ end
                     
                     %Fast version
                     allx=[temp_x(:) temp_x(:) temp_x(:)]';
-                    ally=[temp_y(:) temp_y(:)+0.9 repmat(NaN,numel(temp_x),1)]';
+                    ally=[temp_y(:) temp_y(:)+0.9 NaN(numel(temp_x),1)]';
                     plot(allx(:),ally(:),'color',draw_data.color,'lineWidth',draw_data.size/4);
                 else
                     plot(temp_x,temp_y,'o','MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
