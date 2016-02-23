@@ -253,7 +253,7 @@ load carbig.mat %Load example dataset about cars
 
 g=gramm('x',Horsepower,'y',Acceleration,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
 g.set_names('color','# Cylinders','x','Horsepower','y','Acceleration')
-g.stat_glm('geom','area') %Linear fit (default for stat_glm
+g.stat_glm('geom','area','disp_fit',true) %Linear fit (default for stat_glm
 g.geom_point()
 g.draw()
 

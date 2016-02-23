@@ -4,6 +4,7 @@ classdef gramm < handle
     
     properties (Access=public)
         facet_axes_handles %Store the handles of the facet axes
+        results
     end
         
     properties (Access=protected)
@@ -42,6 +43,7 @@ classdef gramm < handle
               % active: true or false
         
         firstrun %Is it the first time the plotting function is run
+        r_ind %current index in the draw loops
         
         wrap_ncols %After how many columns do we wrap around subplots
         facet_scale %Do we have independent scales between facets ?
@@ -115,6 +117,7 @@ classdef gramm < handle
             obj.aes_names.row='Row';
             obj.aes_names.column='Column';
             obj.aes_names.lightness='Lightness';
+            obj.aes_names.group='Group';
             
             %Initialize geoms
             obj.geom={};
@@ -817,6 +820,16 @@ end
             %cmap=colormap('lines');
             %cmap=cmap(1:length(uni_color)+1,:);
             
+            %Initialize results structure (n_groups is an overestimate if
+            %there are redundant groups
+            n_groups=length(uni_row)*length(uni_column)*length(uni_marker)...
+                *length(uni_size)*length(uni_linestyle)*length(uni_color)*length(unique(temp_aes.group));
+            aes_names_fieldnames=fieldnames(obj.aes_names);
+            for fn=3:length(aes_names_fieldnames)
+                obj.results.(aes_names_fieldnames{fn})=cell(n_groups,1);
+                obj.results.(['ind_' aes_names_fieldnames{fn}])=cell(n_groups,1);
+            end
+            obj.results.draw_data=cell(n_groups,1);
 
             %Store different line styles
             line_styles={'-' '--' ':' '-.'};
@@ -833,6 +846,8 @@ end
             end
             
             obj.firstrun=ones(n_rows,n_columns);
+            %Index in the loops
+            obj.r_ind=1;
             
             %Loop over rows
             for ind_row=1:length(uni_row)
@@ -919,6 +934,27 @@ end
                                             
                                             sel=sel_lightness & multi_sel(temp_aes.group,uni_group{ind_group});
                                             
+                                            %Fill out results struct
+                                            obj.results.row{obj.r_ind}=uni_row{ind_row};
+                                            obj.results.column{obj.r_ind}=uni_column{ind_column};
+                                            obj.results.marker{obj.r_ind}=uni_marker{ind_marker};
+                                            obj.results.linestyle{obj.r_ind}=uni_linestyle{ind_linestyle};
+                                            obj.results.size{obj.r_ind}=uni_size{ind_size};
+                                            obj.results.color{obj.r_ind}=uni_color{ind_color};
+                                            obj.results.lightness{obj.r_ind}=uni_lightness{ind_lightness};
+                                            obj.results.group{obj.r_ind}=uni_group{ind_group};
+                                            
+                                            obj.results.ind_row{obj.r_ind}=ind_row;
+                                            obj.results.ind_column{obj.r_ind}=ind_column;
+                                            obj.results.ind_marker{obj.r_ind}=ind_marker;
+                                            obj.results.ind_linestyle{obj.r_ind}=ind_linestyle;
+                                            obj.results.ind_size{obj.r_ind}=ind_size;
+                                            obj.results.ind_color{obj.r_ind}=ind_color;
+                                            obj.results.ind_lightness{obj.r_ind}=ind_lightness;
+                                            obj.results.ind_group{obj.r_ind}=ind_group;
+                                            
+                                            
+                                            
                                             if ~isempty(sel)
                                                 
                                                 %Fill up the draw_data
@@ -933,6 +969,7 @@ end
                                                 draw_data.size=sizes(ind_size);
                                                 draw_data.color_index=(ind_color-1)*length(uni_lightness)+ind_lightness;
                                                 draw_data.n_colors=length(uni_color)*length(uni_lightness);
+                                               
                                                 
                                                 %Loop over geoms
                                                 for geom_ind=1:length(obj.geom)
@@ -941,10 +978,16 @@ end
                                                     obj.geom{geom_ind}(draw_data);
                                                     
                                                 end
-                                                
                                                 obj.firstrun(obj.current_row,obj.current_column)=0;
+                                                
+                                                draw_data=rmfield(draw_data,{'x','y','continuous_color','color_index','n_colors'});
+                                                obj.results.draw_data{obj.r_ind}=draw_data;
+                                                
+                                                %Iterate loop counter
+                                                obj.r_ind=obj.r_ind+1;
                                             end
                                             
+
                                         end
                                     end
                                 end
@@ -1276,7 +1319,10 @@ end
                             xlim([temp_xlim(1)-1 temp_xlim(2)+1])
                             set(gca,'XTick',1:length(obj.x_ticks))
                             if has_xtick
-                                set(gca,'XTickLabel',obj.x_ticks,'TickLabelInterpreter','none')
+                                set(gca,'XTickLabel',obj.x_ticks)
+                                try
+                                    set(gca,'TickLabelInterpreter','none')%Just try it (doesn't exist in pre-2014b)
+                                end
                                 %set(gca,'XTickLabelRotation',30)
                             end
                         end
@@ -1349,7 +1395,30 @@ end
                     set(gcf,'SizeChangedFcn',@(a,b)redraw(obj,0.04));
                 end
             end
-
+            
+            
+            %Clean up results
+            result_fields=fieldnames(obj.results);
+            if obj.r_ind>1
+                for rf=1:length(result_fields)
+                    %Resize
+                    obj.results.(result_fields{rf})=obj.results.(result_fields{rf})(1:obj.r_ind-1);
+                    %Transform non cell strings in arrays
+                    if ~iscellstr(obj.results.(result_fields{rf}))
+                        obj.results.(result_fields{rf})=[obj.results.(result_fields{rf}){:}]';
+                    end
+                end
+            else
+                obj.results=[];
+            end
+            
+            %There are bugs with the openGL renderer in pre 2014b version,
+            %on Mac OS and Win the x and y axes become invisible and on
+            %Windows the patch objects behave strangely. So we switch to
+            %painters renderer
+            if verLessThan('matlab','8.4')
+                set(gcf,'Renderer','Painters')
+            end
         end
         
         function obj=geom_line(obj)
@@ -1771,6 +1840,7 @@ end
             my_addParameter(p,'row','Row');
             my_addParameter(p,'column','Column');
             my_addParameter(p,'lightness','Lightness');
+            my_addParameter(p,'group','Group');
             
             parse(p,varargin{:});
             
@@ -2014,6 +2084,11 @@ end
                 yci=nan(2,length(newx));
             end
             
+            
+            obj.results.smooth{obj.r_ind,1}.x=newx;
+            obj.results.smooth{obj.r_ind,1}.y=newy;
+            obj.results.smooth{obj.r_ind,1}.yci=yci;
+            
             %For some reason bootci is super slow there ! %zci=bootci(50,@(ax,ay)turbotrend(ax,ay,10,100),combx,comby);
             
             %Spline smoothing
@@ -2200,6 +2275,10 @@ end
                 end
             end
             
+            obj.results.summary{obj.r_ind,1}.x=uni_x;
+            obj.results.summary{obj.r_ind,1}.y=ymean;
+            obj.results.summary{obj.r_ind,1}.yci=yci;
+            
             hndl=obj.plotci(uni_x,ymean,yci,draw_data.color,draw_data.line_style,draw_data.size,params.geom);
             
         end
@@ -2239,7 +2318,25 @@ end
                 %points)
                 k=@(alpha) sqrt(chi2inv(1-alpha,2));
                 
+                %Compute ellipse points
                 conf_elpoints=sqrtm(cv)*elpoints*k(0.05);
+                
+                %Compute ellipse axes
+                [evec,eval]=eig(cv);
+                if eval(2,2)>eval(1,1) %Reorder
+                    evec=fliplr(evec);
+                    eval=fliplr(flipud(eval));
+                end
+                elaxes=sqrtm(cv)*evec*k(0.05);
+                
+                
+                obj.results.ellipse{obj.r_ind,1}.mean=m;
+                obj.results.ellipse{obj.r_ind,1}.cv=cv;
+                obj.results.ellipse{obj.r_ind,1}.major_axis=elaxes(:,1)';
+                obj.results.ellipse{obj.r_ind,1}.minor_axis=elaxes(:,2)';
+                
+                %plot([0 elaxes(1,1)]+m(1),[0 elaxes(2,1)]+m(2),'k')
+                %plot([0 elaxes(1,2)]+m(1),[0 elaxes(2,2)]+m(2),'k')
                 
                 switch params.geom
                     case 'area'
@@ -2272,6 +2369,11 @@ end
                     newx=linspace(min(combx),max(combx),50)';
                 end
                 [newy,yci]=predict(mdl,newx);
+                
+                obj.results.glm{obj.r_ind,1}.x=newx;
+                obj.results.glm{obj.r_ind,1}.y=newy;
+                obj.results.glm{obj.r_ind,1}.yci=yci;
+                obj.results.glm{obj.r_ind,1}.model=mdl;
                 
                 hndl=obj.plotci(newx,newy,yci,draw_data.color,draw_data.line_style,draw_data.size,params.geom);
 
@@ -2315,6 +2417,12 @@ end
             %Get fit value and CI
             newy=feval(mdl,newx);
             yci=predint(mdl,newx,0.95,params.intopt);
+            
+            
+            obj.results.fit{obj.r_ind,1}.x=newx;
+            obj.results.fit{obj.r_ind,1}.y=newy;
+            obj.results.fit{obj.r_ind,1}.yci=yci;
+            obj.results.fit{obj.r_ind,1}.model=mdl;
             
             %Plot fit
             hndl=obj.plotci(newx,newy,yci,draw_data.color,draw_data.line_style,draw_data.size,params.geom);
@@ -2417,6 +2525,9 @@ end
             
             bincounts=shiftdim(bincounts);
             
+            obj.results.bin{obj.r_ind,1}.edges=bincenters;
+            obj.results.bin{obj.r_ind,1}.counts=bincounts;
+            
             obj.plot_lim.miny(obj.current_row,obj.current_column)=0;
             if obj.firstrun(obj.current_row,obj.current_column)
                 obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(bincounts);
@@ -2448,6 +2559,7 @@ end
                 end
                     
             end
+            
             
             
             
@@ -2581,6 +2693,10 @@ end
                     obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(f);
                 end
             end
+            
+            obj.results.density{obj.r_ind,1}.x=xi;
+            obj.results.density{obj.r_ind,1}.y=f;
+            
             [xi,f]=to_polar(obj,xi,f);
             hndl=plot(xi,f,'LineStyle',draw_data.line_style,'Color',draw_data.color,'lineWidth',draw_data.size/4);
         end
@@ -2610,6 +2726,9 @@ end
                 N(end,:)=[];
                 
             end
+            
+            obj.results.bin2d{obj.r_ind,1}.edges=C;
+            obj.results.bin2d{obj.r_ind,1}.counts=N;
             
             switch params.geom
                 case 'contour'

@@ -25,9 +25,9 @@ g.draw() %Draw method
 ### Installation
 Add the folder containing gramm.m to your path
 ### Compatibility
-Tested under Matlab 2015 versions. The statistics toolbox is required for some methods: <code>stat_glm()</code>, some <code>stat_summary()</code> methods, <code>stat_density()</code>. The curve fitting toolbox is required for <code>stat_fit()</code/>.
+Tested under Matlab 2014b+ versions. With pre-2014b versions, gramm forces <code>'painters'</code>, renderer to avoid some graphic bugs, which deactivates transparencies (use non-transparent geoms, for example <code>stat_summary('geom','lines')</code>). The statistics toolbox is required for some methods: <code>stat_glm()</code>, some <code>stat_summary()</code> methods, <code>stat_density()</code>. The curve fitting toolbox is required for <code>stat_fit()</code/>.
 #### Documentation
-Type <code>doc gramm</code> find links to the documentation of each method.
+Type <code>doc gramm</code> to find links to the documentation of each method.
 
 
 ## Features
@@ -51,10 +51,11 @@ Type <code>doc gramm</code> find links to the documentation of each method.
   - Custom fits with user-provided anonymous function (<code>stat_fit()</code>)
   - Ellipses of confidence (<code>stat_ellipse()</code>)
 - Subplots are created without too much empty space in between (and resize properly !)
-- Polar plots (<code>set_polar()</code>)
+- Polar coordinates (<code>set_polar()</code>)
 - Color data can also be displayed as a continous variable, not as a grouping factor (<code>set_continuous_color()</code>)
 - Possibility to customize color generations in the LCH color space (<code>set_color_options()</code>)
 - Confidence intervals as shaded areas, error bars or thin lines
+- Results of computations from <code>stat_</code> plots are returned in the member structure <code>results</code>
 - Multiple gramm plots can be combined in the same figure by creatin a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix.
 - Matlabs axes properties are acessible through the method <code>axe_property()</code>
 - Custom legend labels with <code>set_names()</code>
