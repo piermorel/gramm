@@ -59,6 +59,7 @@ g(2,2).no_legend() %It's possible to drop the side legends (useful when the grou
 g(2,2).stat_bin('geom','bar') %Using stat_bin we can create histograms
 
 %And call the draw function on the whole array !
+figure
 g.draw()
 
 
@@ -166,6 +167,7 @@ g(1,3).stat_bin('geom','point')
 g(2,3)=gramm('x',x,'color',cat)
 g(2,3).stat_bin('geom','stairs') %Default fill is edges
 
+figure
 g.draw()
 
 %Example of alternative fill options
@@ -221,6 +223,8 @@ h.draw()
 %% Example from the readme
 
 clear g
+figure
+
 load carbig.mat %Load example dataset about cars
 origin_region=num2cell(org,2); %Convert origin data to a cellstr
 %Create a gramm object, provide x (year) and y (mpg) data
@@ -241,6 +245,7 @@ g.draw() %Draw method
 
 t=now;
 
+figure
 g=gramm('x',t+[0 0.1 1 5 6],'y',t+[1 2 3 4 5])
 g.geom_line()
 g.set_datetick('x',2)
@@ -251,6 +256,7 @@ g.draw()
 
 load carbig.mat %Load example dataset about cars
 
+figure
 g=gramm('x',Horsepower,'y',Acceleration,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
 g.set_names('color','# Cylinders','x','Horsepower','y','Acceleration')
 g.stat_glm('geom','area','disp_fit',true) %Linear fit (default for stat_glm
@@ -327,6 +333,7 @@ g.draw()
 
 load spectra.mat
 
+figure
 %Here we create x as a 1xN array (see example above), and use a MxN matrix
 %for y. Color applies to the M rows of y.
 g=gramm('x',900:2:1700,'y',NIR,'color',octane);
@@ -344,7 +351,8 @@ y=x+randn(1,N);
 test=repmat([0 1 0 0],1,N/4);
 y(test==0)=y(test==0)+3;
 
-    clear g
+clear g
+figure
 
 % Display points and 95% percentile confidence ellipse
 g(1,1)=gramm('x',x,'y',y,'color',test,'size',2)
