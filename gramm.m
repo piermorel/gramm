@@ -136,6 +136,7 @@ classdef gramm < handle
             obj.abline.xintercept=[];
             obj.abline.yintercept=[];
             obj.abline.style={};
+            obj.abline.fun={};
             
 
             
@@ -1358,10 +1359,10 @@ end
                     %Set ablines, hlines and vlines (after axe properties in case the limits
                     %are changed there
                     if obj.abline.on
+                        xl=get(gca,'xlim');
                         for line_ind=1:length(obj.abline.intercept)
                             if ~isnan(obj.abline.intercept(line_ind))
                                 %abline
-                                xl=get(gca,'xlim');
                                 plot(xl,xl*obj.abline.slope(line_ind)+obj.abline.intercept(line_ind),obj.abline.style{line_ind});
                             else
                                 if ~isnan(obj.abline.xintercept(line_ind))
@@ -1369,9 +1370,13 @@ end
                                      yl=get(gca,'ylim');
                                      plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,obj.abline.style{line_ind});
                                 else
-                                    %hline
-                                    xl=get(gca,'xlim');
-                                    plot(xl,[obj.abline.yintercept(line_ind) obj.abline.yintercept(line_ind)],obj.abline.style{line_ind});
+                                    if ~isnan(obj.abline.yintercept(line_ind))
+                                        %hline
+                                        plot(xl,[obj.abline.yintercept(line_ind) obj.abline.yintercept(line_ind)],obj.abline.style{line_ind});
+                                    else
+                                        temp_x=linspace(xl(1),xl(2),100);
+                                        plot(temp_x,obj.abline.fun{line_ind}(temp_x),obj.abline.style{line_ind});
+                                    end
                                 end
                             end
                         end
@@ -1487,7 +1492,7 @@ end
             my_addParameter(p,'style','k--');
             parse(p,varargin{:});
             
-            obj.abline=fill_abline(obj.abline,p.Results.slope,p.Results.intercept,NaN,NaN,p.Results.style);
+            obj.abline=fill_abline(obj.abline,p.Results.slope,p.Results.intercept,NaN,NaN,@(x)x,p.Results.style);
         end
         
         function obj=geom_vline(obj,varargin)
@@ -1501,7 +1506,7 @@ end
             my_addParameter(p,'style','k--');
             parse(p,varargin{:});
             
-            obj.abline=fill_abline(obj.abline,NaN,NaN,p.Results.xintercept,NaN,p.Results.style);
+            obj.abline=fill_abline(obj.abline,NaN,NaN,p.Results.xintercept,NaN,@(x)x,p.Results.style);
         end
         
         function obj=geom_hline(obj,varargin)
@@ -1515,7 +1520,16 @@ end
             my_addParameter(p,'style','k--');
             parse(p,varargin{:});
             
-            obj.abline=fill_abline(obj.abline,NaN,NaN,NaN,p.Results.yintercept,p.Results.style);
+            obj.abline=fill_abline(obj.abline,NaN,NaN,NaN,p.Results.yintercept,@(x)x,p.Results.style);
+        end
+        
+        function obj=geom_funline(obj,varargin)
+            p=inputParser;
+            my_addParameter(p,'fun',@(x)x);
+            my_addParameter(p,'style','k--');
+            parse(p,varargin{:});
+            
+            obj.abline=fill_abline(obj.abline,NaN,NaN,NaN,NaN,p.Results.fun,p.Results.style);
         end
         
         
@@ -1545,6 +1559,7 @@ end
             parse(p,varargin{:});
             
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_smooth(dd,p.Results)});
+            obj.results.smooth={};
         end
         
         
@@ -1614,6 +1629,7 @@ end
             p=inputParser;
             my_addParameter(p,'type','ci'); %'95percentile'
             my_addParameter(p,'geom','area');
+            my_addParameter(p,'dodge',false);
             my_addParameter(p,'setylim',false);
             my_addParameter(p,'interp','none');
             my_addParameter(p,'interp_in',-1);
@@ -1621,6 +1637,7 @@ end
             parse(p,varargin{:});
             
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_summary(dd,p.Results)});
+            obj.results.summary={};
         end
         
         function obj=stat_ellipse(obj,varargin)
@@ -1645,6 +1662,7 @@ end
             parse(p,varargin{:});
             
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_ellipse(dd,p.Results)});
+            obj.results.ellipse={};
         end
         
         
@@ -1675,6 +1693,7 @@ end
             parse(p,varargin{:});
             
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_glm(dd,p.Results)});
+            obj.results.glm={};
         end
         
         function obj=stat_fit(obj,varargin)
@@ -1703,6 +1722,7 @@ end
             my_addParameter(p,'disp_fit',false);
             parse(p,varargin{:});
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_fit(dd,p.Results)});
+            obj.results.fit={};
         end
         
         
@@ -1771,6 +1791,7 @@ end
             end
             
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_bin(dd,temp)});
+            obj.results.bin={};
         end
         
         function obj=stat_bin2d(obj,varargin)
@@ -1793,7 +1814,7 @@ end
             parse(p,varargin{:});
             
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_bin2d(dd,p.Results)});
-            
+            obj.results.bin2d={};
         end
         
         
@@ -1820,6 +1841,7 @@ end
             parse(p,varargin{:});
             
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_density(dd,p.Results)});
+            obj.results.density={};
         end
         
         
@@ -2099,7 +2121,7 @@ end
             
             
             %hndl=plotci(newx,newy,yci,c,lt,sz,geom);
-            hndl=obj.plotci(newx,newy,yci,draw_data.color,draw_data.line_style,draw_data.size,params.geom);
+            hndl=obj.plotci(newx,newy,yci,draw_data,params.geom);
             
             %cfit=fit(combx,comb(y)','smoothingspline');
             %newx=linspace(min(combx),max(combx),100);
@@ -2111,8 +2133,7 @@ end
             
             if iscell(draw_data.x) || iscell(draw_data.y)
                 
-                if params.interp_in>0 %We interpolate the input
-                    
+                if params.interp_in>0 %We interpolate the input 
                     uni_x=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.interp_in);
                     [x,y]=cellfun(@(x,y)deal(uni_x,interp1(x,y,uni_x,'linear')),draw_data.x,draw_data.y,'UniformOutput',false);
                     y=padded_cell2mat(y);
@@ -2122,46 +2143,19 @@ end
                     y=padded_cell2mat(draw_data.y);
                     uni_x=nanmean(x);
                 end
-                ymean=nanmean(y);
                 
-                switch params.type
-                    case 'bootci'
-                        try
-                            yci=bootci(200,@(y)nanmean(y),y);
-                        catch
-                            warning('Not enough samples for CI computation')
-                            yci(ind_x,:)=[NaN NaN];
-                        end
-                    case 'ci'
-                        ci=1.96*nanstd(y)./sqrt(sum(~isnan(y)));
-                        yci=bsxfun(@plus,ymean,[-ci;ci]);
-                    case 'std'
-                        ci=nanstd(y);
-                        yci=bsxfun(@plus,ymean,[-ci;ci]);
-                    case 'sem'
-                        ci=nanstd(y)./sqrt(sum(~isnan(y)));
-                        yci=bsxfun(@plus,ymean,[-ci;ci]);
-                    case 'quartile'
-                        ymean=nanmedian(y);
-                        yci=prctile(y,[25 75]);
-                    case '95percentile'
-                        ymean=nanmedian(y);
-                        yci=prctile(y,[2.5 97.5]);
-                    case 'fitnormalci'
-                        pd=fitdist(y,'Normal');
-                        ymean=pd.mean();
-                        ci=pd.paramci();
-                        yci=ci(:,1)';
-                    case 'fitpoissonci'
-                        pd=fitdist(y,'poisson');
-                        ymean=pd.mean();
-                        ci=pd.paramci();
-                        yci=ci(:,1)';
-                    case 'fit95percentile'
-                        pd=fitdist(y,'Normal');
-                        ymean=pd.icdf(0.5);
-                        yci=pd.icdf([0.025 0.975]);
+                %If we have a params.type using distributions fits we
+                %can't vectorize
+                if strfind(params.type,'fit')
+                    ymean=zeros(length(uni_x),1);
+                    yci=zeros(length(uni_x),2);
+                    for ind_x=1:length(uni_x)
+                        [ymean(ind_x),yci(ind_x,:)]=computeci(y(:,ind_x),params.type);
+                    end
+                else
+                    [ymean,yci]=computeci(y,params.type);
                 end
+                
             else
                 x=comb(draw_data.x);
                 y=comb(draw_data.y);
@@ -2175,64 +2169,20 @@ end
                     x=bincenters(binind);
                 else
                     uni_x=unique(x); %Sorted is the default
-                                    %Here we need to implement a loose 'unique' because of
+                    %Here we need to implement a loose 'unique' because of
                      %potential numerical errors
                     uni_x(diff(uni_x)<1e-10)=[];
                 end
-                
-
                 
                 ymean=zeros(length(uni_x),1);
                 yci=zeros(length(uni_x),2);
                 
                 for ind_x=1:length(uni_x)
-                    
                     %And here we have a loose selection also because of
                     %potential numerical errors
                     ysel=y(abs(x-uni_x(ind_x))<1e-10);
                     
-                    
-                    ymean(ind_x)=nanmean(ysel);
-                    
-                    switch params.type
-                        case 'bootci'
-                            try
-                                yci(ind_x,:)=bootci(200,@(y)nanmean(y),ysel);
-                            catch
-                                warning('Not enough samples for CI computation')
-                                yci(ind_x,:)=[NaN NaN];
-                            end
-                        case 'ci'
-                            ci=1.96*nanstd(ysel)./sqrt(length(ysel));
-                            yci(ind_x,:)=ymean(ind_x)+[-ci ci];
-                        case 'sem'
-                            ci=nanstd(ysel)./sqrt(length(ysel));
-                            yci(ind_x,:)=ymean(ind_x)+[-ci ci];
-                        case 'std'
-                            ci=nanstd(ysel);
-                            yci(ind_x,:)=ymean(ind_x)+[-ci ci];
-                        case 'quartile'
-                            ymean(ind_x)=nanmedian(ysel);
-                            yci(ind_x,:)=prctile(ysel,[25 75]);
-                        case '95percentile'
-                            ymean(ind_x)=nanmedian(ysel);
-                            yci(ind_x,:)=prctile(ysel,[2.5 97.5]);
-                        case 'fitnormalci'
-                            pd=fitdist(ysel,'Normal');
-                            ymean(ind_x)=pd.mean();
-                            ci=pd.paramci();
-                            yci(ind_x,:)=ci(:,1)';
-                       case 'fitpoissonci'
-                            pd=fitdist(ysel,'poisson');
-                            ymean(ind_x)=pd.mean();
-                            ci=pd.paramci();
-                            yci(ind_x,:)=ci(:,1)';
-                        case 'fit95percentile'
-                            pd=fitdist(ysel,'Normal');
-                            ymean(ind_x)=pd.icdf(0.5);
-                            yci(ind_x,:)=pd.icdf([0.025 0.975]);
-                    end
-                    
+                    [ymean(ind_x),yci(ind_x,:)]=computeci(ysel,params.type);
                 end
             end
             
@@ -2279,7 +2229,7 @@ end
             obj.results.summary{obj.r_ind,1}.y=ymean;
             obj.results.summary{obj.r_ind,1}.yci=yci;
             
-            hndl=obj.plotci(uni_x,ymean,yci,draw_data.color,draw_data.line_style,draw_data.size,params.geom);
+            hndl=obj.plotci(uni_x,ymean,yci,draw_data,params.geom,params.dodge);
             
         end
         
@@ -2375,7 +2325,7 @@ end
                 obj.results.glm{obj.r_ind,1}.yci=yci;
                 obj.results.glm{obj.r_ind,1}.model=mdl;
                 
-                hndl=obj.plotci(newx,newy,yci,draw_data.color,draw_data.line_style,draw_data.size,params.geom);
+                hndl=obj.plotci(newx,newy,yci,draw_data,params.geom);
 
                 if params.disp_fit
                     if obj.firstrun(obj.current_row,obj.current_column)
@@ -2425,7 +2375,7 @@ end
             obj.results.fit{obj.r_ind,1}.model=mdl;
             
             %Plot fit
-            hndl=obj.plotci(newx,newy,yci,draw_data.color,draw_data.line_style,draw_data.size,params.geom);
+            hndl=obj.plotci(newx,newy,yci,draw_data,params.geom);
             
             %Do we display the results ?
             if params.disp_fit
@@ -2820,13 +2770,17 @@ end
             
         end
         
-        function hndl=plotci(obj,x,y,yci,c,lt,sz,geom)
+        function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge)
+            
+            if nargin<7
+                dodge=false;
+            end
             
             x=shiftdim(x)';
             y=shiftdim(y)';
             
 
-            
+         
 %             
 %             if size(x,1)>1
 %                 x=x';
@@ -2865,6 +2819,18 @@ end
                 return;
             end
             
+            if length(x)>1
+                x_spacing=x(2)-x(1);
+            else
+                x_spacing=1;
+            end
+            if dodge
+                bar_width=x_spacing/(draw_data.n_colors+1);
+                x=x-x_spacing/2+bar_width+bar_width*(draw_data.color_index-1);
+            else
+                bar_width=x_spacing/2;
+            end
+            
             [tmp_xci1,tmp_yci1]=obj.to_polar(x,yci(1,:));
             [tmp_xci2,tmp_yci2]=obj.to_polar(x,yci(2,:));
             yci=[tmp_yci1;tmp_yci2];
@@ -2876,28 +2842,28 @@ end
             for k=1:length(geom)
                 switch geom{k}
                     case 'line'
-                        hndl=plot(x,y,'LineStyle',lt,'Color',c,'LineWidth',sz/4);
+                        hndl=plot(x,y,'LineStyle',draw_data.line_style,'Color',draw_data.color,'LineWidth',draw_data.size/4);
                     case 'lines'
-                        hndl=plot(x,y,'LineStyle',lt,'Color',c,'LineWidth',sz/4);
-                        plot(xci',yci','-','Color',c+([1 1 1]-c)*0.5);
+                        hndl=plot(x,y,'LineStyle',draw_data.line_style,'Color',draw_data.color,'LineWidth',draw_data.size/4);
+                        plot(xci',yci','-','Color',draw_data.color+([1 1 1]-draw_data.color)*0.5);
                     case 'area'
                         %Transparent area (This does what we want but prevents a correct eps
                         %export, and weirdly removes axes in older matlab versions)
-                        h=fill([xci(2,:) fliplr(xci(1,:))],[yci(2,:) fliplr(yci(1,:))],c);
+                        h=fill([xci(2,:) fliplr(xci(1,:))],[yci(2,:) fliplr(yci(1,:))],draw_data.color);
                         set(h,'FaceAlpha',0.2);
                         set(h,'EdgeColor','none')
-                        hndl=plot(x,y,'LineStyle',lt,'Color',c,'LineWidth',sz/4);
+                        hndl=plot(x,y,'LineStyle',draw_data.line_style,'Color',draw_data.color,'LineWidth',draw_data.size/4);
                     case 'solid_area'
                         %Solid area (no alpha)
                         %h=fill([x fliplr(x)],[yci(2,:) fliplr(yci(1,:))],c+([1 1 1]-c)*0.8);
                         h=fill([xci(2,:) fliplr(xci(1,:))],[yci(2,:) fliplr(yci(1,:))],c);
                         set(h,'EdgeColor','none')%c+([1 1 1]-c)*0.8)
-                        hndl=plot(x,y,'LineStyle',lt,'Color',c,'LineWidth',sz/4);
+                        hndl=plot(x,y,'LineStyle',draw_data.line_style,'Color',draw_data.color,'LineWidth',draw_data.size/4);
                     case 'errorbar'
-                        hndl=errorbar(x,y,y-yci(1,:),yci(2,:)-y,'color',c);
+                        hndl=errorbar(x,y,y-yci(1,:),yci(2,:)-y,'color',draw_data.color);
                         %hndl=errorbar(x,y,y-yci(:,1),yci(:,2)-y);
                         %hndl=plot(xci,yci,'-','Color',c+([1 1 1]-c)*0.5);
-                        set(hndl,'Color',c)%[0 0 0]
+                        set(hndl,'Color',draw_data.color)%[0 0 0]
                         set(hndl,'LineStyle','none')
                     case 'black_errorbar'
                         hndl=errorbar(x,y,y-yci(1,:),yci(2,:)-y,'color','k');
@@ -2906,7 +2872,17 @@ end
                         set(hndl,'Color',[0 0 0])
                         set(hndl,'LineStyle','none')
                     case 'bar'
-                        hndl=bar(x,y,0.5,'faceColor',c,'EdgeColor','none');
+                        barleft=x-bar_width/2;
+                        barright=x+bar_width/2;
+%                         hndl=patch([barleft ; barright ; barright ; barleft],...
+%                         [zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'],...
+%                         [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
+                        xpatch=[barleft ; barright ; barright ; barleft];
+                        ypatch=[zeros(1,length(y)) ; zeros(1,length(y)) ; y ; y];
+                        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+                        hndl=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','none');
+                        %
+                        %hndl=bar(x,y,bar_width,'faceColor',draw_data.color,'EdgeColor','none');
                 end
                 
             end
@@ -2923,15 +2899,19 @@ end
 function ab=fill_abline(ab,varargin)
             ab.on=true;
             
-            l=max(cellfun(@length,varargin(1:4)));
+            l=max(cellfun(@length,varargin(1:5)));
             ab.slope(end+1:end+l)=shiftdim(varargin{1});
             ab.intercept(end+1:end+l)=shiftdim(varargin{2});
             ab.xintercept(end+1:end+l)=shiftdim(varargin{3});
             ab.yintercept(end+1:end+l)=shiftdim(varargin{4});
-            if iscell(varargin{5})
-                ab.style(end+1:end+l)=shiftdim(varargin{5});
+            if ~iscell(varargin{5})
+                varargin{5}={varargin{5}};
+            end
+            ab.fun(end+1:end+l)=shiftdim(varargin{5});
+            if iscell(varargin{6})
+                ab.style(end+1:end+l)=shiftdim(varargin{6});
             else
-                ab.style(end+1:end+l)=repmat({varargin{5}},l,1);
+                ab.style(end+1:end+l)=repmat({varargin{6}},l,1);
             end
 end
 
@@ -2971,6 +2951,53 @@ end
 
 end
 
+function [ymean,yci]=computeci(y,type)
+
+ymean=nanmean(y);
+try
+    switch type
+        case 'bootci'
+            yci=bootci(200,@(y)nanmean(y),y);
+        case 'ci'
+            ci=1.96*nanstd(y)./sqrt(sum(~isnan(y)));
+            yci=bsxfun(@plus,ymean,[-ci;ci]);
+        case 'std'
+            ci=nanstd(y);
+            yci=bsxfun(@plus,ymean,[-ci;ci]);
+        case 'sem'
+            ci=nanstd(y)./sqrt(sum(~isnan(y)));
+            yci=bsxfun(@plus,ymean,[-ci;ci]);
+        case 'quartile'
+            ymean=nanmedian(y);
+            yci=prctile(y,[25 75]);
+        case '95percentile'
+            ymean=nanmedian(y);
+            yci=prctile(y,[2.5 97.5]);
+        case 'fitnormalci'
+            pd=fitdist(y,'Normal');
+            ymean=pd.mean();
+            ci=pd.paramci();
+            yci=ci(:,1)';
+        case 'fitpoissonci'
+            pd=fitdist(y,'Poisson');
+            ymean=pd.mean();
+            ci=pd.paramci();
+            yci=ci(:,1)';
+        case 'fitbinomialci'
+            pd=fitdist(y,'Binomial');
+            ymean=pd.mean;
+            ci=pd.paramci;
+            yci=ci(:,2)';
+        case 'fit95percentile'
+            pd=fitdist(y,'Normal');
+            ymean=pd.icdf(0.5);
+            yci=pd.icdf([0.025 0.975]);
+    end
+catch
+    disp('Not enough samples for CI computation...skipping')
+    yci=repmat([NaN NaN],size(y,2));
+end
+end
 
 function [z,xs, yfit] = turbotrend(x, y, lambda, n)
 % Very fast spline smoothing (Discretize x & compute bin midpoints) found
