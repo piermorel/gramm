@@ -26,6 +26,9 @@ classdef gramm < handle
         %corresponding to the facets, used to set axis limits
         plot_lim 
         
+        xlim_extra %extend range of XLim (ratio of original XLim width)
+        ylim_extra %extend range of XLim (ratio of original YLim width)
+        
          %Structure containing polar-related parameters: is_polar stores
          %whether to display polar plots, is_polar_closed to  set if the
          %polar lines must close around the circle, and max_polar_y to
@@ -47,6 +50,7 @@ classdef gramm < handle
         
         wrap_ncols %After how many columns do we wrap around subplots
         facet_scale %Do we have independent scales between facets ?
+        force_ticks %Do we force ticks on all facets
         
         abline %structure containing the abline parameters: on, slope, intercept,style,xintercept,yintecept
         datetick_params %cell containng datetick parameters
@@ -62,11 +66,12 @@ classdef gramm < handle
         legend_axe_handle %Store the handle of the legend axis
         
         extra %Store extra geom-specific info
-
+        
     end
     
     methods (Access=public)
-        
+%% Constructor
+
         function obj=gramm(varargin)
             % gramm Constructor for the class
             %
@@ -126,6 +131,7 @@ classdef gramm < handle
             obj.row_facet=[];
             obj.col_facet=[];
             obj.facet_scale='fixed';
+            obj.force_ticks=false;
             
             %Initialize axes properties
             obj.axe_properties={};
@@ -138,7 +144,9 @@ classdef gramm < handle
             obj.abline.style={};
             obj.abline.fun={};
             
-
+            % 10% default extra on limits
+            obj.xlim_extra=0.1;
+            obj.ylim_extra=0.1;
             
             obj.datetick_params={};
             
@@ -171,7 +179,8 @@ classdef gramm < handle
 %          function disp(obj)
 %              %Empty to silence output
 %          end
-        
+%% Faceting methods
+
         function obj=facet_grid(obj,row,col,varargin)
             % facet_grid Create subplots according to factors for rows and columns
             %
@@ -191,8 +200,16 @@ classdef gramm < handle
             
             p=inputParser;
             my_addParameter(p,'scale','fixed'); %options 'free' 'free_x' 'free_y' 'independent'
+            my_addParameter(p,'force_ticks',false);
             parse(p,varargin{:});
+            
             obj.facet_scale=p.Results.scale;
+            
+            if strcmp(obj.facet_scale,'independent') %Force ticks by default in that case
+                obj.force_ticks=true;
+            else
+                obj.force_ticks=p.Results.force_ticks;
+            end
             
             obj.row_facet=shiftdim(row);
             obj.col_facet=shiftdim(col);
@@ -210,16 +227,24 @@ classdef gramm < handle
             p=inputParser;
             my_addParameter(p,'ncols',4);
             my_addParameter(p,'scale','fixed'); %options 'free' 'free_x' 'free_y'
+            my_addParameter(p,'force_ticks',false); 
             parse(p,varargin{:});
             
             obj.facet_scale=p.Results.scale;
+            
+            if strcmp(obj.facet_scale,'independent') || strcmp(obj.facet_scale,'free') %Force ticks by default in these case
+                obj.force_ticks=true;
+            else
+                obj.force_ticks=p.Results.force_ticks;
+            end
             
             obj.wrap_ncols=p.Results.ncols;
             obj.col_facet=shiftdim(col);
             obj.row_facet=[];
         end
         
-        
+%% Customization methods
+
         function obj=set_polar(obj,varargin)
             % set_polar Activate polar axes
             %
@@ -328,7 +353,18 @@ classdef gramm < handle
         end
         
 
-        
+        function obj=set_limit_extra(obj,x_extra,y_extra)
+            %set_limit_extra Add some breathing room around data in plots
+            %
+            % Example syntax gramm_object.set_limit_extra(0.1,0.1)
+            % first argument is XLim extra, second is YLim extra, extra
+            % room is expressed as ratio to original limits. 0.1 will
+            % extend by 5% on each side.
+            
+            obj.xlim_extra=x_extra;
+            obj.ylim_extra=y_extra;
+            
+        end
         
         function obj=axe_property(obj,varargin)
             % axe_property Add a matlab axes property to apply to all subplots
@@ -356,6 +392,32 @@ classdef gramm < handle
             obj.datetick_params=vertcat(obj.datetick_params,{varargin});
         end
         
+        function obj=set_names(obj,varargin)
+            % set_names Set names for aesthetics to be displayed in legends and axes
+            %
+            % Example syntax : gramm_object.set_names('x','Time (ms)','y','Hand position (mm)','color','Movement direction (°)','row','Subject')
+            
+            p=inputParser;
+            
+            my_addParameter(p,'x','x');
+            my_addParameter(p,'y','y');
+            my_addParameter(p,'color','Color');
+            my_addParameter(p,'linestyle','Line Style');
+            my_addParameter(p,'size','Size');
+            my_addParameter(p,'marker','Marker');
+            my_addParameter(p,'row','Row');
+            my_addParameter(p,'column','Column');
+            my_addParameter(p,'lightness','Lightness');
+            my_addParameter(p,'group','Group');
+            
+            parse(p,varargin{:});
+            
+            fnames=fieldnames(p.Results);
+            for k=1:length(fnames)
+                obj.aes_names.([fnames{k}])=p.Results.(fnames{k});
+            end
+            
+        end
         
         function obj=redraw(obj,spacing,display)
             % redraw Optimize location and size of axes in figure after resizing
@@ -540,7 +602,7 @@ classdef gramm < handle
             
             %Compute additional spacing for x y axis labels if idependent
             %(or if free with wrapping)
-            if strcmp(obj.facet_scale,'independent') || (obj.wrap_ncols>0)% && ~isempty(strfind(obj.facet_scale,'free')))
+            if obj.force_ticks || (obj.wrap_ncols>0)% && ~isempty(strfind(obj.facet_scale,'free')))
                 %use top left inset as reference
                 top_right_inset=get(obj.facet_axes_handles(1,end),'TightInset');
                 spacing_w=top_right_inset(1)+spacing_w;
@@ -588,6 +650,8 @@ classdef gramm < handle
                   
         end
         
+        
+        %% draw() initialization
         function draw(obj)
             % draw Draws the plot in the current figure
             %
@@ -705,7 +769,7 @@ classdef gramm < handle
                 [obj.multi.orig(2)+obj.multi.size(2)*marg_w(1) 1-obj.multi.orig(2)-obj.multi.size(2)*(1-marg_w(2))]);
             
             %Set subplot generation parameters and functions
-            if strcmp(obj.facet_scale,'independent')  %Independent scales require more space between subplots for ticks
+            if obj.force_ticks %strcmp(obj.facet_scale,'independent')  %Independent scales require more space between subplots for ticks
                 mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.06 0.06],[0.1 0.08],[0.1 0.2]);
             else
                 mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.02 0.02],[0.1 0.08],[0.1 0.2]);
@@ -850,6 +914,8 @@ end
             %Index in the loops
             obj.r_ind=1;
             
+            %% draw() looping
+            
             %Loop over rows
             for ind_row=1:length(uni_row)
                 
@@ -880,6 +946,11 @@ end
                             obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(temp_aes.y(sel_column));
                             obj.plot_lim.miny(obj.current_row,obj.current_column)=min(temp_aes.y(sel_column));
                         end
+                    else
+                        obj.plot_lim.maxy(obj.current_row,obj.current_column)=0;
+                        obj.plot_lim.miny(obj.current_row,obj.current_column)=0;
+                        obj.plot_lim.maxx(obj.current_row,obj.current_column)=0;
+                        obj.plot_lim.minx(obj.current_row,obj.current_column)=0;
                     end
                     
 
@@ -894,6 +965,11 @@ end
                    
                     hold on
                     
+                    
+                    %Store all the X used for the current facet (useful for
+                    %correct spacing of dodged bars and boxplots when
+                    %missing data).
+                    draw_data.facet_x=temp_aes.x(sel_column);
                     
                     %Loop over point shapes
                     for ind_marker=1:length(uni_marker)
@@ -1014,7 +1090,7 @@ end
                             text('Interpreter','none','String',column_string,'Rotation',0,...
                                 'Units','normalized',...
                                 'Position',[0.5 1.05 2],...
-                                'BackgroundColor',[1 1 1],...
+                                'BackgroundColor','none',...
                                 'HorizontalAlignment','Center',...
                                 'VerticalAlignment','bottom',...
                                 'FontWeight','bold',...
@@ -1033,7 +1109,7 @@ end
                             text('Interpreter','none','String',row_string,'Rotation',-90,...
                                 'Units','normalized',...
                                 'Position',[1.05 0.5 2],...
-                                'BackgroundColor',[1 1 1],...
+                                'BackgroundColor','none',...
                                 'HorizontalAlignment','Center',...
                                 'VerticalAlignment','bottom',...
                                 'FontWeight','bold',...
@@ -1052,7 +1128,7 @@ end
             end
             
             
-            %Show legends
+            %% draw() legends
             
             %Create axes for legends
             %obj.legend_axe_handle=subplot('Position',[0.85 0.1 0.15 0.8]);
@@ -1157,6 +1233,8 @@ end
             end
             %ylim([ind_scale/2-8 ind_scale/2+8])
             %ylim([ind_scale-0.1 0.1])
+            
+            %% draw() axes modifications
             
             %Set various properties on each of the subplots
             for ind_row=1:length(uni_row)
@@ -1277,43 +1355,51 @@ end
                             end
                         end
                         
+                        
+
                         %Actually set the axes scales and presence of
                         %labels depending on logic determined above
-                        has_xtick=true;
                         switch temp_xscale
                             case 'global'
-                                xlim([min(min(obj.plot_lim.minx(:,:))) max(max(obj.plot_lim.maxx(:,:)))]);
-                                if (obj.wrap_ncols==-1 && ind_row~=length(uni_row)) || (obj.wrap_ncols>0 && (length(uni_column)-ind_column)>=obj.wrap_ncols)
-                                     set(gca,'XTickLabel','');
-                                     has_xtick=false;
-                                end
+                                temp_xlim=[min(min(obj.plot_lim.minx(:,:))) max(max(obj.plot_lim.maxx(:,:)))];
                             case 'per_column'
-                                xlim([min(obj.plot_lim.minx(:,ind_column)) max(obj.plot_lim.maxx(:,ind_column))]);
-                                if (obj.wrap_ncols==-1 && ind_row~=length(uni_row)) || (obj.wrap_ncols>0 && (length(uni_column)-ind_column)>=obj.wrap_ncols)
-                                     set(gca,'XTickLabel','');
-                                     has_xtick=false;
-                                end
+                                temp_xlim=[min(obj.plot_lim.minx(:,ind_column)) max(obj.plot_lim.maxx(:,ind_column))];
                             case 'per_plot'
-                                xlim([obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)]);
+                                temp_xlim=[obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)];
                         end
+                        xlim(temp_xlim+[-diff(temp_xlim)*obj.xlim_extra*0.5 diff(temp_xlim)*obj.xlim_extra*0.5]);
                         
                         switch temp_yscale
                             case 'global'
-                                ylim([min(min(obj.plot_lim.miny(:,:))) max(max(obj.plot_lim.maxy(:,:)))]);
-                                if (obj.wrap_ncols==-1 && ind_column~=1) || (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)~=1)
-                                     set(gca,'YTickLabel','');
-                                end
-
+                                temp_ylim=[min(min(obj.plot_lim.miny(:,:))) max(max(obj.plot_lim.maxy(:,:)))];
                             case 'per_row'
-                                ylim([min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))]);
-                                if (obj.wrap_ncols==-1 && ind_column~=1) || (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)~=1)
-                                     set(gca,'YTickLabel','');
-                                end
-
+                                temp_ylim=[min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))];
                             case 'per_plot'
-                                ylim([obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)]);
+                                temp_ylim=[obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)];
                         end
-                               
+                         ylim(temp_ylim+[-diff(temp_ylim)*obj.ylim_extra*0.5 diff(temp_ylim)*obj.ylim_extra*0.5]);
+                            
+                        
+                        %Set up logic of plot ticks presence
+                        has_xtick=obj.force_ticks || ... %Plot has xticks if forced
+                            (obj.wrap_ncols==-1 && ind_row==length(uni_row)) || ... %Or if we're in facet grid mode and we are in the last row
+                            (obj.wrap_ncols>0 && (length(uni_column)-ind_column)<obj.wrap_ncols) ||... %Or if we are in facet wrap mode and we are in the last facet on the "column"
+                            strcmp(temp_xscale,'per_plot'); %Or if we were in a per-plot scale mode
+                        
+                        has_ytick=obj.force_ticks || ... %Plot has xticks if forced
+                            (obj.wrap_ncols==-1 && ind_column==1) || ... %Or if we're in facet grid mode and are in the first column
+                            (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)==1) || ... %Or if we are in facet wrap mode and are in the first "column"
+                            strcmp(temp_yscale,'per_plot'); %Or if we were in a per-plot scale mode
+                        
+                        %Remove ticks if necessary 
+                        if ~has_xtick
+                            set(gca,'XTickLabel','');
+                        end
+                        if ~has_ytick
+                            set(gca,'YTickLabel','');
+                        end
+                        
+                        
                         %Set appropriate x ticks if labeled
                         if obj.x_factor
                             temp_xlim=get(gca,'xlim');
@@ -1426,6 +1512,7 @@ end
             end
         end
         
+%% geom public methods
         function obj=geom_line(obj)
             % geom_line Display data as lines
             %
@@ -1545,6 +1632,25 @@ end
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_raster(dd,p.Results)});
         end
         
+       function obj=geom_bar(obj,varargin)
+            % geom_point Display data as bars
+            %
+            % Example syntax (default arguments): gramm_object.geom_bar(0.8)
+            % This will add a layer that will display data as bars. When
+            % data in several colors has to be displayed, the bars of
+            % different colors are dodged. The function can receive an
+            % optional argument specifying the width of the bar
+            
+            p=inputParser;
+            my_addParameter(p,'width',0.80);
+            my_addParameter(p,'stacked',false);
+            parse(p,varargin{:});
+            
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_bar(dd,p.Results)});
+            
+        end
+        
+%% stat public methods    
         function obj=stat_smooth(obj,varargin)
             % stat_smooth Display a smoothed estimate of the data with
             % optional 95% confidence interval
@@ -1555,7 +1661,8 @@ end
             
             p=inputParser;
             my_addParameter(p,'lambda',1000);
-            my_addParameter(p,'geom','lines');
+            my_addParameter(p,'geom','area');
+            my_addParameter(p,'npoints',100);
             parse(p,varargin{:});
             
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_smooth(dd,p.Results)});
@@ -1622,6 +1729,12 @@ end
             % given as array, creates bins over x and computes the summary
             % over the binned data. Argument corresponds to the number of
             % bins
+            % - 'dodge': use to dodge the plotted elements depending on
+            % color (recommended for 'bar', 'errorbar', 'black_errorbar').
+            % Negative values deactivate dodging (default), other values set the space
+            % between the dodged elements as ratio of the x intervals. Set
+            % to 0 for bars to touch each other, increase for inceased
+            % spacing.
             
             
             
@@ -1629,7 +1742,7 @@ end
             p=inputParser;
             my_addParameter(p,'type','ci'); %'95percentile'
             my_addParameter(p,'geom','area');
-            my_addParameter(p,'dodge',false);
+            my_addParameter(p,'dodge',-1);
             my_addParameter(p,'setylim',false);
             my_addParameter(p,'interp','none');
             my_addParameter(p,'interp_in',-1);
@@ -1638,6 +1751,32 @@ end
             
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_summary(dd,p.Results)});
             obj.results.summary={};
+        end
+        
+        function obj=stat_boxplot(obj,varargin)
+            %stat_boxplot() Create box and whiskers plots 
+            %
+            % stat_boxplot() will create boc and whisker plots of Y values for
+            %unique values of X. The box is drawn between the 25 and 75
+            %percentiles, with a line indicating the median. The wiskers
+            %extend above and below the box by a distance equal to 1.5
+            %times the interquartile range. Points outside the whiskers
+            %ranges are plotted.
+            % - 'spacing' allows to set the spacing between boxes or groups
+            %   of boxes between unique values of x (expressed as a ratio)
+            % - 'dodge' allows to set the spacing between boxes of
+            %   different colors within an unique value of x. Set to a
+            %   negative value to deactivate dodging. Set to zero for boxes
+            %   touching.
+            
+            p=inputParser;
+            my_addParameter(p,'spacing',0.2);
+            my_addParameter(p,'dodge',0.1);
+            parse(p,varargin{:});
+            
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_boxplot(dd,p.Results)});
+            %obj.results.boxplot={};
+            
         end
         
         function obj=stat_ellipse(obj,varargin)
@@ -1726,23 +1865,7 @@ end
         end
         
         
-        function obj=geom_bar(obj,varargin)
-            % geom_point Display data as bars
-            %
-            % Example syntax (default arguments): gramm_object.geom_bar(0.8)
-            % This will add a layer that will display data as bars. When
-            % data in several colors has to be displayed, the bars of
-            % different colors are dodged. The function can receive an
-            % optional argument specifying the width of the bar
-            
-            p=inputParser;
-            my_addParameter(p,'width',0.80);
-            my_addParameter(p,'stacked',false);
-            parse(p,varargin{:});
-            
-            obj.geom=vertcat(obj.geom,{@(dd)obj.my_bar(dd,p.Results)});
-            
-        end
+
         
         
         
@@ -1844,34 +1967,25 @@ end
             obj.results.density={};
         end
         
-        
-        
-        function obj=set_names(obj,varargin)
-            % set_names Set names for aesthetics to be displayed in legends and axes
+        function obj=stat_qq(obj,varargin)
+            % stat_qq Makes a quantile-quantile plot from the data in x
             %
-            % Example syntax : gramm_object.set_names('x','Time (ms)','y','Hand position (mm)','color','Movement direction (°)','row','Subject')
-            
+            % 'distribution' is used to provide a custom distribution
+            % constructed with Matlab's makedist(). Default is
+            % makedist('Normal',0,1). Use 'y' instead of a custom
+            % distrubution to plot the distribution of y against the
+            % distribution of x
+           
             p=inputParser;
-            
-            my_addParameter(p,'x','x');
-            my_addParameter(p,'y','y');
-            my_addParameter(p,'color','Color');
-            my_addParameter(p,'linestyle','Line Style');
-            my_addParameter(p,'size','Size');
-            my_addParameter(p,'marker','Marker');
-            my_addParameter(p,'row','Row');
-            my_addParameter(p,'column','Column');
-            my_addParameter(p,'lightness','Lightness');
-            my_addParameter(p,'group','Group');
-            
+            my_addParameter(p,'distribution',makedist('Normal',0,1));
+
             parse(p,varargin{:});
             
-            fnames=fieldnames(p.Results);
-            for k=1:length(fnames)
-                obj.aes_names.([fnames{k}])=p.Results.(fnames{k});
-            end
-            
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_qq(dd,p.Results)});
         end
+        
+        
+
     end
     
     methods (Access=protected)
@@ -2077,76 +2191,118 @@ end
         end
         
         function hndl=my_smooth(obj,draw_data,params)
-            combx=comb(draw_data.x);
-            [combx,i]=sort(combx);
-            comby=comb(draw_data.y);
-            comby=comby(i);
             
-            %Remove NaN
-            idnan=isnan(combx) | isnan(comby);
-            combx(idnan)=[];
-            comby(idnan)=[];
-            
-            %Slow
-            %newy=smooth(combx,comby,0.2,'loess');
-            %plot(combx,newy,'Color',c,'LineWidth',2)
-            
-            %Super fast spline smoothing !!
-            if length(combx)>3
-                [newy,newx, yfit] = turbotrend(combx, comby, params.lambda, 100);
+            if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/matrix
                 
+                %Duplicate the draw data
+                new_draw_data=draw_data;
+                
+                tempx=zeros(length(draw_data.y),params.npoints);
+                tempy=zeros(length(draw_data.y),params.npoints);
+                for k=1:length(draw_data.y) %then we smooth each trajectory independently
+                    %[new_draw_data.y{k},new_draw_data.x{k}, ~] = turbotrend(draw_data.x{k}, draw_data.y{k}, params.lambda, 100);
+                    [tempy(k,:),tempx(k,:), ~] = turbotrend(draw_data.x{k}, draw_data.y{k}, params.lambda, params.npoints);
+                end
+                plot(tempx',tempy','LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+                
+%                 %Create fake params for call to stat_summary
+%                 summ_params.type='ci';
+%                 summ_params.geom=params.geom;
+%                 summ_params.dodge=false;
+%                 summ_params.setylim=false;
+%                 summ_params.interp='none';
+%                 summ_params.interp_in=100;
+%                 summ_params.bin_in=-1;
+%                 
+%                 %Call summary to do the actual plotting
+%                 obj.my_summary(new_draw_data,summ_params);
+                 
+                 obj.results.smooth{obj.r_ind,1}.x=[];
+                 obj.results.smooth{obj.r_ind,1}.y=[];
+                 obj.results.smooth{obj.r_ind,1}.yci=[];
+                 
             else
-                newx=NaN;
-                newy=NaN;
+                
+                combx=comb(draw_data.x);
+                [combx,i]=sort(combx);
+                comby=comb(draw_data.y);
+                comby=comby(i);
+                
+                %Remove NaN
+                idnan=isnan(combx) | isnan(comby);
+                combx(idnan)=[];
+                comby(idnan)=[];
+                
+                %Slow
+                %newy=smooth(combx,comby,0.2,'loess');
+                %plot(combx,newy,'Color',c,'LineWidth',2)
+                
+                %Super fast spline smoothing !!
+                if length(combx)>3
+                    [newy,newx, yfit] = turbotrend(combx, comby, params.lambda, params.npoints);
+                    
+                else
+                    newx=NaN;
+                    newy=NaN;
+                end
+                
+                if length(combx)>10
+                    booty=bootstrp(200,@(ax,ay)turbotrend(ax,ay,params.lambda,params.npoints),combx,comby);
+                    yci=prctile(booty,[2.5 97.5]);
+                else
+                    yci=nan(2,length(newx));
+                end
+                
+                
+                obj.results.smooth{obj.r_ind,1}.x=newx;
+                obj.results.smooth{obj.r_ind,1}.y=newy;
+                obj.results.smooth{obj.r_ind,1}.yci=yci;
+                
+                %For some reason bootci is super slow there ! %zci=bootci(50,@(ax,ay)turbotrend(ax,ay,10,100),combx,comby);
+                
+                %Spline smoothing
+                %             newx=linspace(min(combx),max(combx),100);
+                %             curve = fit(combx,comby,'smoothingspline','SmoothingParam',smoothparam); %'smoothingspline','SmoothingParam',0.1
+                %             newy=feval(curve,newx);
+                %             yci=bootci(200,@(ax,ay)feval(fit(ax,ay,'smoothingspline','SmoothingParam',smoothparam),newx),combx,comby);
+                
+                
+                %hndl=plotci(newx,newy,yci,c,lt,sz,geom);
+                hndl=obj.plotci(newx,newy,yci,draw_data,params.geom);
+                
+                %cfit=fit(combx,comb(y)','smoothingspline');
+                %newx=linspace(min(combx),max(combx),100);
+                %hndl=plot(newx,cfit(newx),'Color',c);
             end
-            if length(combx)>10
-                booty=bootstrp(200,@(ax,ay)turbotrend(ax,ay,params.lambda,100),combx,comby);
-                yci=prctile(booty,[2.5 97.5]);
-            else
-                yci=nan(2,length(newx));
-            end
-            
-            
-            obj.results.smooth{obj.r_ind,1}.x=newx;
-            obj.results.smooth{obj.r_ind,1}.y=newy;
-            obj.results.smooth{obj.r_ind,1}.yci=yci;
-            
-            %For some reason bootci is super slow there ! %zci=bootci(50,@(ax,ay)turbotrend(ax,ay,10,100),combx,comby);
-            
-            %Spline smoothing
-            %             newx=linspace(min(combx),max(combx),100);
-            %             curve = fit(combx,comby,'smoothingspline','SmoothingParam',smoothparam); %'smoothingspline','SmoothingParam',0.1
-            %             newy=feval(curve,newx);
-            %             yci=bootci(200,@(ax,ay)feval(fit(ax,ay,'smoothingspline','SmoothingParam',smoothparam),newx),combx,comby);
-            
-            
-            %hndl=plotci(newx,newy,yci,c,lt,sz,geom);
-            hndl=obj.plotci(newx,newy,yci,draw_data,params.geom);
-            
-            %cfit=fit(combx,comb(y)','smoothingspline');
-            %newx=linspace(min(combx),max(combx),100);
-            %hndl=plot(newx,cfit(newx),'Color',c);
         end
         
         
         function hndl=my_summary(obj,draw_data,params)
             
-            if iscell(draw_data.x) || iscell(draw_data.y)
+            if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/matrix
                 
-                if params.interp_in>0 %We interpolate the input 
+                if params.interp_in>0 
+                    %If requested we interpolate the input
                     uni_x=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.interp_in);
                     [x,y]=cellfun(@(x,y)deal(uni_x,interp1(x,y,uni_x,'linear')),draw_data.x,draw_data.y,'UniformOutput',false);
                     y=padded_cell2mat(y);
-                    
                 else
+                    %If not we just make a padded matrix for fast
+                    %computations (we'll assume that X are roughly at the
+                    %same location for the same indices)
                     x=padded_cell2mat(draw_data.x);
                     y=padded_cell2mat(draw_data.y);
                     uni_x=nanmean(x);
                 end
                 
-                %If we have a params.type using distributions fits we
-                %can't vectorize
+                if params.bin_in>0
+                    warning('bin_in in stat_summary() not supported for Matrix/Cell X/Y inputs');
+                end
+                
                 if strfind(params.type,'fit')
+                    %If we have a params.type using distributions fits we
+                    %can't vectorize the call to computeci so we do it in a for
+                    %loop
                     ymean=zeros(length(uni_x),1);
                     yci=zeros(length(uni_x),2);
                     for ind_x=1:length(uni_x)
@@ -2156,27 +2312,41 @@ end
                     [ymean,yci]=computeci(y,params.type);
                 end
                 
-            else
+            else %If input was provided as 1D array
+                
                 x=comb(draw_data.x);
                 y=comb(draw_data.y);
                 
                 if params.bin_in>0
+                    %If X binning was requested we do it
                     binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.bin_in+1);
                     bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
-                    %[~,~,binind]=histcounts(x,binranges);
                     [~,binind]=my_histcounts(x,binranges,'count');
                     uni_x=bincenters;
                     x=bincenters(binind);
                 else
-                    uni_x=unique(x); %Sorted is the default
+                    %NEW: compute unique Xs at the facet level to avoid
+                    %weird bar sizing issues when dodging and when
+                    %colors are missing
+                    facet_x=comb(draw_data.facet_x);
+                    uni_x=unique(facet_x);
+            
+                    %OLD
+                    %uni_x=unique(x); %Sorted is the default
+                    
                     %Here we need to implement a loose 'unique' because of
                      %potential numerical errors
                     uni_x(diff(uni_x)<1e-10)=[];
                 end
                 
+                if params.interp_in>0
+                    warning('inter_in in stat_summary() not supported for non Matrix/Cell X/Y inputs');
+                end
+                
                 ymean=zeros(length(uni_x),1);
                 yci=zeros(length(uni_x),2);
                 
+                %Loop over unique X values
                 for ind_x=1:length(uni_x)
                     %And here we have a loose selection also because of
                     %potential numerical errors
@@ -2189,33 +2359,36 @@ end
             %Do we set the y limits according to the smoothed curves or to
             %the original data ?
             if params.setylim
-                if obj.firstrun(obj.current_row,obj.current_column)
-                    obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(max(yci));
-                    obj.plot_lim.miny(obj.current_row,obj.current_column)=min(min(yci));
-                    %obj.firstrun(obj.current_row,obj.current_column)=0;
-                else
-                    if max(max(yci))>obj.plot_lim.maxy(obj.current_row,obj.current_column)
+                if sum(sum(isnan(yci)))~=numel(yci) %We only do this if yci is not weird
+                    if obj.firstrun(obj.current_row,obj.current_column) %Initialize for the first run in the subplot
                         obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(max(yci));
-                    end
-                    if min(min(yci))<obj.plot_lim.miny(obj.current_row,obj.current_column)
                         obj.plot_lim.miny(obj.current_row,obj.current_column)=min(min(yci));
+                    else %Update for subsequent runs in the subplot
+                        if max(max(yci))>obj.plot_lim.maxy(obj.current_row,obj.current_column)
+                            obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(max(yci));
+                        end
+                        if min(min(yci))<obj.plot_lim.miny(obj.current_row,obj.current_column)
+                            obj.plot_lim.miny(obj.current_row,obj.current_column)=min(min(yci));
+                        end
                     end
                 end
             end
             
-            %Do we interpolate the results for display ?
+            %Do we interpolate the summary results for display ?
             if ~strcmp(params.interp,'none')
                 if size(yci,1)>2
                     yci=yci';
                 end
+                
                 if obj.polar.is_polar && obj.polar.is_polar_closed 
-                    %We do an fft interpolation
+                    %If the plot is polar we override the interpolation typ do an optimal fft interpolation
                     uni_x=0:pi/50:2*pi-pi/50;
                     ymean=interpft(ymean,100);
                     tmp_yci1=interpft(yci(1,:),100);
                     tmp_yci2=interpft(yci(2,:),100);
                     yci=[tmp_yci1 ; tmp_yci2];
                 else
+                    %For non polar plots we do a regular interpolation
                     new_x=linspace(min(uni_x),max(uni_x),100);
                     ymean=interp1(uni_x,ymean,new_x,params.interp);
                     tmp_yci1=interp1(uni_x,yci(1,:),new_x,params.interp);
@@ -2225,11 +2398,132 @@ end
                 end
             end
             
+            %Store results
             obj.results.summary{obj.r_ind,1}.x=uni_x;
             obj.results.summary{obj.r_ind,1}.y=ymean;
             obj.results.summary{obj.r_ind,1}.yci=yci;
             
+            %Do the actual plotting
             hndl=obj.plotci(uni_x,ymean,yci,draw_data,params.geom,params.dodge);
+            
+        end
+        
+        function hndl=my_boxplot(obj,draw_data,params)
+            
+            x=comb(draw_data.x);
+            y=comb(draw_data.y);
+            
+            %NEW: compute unique Xs at the facet level (to avoid problems
+            %with bar dodging width computation)
+            facet_x=comb(draw_data.facet_x);
+            uni_x=unique(facet_x);
+            
+            %OLD
+            %uni_x=unique(x); %Sorted is the default
+            
+            
+            %Here we need to implement a loose 'unique' because of
+            %potential numerical errors
+            uni_x(diff(uni_x)<1e-10)=[];
+            
+            %Initialize arrays
+            p=zeros(length(uni_x),5);
+            outliersx=[];
+            outliersy=[];
+            
+            %Adaptive width
+%             dx=diff(uni_x);
+%             if isempty(dx);
+%                 dx=1;
+%             end
+%             avl_w=zeros(length(uni_x),1);
+
+
+            
+            %Loop over unique X values
+            for ind_x=1:length(uni_x)
+                %And here we have a loose selection also because of
+                %potential numerical errors
+                ysel=y(abs(x-uni_x(ind_x))<1e-10);
+                
+                %Percentiles for box and wiskers
+                %p(ind_x,:)=prctile(ysel,[2 25 50 75 98]);
+                
+                %Quartiles
+                temp=prctile(ysel,[25 50 75]);
+                %Wiskers at 1.5 Inter Quartile Range
+                p(ind_x,:)=[temp(1)-1.5*(temp(3)-temp(1)) , temp , temp(3)+1.5*(temp(3)-temp(1))];
+                
+                
+                %Outliers
+                sel_outlier=ysel<p(ind_x,1) | ysel>p(ind_x,5);
+                if sum(sel_outlier)>0
+                    outliersy=[outliersy ysel(sel_outlier)'];
+                    outliersx=[outliersx repmat(ind_x,1,sum(sel_outlier))];
+                end
+                
+                %Code for adaptive width
+                %Compute available width for boxes
+%                 if ind_x==1
+%                     avl_w(ind_x)=dx(ind_x); %Twice the space between 1 and 2 for the first
+%                 else
+%                     if ind_x==length(uni_x)
+%                         avl_w(ind_x)=dx(ind_x-1); %Twice the space between last and second to last for last
+%                     else
+%                         avl_w(ind_x)=(dx(ind_x-1)+dx(ind_x))/2; %Space between previous and space between next
+%                     end
+%                 end
+
+            end
+            
+            %Constant width: we pick the the minimum available width over
+            %the dataset for the span of dodged boxplots
+            avl_w=min(diff(uni_x));
+            if isempty(avl_w)
+                avl_w=1;
+            end
+            
+            
+            
+            
+            if params.dodge>=0
+                spacing=avl_w*params.spacing; %Actual distance between groups of boxes in x 
+                dodging=avl_w*params.dodge./(draw_data.n_colors-1);% (Ncolors-1) spaces between boxes
+                boxw=avl_w*(1-params.spacing-params.dodge)./draw_data.n_colors; % Box width
+                boxleft=uni_x-0.5*avl_w+spacing*0.5+(draw_data.color_index-1)*(dodging+boxw); %We jump by box_width+spacing for each color
+                boxright=uni_x-0.5*avl_w+spacing*0.5+(draw_data.color_index-1)*(dodging+boxw)+boxw;
+            else
+                boxw=(1-params.spacing)*avl_w; %Box width
+                boxleft=uni_x-0.5*avl_w+avl_w*params.spacing*0.5;
+                boxright=uni_x-0.5*avl_w+avl_w*params.spacing*0.5+boxw;
+            end
+            
+            xpatch=[boxleft' ; boxright' ; boxright' ; boxleft'];
+            ypatch=[p(:,2)' ; p(:,2)' ; p(:,4)' ; p(:,4)'];
+            
+            %Draw boxes
+            hndl=patch(xpatch,...
+                ypatch,...
+                [1 1 1],'FaceColor',draw_data.color,'EdgeColor','k','FaceAlpha',1,'EdgeAlpha',1);
+            
+            %Draw medians
+            line([boxleft' ; boxright'],[p(:,3)' ; p(:,3)'],'Color','k');
+            
+            %Draw wiskers
+            boxmid=(boxleft+boxright)/2;
+            line([boxmid' ; boxmid'],[p(:,1)' ; p(:,2)'],'Color','k')
+            line([boxmid' ; boxmid'],[p(:,4)' ; p(:,5)'],'Color','k')
+            
+            %Draw outliers
+            plot(boxmid(outliersx),outliersy,'o','MarkerEdgeColor','none','MarkerFaceColor',draw_data.color);
+            
+            %Adjust limits
+            obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(max(boxright),obj.plot_lim.maxx(obj.current_row,obj.current_column));
+            obj.plot_lim.minx(obj.current_row,obj.current_column)=min(min(boxleft),obj.plot_lim.minx(obj.current_row,obj.current_column));
+            
+            obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(max(p(:,5)),obj.plot_lim.maxy(obj.current_row,obj.current_column));
+            obj.plot_lim.miny(obj.current_row,obj.current_column)=min(min(p(:,1)),obj.plot_lim.miny(obj.current_row,obj.current_column));
+            
             
         end
         
@@ -2446,11 +2740,12 @@ end
         
         function hndl=my_bin(obj,draw_data,params)
             
-            if obj.x_factor
+            %Compute bins
+            if obj.x_factor %For categorical Xs (placed at integer values), we override and make the bins 0.5 1.5 2.5 ...
                 binranges=(0:length(obj.x_ticks))+0.5;
                 bincenters=1:length(obj.x_ticks);
             else
-                if obj.polar.is_polar
+                if obj.polar.is_polar %For polar coordinates we make bin around 0:2pi
                     %Make data modulo 2pi
                     draw_data.x=mod(comb(draw_data.x),2*pi);
                     if isempty(params.edges)
@@ -2471,13 +2766,26 @@ end
                 bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
             end
             
-            bincounts = my_histcounts(comb(draw_data.x),binranges,params.normalization);
+            %Find actual counts
+            if iscell(draw_data.x) %If data was provided as Cell/Matrix
+                %We do the count individually for each element and average
+                %the counts
+                bincounts=zeros(1,length(binranges)-1);
+                for k=1:length(draw_data.x)
+                    bincounts=bincounts+my_histcounts(draw_data.x{k},binranges,params.normalization);
+                end
+                bincounts=bincounts/length(draw_data.x);
+            else
+                %If data was provided as vector we just count
+                bincounts = my_histcounts(comb(draw_data.x),binranges,params.normalization);
+            end
             
             bincounts=shiftdim(bincounts);
             
             obj.results.bin{obj.r_ind,1}.edges=bincenters;
             obj.results.bin{obj.r_ind,1}.counts=bincounts;
             
+            %Set axis limits
             obj.plot_lim.miny(obj.current_row,obj.current_column)=0;
             if obj.firstrun(obj.current_row,obj.current_column)
                 obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(bincounts);
@@ -2531,6 +2839,8 @@ end
                     face_alpha=0.4;
             end
             
+            %All subplots/colors have the same bins, so dodginc
+            %computations are simple
             spacing=0.5*params.bar_spacing*diff(binranges);
             
             switch params.geom
@@ -2770,10 +3080,54 @@ end
             
         end
         
+        function hndl=my_qq(obj,draw_data,params)
+            
+            if strcmp(params.distribution,'y')
+                %If we compare the distribution of x and y
+                x=comb(draw_data.x);
+                y=comb(draw_data.y);
+                
+                y=sort(y(~isnan(y) & ~isnan(x)));
+                xdist=sort(x(~isnan(y) & ~isnan(x)));
+                
+                if obj.r_ind==1
+                    obj.aes_names.y=[obj.aes_names.y ' quantiles'];
+                    obj.aes_names.x=[obj.aes_names.x ' quantiles'];
+                end
+                
+            else
+                %if we compare x to a theoretical distribution
+                x=comb(draw_data.x);
+                
+                y=sort(x(~isnan(x))); %X values will actually be plotted on the y axis
+                
+                xeval=((1:length(y))-0.5)/length(y); %We find out the points at which we estimate the theoretical quantiles
+                xdist=icdf(params.distribution,xeval); %Compute the theoretical quantiles
+                
+                
+                %Set proper names
+                if obj.r_ind==1
+                    obj.aes_names.y=[obj.aes_names.x ' quantiles'];
+                    dist_params=num2str(params.distribution.ParameterValues,'%g,');
+                    obj.aes_names.x=['Theroretical ' params.distribution.DistributionName '(' dist_params(1:end-1) ') quantiles'];
+                end
+                
+            end
+            
+            hndl=plot(xdist,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+            
+            obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(max(y),obj.plot_lim.maxy(obj.current_row,obj.current_column));
+            obj.plot_lim.miny(obj.current_row,obj.current_column)=min(min(y),obj.plot_lim.miny(obj.current_row,obj.current_column));
+            
+            obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(max(xdist),obj.plot_lim.maxx(obj.current_row,obj.current_column));
+            obj.plot_lim.minx(obj.current_row,obj.current_column)=min(min(xdist),obj.plot_lim.minx(obj.current_row,obj.current_column));
+            
+        end
+        
         function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge)
             
             if nargin<7
-                dodge=false;
+                dodge=-1;
             end
             
             x=shiftdim(x)';
@@ -2803,6 +3157,7 @@ end
                 geom={geom};
             end
             
+            %For area plots we remove NaNs otherwise it looks weird
             if sum(strcmp(geom,{'area','solid_area'}))>0
                 selnan=isnan(x) | isnan(y) | isnan(yci(1,:)) | isnan(yci(1,:));
                 if sum(selnan)>0
@@ -2819,14 +3174,18 @@ end
                 return;
             end
             
-            if length(x)>1
-                x_spacing=x(2)-x(1);
+            if length(x)>2
+                %x_spacing=x(2)-x(1);
+                x_spacing=min(diff(x));
             else
                 x_spacing=1;
             end
-            if dodge
-                bar_width=x_spacing/(draw_data.n_colors+1);
-                x=x-x_spacing/2+bar_width+bar_width*(draw_data.color_index-1);
+            
+            
+            if dodge>=0
+                bar_width=(x_spacing-dodge*x_spacing)/(draw_data.n_colors+1);
+                dodge_amount=dodge/(draw_data.n_colors-1);
+                x=x-x_spacing/2+bar_width+(bar_width+dodge_amount)*(draw_data.color_index-1);
             else
                 bar_width=x_spacing/2;
             end
@@ -2867,6 +3226,7 @@ end
                         set(hndl,'LineStyle','none')
                     case 'black_errorbar'
                         hndl=errorbar(x,y,y-yci(1,:),yci(2,:)-y,'color','k');
+                        
                         %hndl=errorbar(x,y,y-yci(:,1)',yci(:,2)'-y);
                         %hndl=plot(xci,yci,'-');
                         set(hndl,'Color',[0 0 0])
@@ -2883,9 +3243,16 @@ end
                         hndl=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','none');
                         %
                         %hndl=bar(x,y,bar_width,'faceColor',draw_data.color,'EdgeColor','none');
+                    case 'point'
+                        hndl=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
                 end
                 
             end
+            
+                        %Adjust limits
+            obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(max(x),obj.plot_lim.maxx(obj.current_row,obj.current_column));
+            obj.plot_lim.minx(obj.current_row,obj.current_column)=min(min(x),obj.plot_lim.minx(obj.current_row,obj.current_column));
+            
             
         end
 

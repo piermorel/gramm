@@ -35,23 +35,29 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 ## Features
 - Accepts x and y data as arrays, matrices or cells of arrays
 - Accepts grouping data as arrays or cellstr
-- Multiple ways of separating data by groups: 
+
+- Multiple ways of separating groups of data: 
   - Colors, lightness, point markers, line styles, and point/line size (<code>'color'</code>, <code>'lightness'</code>, <code>'marker'</code>, <code>'linestyle'</code>,  <code>'size'</code>)
   - Subplots by row and/or columns, or wrapping columns (<code>facet_grid()</code> and <code>facet_wrap()</code>). Multiple <code>'scale'</code> options for consistent axis limits across facets, rows, columns, etc.
+
 - Multiple ways of directly plotting the data: 
   - scatter plots (<code>geom_point()</code>) and jittered scatter plot (<code>geom_jitter()</code>)
   - lines (<code>geom_line()</code>)
   - bars plots (<code>geom_bar()</code>)
   - raster plots (<code>geom_raster()</code>)
   - point counts (<code>point_count()</code>)
+
 - Multiple ways of plotting transformed data:
   - y data summarized by x values (uniques or binned) with confidence intervals (<code>stat_summary()</code>)
-  - spline-smoothed y data with optional confidence interval (<code>stat_smooth()</code>)
   - histograms and density plots of x values (<code>stat_bin()</code> and <code>stat_density()</code>)
+  - box and whisker plots (<code>stat_boxplot</code>)
+  - quantile-quantile plots (<code>stat_qq()</code>) of x data distribution against theoretical distribution or y data distribution.
+  - spline-smoothed y data with optional confidence interval (<code>stat_smooth()</code>)
   - 2D binning (<code>stat_bin2d()</code>)
   - GLM fits (<code>stat_glm()</code>, requires statistics toolbox)
   - Custom fits with user-provided anonymous function (<code>stat_fit()</code>)
   - Ellipses of confidence (<code>stat_ellipse()</code>)
+
 - Subplots are created without too much empty space in between (and resize properly !)
 - Polar coordinates (<code>set_polar()</code>)
 - Color data can also be displayed as a continous variable, not as a grouping factor (<code>set_continuous_color()</code>)

@@ -25,13 +25,13 @@ x(twoaltb==1)=x(twoaltb==1)-90;
 %% Example use
 
 figure
-g=gramm('x',x,'y',y,'color',fouraltc,'linestyle',twoaltcb)
-g.facet_grid(twoaltc,twoaltcb,'scale','fixed')
-g.geom_point()
-g.stat_smooth('lambda',1000,'geom','area')
+g1=gramm('x',x,'y',y,'color',fouraltc,'linestyle',twoaltcb)
+g1.facet_grid(twoaltc,twoaltcb,'scale','fixed')
+g1.geom_point()
+g1.stat_smooth('lambda',1000,'geom','area')
 %It's possible to set native axis properties
-g.axe_property('XGrid','on','YGrid','on')
-g.draw()
+g1.axe_property('XGrid','on','YGrid','on')
+g1.draw()
 
 %% Plot multiple gramm objects in single window
 
@@ -39,105 +39,106 @@ g.draw()
 %element (they stay independent), rows will be rows, columns will be
 %columns, starting from top left
 
-clear g
+clear g2
 
-g(1,1)=gramm('x',x,'y',y,'color',fouraltc)
-g(1,1).facet_grid(twoaltc,twoaltcb) %,'scales','independent'
-g(1,1).stat_smooth('lambda',1000,'geom','area')
-g(1,1).geom_point()
+g2(1,1)=gramm('x',x,'y',y,'color',fouraltc)
+g2(1,1).facet_grid(twoaltc,twoaltcb) %,'scales','independent'
+g2(1,1).stat_smooth('lambda',1000,'geom','area')
+g2(1,1).geom_point()
 
-g(1,2)=gramm('x',y,'y',x,'color',twoaltc)
-g(1,2).geom_point()
+g2(1,2)=gramm('x',y,'y',x,'color',twoaltc)
+g2(1,2).geom_point()
  
 % X data can be a cellstr, data will be treated as being categorical
-g(2,1)=gramm('x',fouraltc,'y',y,'color',twoaltcb,'size',4)
-g(2,1).facet_grid(twoaltc,[],'scale','fixed')
-g(2,1).geom_jitter('width',0.2,'height',0) %We can jitter the points in the scatter plot to make the density more apparent
+g2(2,1)=gramm('x',fouraltc,'y',y,'color',twoaltcb,'size',4)
+g2(2,1).facet_grid(twoaltc,[],'scale','fixed')
+g2(2,1).geom_jitter('width',0.2,'height',0) %We can jitter the points in the scatter plot to make the density more apparent
 
-g(2,2)=gramm('x',y,'color',twoaltc)
-g(2,2).no_legend() %It's possible to drop the side legends (useful when the grouping is the same across multiple objects)
-g(2,2).stat_bin('geom','bar') %Using stat_bin we can create histograms
+g2(2,2)=gramm('x',y,'color',twoaltc)
+g2(2,2).no_legend() %It's possible to drop the side legends (useful when the grouping is the same across multiple objects)
+g2(2,2).stat_bin('geom','bar') %Using stat_bin we can create histograms
+g2(2,2).set_limit_extra(0.1,0)
 
 %And call the draw function on the whole array !
 figure
-g.draw()
+g2.draw()
 
 
 
 %% Example of different scaling options for faceting with facet_grid
 
-clear g
+clear g3
 
 %Example with everything in the same plot
-g(1,1)=gramm('x',x,'y',y,'color',fouraltc)
-g(1,1).geom_point()
+g3(1,1)=gramm('x',x,'y',y,'color',fouraltc)
+g3(1,1).geom_point()
 
 % 'fixed': same x and y scale for all subplots
-g(1,2)=gramm('x',x,'y',y,'color',fouraltc)
-g(1,2).facet_grid(twoaltc,twoaltcb,'scale','fixed') 
-g(1,2).geom_point()
+g3(1,2)=gramm('x',x,'y',y,'color',fouraltc)
+g3(1,2).facet_grid(twoaltc,twoaltcb,'scale','fixed') 
+g3(1,2).geom_point()
 
 % 'free_x': subplots on the same columns have the same x scale
-g(2,1)=gramm('x',x,'y',y,'color',fouraltc)
-g(2,1).facet_grid(twoaltc,twoaltcb,'scale','free_x') 
-g(2,1).geom_point()
+g3(2,1)=gramm('x',x,'y',y,'color',fouraltc)
+g3(2,1).facet_grid(twoaltc,twoaltcb,'scale','free_x') 
+g3(2,1).geom_point()
 
 % 'free_y': subplots on the same rows have the same y scale
-g(2,2)=gramm('x',x,'y',y,'color',fouraltc)
-g(2,2).facet_grid(twoaltc,twoaltcb,'scale','free_y') 
-g(2,2).geom_point()
+g3(2,2)=gramm('x',x,'y',y,'color',fouraltc)
+g3(2,2).facet_grid(twoaltc,twoaltcb,'scale','free_y') 
+g3(2,2).geom_point()
 
 % 'free': subplots on the same rows  have the same y scale and facets on the same columns have the same x scale
-g(3,1)=gramm('x',x,'y',y,'color',fouraltc)
-g(3,1).facet_grid(twoaltc,twoaltcb,'scale','free') 
-g(3,1).geom_point()
+g3(3,1)=gramm('x',x,'y',y,'color',fouraltc)
+g3(3,1).facet_grid(twoaltc,twoaltcb,'scale','free') 
+g3(3,1).geom_point()
 
 % 'independent': subplots are independent on each facet
-g(3,2)=gramm('x',x,'y',y,'color',fouraltc)
-g(3,2).facet_grid(twoaltc,twoaltcb,'scale','independent') 
-g(3,2).geom_point()
+g3(3,2)=gramm('x',x,'y',y,'color',fouraltc)
+g3(3,2).facet_grid(twoaltc,twoaltcb,'scale','independent') 
+g3(3,2).geom_point()
 
 figure('Position',[100 100 700 800])
-g.draw()
+g3.draw()
 
 
 %% Example of different scaling options for wrap faceting
 
-clear g
+clear g4
 
 %Example with everything in the same plot
-g(1,1)=gramm('x',x,'y',y,'color',fouraltc)
-g(1,1).geom_point()
+g4(1,1)=gramm('x',x,'y',y,'color',fouraltc)
+g4(1,1).geom_point()
 
 % 'fixed': same x and y scale for all subplots
-g(1,2)=gramm('x',x,'y',y,'color',fouraltc)
-g(1,2).facet_wrap(fouraltc,'scale','fixed','ncols',3) 
-g(1,2).geom_point()
+g4(1,2)=gramm('x',x,'y',y,'color',fouraltc)
+g4(1,2).facet_wrap(fouraltc,'scale','fixed','ncols',3) 
+g4(1,2).geom_point()
 
 % 'free_x': subplots on the same columns have the same x scale -> for wrap, each plot
 %has its own x scale
-g(2,1)=gramm('x',x,'y',y,'color',fouraltc)
-g(2,1).facet_wrap(fouraltc,'scale','free_x','ncols',3) 
-g(2,1).geom_point()
+g4(2,1)=gramm('x',x,'y',y,'color',fouraltc)
+g4(2,1).facet_wrap(fouraltc,'scale','free_x','ncols',3) 
+g4(2,1).geom_point()
 
 % 'free_y': subplots on the same rows have the same y scale -> for wrap, each plot has
 %its own y scale
-g(2,2)=gramm('x',x,'y',y,'color',fouraltc)
-g(2,2).facet_wrap(fouraltc,'scale','free_y','ncols',3) 
-g(2,2).geom_point()
+g4(2,2)=gramm('x',x,'y',y,'color',fouraltc)
+g4(2,2).facet_wrap(fouraltc,'scale','free_y','ncols',3) 
+g4(2,2).geom_point()
 
 % 'free': behaves like 'independent' option when using facet_wrap
-g(3,1)=gramm('x',x,'y',y,'color',fouraltc)
-g(3,1).facet_wrap(fouraltc,'scale','free','ncols',3) 
-g(3,1).geom_point()
+g4(3,1)=gramm('x',x,'y',y,'color',fouraltc)
+g4(3,1).facet_wrap(fouraltc,'scale','free','ncols',3) 
+g4(3,1).geom_point()
 
 % 'independent': scales are independent on each subplot
-g(3,2)=gramm('x',x,'y',y,'color',fouraltc)
-g(3,2).facet_wrap(fouraltc,'scale','independent','ncols',3) 
-g(3,2).geom_point()
+g4(3,2)=gramm('x',x,'y',y,'color',fouraltc)
+g4(3,2).facet_wrap(fouraltc,'scale','independent','ncols',3) 
+g4(3,2).geom_point()
 
 figure('Position',[100 100 700 800])
-g.draw()
+g4.draw()
 
 %% Examples for different types of histograms
 
@@ -147,121 +148,186 @@ cat=repmat([1 1 1 2],300,1);
 x(cat==2)=x(cat==2)+2;
 
 %Example of different geoms
-clear g
-g(1,1)=gramm('x',x,'color',cat)
-g(1,1).stat_bin() %by default, 'geom' is 'bar', where color groups are side-by-side (dodged)
+clear g5
+g5(1,1)=gramm('x',x,'color',cat)
+g5(1,1).stat_bin() %by default, 'geom' is 'bar', where color groups are side-by-side (dodged)
 
-g(1,2)=gramm('x',x,'color',cat)
-g(1,2).stat_bin('geom','stacked_bar') %Stacked bars option
+g5(1,2)=gramm('x',x,'color',cat)
+g5(1,2).stat_bin('geom','stacked_bar') %Stacked bars option
 
-g(2,1)=gramm('x',x,'color',cat)
-g(2,1).stat_bin('geom','line') %Draw lines instead of bars, easier to visualize when lots of categories, default fill to edges !
+g5(2,1)=gramm('x',x,'color',cat)
+g5(2,1).stat_bin('geom','line') %Draw lines instead of bars, easier to visualize when lots of categories, default fill to edges !
 
-g(2,2)=gramm('x',x,'color',cat)
-g(2,2).stat_bin('geom','overlaid_bar') %Overlaid bar automatically changes bar coloring to transparent
+g5(2,2)=gramm('x',x,'color',cat)
+g5(2,2).stat_bin('geom','overlaid_bar') %Overlaid bar automatically changes bar coloring to transparent
 
-g(1,3)=gramm('x',x,'color',cat)
-g(1,3).stat_bin('geom','point') 
+g5(1,3)=gramm('x',x,'color',cat)
+g5(1,3).stat_bin('geom','point') 
 
 
-g(2,3)=gramm('x',x,'color',cat)
-g(2,3).stat_bin('geom','stairs') %Default fill is edges
+g5(2,3)=gramm('x',x,'color',cat)
+g5(2,3).stat_bin('geom','stairs') %Default fill is edges
 
 figure
-g.draw()
+g5.draw()
 
 %Example of alternative fill options
 figure
-clear f
-f(1,1)=gramm('x',x,'color',cat)
-f(1,1).stat_bin('fill','face')
+clear g6
+g6(1,1)=gramm('x',x,'color',cat)
+g6(1,1).stat_bin('fill','face')
 
-f(1,2)=gramm('x',x,'color',cat)
-f(1,2).stat_bin('fill','all')
+g6(1,2)=gramm('x',x,'color',cat)
+g6(1,2).stat_bin('fill','all')
 
-f(2,1)=gramm('x',x,'color',cat)
-f(2,1).stat_bin('fill','edge')
+g6(2,1)=gramm('x',x,'color',cat)
+g6(2,1).stat_bin('fill','edge')
 
-f(2,2)=gramm('x',x,'color',cat)
-f(2,2).stat_bin('fill','transparent')
+g6(2,2)=gramm('x',x,'color',cat)
+g6(2,2).stat_bin('fill','transparent')
 
-f.draw()
+g6.draw()
 
 %Example of other histogram-generation examples
 figure
-clear h
-h(1,1)=gramm('x',x,'color',cat)
-h(1,1).stat_bin('geom','overlaid_bar') %Default binning (30 bins)
+clear g7
+g7(1,1)=gramm('x',x,'color',cat)
+g7(1,1).stat_bin('geom','overlaid_bar') %Default binning (30 bins)
 
 %Normalization to 'probability'
-h(2,1)=gramm('x',x,'color',cat)
-h(2,1).stat_bin('normalization','probability','geom','overlaid_bar')
+g7(2,1)=gramm('x',x,'color',cat)
+g7(2,1).stat_bin('normalization','probability','geom','overlaid_bar')
 
 %Normalization to cumulative count
-h(1,2)=gramm('x',x,'color',cat)
-h(1,2).stat_bin('normalization','cumcount','geom','stairs')
+g7(1,2)=gramm('x',x,'color',cat)
+g7(1,2).stat_bin('normalization','cumcount','geom','stairs')
 
 %Normalization to cumulative density
-h(2,2)=gramm('x',x,'color',cat)
-h(2,2).stat_bin('normalization','cdf','geom','stairs')
+g7(2,2)=gramm('x',x,'color',cat)
+g7(2,2).stat_bin('normalization','cdf','geom','stairs')
 
 %Custom edges for the bins
-h(1,3)=gramm('x',x,'color',cat)
-h(1,3).stat_bin('edges',-1:0.5:10,'geom','overlaid_bar')
+g7(1,3)=gramm('x',x,'color',cat)
+g7(1,3).stat_bin('edges',-1:0.5:10,'geom','overlaid_bar')
 
 %Custom edges with non-constand width (normalization 'countdensity'
 %recommended)
-h(2,3)=gramm('x',x,'color',cat)
-h(2,3).stat_bin('geom','overlaid_bar','normalization','countdensity','edges',[-5 -4 -2 -1 -0.5 -0.25 0 0.25 0.5  1 2 4 5])
+g7(2,3)=gramm('x',x,'color',cat)
+g7(2,3).stat_bin('geom','overlaid_bar','normalization','countdensity','edges',[-5 -4 -2 -1 -0.5 -0.25 0 0.25 0.5  1 2 4 5])
 
 
 
-h.draw()
+g7.draw()
 
 
 
 %% Example from the readme
 
-clear g
+clear g8
 figure
 
 load carbig.mat %Load example dataset about cars
 origin_region=num2cell(org,2); %Convert origin data to a cellstr
 %Create a gramm object, provide x (year) and y (mpg) data
 %color data (region of origin) and select a subset of the data
-g=gramm('x',Model_Year,'y',MPG,'color',origin_region,'subset',Cylinders~=3 & Cylinders~=5,'size',5)
+g8=gramm('x',Model_Year,'y',MPG,'color',origin_region,'subset',Cylinders~=3 & Cylinders~=5,'size',5)
 %Set appropriate names for legends
-g.set_names('color','Origin','x','Year of production','y','MPG','column','# Cylinders')
+g8.set_names('color','Origin','x','Year of production','y','MPG','column','# Cylinders')
 %Subdivide the data in subplots horizontally by number of cylinders
-g.facet_grid([],Cylinders)
+g8.facet_grid([],Cylinders)
 %Plot raw data points
-g.geom_point()
+g8.geom_point()
 %Plot summarized data: 5 bins over x are created and for each
 %bin the mean and confidence interval is displayed as a shaded area
-g.stat_summary('geom','area','type','bootci','bin_in',5)
-g.draw() %Draw method
+g8.stat_summary('geom','area','type','bootci','bin_in',5)
+g8.draw() %Draw method
+
+%% Example for summary and boxplot dodging (with tricky data)
+
+
+x=repmat(1:10,1,100);
+catx=repmat({'A' 'B' 'C' 'F' 'E' 'D' 'G' 'H' 'I' 'J'},1,100);
+y=randn(1,1000);
+c=repmat([1 1 1 1 1 1 1 1 1 1    1 1 2 2 2 2 2 2 3 2     2 1 1 2 2 2 2 2 3 3     2 1 1 2 2 2 2 2 3 2],1,25);
+y=y+x+c*0.5;
+
+
+figure
+g=gramm('x',x,'y',y,'color',c);
+g.geom_jitter('width',0.5);
+g.draw();
+
+
+
+figure
+clear g
+g(1,1)=gramm('x',catx,'y',y,'color',c);
+g(1,1).stat_boxplot('spacing',0.5,'dodge',-1);
+g(1,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
+g(2,1)=gramm('x',catx,'y',y,'color',c);
+g(2,1).stat_boxplot('spacing',0.2,'dodge',0);
+g(2,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
+g(3,1)=gramm('x',catx,'y',y,'color',c);
+g(3,1).stat_boxplot('spacing',0.2,'dodge',0.1);
+g(3,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
+g(4,1)=gramm('x',catx,'y',y,'color',c);
+g(4,1).facet_grid([],c);
+g(4,1).stat_boxplot('spacing',0.4,'dodge',-1);
+g.draw();
+
+
+figure
+clear g
+g(1,1)=gramm('x',catx,'y',y,'color',c);
+g(1,1).stat_summary('geom',{'bar' 'black_errorbar'},'dodge',0);
+g(1,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
+g(2,1)=gramm('x',catx,'y',y,'color',c);
+g(2,1).stat_summary('geom',{'bar' 'black_errorbar'},'dodge',0.2);
+g(2,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
+g(3,1)=gramm('x',catx,'y',y,'color',c);
+g(3,1).stat_summary('geom',{'area'});
+g(4,1)=gramm('x',catx,'y',y,'color',c);
+g(4,1).stat_summary('geom',{'point' 'errorbar'},'dodge',0);
+g(4,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
+g.draw();
+
+%% Quantile-quantile plots example
+
+figure
+grp=repmat([1 2],1,500)';
+g=gramm('x',randn(1000,1).*grp,'color',grp)
+g.stat_qq('Distribution',makedist('Normal',0,2))
+g.geom_abline()
+g.draw()
+
+figure
+g=gramm('x',randn(1000,1).*grp,'y',randn(1000,1),'color',grp)
+g.stat_qq('Distribution','y')
+g.geom_abline()
+g.draw()
+
 
 %% Example for date ticks
 
 t=now;
 
 figure
-g=gramm('x',t+[0 0.1 1 5 6],'y',t+[1 2 3 4 5])
-g.geom_line()
-g.set_datetick('x',2)
-g.set_datetick('y',1)
-g.draw()
+g9=gramm('x',t+[0 0.1 1 5 6],'y',t+[1 2 3 4 5])
+g9.geom_line()
+g9.set_datetick('x',2)
+g9.set_datetick('y',1)
+g9.draw()
 
 %% Example of glm fit
 
 load carbig.mat %Load example dataset about cars
 
 figure
-g=gramm('x',Horsepower,'y',Acceleration,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
-g.set_names('color','# Cylinders','x','Horsepower','y','Acceleration')
-g.stat_glm('geom','area','disp_fit',true) %Linear fit (default for stat_glm
-g.geom_point()
-g.draw()
+g10=gramm('x',Horsepower,'y',Acceleration,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g10.set_names('color','# Cylinders','x','Horsepower','y','Acceleration')
+g10.stat_glm('geom','area','disp_fit',true) %Linear fit (default for stat_glm
+g10.geom_point()
+g10.draw()
 
 
 %% Example of all the different input formats for x and y
@@ -275,16 +341,16 @@ C=[1 1 1 1 1 2 2 2 2 2 2 2 2 2 2];
 %Note the continuous line connecting all blue data points, gramm can't know
 %when to start a new line in this case
 figure
-g=gramm('x',X,'y',Y,'color',C)
-g.geom_line()
-g.draw()
+g11=gramm('x',X,'y',Y,'color',C)
+g11.geom_line()
+g11.draw()
 
 %Adding a group variable solves the problem in a ggplot-like way
 G=[1 1 1 1 1 2 2 2 2 2 3 3 3 3 3];
 figure
-g=gramm('x',X,'y',Y,'color',C,'group',G)
-g.geom_line()
-g.draw()
+g12=gramm('x',X,'y',Y,'color',C,'group',G)
+g12.geom_line()
+g12.draw()
 
 %For a more matlab-like solution, Y and X can be matrices, rows will automatically be considered as groups.
 % as a consequence grouping data (color, etc...) are provided for the rows !
@@ -292,40 +358,40 @@ Y=[1 2 3 4 5;2 3 4 5 6; 3 4 5 6 7];
 X=[1 2 3 4 5; 0 1 2 3 4; -1 0 1 2 3];
 C=[1 2 2];
 figure
-g=gramm('x',X,'y',Y,'color',C)
-g.geom_line()
-g.draw()
+g13=gramm('x',X,'y',Y,'color',C)
+g13.geom_line()
+g13.draw()
 
 % If all X values are the same, it's possible to provide X as a single row
 X=[1 2 3 4 5];
 figure
-g=gramm('x',X,'y',Y,'color',C)
-g.geom_line()
-g.draw()
+g14=gramm('x',X,'y',Y,'color',C)
+g14.geom_line()
+g14.draw()
 
 %Similar results can be obtained with cells of arrays
 Y={[1 2 3 4 5] [2 3 4 5 6] [3 4 5 6 7]}
 X={[1 2 3 4 5] [0 1 2 3 4] [-1 0 1 2 3]}
 figure
-g=gramm('x',X,'y',Y,'color',C)
-g.geom_line()
-g.draw()
+g15=gramm('x',X,'y',Y,'color',C)
+g15.geom_line()
+g15.draw()
 
 Y={[1 2 3 4 5] [2 3 4 5 6] [3 4 5 6 7]}
 X=[1 2 3 4 5];
 figure
-g=gramm('x',X,'y',Y,'color',C)
-g.geom_line()
-g.draw()
+g16=gramm('x',X,'y',Y,'color',C)
+g16.geom_line()
+g16.draw()
 
 %With cells of arrays, there is the opportinity to have different lengths
 %for different groups
 Y={[1 2 3 4 5] [3 4 5] [3 4 5 6 7]}
 X={[1 2 3 4 5] [1 2 3] [-1 0 1 2 3]}
 figure
-g=gramm('x',X,'y',Y,'color',C)
-g.geom_line()
-g.draw()
+g17=gramm('x',X,'y',Y,'color',C)
+g17.geom_line()
+g17.draw()
 
 
 
@@ -336,11 +402,11 @@ load spectra.mat
 figure
 %Here we create x as a 1xN array (see example above), and use a MxN matrix
 %for y. Color applies to the M rows of y.
-g=gramm('x',900:2:1700,'y',NIR,'color',octane);
-g.set_names('x','Wavelength (nm)','y','NIR','color','octane')
-g.set_continuous_color('colormap','hot')
-g.geom_line;
-g.draw;
+g18=gramm('x',900:2:1700,'y',NIR,'color',octane);
+g18.set_names('x','Wavelength (nm)','y','NIR','color','octane')
+g18.set_continuous_color('colormap','hot')
+g18.geom_line;
+g18.draw;
 
 %% Examples for representations of 2D data
 
