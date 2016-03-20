@@ -61,7 +61,8 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 - Subplots are created without too much empty space in between (and resize properly !)
 - Polar coordinates (<code>set_polar()</code>)
 - Color data can also be displayed as a continous variable, not as a grouping factor (<code>set_continuous_color()</code>)
-- Possibility to customize color generations in the LCH color space (<code>set_color_options()</code>)
+- Possibility to customize color generations in the LCH color space, chose alternative colormaps (Matlab's default, [colorbrewer2](http://colorbrewer2.org)), or provide a custom colormap (<code>set_color_options()</code>)
+- Possibility to change ordering of grouping variables between native, sorted, or custom (<code>set_order_options</code>)
 - Confidence intervals as shaded areas, error bars or thin lines
 - Results of computations from <code>stat_</code> plots are returned in the member structure <code>results</code>
 - Multiple gramm plots can be combined in the same figure by creating a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix.
@@ -91,6 +92,12 @@ Also shows histograms, categorical x values
 <code>stat_bin()</code> with different <code>'geom'</code> options: <code>'bar'</code>, <code>'stacked_bar'</code>,<code>'point'</code>,<code>'line'</code>, <code>'overlaid_bar'</code>,<code>'stairs'</code>
 
 <img src="/img/histograms_example.png" alt="Histograms example" width="500">
+
+### Colormap customization ###
+<code>set_color_options()</code> with <code>'map'</code> set as <code>'lch'</code> with various customization on the first row. <code>'map'</code> set to <code>matlab</code>,
+ <code>brewer1</code>, and <code>brewer2</code> on the second line
+
+<img src="/img/colormaps_example.png" alt="Colormaps example" width="500">
 
 ### 2D density visualizations ###
 <code>stat_ellipse()</code> and <code>stat_bin2d()</code> with <code>'geom'</code> set to <code>'contour'</code>,<code>'point'</code>,<code>'image'</code>

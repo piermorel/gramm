@@ -3,11 +3,11 @@ classdef gramm < handle
     % Pierre Morel 2015
     
     properties (Access=public)
-        facet_axes_handles %Store the handles of the facet axes
-        results
+        facet_axes_handles %Stores the handles of the facet axes
+        results %Stores the results of the draw functions and statistics computations
     end
         
-    properties (Access=protected)
+    properties (Access=protected,Hidden=true)
         aes %aesthetics (contains data set by the constructor and used to generate the plots)
         aes_names %Name of the aesthetics and column/rows for the legend
         row_facet %Contains data used to set subplot rows
@@ -59,6 +59,7 @@ classdef gramm < handle
         continuous_color %Do we use continuous colors (rather than discrete)
         continuous_color_colormap %Store the continuous color colormap
         color_options %Store options for generating colors
+        order_options %Store options for sorting data/categories
         
         with_legend %Do we have a side legend for colors etc. ?
         
@@ -172,6 +173,16 @@ classdef gramm < handle
             obj.color_options.hue_range=[25 385];
             obj.color_options.lightness=65;
             obj.color_options.chroma=75;
+            obj.color_options.map='lch';
+            
+            obj.order_options.x=1;
+            obj.order_options.color=1;
+            obj.order_options.marker=1;
+            obj.order_options.linestyle=1;
+            obj.order_options.size=1;
+            obj.order_options.row=1;
+            obj.order_options.column=1;
+            obj.order_options.lightness=1;
             
             obj.with_legend=true;
         end
@@ -256,39 +267,56 @@ classdef gramm < handle
             % 'maxy': set the maximum y value (automatic scaling can't work
             % properly on polar plots.
             
-            obj.polar.is_polar=true;
+           
             
             p=inputParser;
             my_addParameter(p,'closed',false);
             my_addParameter(p,'maxy',-1)
             parse(p,varargin{:});
             
-            obj.polar.is_polar_closed=p.Results.closed;
-            obj.polar.max_polar_y=p.Results.maxy;
+            for obj_ind=1:numel(obj)
+                obj(obj_ind).polar.is_polar=true;
+                obj(obj_ind).polar.is_polar_closed=p.Results.closed;
+                obj(obj_ind).polar.max_polar_y=p.Results.maxy;
+            end
             
         end
         
         function obj=set_color_options(obj,varargin)
-            % set_color_options() Set options used to generate colors in
-            % the LCH (Lightness-Chroma-Hue) colorspace
+            % set_color_options() Set options used to generate colormaps
             %
             % Parameters:
+            % 'map': Set custom colormap. Available colormaps are 'lch'
+            % (default, supports lightness), 'matlab' (post-2014b default
+            % colormap), 'brewer1', 'brewer2', 'brewer3', 'brewer_pastel', 
+            %'brewer_dark' for the corresponding brewer colormaps from
+            % colorbrewer2.org. It is also possible to provide a custom
+            % colormap by providing a N-by-3 matrix (columns are R,G,B).
+            %
+            % The other options allow to sepecify color generation
+            % parameters for the default 'lch' colormap:
+            %
             % 'lightness_range': 2-element vector indicating the range of 
             % lightness values (0-100) used when generating plots with
             % lightness variations. Default is [85 15] (light to dark)
+            %
             % 'chroma_range': 2-element vector indicating the range of 
             % chroma values (0-100) used when generating plots with
             % lightness variations (chroma is the intensity of the color).
             % Default is [30 90] (weak color to deeper color)
+            %
             % 'hue_range': 2-element vector indicating the range of 
             % hue values (0-360) used when generating color plots. Default is
             % [25 385] (red to blue).
+            %
             % 'lightness': Lightness used when generating plots without
             % lightness variations. Default is 60
+            %
             % 'chroma': Chroma used when generating plots without chroma
             % variations. Default is 70
             
             p=inputParser;
+            my_addParameter(p,'map','lch'); %matlab, brewer1,brewer2,brewer3,brewer_pastel,brewer_dark
             my_addParameter(p,'lightness_range',[85 15]);
             my_addParameter(p,'chroma_range',[30 90]);
             my_addParameter(p,'hue_range',[25 385]);
@@ -296,7 +324,51 @@ classdef gramm < handle
             my_addParameter(p,'chroma',75);
             parse(p,varargin{:});
             
-            obj.color_options=p.Results;  
+            for obj_ind=1:numel(obj)
+                obj(obj_ind).color_options=p.Results;  
+            end
+        end
+        
+        function obj=set_order_options(obj,varargin)
+            % set_order_options() Set ordering options for categorical
+            % variables
+            %
+            % Ordering options are available for 'x', 'color', 'marker',
+            % 'size', 'linestyle', 'row', 'column', 'lightness'
+            % For each variable, the option is provided with a 'name',
+            % value pair. Example for setting the ordering for the 'color' variable:
+            %
+            % 'color',1     This is the default, orders  variable in
+            % ascending order (alphabetical or numerical)
+            %
+            % 'color',0     Keeps the order of appearance in the
+            % original variable
+            %
+            % 'color',-1    Orders variable in descending order
+            % (alphabetical or numerical)
+            %
+            % 'color',[4 3 5 1 2]   Uses a custom order provided with 
+            %indices provided as an array. The indices are indices 
+            %corresponding to unique values in sorted in ascending order
+            % The array length must be equal to the number of unique
+            % values for the variable and must contain all the integers
+            % between 1 and the number of unique values.
+            
+            p=inputParser;
+            my_addParameter(p,'x',1);
+            my_addParameter(p,'color',1);
+            my_addParameter(p,'marker',1);
+            my_addParameter(p,'size',1);
+            my_addParameter(p,'linestyle',1);
+            my_addParameter(p,'row',1);
+            my_addParameter(p,'column',1);
+            my_addParameter(p,'lightness',1);
+            parse(p,varargin{:});
+            
+            for obj_ind=1:numel(obj)
+                obj(obj_ind).order_options=p.Results;
+            end
+            
         end
         
         function obj=set_continuous_color(obj,varargin)
@@ -361,8 +433,11 @@ classdef gramm < handle
             % room is expressed as ratio to original limits. 0.1 will
             % extend by 5% on each side.
             
-            obj.xlim_extra=x_extra;
-            obj.ylim_extra=y_extra;
+            
+            for obj_ind=1:numel(obj)
+                obj(obj_ind).xlim_extra=x_extra;
+                obj(obj_ind).ylim_extra=y_extra;
+            end
             
         end
         
@@ -374,8 +449,10 @@ classdef gramm < handle
             % arguments are the same as in matlab's own set(gca,'propertyname',propertyvalue)
             
             if mod(nargin-1,2)==0
-                for k=1:2:length(varargin)
-                    obj.axe_properties=vertcat(obj.axe_properties,{varargin{k},varargin{k+1}});
+                for obj_ind=1:numel(obj)
+                    for k=1:2:length(varargin)
+                        obj(obj_ind).axe_properties=vertcat(obj(obj_ind).axe_properties,{varargin{k},varargin{k+1}});
+                    end
                 end
             else
                 error('Arguments of axe_property() must be given as ''name'',value pairs')
@@ -389,7 +466,9 @@ classdef gramm < handle
             % datetick() function of matlab
             
             %This way we can handle multiple calls to set_datetick
-            obj.datetick_params=vertcat(obj.datetick_params,{varargin});
+            for obj_ind=1:numel(obj)
+                obj(obj_ind).datetick_params=vertcat(obj.datetick_params,{varargin});
+            end
         end
         
         function obj=set_names(obj,varargin)
@@ -414,7 +493,9 @@ classdef gramm < handle
             
             fnames=fieldnames(p.Results);
             for k=1:length(fnames)
-                obj.aes_names.([fnames{k}])=p.Results.(fnames{k});
+                for obj_ind=1:numel(obj)
+                    obj(obj_ind).aes_names.([fnames{k}])=p.Results.(fnames{k});
+                end
             end
             
         end
@@ -712,13 +793,19 @@ classdef gramm < handle
             cellmax=@(c)max(cellfun(@max,c(nonemptycell(c))));
             cellmin=@(c)min(cellfun(@min,c(nonemptycell(c))));
             
+            %Convert categorical x to cellstr
+            if iscategorical(temp_aes.x)
+                temp_aes.x=cellstr(temp_aes.x);
+            end
+            
             if iscell(temp_aes.x)
                 nonempty=nonemptycell(temp_aes.x);
                 
                 if iscellstr(temp_aes.x)
                     %Convert factor data to numeric
                     obj.x_factor=true;
-                    obj.x_ticks=unique(temp_aes.x);
+                    %obj.x_ticks=unique(temp_aes.x);
+                    obj.x_ticks=unique_and_sort(temp_aes.x,obj.order_options.x);
                     tempx=zeros(length(temp_aes.x),1);
                     for k=1:length(obj.x_ticks)
                         tempx(strcmp(temp_aes.x,obj.x_ticks{k}))=k;
@@ -733,13 +820,6 @@ classdef gramm < handle
                     
                     obj.x_factor=false;
                 end
-            elseif iscategorical(temp_aes.x)
-                nonempty=true(length(temp_aes.y),1);
-                obj.x_factor=true;
-                obj.x_ticks=cellstr(unique(temp_aes.x));
-                temp_aes.x=double(temp_aes.x);
-                obj.var_lim.maxx=max(temp_aes.x);
-                obj.var_lim.minx=min(temp_aes.x);
             else
                 nonempty=true(length(temp_aes.y),1);
                 obj.var_lim.maxx=max(max(temp_aes.x));
@@ -778,19 +858,22 @@ classdef gramm < handle
             %legend
             mysubplot_wrap=@(ncol,col)mysubtightplot(ceil(ncol/obj.wrap_ncols),obj.wrap_ncols,col,[0.09 0.03],[0.1 0.08],[0.1 0.2]);
             
-            %Find uniques in aesthetics
-            uni_row=unique_no_nan(temp_row_facet);
-            uni_column=unique_no_nan(temp_col_facet);
-            uni_linestyle=unique_no_nan(temp_aes.linestyle);
-            uni_marker=unique_no_nan(temp_aes.marker);
+            %Find uniques in aesthetics and sort according to options
+            uni_row=unique_and_sort(temp_row_facet,obj.order_options.row);
+            uni_column=unique_and_sort(temp_col_facet,obj.order_options.column);
+            uni_linestyle=unique_and_sort(temp_aes.linestyle,obj.order_options.linestyle);
+            uni_marker=unique_and_sort(temp_aes.marker,obj.order_options.marker);
+            uni_lightness=unique_and_sort(temp_aes.lightness,obj.order_options.lightness);
+            uni_size=unique_and_sort(temp_aes.size,obj.order_options.size);
             
             %If the color is in a cell array of doubles, we set it as
             %continuous color
             if iscell(temp_aes.color) && ~iscellstr(temp_aes.color)
                 obj.continuous_color=true;
             else
-                uni_color=unique_no_nan(temp_aes.color);
-                uni_color=sort(uni_color); %We do the sorting here
+                %uni_color=unique_no_nan(temp_aes.color);
+                %uni_color=sort(uni_color); %We do the sorting here
+                uni_color=unique_and_sort(temp_aes.color,obj.order_options.color);
   
                 %If we have too many numerical values for the color we
                 %switch to continuous color
@@ -801,19 +884,6 @@ classdef gramm < handle
             if obj.continuous_color
                 uni_color={1};
             end
-            
-            %Set lightness 
-            uni_lightness=unique_no_nan(temp_aes.lightness);
-            uni_lightness=sort(uni_lightness); %We do the sorting here 
-            
-            uni_size=unique_no_nan(temp_aes.size);
-            
-            %Sort
-            uni_row=sort(uni_row);
-            uni_column=sort(uni_column);
-            uni_linestyle=sort(uni_linestyle);
-            uni_size=sort(uni_size);
-            uni_marker=sort(uni_marker);
             
             %Transform all aesthetics in cell arrays (makes it easier to handle after)
             if ~iscell(uni_row)
@@ -857,7 +927,6 @@ classdef gramm < handle
             %Create color map (HSV color map)
             %cmap=colormap(hsv(length(uni_color)));
             
-            
             %Create color map (~isoluminant L*ch color map, needs image processing toolbox)
             %             map=horzcat(ones(length(uni_color),1)*50,...
             %                 ones(length(uni_color),1)*100,...
@@ -867,23 +936,8 @@ classdef gramm < handle
             %             ind_color=makecform('lab2srgb');
             %             cmap=applycform(map,ind_color);
             
-% Generate colormap using low-level function found on https://code.google.com/p/p-and-a/
 
-if length(uni_lightness)==1
-    %Was 65,75
-    cmap=pa_LCH2RGB([repmat(linspace(obj.color_options.lightness,obj.color_options.lightness,length(uni_lightness))',length(uni_color)+1,1) ...
-        repmat(linspace(obj.color_options.chroma,obj.color_options.chroma,length(uni_lightness))',length(uni_color)+1,1)...
-        reshape(repmat(linspace(obj.color_options.hue_range(1),obj.color_options.hue_range(2),length(uni_color)+1),length(uni_lightness),1),length(uni_lightness)*(length(uni_color)+1),1)],false);
-else
-    cmap=pa_LCH2RGB([repmat(linspace(obj.color_options.lightness_range(1),obj.color_options.lightness_range(2),length(uni_lightness))',length(uni_color)+1,1) ...
-        repmat(linspace(obj.color_options.chroma_range(1),obj.color_options.chroma_range(2),length(uni_lightness))',length(uni_color)+1,1)...
-        reshape(repmat(linspace(obj.color_options.hue_range(1),obj.color_options.hue_range(2),length(uni_color)+1),length(uni_lightness),1),length(uni_lightness)*(length(uni_color)+1),1)],false);
-    
-end
-
-            %R2014 colormap
-            %cmap=colormap('lines');
-            %cmap=cmap(1:length(uni_color)+1,:);
+            cmap=get_colormap(length(uni_color),length(uni_lightness),obj.color_options);
             
             %Initialize results structure (n_groups is an overestimate if
             %there are redundant groups
@@ -1001,7 +1055,7 @@ end
                                         sel_lightness=sel_color & multi_sel(temp_aes.lightness,uni_lightness{ind_lightness});
                                         
                                         %We create the groups only within lightness and subplots for speed
-                                        uni_group=unique_no_nan(temp_aes.group(sel_lightness));
+                                        uni_group=unique_and_sort(temp_aes.group(sel_lightness),0);
                                         if isnumeric(uni_group)
                                             uni_group=num2cell(uni_group);
                                         end
@@ -1143,9 +1197,9 @@ end
             if obj.with_legend
                 %Color legend
                 if length(uni_color)>1
-                    color_legend_map=pa_LCH2RGB([repmat(obj.color_options.lightness,length(uni_color)+1,1) ...
-                        repmat(obj.color_options.chroma,length(uni_color)+1,1)...
-                        linspace(obj.color_options.hue_range(1),obj.color_options.hue_range(2),length(uni_color)+1)']);
+                    %Make a colormap with only the colors and no lightness
+                    color_legend_map=get_colormap(length(uni_color),1,obj.color_options);
+                    
                     text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none')
                     ind_scale=ind_scale-ind_scale_step;
                     for ind_color=1:length(uni_color)
@@ -1579,7 +1633,9 @@ end
             my_addParameter(p,'style','k--');
             parse(p,varargin{:});
             
-            obj.abline=fill_abline(obj.abline,p.Results.slope,p.Results.intercept,NaN,NaN,@(x)x,p.Results.style);
+            for obj_ind=1:numel(obj)
+                obj(obj_ind).abline=fill_abline(obj(obj_ind).abline,p.Results.slope,p.Results.intercept,NaN,NaN,@(x)x,p.Results.style);
+            end
         end
         
         function obj=geom_vline(obj,varargin)
@@ -1593,7 +1649,9 @@ end
             my_addParameter(p,'style','k--');
             parse(p,varargin{:});
             
-            obj.abline=fill_abline(obj.abline,NaN,NaN,p.Results.xintercept,NaN,@(x)x,p.Results.style);
+            for obj_ind=1:numel(obj)
+                obj(obj_ind).abline=fill_abline(obj(obj_ind).abline,NaN,NaN,p.Results.xintercept,NaN,@(x)x,p.Results.style);
+            end
         end
         
         function obj=geom_hline(obj,varargin)
@@ -1607,7 +1665,9 @@ end
             my_addParameter(p,'style','k--');
             parse(p,varargin{:});
             
-            obj.abline=fill_abline(obj.abline,NaN,NaN,NaN,p.Results.yintercept,@(x)x,p.Results.style);
+            for obj_ind=1:numel(obj)
+                obj(obj_ind).abline=fill_abline(obj(obj_ind).abline,NaN,NaN,NaN,p.Results.yintercept,@(x)x,p.Results.style);
+            end
         end
         
         function obj=geom_funline(obj,varargin)
@@ -1616,7 +1676,9 @@ end
             my_addParameter(p,'style','k--');
             parse(p,varargin{:});
             
-            obj.abline=fill_abline(obj.abline,NaN,NaN,NaN,NaN,p.Results.fun,p.Results.style);
+            for obj_ind=1:numel(obj)
+                obj(obj_ind).abline=fill_abline(obj(obj_ind).abline,NaN,NaN,NaN,NaN,p.Results.fun,p.Results.style);
+            end
         end
         
         
@@ -1988,7 +2050,7 @@ end
 
     end
     
-    methods (Access=protected)
+    methods (Access=protected,Hidden=true)
         
         function [x,y]=to_polar(obj,theta,rho)
             %If the graph is set as polar, x and y are interpreted as rho and
@@ -2093,26 +2155,27 @@ end
         
         function  hndl=my_jitter(obj,draw_data,params)
             
-            x=draw_data.x+rand(size(draw_data.x))*params.width-params.width/2;
-            y=draw_data.y+rand(size(draw_data.y))*params.height-params.height/2;
+            draw_data.x=draw_data.x+rand(size(draw_data.x))*params.width-params.width/2;
+            draw_data.y=draw_data.y+rand(size(draw_data.y))*params.height-params.height/2;
             
-            [x,y]=obj.to_polar(x,y);
+            %[x,y]=obj.to_polar(x,y);
             
             %We adjust axes limits to accomodate for the jittering
-            if max(x)>obj.plot_lim.maxx(obj.current_row,obj.current_column);
-                obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(x);
+            if max(draw_data.x)>obj.plot_lim.maxx(obj.current_row,obj.current_column);
+                obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(draw_data.x);
             end
-            if min(x)<obj.plot_lim.minx(obj.current_row,obj.current_column);
-                obj.plot_lim.minx(obj.current_row,obj.current_column)=min(x);
+            if min(draw_data.x)<obj.plot_lim.minx(obj.current_row,obj.current_column);
+                obj.plot_lim.minx(obj.current_row,obj.current_column)=min(draw_data.x);
             end
-            if max(y)>obj.plot_lim.maxy(obj.current_row,obj.current_column);
-                obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(y);
+            if max(draw_data.y)>obj.plot_lim.maxy(obj.current_row,obj.current_column);
+                obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(draw_data.y);
             end
-            if min(y)<obj.plot_lim.miny(obj.current_row,obj.current_column);
-                obj.plot_lim.miny(obj.current_row,obj.current_column)=min(y);
+            if min(draw_data.y)<obj.plot_lim.miny(obj.current_row,obj.current_column);
+                obj.plot_lim.miny(obj.current_row,obj.current_column)=min(draw_data.y);
             end
             
-            hndl=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+            %hndl=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+            hndl=my_point(obj,draw_data)
         end
         
         function hndl=my_count(obj,draw_data,params)
@@ -2139,6 +2202,7 @@ end
                 
                 hndl=scatter(C(:,1),C(:,2),counts*params.scale,draw_data.marker,'MarkerEdgeColor',edge,'MarkerFaceColor',face);
                 
+                %hndl=my_point(obj,draw_data);
             end
             
             
@@ -2343,8 +2407,8 @@ end
                     warning('inter_in in stat_summary() not supported for non Matrix/Cell X/Y inputs');
                 end
                 
-                ymean=zeros(length(uni_x),1);
-                yci=zeros(length(uni_x),2);
+                ymean=nan(length(uni_x),1);
+                yci=nan(length(uni_x),2);
                 
                 %Loop over unique X values
                 for ind_x=1:length(uni_x)
@@ -2352,7 +2416,9 @@ end
                     %potential numerical errors
                     ysel=y(abs(x-uni_x(ind_x))<1e-10);
                     
-                    [ymean(ind_x),yci(ind_x,:)]=computeci(ysel,params.type);
+                    if ~isempty(ysel)
+                        [ymean(ind_x),yci(ind_x,:)]=computeci(ysel,params.type);
+                    end
                 end
             end
             
@@ -2839,6 +2905,7 @@ end
                     face_alpha=0.4;
             end
             
+            
             %All subplots/colors have the same bins, so dodginc
             %computations are simple
             spacing=0.5*params.bar_spacing*diff(binranges);
@@ -2941,8 +3008,8 @@ end
                 [f,xi] = ksdensity(comb(draw_data.x),binranges,'function',params.function,'kernel',params.kernel);
             end
             
-            obj.plot_lim.minx=obj.var_lim.minx-extra_x;
-            obj.plot_lim.maxx=obj.var_lim.maxx+extra_x;
+            obj.plot_lim.minx(obj.current_row,obj.current_column)=obj.var_lim.minx-extra_x;
+            obj.plot_lim.maxx(obj.current_row,obj.current_column)=obj.var_lim.maxx+extra_x;
             obj.plot_lim.miny(obj.current_row,obj.current_column)=0;
             if obj.firstrun(obj.current_row,obj.current_column)
                 obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(f);
@@ -3606,6 +3673,156 @@ h=patch(trans(circlex,x,s)',trans(circley,y,s)',c,...
 end
 
 
+function cmap=get_colormap(nc,nl,opts)
+
+if isstr(opts.map)
+    if ~strcmp(opts.map,'lch') && nl>1
+        error('Lightness not supported for non lch colormaps');
+    end
+    
+    %Brewer colormaps from http://colorbrewer2.org
+    switch opts.map
+        case 'matlab'
+            cmap=colormap('lines');
+        case 'brewer1'
+            if nc>9
+                error('Too many color categories for brewer1 (max=9)')
+            end
+            cmap=[228    26    28
+                55   126   184
+                77   175    74
+                152    78   163
+                255   127     0
+                255   255    51
+                166    86    40
+                247   129   191
+                153   153   153]/255;
+        case 'brewer2'
+            if nc>8
+                error('Too many color categories for brewer2 (max=8)')
+            end
+            cmap=[102	194	165
+                252	141	98
+                141	160	203
+                231	138	195
+                166	216	84
+                255	217	47
+                229	196	148
+                179	179	179]/255;
+        case 'brewer3'
+            if nc>12
+                error('Too many color categories for brewer3 (max=12)')
+            end
+            cmap=[141	211	199
+                255	255	179
+                190	186	218
+                251	128	114
+                128	177	211
+                253	180	98
+                179	222	105
+                252	205	229
+                217	217	217
+                188	128	189
+                204	235	197
+                255	237	111]/255;
+        case 'brewer_pastel'
+            if nc>9
+                error('Too many color categories for brewer_pastel (max=9)')
+            end
+            cmap=[251	180	174
+                179	205	227
+                204	235	197
+                222	203	228
+                254	217	166
+                255	255	204
+                229	216	189
+                253	218	236
+                242	242	242]/255;
+        case 'brewer_dark'
+            if nc>8
+                error('Too many color categories for brewer1 (max=8)')
+            end
+            cmap=[27	158	119
+                217	95	2
+                117	112	179
+                231	41	138
+                102	166	30
+                230	171	2
+                166	118	29
+                102	102	102]/255;
+        otherwise
+            % Generate colormap using low-level function found on https://code.google.com/p/p-and-a/
+            if nl==1
+                %Was 65,75
+                cmap=pa_LCH2RGB([repmat(linspace(opts.lightness,opts.lightness,nl)',nc+1,1) ...
+                    repmat(linspace(opts.chroma,opts.chroma,nl)',nc+1,1)...
+                    reshape(repmat(linspace(opts.hue_range(1),opts.hue_range(2),nc+1),nl,1),nl*(nc+1),1)],false);
+            else
+                cmap=pa_LCH2RGB([repmat(linspace(opts.lightness_range(1),opts.lightness_range(2),nl)',nc+1,1) ...
+                    repmat(linspace(opts.chroma_range(1),opts.chroma_range(2),nl)',nc+1,1)...
+                    reshape(repmat(linspace(opts.hue_range(1),opts.hue_range(2),nc+1),nl,1),nl*(nc+1),1)],false);
+            end
+    end
+else
+    cmap=opts.map;
+end
+end
+
+function y=unique_and_sort(x,sortopts)
+% Unique() function that ignores NaNs in arrays and empty values as well as 'NA' in
+% cellstrs, and sorts according to sortopts
+
+persistent old_matlab
+if isempty(old_matlab)
+    old_matlab=verLessThan('matlab','7.14');
+end
+
+%Create unique in original order
+if old_matlab
+    [y,ia,ic]=unique(x);
+    [~,ind]=sort(ia); %Trick to get the original order in older matlab versions
+    y=y(ind);
+else
+    y = unique(x,'stable'); %we keep the original order
+end
+
+%Clean up uniques
+if ~iscell(x)
+    if ~iscategorical(y)
+        y(isnan(y)) = []; % remove all nans
+    end
+else
+    y(strcmp(y,'NA'))=[]; %remove all 'NA'
+    y(strcmp(y,''))=[]; %remove all ''
+end
+
+%Apply sorting options
+if numel(sortopts)>1 %Custom ordering
+    y=sort(y);%Sort first
+    
+    sortopts=shiftdim(sortopts);
+    %Do checks on sorting array
+    if length(sortopts)==length(y) %Correct length ?
+        if sum(sort(sortopts)==(1:length(y))')~=numel(y) %All indices ?
+            warning('Improper order array indices: using default order');
+            return
+        end
+    else
+        warning('Improper order arrray size: using default order');
+        return;
+    end
+    y=y(sortopts);
+    
+else %Other orderings
+    switch sortopts
+        case 1
+            y=sort(y);
+        case -1
+            y=flipud(sort(y)); %We use flipud instead of the 'descend' option because somehow it isn't supported for cellstr.
+    end
+end
+
+end
 
 
 function h=my_tightplot(m,n,p,gap,marg_h,marg_w,varargin)

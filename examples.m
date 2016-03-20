@@ -65,11 +65,11 @@ g2.draw()
 
 
 
-%% Example of different scaling options for faceting with facet_grid
+%% Scaling options for faceting with facet_grid
 
 clear g3
 
-%Example with everything in the same plot
+% Example with everything in the same plot
 g3(1,1)=gramm('x',x,'y',y,'color',fouraltc)
 g3(1,1).geom_point()
 
@@ -102,7 +102,7 @@ figure('Position',[100 100 700 800])
 g3.draw()
 
 
-%% Example of different scaling options for wrap faceting
+%% Scaling options for wrap faceting
 
 clear g4
 
@@ -140,14 +140,23 @@ g4(3,2).geom_point()
 figure('Position',[100 100 700 800])
 g4.draw()
 
-%% Examples for different types of histograms
+%% Histograms with stat_bin()
 
 %Create variables
 x=randn(1200,1)-1;
 cat=repmat([1 1 1 2],300,1);
 x(cat==2)=x(cat==2)+2;
 
-%Example of different geoms
+%% 
+% Example of different 'geom':
+%
+% * 'bar' (default), where color groups are side-by-side (dodged)
+% * 'stacked_bar'
+% * 'line'
+% * 'overlaid_bar'
+% * 'point'
+% * 'stairs'
+
 clear g5
 g5(1,1)=gramm('x',x,'color',cat)
 g5(1,1).stat_bin() %by default, 'geom' is 'bar', where color groups are side-by-side (dodged)
@@ -171,7 +180,14 @@ g5(2,3).stat_bin('geom','stairs') %Default fill is edges
 figure
 g5.draw()
 
-%Example of alternative fill options
+%%
+% Example of alternative 'fill' options
+%
+% * 'face'
+% * 'all'
+% * 'edge'
+% * 'transparent'
+
 figure
 clear g6
 g6(1,1)=gramm('x',x,'color',cat)
@@ -188,7 +204,16 @@ g6(2,2).stat_bin('fill','transparent')
 
 g6.draw()
 
-%Example of other histogram-generation examples
+%%
+% Examples of other histogram-generation options
+%
+% * Default binning
+% * 'normalization','probability'
+% * 'normalization','cumcount'
+% * 'normalization','cdf'
+% * 'edges',-1:0.5:10
+% * 'normalization','countdensity' and custom edges
+
 figure
 clear g7
 g7(1,1)=gramm('x',x,'color',cat)
@@ -291,23 +316,26 @@ g(4,1).stat_summary('geom',{'point' 'errorbar'},'dodge',0);
 g(4,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
 g.draw();
 
-%% Quantile-quantile plots example
+%% Quantile-quantile plots
 
 figure
 grp=repmat([1 2],1,500)';
+
+%QQ plot against theoretical distribution
 g=gramm('x',randn(1000,1).*grp,'color',grp)
 g.stat_qq('Distribution',makedist('Normal',0,2))
 g.geom_abline()
 g.draw()
 
 figure
+%QQ plot of Y against X
 g=gramm('x',randn(1000,1).*grp,'y',randn(1000,1),'color',grp)
 g.stat_qq('Distribution','y')
 g.geom_abline()
 g.draw()
 
 
-%% Example for date ticks
+%% Date ticks
 
 t=now;
 
@@ -318,7 +346,7 @@ g9.set_datetick('x',2)
 g9.set_datetick('y',1)
 g9.draw()
 
-%% Example of glm fit
+%% GLM and linear fits
 
 load carbig.mat %Load example dataset about cars
 
@@ -329,6 +357,51 @@ g10.stat_glm('geom','area','disp_fit',true) %Linear fit (default for stat_glm
 g10.geom_point()
 g10.draw()
 
+%% Colormap customization
+
+load carbig.mat
+clear g
+figure
+
+Origin=cellfun(@(c)strrep(c,' ',''),num2cell(Origin,2),'UniformOutput',false);
+
+%Default: LCH-based colormap with hue variation
+g(1,1)=gramm('x',Origin,'y',Horsepower,'color',Origin)
+g(1,1).stat_summary('geom',{'bar'},'dodge',-1)
+
+%Possibility to change the hue range as well as lightness and chroma of
+%the LCH-based colormap
+g(1,2)=gramm('x',Origin,'y',Horsepower,'color',Origin)
+g(1,2).stat_summary('geom',{'bar'},'dodge',-1)
+g(1,2).set_color_options('hue_range',[-60 60],'chroma',40,'lightness',90)
+
+%Possibility to change the lightness and chroma range of the LCH-based
+%colormap when a 'lightness' variable is given
+g(1,3)=gramm('x',Origin,'y',Horsepower,'lightness',Origin)
+g(1,3).stat_summary('geom',{'bar'},'dodge',-1)
+g(1,3).set_color_options('lightness_range',[0 95],'chroma_range',[0 0])
+
+%Go back to Matlab's defautl colormap
+g(2,1)=gramm('x',Origin,'y',Horsepower,'color',Origin)
+g(2,1).stat_summary('geom',{'bar'},'dodge',-1)
+g(2,1).set_color_options('map','matlab')
+
+%Brewer colormap 1
+g(2,2)=gramm('x',Origin,'y',Horsepower,'color',Origin)
+g(2,2).stat_summary('geom',{'bar'},'dodge',-1)
+g(2,2).set_color_options('map','brewer1')
+
+%Brewer colormap 2
+g(2,3)=gramm('x',Origin,'y',Horsepower,'color',Origin)
+g(2,3).stat_summary('geom',{'bar'},'dodge',-1)
+g(2,3).set_color_options('map','brewer2')
+
+%Some methods can be called on all objects at the same time !
+g.axe_property('YLim',[0 140])
+%g.axe_property('XTickLabelRotation',60) %Should work for recent Matlab
+%versions
+g.set_names('x','Origin','y','Horsepower','color','Origin','lightness','Origin')
+g.draw()
 
 %% Example of all the different input formats for x and y
 
@@ -408,7 +481,7 @@ g18.set_continuous_color('colormap','hot')
 g18.geom_line;
 g18.draw;
 
-%% Examples for representations of 2D data
+%% Representation of 2D (bivariate) data
 
 %Create point cloud with two categories
 N=10^4;
@@ -507,4 +580,40 @@ g.geom_point()
 g.stat_fit('fun',fun,'disp_fit',true) %We provide the function for the fit
 g.draw()
 
+%% Changing the order of elements with set_order_options()
+
+
+y=[36 38 40 42 44 46]
+x={'XS' 'S' 'M' 'L' 'XL' 'XXL'}
+
+
+clear g
+figure
+
+%By default, both x and lightness are ordered according to sorted (here
+%alphabetically) input
+g(1,2)=gramm('x',x,'y',y,'lightness',x)
+g(1,2).stat_summary('geom','bar')
+
+%By using set_order_options('x',0), x are presented in the raw input order. The
+%color is still sorted
+
+g(2,1)=gramm('x',x,'y',y,'lightness',x)
+g(2,1).stat_summary('geom','bar')
+g(2,1).set_order_options('x',0)
+
+%By using set_order_options('x',0,'lightness',0), both x and lightness are
+%presented in the raw input order
+g(2,2)=gramm('x',x,'y',y,'lightness',x)
+g(2,2).stat_summary('geom','bar')
+g(2,2).set_order_options('x',0,'lightness',0)
+
+%It is possible to set up a custom order (indices within the sorted
+%input), here used to inverse lightness map
+g(2,3)=gramm('x',x,'y',y,'lightness',x)
+g(2,3).stat_summary('geom','bar')
+g(2,3).set_order_options('x',0,'lightness',[6 4 1 2 3 5])
+
+g.set_names('x','US size','y','EU size','lightness','US size')
+g.draw()
 
