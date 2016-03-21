@@ -595,24 +595,33 @@ figure
 g(1,2)=gramm('x',x,'y',y,'lightness',x)
 g(1,2).stat_summary('geom','bar')
 
+
 %By using set_order_options('x',0), x are presented in the raw input order. The
 %color is still sorted
-
 g(2,1)=gramm('x',x,'y',y,'lightness',x)
 g(2,1).stat_summary('geom','bar')
 g(2,1).set_order_options('x',0)
 
-%By using set_order_options('x',0,'lightness',0), both x and lightness are
-%presented in the raw input order
+%By using set_order_options('x',0,'lightness',{'XS' 'S' 'M' 'L' 'XL'
+%'XXL'}), we also order lightness in the desired order, here by
+%directly providing the desired order.
 g(2,2)=gramm('x',x,'y',y,'lightness',x)
 g(2,2).stat_summary('geom','bar')
-g(2,2).set_order_options('x',0,'lightness',0)
+g(2,2).set_order_options('x',0,'lightness',{'XS' 'S' 'M' 'L' 'XL' 'XXL'})
+%Examples below properly fail
+%g(2,2).set_order_options('x',0,'lightness',{'XXL' 'XL' 'L' 'M' 'S' 'B'})
+%g(2,2).set_order_options('x',0,'lightness',{'XXL' 'XL' 'L' 'M' 'S' 1})
+%g(2,2).set_order_options('x',0,'lightness',{'XXL' 'XL' 'L' 'M' 'S'})
 
-%It is possible to set up a custom order (indices within the sorted
-%input), here used to inverse lightness map
+%It is also possible to set up a custom order (indices within the sorted
+%input), here used to inverse lightness map. This way is a bit more
+%practical for floating point numerical variables. For cells of string, the
+%way above is easier.
 g(2,3)=gramm('x',x,'y',y,'lightness',x)
 g(2,3).stat_summary('geom','bar')
 g(2,3).set_order_options('x',0,'lightness',[6 4 1 2 3 5])
+%Exampel below properly fail
+%g(2,3).set_order_options('x',0,'lightness',[6 4 1 2 3 3])
 
 g.set_names('x','US size','y','EU size','lightness','US size')
 g.draw()

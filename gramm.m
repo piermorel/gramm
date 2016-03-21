@@ -3803,15 +3803,30 @@ if numel(sortopts)>1 %Custom ordering
     sortopts=shiftdim(sortopts);
     %Do checks on sorting array
     if length(sortopts)==length(y) %Correct length ?
-        if sum(sort(sortopts)==(1:length(y))')~=numel(y) %All indices ?
-            warning('Improper order array indices: using default order');
-            return
+        if isnumeric(sortopts) && sum(sort(sortopts)==(1:length(y))')==numel(y) %If we have integers and all numbers from 1 to N are there we probably have indices
+            disp('ordering given as indices')
+            y=y(sortopts);
+        else
+            %warning('Improper order array indices: using default order');
+            %return
+            disp('ordering given as values')
+            try
+                [present,order]=ismember(sortopts,y);
+                if sum(present)==length(y)
+                    y=y(order);
+                else
+                    warning('Improper ordering values')
+                end
+            catch
+                warning('Improper ordering values')
+            end
+
         end
     else
-        warning('Improper order arrray size: using default order');
+        warning('Improper order array size: using default order');
         return;
     end
-    y=y(sortopts);
+    
     
 else %Other orderings
     switch sortopts
