@@ -244,9 +244,29 @@ g7(2,3).stat_bin('geom','overlaid_bar','normalization','countdensity','edges',[-
 
 g7.draw()
 
-
-
 %% Example from the readme
+
+
+load carbig.mat %Load example dataset about cars
+origin_region=num2cell(org,2); %Convert origin data to a cellstr
+
+% Create a gramm object, provide x (year of production) and y (fuel economy) data,
+% color grouping data (number of cylinders) and select a subset of the data
+g=gramm('x',Model_Year,'y',MPG,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+% Subdivide the data in subplots horizontally by region of origin
+g.facet_grid([],origin_region)
+% Plot raw data as points
+g.geom_point()
+% Plot linear fits of the data with associated confidence intervals
+g.stat_glm()
+% Set appropriate names for legends
+g.set_names('column','Origin','x','Year of production','y','Fuel economy (MPG)','color','# Cylinders')
+% Do the actual drawing
+g.draw()
+
+
+
+%% Example from the readme (old)
 
 clear g8
 figure

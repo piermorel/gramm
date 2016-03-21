@@ -1148,8 +1148,7 @@ classdef gramm < handle
                                 'HorizontalAlignment','Center',...
                                 'VerticalAlignment','bottom',...
                                 'FontWeight','bold',...
-                                'fontSize',12,...
-                                'fontName','Arial');
+                                'fontSize',12);
                         end
                     end
                     if length(uni_row)>1
@@ -1167,8 +1166,7 @@ classdef gramm < handle
                                 'HorizontalAlignment','Center',...
                                 'VerticalAlignment','bottom',...
                                 'FontWeight','bold',...
-                                'fontSize',12,...
-                                'fontName','Arial');
+                                'fontSize',12);
                         end
                     end
                     
@@ -1200,7 +1198,7 @@ classdef gramm < handle
                     %Make a colormap with only the colors and no lightness
                     color_legend_map=get_colormap(length(uni_color),1,obj.color_options);
                     
-                    text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none')
+                    text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none','fontSize',12)
                     ind_scale=ind_scale-ind_scale_step;
                     for ind_color=1:length(uni_color)
                         plot([1 2],[ind_scale ind_scale],'-','Color',color_legend_map(ind_color,:),'lineWidth',2)
@@ -1216,7 +1214,7 @@ classdef gramm < handle
                         zeros(length(uni_lightness),1)...
                         zeros(length(uni_lightness),1)]);
                     
-                    text(1,ind_scale,obj.aes_names.lightness,'FontWeight','bold','Interpreter','none')
+                    text(1,ind_scale,obj.aes_names.lightness,'FontWeight','bold','Interpreter','none','fontSize',12)
                     ind_scale=ind_scale-ind_scale_step;
                     for ind_lightness=1:length(uni_lightness)
                         plot([1 2],[ind_scale ind_scale],'-','Color',lightness_legend_map(ind_lightness,:),'lineWidth',2)
@@ -1227,7 +1225,7 @@ classdef gramm < handle
                 
                 %Continuous color legend
                 if obj.continuous_color
-                    text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none')
+                    text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none','fontSize',12)
                     ind_scale=ind_scale-ind_scale_step;
                     
                     %                 image(ones(1,length(obj.continuous_color_colormap))+0.5,...
@@ -1248,7 +1246,7 @@ classdef gramm < handle
                 
                 %marker legend
                 if length(uni_marker)>1
-                    text(1,ind_scale,obj.aes_names.marker,'FontWeight','bold','Interpreter','none')
+                    text(1,ind_scale,obj.aes_names.marker,'FontWeight','bold','Interpreter','none','fontSize',12)
                     ind_scale=ind_scale-ind_scale_step;
                     for ind_marker=1:length(uni_marker)
                         plot(1.5,ind_scale,markers{ind_marker},'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0])
@@ -1259,7 +1257,7 @@ classdef gramm < handle
                 
                 %linestyle legend
                 if length(uni_linestyle)>1
-                    text(1,ind_scale,obj.aes_names.linestyle,'FontWeight','bold','Interpreter','none')
+                    text(1,ind_scale,obj.aes_names.linestyle,'FontWeight','bold','Interpreter','none','fontSize',12)
                     ind_scale=ind_scale-ind_scale_step;
                     for ind_linestyle=1:length(uni_linestyle)
                         plot([1 2],[ind_scale ind_scale],line_styles{ind_linestyle},'Color',[0 0 0])
@@ -1270,7 +1268,7 @@ classdef gramm < handle
                 
                 %Size legend
                 if length(uni_size)>1
-                    text(1,ind_scale,obj.aes_names.size,'FontWeight','bold','Interpreter','none')
+                    text(1,ind_scale,obj.aes_names.size,'FontWeight','bold','Interpreter','none','fontSize',12)
                     ind_scale=ind_scale-ind_scale_step;
                     for ind_size=1:length(uni_size)
                         plot([1 2],[ind_scale ind_scale],'lineWidth',sizes(ind_size)/4,'Color',[0 0 0])

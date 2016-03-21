@@ -1,27 +1,38 @@
 # gramm
 
-Gramm allows to easily plot grouped data in Matlab, and is inspired by R's [ggplot2](http://ggplot2.org) library by [Hadley Wickham](http://had.co.nz)
+Gramm is a powerful plotting toolbox which allows to quickly create complex, publication-quality figures in Matlab, and is inspired by R's [ggplot2](http://ggplot2.org) library by [Hadley Wickham](http://had.co.nz). As a reference to this inspiration, gramm stands for **GRAM**mar of graphics for **M**atlab.
 
-With gramm, 6 lines of code are enough to create such a figure:
-<img src="/img/carbig_example.png" alt="gramm example" width="800">
+## Using gramm ##
+
+### Principle ###
+
+The typical workflow to generate a figure with gramm is the following:
+
+- In a first step, provide gramm with the relevant data for the figure: X and Y variables, but also grouping variables that will determine color, subplot rows/columns, etc.
+- In the next steps, add graphical layers to your figure: raw data layers (directly plot data as points, lines...) or statistical layers (plot fits, histograms, densities, summaries with confidence intervals...). One instruction is enough to add each layer, and all layers offer many customization options.
+- In the last step, gramm draws the figure, and takes care of all the annoying parts: no need to loop over colors or subplots, colors and legends are generated automatically, axes limits are taken care of, etc.
+
+For example, with gramm, 6 lines of code are enough to create the figure below from the <code>carbig</code> dataset. Here the figure represents the evolution of fuel economy of new cars in time, with number of cylinders indicated by color, and regions of origin separated across subplot columns:
+<img src="/img/carbig_example.png" alt="gramm example" width="830">
 ```matlab
 load carbig.mat %Load example dataset about cars
 origin_region=num2cell(org,2); %Convert origin data to a cellstr
-%Create a gramm object, provide x (year) and y (mpg) data
-%color data (region of origin) and select a subset of the data
-g=gramm('x',Model_Year,'y',MPG,'color',origin_region,'subset',Cylinders~=3 & Cylinders~=5,'size',5)
-%Set appropriate names for legends
-g.set_names('color','Origin','x','Year of production','y','MPG','column','# Cylinders')
-%Subdivide the data in subplots horizontally by number of cylinders
-g.facet_grid([],Cylinders)
-%Plot raw data points
+
+% Create a gramm object, provide x (year of production) and y (fuel economy) data,
+% color grouping data (number of cylinders) and select a subset of the data
+g=gramm('x',Model_Year,'y',MPG,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+% Subdivide the data in subplots horizontally by region of origin
+g.facet_grid([],origin_region)
+% Plot raw data as points
 g.geom_point()
-%Plot summarized data: 5 bins over x are created and for each
-%bin the mean and confidence interval is displayed as a shaded area
-g.stat_summary('geom','area','type','bootci','bin_in',5)
-g.draw() %Draw method
+% Plot linear fits of the data with associated confidence intervals
+g.stat_glm()
+% Set appropriate names for legends
+g.set_names('column','Origin','x','Year of production','y','Fuel economy (MPG)','color','# Cylinders')
+% Do the actual drawing
+g.draw()
 ```
-## Using gramm
+
 ### Installation
 Add the folder containing gramm.m to your path
 ### Compatibility
@@ -34,7 +45,8 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 
 ## Features
 - Accepts x and y data as arrays, matrices or cells of arrays
-- Accepts grouping data as arrays or cellstr
+- Accepts grouping data as arrays or cellstr.
+
 
 - Multiple ways of separating groups of data: 
   - Colors, lightness, point markers, line styles, and point/line size (<code>'color'</code>, <code>'lightness'</code>, <code>'marker'</code>, <code>'linestyle'</code>,  <code>'size'</code>)
@@ -47,7 +59,7 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
   - raster plots (<code>geom_raster()</code>)
   - point counts (<code>point_count()</code>)
 
-- Multiple ways of plotting transformed data:
+- Multiple ways of plotting statistics on the data:
   - y data summarized by x values (uniques or binned) with confidence intervals (<code>stat_summary()</code>)
   - histograms and density plots of x values (<code>stat_bin()</code> and <code>stat_density()</code>)
   - box and whisker plots (<code>stat_boxplot</code>)
@@ -70,23 +82,25 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 - Custom legend labels with <code>set_names()</code>
 - Plot reference line on the plots with <code>geom_abline()</code>, <code>geom_vline()</code>,<code>geom_hline()</code>
 - Date ticks with set_datetick()
+- Gramm works best with table-like data: separate variables / structure fields / table columns for the variables of interest, with each variable having as many elements as observations.
 
 ## Examples
 
-### Multiple gramm objects in a single figure 
-Also shows histograms, categorical x values
 
-<img src="/img/multiple_gramm_example.png" alt="Multiple gramm" width="800">
+### Custom fits ###
+<code>stat_fit()</code>
+
+<img src="/img/fit_example.png" alt="Custom fits" width="558">
 
 ### GLM fits (carbig data) ###
 <code>stat_glm()</code>
 
 <img src="/img/carbig_glm_example.png" alt="GLM fits" width="559">
 
-### Custom fits ###
-<code>stat_fit()</code>
+### Multiple gramm objects in a single figure 
+Also shows histograms, categorical x values
 
-<img src="/img/fit_example.png" alt="Custom fits" width="558">
+<img src="/img/multiple_gramm_example.png" alt="Multiple gramm" width="800">
 
 ### Histograms ###
 <code>stat_bin()</code> with different <code>'geom'</code> options: <code>'bar'</code>, <code>'stacked_bar'</code>,<code>'point'</code>,<code>'line'</code>, <code>'overlaid_bar'</code>,<code>'stairs'</code>
@@ -113,3 +127,4 @@ gramm was inspired and/or used code from:
 - [ggplot2](http://ggplot2.org)
 - [Panda](http://www.neural-code.com/index.php/panda) for color conversion
 - [subtightplot](http://www.mathworks.com/matlabcentral/fileexchange/39664-subtightplot) for subplot creation
+- [colorbrewer2](http://colorbrewer2.org)
