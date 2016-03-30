@@ -77,28 +77,34 @@ g3(1,1).geom_point()
 g3(1,2)=gramm('x',x,'y',y,'color',fouraltc)
 g3(1,2).facet_grid(twoaltc,twoaltcb,'scale','fixed') 
 g3(1,2).geom_point()
+g3(1,2).set_title('''fixed''')
 
 % 'free_x': subplots on the same columns have the same x scale
 g3(2,1)=gramm('x',x,'y',y,'color',fouraltc)
 g3(2,1).facet_grid(twoaltc,twoaltcb,'scale','free_x') 
 g3(2,1).geom_point()
+g3(2,1).set_title('''free_x''')
 
 % 'free_y': subplots on the same rows have the same y scale
 g3(2,2)=gramm('x',x,'y',y,'color',fouraltc)
 g3(2,2).facet_grid(twoaltc,twoaltcb,'scale','free_y') 
 g3(2,2).geom_point()
+g3(2,2).set_title('''free_y''')
 
 % 'free': subplots on the same rows  have the same y scale and facets on the same columns have the same x scale
 g3(3,1)=gramm('x',x,'y',y,'color',fouraltc)
 g3(3,1).facet_grid(twoaltc,twoaltcb,'scale','free') 
 g3(3,1).geom_point()
+g3(3,1).set_title('''free''')
 
 % 'independent': subplots are independent on each facet
 g3(3,2)=gramm('x',x,'y',y,'color',fouraltc)
 g3(3,2).facet_grid(twoaltc,twoaltcb,'scale','independent') 
 g3(3,2).geom_point()
+g3(3,2).set_title('''independent''')
 
 figure('Position',[100 100 700 800])
+g3.set_title('''scale'' option for facet_grid()','FontSize',16)
 g3.draw()
 
 

@@ -66,8 +66,14 @@ classdef gramm < handle
         
         legend_axe_handle %Store the handle of the legend axis
         
-        extra %Store extra geom-specific info
+        bigtitle
+        bigtitle_options
+        title
+        title_options
         
+        title_axe_handle %Store the handle of the title axis
+        
+        extra %Store extra geom-specific info
     end
     
     methods (Access=public)
@@ -124,6 +130,13 @@ classdef gramm < handle
             obj.aes_names.column='Column';
             obj.aes_names.lightness='Lightness';
             obj.aes_names.group='Group';
+            
+            
+            obj.title='';
+            obj.title_options={};
+            
+            obj.bigtitle='';
+            obj.bigtitle_options={};
             
             %Initialize geoms
             obj.geom={};
@@ -185,6 +198,7 @@ classdef gramm < handle
             obj.order_options.lightness=1;
             
             obj.with_legend=true;
+            
         end
         
 %          function disp(obj)
@@ -471,6 +485,36 @@ classdef gramm < handle
             end
         end
         
+        function obj=set_title(obj,title,varargin)
+            %set_title Add the specified title to the figure
+            %
+            % Example syntax: gramm_object.set_title('Title','FontSize',14)
+            %
+            % set_title takes as first argument the string to use for the
+            % title, and cant receive optional 'Name',value pairs to
+            % specify additional text properties of the title (see Matlab's
+            % documentation for text properties).
+            % When called on a single gramm object it will create a title
+            % above the axes for the gramm object. When called on multiple
+            % gramm objects it will create a title above all the gramm
+            % objects. Thus when combining multiple gramm objects it is
+            % possible to get a general title for the whole figure and
+            % partial titles for the sub figures. Example:
+            %
+            % g(1,1).set_title('Subfigure 1 Title')
+            % g(1,2).set_title('Subfigure 2 Title')
+            % g.set_title('Global title')
+            % g.draw()
+            
+            if numel(obj)>1
+                obj(1).bigtitle=title;
+                obj(1).bigtitle_options=varargin;
+            else
+                obj.title=title;
+                obj.title_options=varargin;
+            end
+        end
+        
         function obj=set_names(obj,varargin)
             % set_names Set names for aesthetics to be displayed in legends and axes
             %
@@ -616,6 +660,14 @@ classdef gramm < handle
                 set(obj.legend_axe_handle,'Position',legend_pos+[obj.multi.orig(2)+obj.multi.size(2)-spacing_w-max_text_x 0 0 0]);
             end
             
+            %Move title to the top
+            if ~isempty(obj.title_axe_handle)
+                title_text_pos=get(findobj(obj.title_axe_handle,'Type','text'),'Extent');
+                title_pos=get(obj.title_axe_handle,'Position');
+                max_text_y=title_pos(2)+title_pos(4)*title_text_pos(2)+title_pos(4)*title_text_pos(4);
+                set(obj.title_axe_handle,'Position',title_pos+[0 obj.multi.orig(1)+obj.multi.size(1)-spacing_h/2-max_text_y 0 0]);
+            end
+            
             %Move facets to the right
             %Get the leftmost facet part (should be y legend)
             min_facet_x=min(cellfun(@(fp,fi)fp(1)-fi(1),facet_pos,facet_inset));
@@ -671,14 +723,24 @@ classdef gramm < handle
             max_facet_x_text=max(max_facet_x_text,max_facet_x);
             max_facet_y_text=max(max_facet_y_text,max_facet_y);
             
-            %Place relative to legend axis
-            tmp=get(obj.legend_axe_handle,'Position');
-            if isempty(legend_text_pos)%If we don't have legends on the right then we use the multi parameters
-                tmp(1)=obj.multi.orig(2)+obj.multi.size(2)-spacing_w;
+            %If we don't have legends on the right then we use the multi parameters
+            temp_available_x=obj.multi.orig(2)+obj.multi.size(2);
+            if ~isempty(legend_text_pos) %Place relative to legend axis if we have one
+                tmp=get(obj.legend_axe_handle,'Position');
+                temp_available_x=tmp(1);
             end
-            max_available_x=tmp(1)-spacing_w-(max_facet_x_text-max_facet_x);
+            max_available_x=temp_available_x-spacing_w-(max_facet_x_text-max_facet_x);
+            
+            temp_available_y=obj.multi.orig(1)+obj.multi.size(1);
+            %Place relative to title axis
+            if ~isempty(obj.title_axe_handle)
+                title_text_pos=get(findobj(obj.title_axe_handle,'Type','text'),'Extent');
+                title_pos=get(obj.title_axe_handle,'Position');
+                temp_available_y=title_pos(2)+title_pos(4)*title_text_pos(2);
+                %temp_available_y=tmp(2);
+            end
             %For the available room on top we take in account multi as well
-            max_available_y=obj.multi.orig(1)+obj.multi.size(1)-spacing_h-(max_facet_y_text-max_facet_y);
+            max_available_y=temp_available_y-spacing_h-(max_facet_y_text-max_facet_y);
             
             
             %Compute additional spacing for x y axis labels if idependent
@@ -740,16 +802,33 @@ classdef gramm < handle
             % Call draw on an array of gramm objects in order to have
             % multiple gramms on a single figure.
             
+
             
+
+           
             %Handle call of draw() on array of gramm objects by dividing the figure
             %up and launching the individual draw functions of each object
             if numel(obj)>1
+                
+                %Take care of the big title
+                if isempty(obj(1).bigtitle)
+                    maxh=1;
+                else
+                    maxh=0.94;
+                    tmp=subplot('Position',[0.1 0.965 0.8 0.01]);
+                    set(tmp,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
+                    tmp=text(0,0,obj(1).bigtitle,'FontWeight','bold','Interpreter','none','fontSize',14,'HorizontalAlignment','center');
+                    if ~isempty(obj(1).bigtitle_options)
+                        set(tmp,obj(1).bigtitle_options{:});
+                    end
+                end
+                            
                 nl=size(obj,1);
                 nc=size(obj,2);
                 for l=1:nl
                     for c=1:nc
-                        obj(l,c).multi.orig=[(nl-l)/nl (c-1)/nc];
-                        obj(l,c).multi.size=[1/nl 1/nc];
+                        obj(l,c).multi.orig=[(nl-l)*maxh/nl (c-1)/nc];
+                        obj(l,c).multi.size=[maxh/nl 1/nc];
                         obj(l,c).multi.active=true;
                         draw(obj(l,c));
                     end
@@ -850,13 +929,13 @@ classdef gramm < handle
             
             %Set subplot generation parameters and functions
             if obj.force_ticks %strcmp(obj.facet_scale,'independent')  %Independent scales require more space between subplots for ticks
-                mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.06 0.06],[0.1 0.08],[0.1 0.2]);
+                mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.06 0.06],[0.1 0.2],[0.1 0.2]);
             else
-                mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.02 0.02],[0.1 0.08],[0.1 0.2]);
+                mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.02 0.02],[0.1 0.2],[0.1 0.2]);
             end
             %Subplots for wraps leave more space above axes for column
             %legend
-            mysubplot_wrap=@(ncol,col)mysubtightplot(ceil(ncol/obj.wrap_ncols),obj.wrap_ncols,col,[0.09 0.03],[0.1 0.08],[0.1 0.2]);
+            mysubplot_wrap=@(ncol,col)mysubtightplot(ceil(ncol/obj.wrap_ncols),obj.wrap_ncols,col,[0.09 0.03],[0.1 0.2],[0.1 0.2]);
             
             %Find uniques in aesthetics and sort according to options
             uni_row=unique_and_sort(temp_row_facet,obj.order_options.row);
@@ -1179,6 +1258,19 @@ classdef gramm < handle
                 
             end
             
+            %% draw() Title
+            if ~isempty(obj.title)
+                obj.title_axe_handle=subplot('Position',[obj.multi.orig(2)+0.1*obj.multi.size(2)...
+                    obj.multi.orig(1)+0.90*obj.multi.size(1) 0.8*obj.multi.size(2) 0.05*obj.multi.size(1)]);
+                
+                set(obj.title_axe_handle,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
+                tmp=text(0,0,obj.title,'FontWeight','bold','Interpreter','none','fontSize',14,'HorizontalAlignment','center');
+                if ~isempty(obj.title_options)
+                    set(tmp,obj.title_options{:});
+                end
+            else
+                obj.title_axe_handle=[];
+            end
             
             %% draw() legends
             
