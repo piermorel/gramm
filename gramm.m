@@ -28,6 +28,7 @@ classdef gramm < handle
         
         xlim_extra %extend range of XLim (ratio of original XLim width)
         ylim_extra %extend range of XLim (ratio of original YLim width)
+        zlim_extra
         
          %Structure containing polar-related parameters: is_polar stores
          %whether to display polar plots, is_polar_closed to  set if the
@@ -122,6 +123,7 @@ classdef gramm < handle
             %Set default names
             obj.aes_names.x='x';
             obj.aes_names.y='y';
+            obj.aes_names.z='z';
             obj.aes_names.color='Color';
             obj.aes_names.marker='Marker';
             obj.aes_names.linestyle='Line Style';
@@ -161,6 +163,7 @@ classdef gramm < handle
             % 10% default extra on limits
             obj.xlim_extra=0.1;
             obj.ylim_extra=0.1;
+            obj.zlim_extra=0.1;
             
             obj.datetick_params={};
             
@@ -367,6 +370,11 @@ classdef gramm < handle
             % The array length must be equal to the number of unique
             % values for the variable and must contain all the integers
             % between 1 and the number of unique values.
+            %
+            % 'color',[10 34 20 5], or 'color',['S' 'M' 'L' 'XL'] Allows to directly describe
+            % the desired order by givin an array or a cell array.
+            % The values in the array should correspond to the unique
+            % values of the variable used for grouping.
             
             p=inputParser;
             my_addParameter(p,'x',1);
@@ -439,7 +447,7 @@ classdef gramm < handle
         end
         
 
-        function obj=set_limit_extra(obj,x_extra,y_extra)
+        function obj=set_limit_extra(obj,x_extra,y_extra,z_extra)
             %set_limit_extra Add some breathing room around data in plots
             %
             % Example syntax gramm_object.set_limit_extra(0.1,0.1)
@@ -447,10 +455,14 @@ classdef gramm < handle
             % room is expressed as ratio to original limits. 0.1 will
             % extend by 5% on each side.
             
+            if nargin<4
+                z_extra=0;
+            end
             
             for obj_ind=1:numel(obj)
                 obj(obj_ind).xlim_extra=x_extra;
                 obj(obj_ind).ylim_extra=y_extra;
+                obj(obj_ind).zlim_extra=z_extra;
             end
             
         end
@@ -524,6 +536,7 @@ classdef gramm < handle
             
             my_addParameter(p,'x','x');
             my_addParameter(p,'y','y');
+            my_addParameter(p,'z','z');
             my_addParameter(p,'color','Color');
             my_addParameter(p,'linestyle','Line Style');
             my_addParameter(p,'size','Size');
@@ -795,14 +808,16 @@ classdef gramm < handle
         
         
         %% draw() initialization
-        function draw(obj)
+        function draw(obj,do_redraw)
             % draw Draws the plot in the current figure
             %
             % syntax: gramm_object.draw()
             % Call draw on an array of gramm objects in order to have
             % multiple gramms on a single figure.
             
-
+            if nargin<2
+                do_redraw=true;
+            end
             
 
            
@@ -835,13 +850,15 @@ classdef gramm < handle
                 end
                 
                 %Set up tight redrawing for multiple plots
-                 redraw(obj,0.04);
-                 if verLessThan('matlab','8.4')
-                     set(gcf,'ResizeFcn',@(a,b)redraw(obj,0.04));
-                 else
-                     set(gcf,'SizeChangedFcn',@(a,b)redraw(obj,0.04));
-                 end
-                 
+                if do_redraw
+                    redraw(obj,0.04);
+                    if verLessThan('matlab','8.4')
+                        set(gcf,'ResizeFcn',@(a,b)redraw(obj,0.04));
+                    else
+                        set(gcf,'SizeChangedFcn',@(a,b)redraw(obj,0.04));
+                    end
+                end
+                
                 return;
             end
             
@@ -872,10 +889,6 @@ classdef gramm < handle
             cellmax=@(c)max(cellfun(@max,c(nonemptycell(c))));
             cellmin=@(c)min(cellfun(@min,c(nonemptycell(c))));
             
-            %Convert categorical x to cellstr
-            if iscategorical(temp_aes.x)
-                temp_aes.x=cellstr(temp_aes.x);
-            end
             
             if iscell(temp_aes.x)
                 nonempty=nonemptycell(temp_aes.x);
@@ -913,6 +926,18 @@ classdef gramm < handle
             else
                 obj.var_lim.maxy=max(max(temp_aes.y));
                 obj.var_lim.miny=min(min(temp_aes.y));
+            end
+            
+            if ~isempty(temp_aes.z)
+                if iscell(temp_aes.z)
+                    nonempty=nonempty & nonemptycell(temp_aes.z);
+                    
+                    obj.var_lim.maxz=cellmax(temp_aes.z);
+                    obj.var_lim.minz=cellmin(temp_aes.z);
+                else
+                    obj.var_lim.maxz=max(max(temp_aes.z));
+                    obj.var_lim.minz=min(min(temp_aes.z));
+                end
             end
             
             temp_aes=select_aes(temp_aes,nonempty);
@@ -1000,6 +1025,8 @@ classdef gramm < handle
             obj.plot_lim.maxx=nan(n_rows,n_columns);
             obj.plot_lim.miny=nan(n_rows,n_columns);
             obj.plot_lim.maxy=nan(n_rows,n_columns);
+            obj.plot_lim.minz=nan(n_rows,n_columns);
+            obj.plot_lim.maxz=nan(n_rows,n_columns);
             obj.plot_lim.minc=nan(n_rows,n_columns);
             obj.plot_lim.maxc=nan(n_rows,n_columns);
             
@@ -1023,7 +1050,7 @@ classdef gramm < handle
             n_groups=length(uni_row)*length(uni_column)*length(uni_marker)...
                 *length(uni_size)*length(uni_linestyle)*length(uni_color)*length(unique(temp_aes.group));
             aes_names_fieldnames=fieldnames(obj.aes_names);
-            for fn=3:length(aes_names_fieldnames)
+            for fn=4:length(aes_names_fieldnames) %Starting from 4 we ignore x y and z
                 obj.results.(aes_names_fieldnames{fn})=cell(n_groups,1);
                 obj.results.(['ind_' aes_names_fieldnames{fn}])=cell(n_groups,1);
             end
@@ -1079,11 +1106,25 @@ classdef gramm < handle
                             obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(temp_aes.y(sel_column));
                             obj.plot_lim.miny(obj.current_row,obj.current_column)=min(temp_aes.y(sel_column));
                         end
+                        if ~isempty(temp_aes.z)
+                            if iscell(temp_aes.z(sel_column))
+                                obj.plot_lim.maxz(obj.current_row,obj.current_column)=cellmax(temp_aes.z(sel_column));
+                                obj.plot_lim.minz(obj.current_row,obj.current_column)=cellmin(temp_aes.z(sel_column));
+                            else
+                                obj.plot_lim.maxz(obj.current_row,obj.current_column)=max(temp_aes.z(sel_column));
+                                obj.plot_lim.minz(obj.current_row,obj.current_column)=min(temp_aes.z(sel_column));
+                            end
+                        else
+                            obj.plot_lim.maxz(obj.current_row,obj.current_column)=0;
+                            obj.plot_lim.minz(obj.current_row,obj.current_column)=0;
+                        end
                     else
                         obj.plot_lim.maxy(obj.current_row,obj.current_column)=0;
                         obj.plot_lim.miny(obj.current_row,obj.current_column)=0;
                         obj.plot_lim.maxx(obj.current_row,obj.current_column)=0;
                         obj.plot_lim.minx(obj.current_row,obj.current_column)=0;
+                        obj.plot_lim.maxz(obj.current_row,obj.current_column)=0;
+                        obj.plot_lim.minz(obj.current_row,obj.current_column)=0;
                     end
                     
 
@@ -1172,6 +1213,11 @@ classdef gramm < handle
                                                 %individual geoms
                                                 draw_data.x=temp_aes.x(sel);
                                                 draw_data.y=temp_aes.y(sel);
+                                                if ~isempty(temp_aes.z)
+                                                    draw_data.z=temp_aes.z(sel);
+                                                else
+                                                    draw_data.z=[];
+                                                end
                                                 draw_data.continuous_color=temp_aes.color(sel);
                                                 draw_data.color=cmap((ind_color-1)*length(uni_lightness)+ind_lightness,:);
                                                 draw_data.marker=markers{1+mod(ind_marker-1,length(markers))};
@@ -1190,7 +1236,7 @@ classdef gramm < handle
                                                 end
                                                 obj.firstrun(obj.current_row,obj.current_column)=0;
                                                 
-                                                draw_data=rmfield(draw_data,{'x','y','continuous_color','color_index','n_colors'});
+                                                draw_data=rmfield(draw_data,{'x','y','z','continuous_color','color_index','n_colors'});
                                                 obj.results.draw_data{obj.r_ind}=draw_data;
                                                 
                                                 %Iterate loop counter
@@ -1381,12 +1427,14 @@ classdef gramm < handle
             %% draw() axes modifications
             
             %Set various properties on each of the subplots
-            for ind_row=1:length(uni_row)
-                %Loop over columns
-                for ind_column=1:length(uni_column)
+            for ind_row=1:length(uni_row) %Loop over rows
+                 
+                for ind_column=1:length(uni_column) %Loop over columns
                     
                     %Set current axes
-                    axes(obj.facet_axes_handles(ind_row,ind_column));
+                    ca = obj.facet_axes_handles(ind_row,ind_column);
+                    axes(ca);
+                    
                     
                     %Do the datetick
                     if ~isempty(obj.datetick_params)
@@ -1404,6 +1452,7 @@ classdef gramm < handle
                     %Ad hoc limit correction for empty facets
                     obj.plot_lim.maxy(obj.plot_lim.miny==obj.plot_lim.maxy)=obj.plot_lim.maxy(obj.plot_lim.miny==obj.plot_lim.maxy)+0.01;
                     obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)=obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)+0.01;
+                    obj.plot_lim.maxz(obj.plot_lim.minz==obj.plot_lim.maxz)=obj.plot_lim.maxz(obj.plot_lim.minz==obj.plot_lim.maxz)+0.01;
                     
                     if ~obj.polar.is_polar % XY Limits are only useful for non-polar plots
                         
@@ -1415,16 +1464,19 @@ classdef gramm < handle
                                 case 'fixed'
                                     temp_xscale='global';
                                     temp_yscale='global';
+                                    temp_zscale='global';
                                     
                                     %Both XLims and YLims are linked across
                                     %all plots
                                     if ind_row==1 && ind_column==1
                                         obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
                                         obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
+                                        obj.extra.ZLim_listeners=linkprop(obj.facet_axes_handles(:),'ZLim');
                                     end  
                                 case 'free_x'
                                     temp_xscale='per_plot';
                                     temp_yscale='global';
+                                    temp_zscale='global';
                                     
                                     %XLims are linked across all plots
                                     if ind_row==1 && ind_column==1
@@ -1433,6 +1485,7 @@ classdef gramm < handle
                                 case 'free_y'
                                     temp_xscale='global';
                                     temp_yscale='per_plot';
+                                    temp_zscale='global';
                                     
                                     %YLims are linked across all plots
                                     if ind_row==1 && ind_column==1
@@ -1441,26 +1494,31 @@ classdef gramm < handle
                                 case 'free'
                                     temp_xscale='per_plot';
                                     temp_yscale='per_plot';
+                                    temp_zscale='per_plot';
                                 case 'independent'
                                     temp_xscale='per_plot';
                                     temp_yscale='per_plot';
+                                    temp_zscale='per_plot';
                             end
                         else
                             switch obj.facet_scale
                                 case 'fixed'
                                     temp_xscale='global';
                                     temp_yscale='global';
+                                    temp_zscale='global';
                                     
                                     %Both XLim and YLim are linked across
                                     %all plots
                                     if ind_row==1 && ind_column==1
                                          obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
                                          obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
+                                         obj.extra.ZLim_listeners=linkprop(obj.facet_axes_handles(:),'ZLim');
                                     end
                                 case 'free_x'
                                     temp_xscale='per_column';
                                     temp_yscale='global';
-
+                                    temp_zscale='global';
+                                    
                                     %YLims are linked across all plots,
                                     %XLims are linked within columns
                                      if ind_row==1 && ind_column==1
@@ -1472,6 +1530,7 @@ classdef gramm < handle
                                 case 'free_y'
                                     temp_xscale='global';
                                     temp_yscale='per_row';
+                                    temp_zscale='global';
 
                                     %XLims are linked across all plots,
                                     %YLims are linked within rows
@@ -1496,6 +1555,7 @@ classdef gramm < handle
                                 case 'independent'
                                     temp_xscale='per_plot';
                                     temp_yscale='per_plot';
+                                    temp_zscale='per_plot';
                             end
                         end
                         
@@ -1522,49 +1582,78 @@ classdef gramm < handle
                                 temp_ylim=[obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)];
                         end
                          ylim(temp_ylim+[-diff(temp_ylim)*obj.ylim_extra*0.5 diff(temp_ylim)*obj.ylim_extra*0.5]);
-                            
-                        
-                        %Set up logic of plot ticks presence
-                        has_xtick=obj.force_ticks || ... %Plot has xticks if forced
-                            (obj.wrap_ncols==-1 && ind_row==length(uni_row)) || ... %Or if we're in facet grid mode and we are in the last row
-                            (obj.wrap_ncols>0 && (length(uni_column)-ind_column)<obj.wrap_ncols) ||... %Or if we are in facet wrap mode and we are in the last facet on the "column"
-                            strcmp(temp_xscale,'per_plot'); %Or if we were in a per-plot scale mode
-                        
-                        has_ytick=obj.force_ticks || ... %Plot has xticks if forced
-                            (obj.wrap_ncols==-1 && ind_column==1) || ... %Or if we're in facet grid mode and are in the first column
-                            (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)==1) || ... %Or if we are in facet wrap mode and are in the first "column"
-                            strcmp(temp_yscale,'per_plot'); %Or if we were in a per-plot scale mode
-                        
-                        %Remove ticks if necessary 
-                        if ~has_xtick
-                            set(gca,'XTickLabel','');
-                        end
-                        if ~has_ytick
-                            set(gca,'YTickLabel','');
-                        end
-                        
-                        
+                         
+                         if ~isempty(temp_aes.z) %Only do the Z limit stuff if we have z data
+                             
+                             switch temp_zscale
+                                 case 'global'
+                                     temp_zlim=[min(min(obj.plot_lim.minz(:,:))) max(max(obj.plot_lim.maxz(:,:)))];
+                                 case 'per_plot'
+                                     temp_zlim=[obj.plot_lim.minz(ind_row,ind_column) obj.plot_lim.maxz(ind_row,ind_column)];
+                             end
+                             zlim(temp_zlim+[-diff(temp_zlim)*obj.zlim_extra*0.5 diff(temp_zlim)*obj.zlim_extra*0.5]);
+                             
+                             %Always have ticks if we have z data
+                             has_xtick=true;
+                             has_ytick=true;
+                             
+                         else %Only do optional xy ticks if we don't have z data
+                             
+                             %Set up logic of plot ticks presence
+                             has_xtick=obj.force_ticks || ... %Plot has xticks if forced
+                                 (obj.wrap_ncols==-1 && ind_row==length(uni_row)) || ... %Or if we're in facet grid mode and we are in the last row
+                                 (obj.wrap_ncols>0 && (length(uni_column)-ind_column)<obj.wrap_ncols) ||... %Or if we are in facet wrap mode and we are in the last facet on the "column"
+                                 strcmp(temp_xscale,'per_plot'); %Or if we were in a per-plot scale mode
+                             
+                             has_ytick=obj.force_ticks || ... %Plot has xticks if forced
+                                 (obj.wrap_ncols==-1 && ind_column==1) || ... %Or if we're in facet grid mode and are in the first column
+                                 (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)==1) || ... %Or if we are in facet wrap mode and are in the first "column"
+                                 strcmp(temp_yscale,'per_plot'); %Or if we were in a per-plot scale mode
+                         end
+                         
+                         %Remove ticks if necessary
+                         if ~has_xtick
+                             set(ca,'XTickLabel','');
+                         end
+                         if ~has_ytick
+                             set(ca,'YTickLabel','');
+                         end
+                         
+ 
                         %Set appropriate x ticks if labeled
                         if obj.x_factor
-                            temp_xlim=get(gca,'xlim');
+                            temp_xlim=get(ca,'xlim');
                             xlim([temp_xlim(1)-1 temp_xlim(2)+1])
-                            set(gca,'XTick',1:length(obj.x_ticks))
+                            set(ca,'XTick',1:length(obj.x_ticks))
                             if has_xtick
-                                set(gca,'XTickLabel',obj.x_ticks)
+                                set(ca,'XTickLabel',obj.x_ticks)
                                 try
-                                    set(gca,'TickLabelInterpreter','none')%Just try it (doesn't exist in pre-2014b)
+                                    set(ca,'TickLabelInterpreter','none')%Just try it (doesn't exist in pre-2014b)
                                 end
-                                %set(gca,'XTickLabelRotation',30)
+                                %set(ca,'XTickLabelRotation',30)
                             end
                         end
                         
                         %Add axes labels on right and botttom graphs only
-                        if ind_column==1 || (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)==1)
+                        if ind_column==1 || (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)==1) || ~isempty(temp_aes.z)
                             ylabel(obj.aes_names.y,'Interpreter','none'); %,'Units','normalized','position',[-0.2 0.5 1]
                         end
-                        if (ind_row==length(uni_row) && obj.wrap_ncols<=0) || (obj.wrap_ncols>0 && (length(uni_column)-ind_column)<obj.wrap_ncols)
+                        if (ind_row==length(uni_row) && obj.wrap_ncols<=0) || (obj.wrap_ncols>0 && (length(uni_column)-ind_column)<obj.wrap_ncols) || ~isempty(temp_aes.z)
                             xlabel(obj.aes_names.x,'Interpreter','none')
                         end
+                        %If we have z data
+                        if ~isempty(temp_aes.z)
+                            zlabel(obj.aes_names.z,'Interpreter','none') %Ass z label
+                            view(3); %Reset the view so that it is a 3D view
+                            if ind_row==1 && ind_column==1
+                                %Link the camera properties between the
+                                %facets so that they all rotate together
+                                obj.extra.CamPos_listeners=linkprop(obj.facet_axes_handles(:),'CameraPosition');
+                                obj.extra.CamTgt_listeners=linkprop(obj.facet_axes_handles(:),'CameraTarget');
+                                obj.extra.CamUp_listeners=linkprop(obj.facet_axes_handles(:),'CameraUpVector');
+                            end
+                        end
+
                     else
                         %Make polar axes
                         if obj.polar.max_polar_y<0
@@ -1582,14 +1671,14 @@ classdef gramm < handle
                     %Set custom axes properties
                     if ~isempty(obj.axe_properties)
                         for ap=1:size(obj.axe_properties,1)
-                            set(gca,obj.axe_properties{ap,1},obj.axe_properties{ap,2})
+                            set(ca,obj.axe_properties{ap,1},obj.axe_properties{ap,2})
                         end
                     end
                     
                     %Set ablines, hlines and vlines (after axe properties in case the limits
                     %are changed there
                     if obj.abline.on
-                        xl=get(gca,'xlim');
+                        xl=get(ca,'xlim');
                         for line_ind=1:length(obj.abline.intercept)
                             if ~isnan(obj.abline.intercept(line_ind))
                                 %abline
@@ -1597,7 +1686,7 @@ classdef gramm < handle
                             else
                                 if ~isnan(obj.abline.xintercept(line_ind))
                                     %vline
-                                     yl=get(gca,'ylim');
+                                     yl=get(ca,'ylim');
                                      plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,obj.abline.style{line_ind});
                                 else
                                     if ~isnan(obj.abline.yintercept(line_ind))
@@ -1622,7 +1711,7 @@ classdef gramm < handle
             set(gcf,'color','w');
             
             % Make everything tight and set the resize function so that it stays so
-            if ~obj.multi.active %This doesn't work for multiple plots at that point
+            if do_redraw  && ~obj.multi.active %Redrawing for multiple plots is handled at the beginning of draw()
                 redraw(obj,0.04);
                 if verLessThan('matlab','8.4')
                     set(gcf,'ResizeFcn',@(a,b)redraw(obj,0.04));
@@ -2197,8 +2286,12 @@ classdef gramm < handle
                 
                 
             else
-                [x,y]=obj.to_polar(comb(draw_data.x),comb(draw_data.y));
-                hndl=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+                if isempty(draw_data.z)
+                    [x,y]=obj.to_polar(comb(draw_data.x),comb(draw_data.y));
+                    hndl=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+                else
+                    hndl=plot3(draw_data.x,draw_data.y,draw_data.z,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+                end
             end
             
         end
@@ -2233,11 +2326,21 @@ classdef gramm < handle
                 
             else
                 if iscell(x)
-                    for k=1:length(draw_data.x)
-                        hndl=plot(x{k},y{k},'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+                    if isempty(draw_data.z)
+                        for k=1:length(draw_data.x)
+                            hndl=plot(x{k},y{k},'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+                        end
+                    else
+                        for k=1:length(draw_data.x)
+                            hndl=plot3(draw_data.x{k},draw_data.y{k},draw_data.z{k},'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+                        end
                     end
                 else
-                    hndl=plot(x,y,'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+                    if isempty(draw_data.z)
+                        hndl=plot(x,y,'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+                    else
+                        hndl=plot3(draw_data.x,draw_data.y,draw_data.z,'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+                    end
                 end
             end
             
@@ -2607,8 +2710,9 @@ classdef gramm < handle
                 
                 %Quartiles
                 temp=prctile(ysel,[25 50 75]);
-                %Wiskers at 1.5 Inter Quartile Range
+                %Outlier limits at 1.5 Inter Quartile Range
                 p(ind_x,:)=[temp(1)-1.5*(temp(3)-temp(1)) , temp , temp(3)+1.5*(temp(3)-temp(1))];
+                
                 
                 
                 %Outliers
@@ -2616,6 +2720,14 @@ classdef gramm < handle
                 if sum(sel_outlier)>0
                     outliersy=[outliersy ysel(sel_outlier)'];
                     outliersx=[outliersx repmat(ind_x,1,sum(sel_outlier))];
+                end
+                
+                %Whiskers are at the lowest and highest data points that
+                %are not outliers (within the +/- 1.5 IQR range)
+                sel_non_outlier=~sel_outlier;
+                if sum(sel_non_outlier)>0
+                    p(ind_x,1)=min(ysel(sel_non_outlier));
+                    p(ind_x,5)=max(ysel(sel_non_outlier));
                 end
                 
                 %Code for adaptive width
@@ -2642,7 +2754,7 @@ classdef gramm < handle
             
             
             
-            if params.dodge>=0
+            if params.dodge>=0 && draw_data.n_colors>1
                 spacing=avl_w*params.spacing; %Actual distance between groups of boxes in x 
                 dodging=avl_w*params.dodge./(draw_data.n_colors-1);% (Ncolors-1) spaces between boxes
                 boxw=avl_w*(1-params.spacing-params.dodge)./draw_data.n_colors; % Box width
@@ -2687,67 +2799,102 @@ classdef gramm < handle
             
             
             persistent elpoints
+            persistent sphpoints
 
             %Cache unity ellipse points
             if isempty(elpoints)
                 res=30;
                 ang=0:pi/(0.5*res):2*pi;
                 elpoints=[cos(ang); sin(ang)];
+                [x,y,z]=sphere(10);
+                sphpoints=surf2patch(x,y,z)
             end
             
             combx=shiftdim(comb(draw_data.x));
             comby=shiftdim(comb(draw_data.y));
+            combz=shiftdim(comb(draw_data.z));
             
             %If we have "enough" points
             if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
-                
-                r=[combx comby];
-                
-                %If a CI on the mean is requested, we replace the original points
-                %with bootstrapped mean samples
-                if strcmp(params.type,'ci')
-                    r=bootstrp(1000,@nanmean,r);
+
+                if isempty(draw_data.z)
+                    
+
+                    r=[combx comby];
+                    %Using a chi square with 2 degrees of freedom is proper
+                    %here (tested: generated ellipse do contain 1-alpha of the
+                    %points)
+                    k=@(alpha) sqrt(chi2inv(1-alpha,2));
+                    
+                    
+                    %If a CI on the mean is requested, we replace the original points
+                    %with bootstrapped mean samples
+                    if strcmp(params.type,'ci')
+                        r=bootstrp(1000,@nanmean,r);
+                    end
+                    
+                    %Extract mean and covariance
+                    m=nanmean(r);
+                    cv=nancov(r);
+                    
+                    
+                    %Compute ellipse points
+                    conf_elpoints=sqrtm(cv)*elpoints*k(0.05);
+                    
+                    %Compute ellipse axes
+                    [evec,eval]=eig(cv);
+                    if eval(2,2)>eval(1,1) %Reorder
+                        evec=fliplr(evec);
+                        eval=fliplr(flipud(eval));
+                    end
+                    elaxes=sqrtm(cv)*evec*k(0.05);
+                    
+                    
+                    
+                    obj.results.ellipse{obj.r_ind,1}.mean=m;
+                    obj.results.ellipse{obj.r_ind,1}.cv=cv;
+                    obj.results.ellipse{obj.r_ind,1}.major_axis=elaxes(:,1)';
+                    obj.results.ellipse{obj.r_ind,1}.minor_axis=elaxes(:,2)';
+                    
+                    %plot([0 elaxes(1,1)]+m(1),[0 elaxes(2,1)]+m(2),'k')
+                    %plot([0 elaxes(1,2)]+m(1),[0 elaxes(2,2)]+m(2),'k')
+                    
+                    switch params.geom
+                        case 'area'
+                            hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor',draw_data.color,'EdgeColor',draw_data.color,'LineWidth',2,'FaceAlpha',0.2);
+                            
+                        case 'line'
+                            hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor','none','EdgeColor',draw_data.color,'LineWidth',2);
+                            
+                            
+                    end
+                    set(hndl,params.patch_opts{:}); %displays a lot of stuff if we don't have an output value !
+                    
+                    plot(m(1),m(2),'+','MarkerFaceColor',draw_data.color,'MarkerEdgeColor',draw_data.color,'MarkerSize',10);
+                else
+                    
+                    r=[combx comby combz];
+                    k=@(alpha) sqrt(chi2inv(1-alpha,3));
+                    
+                    %If a CI on the mean is requested, we replace the original points
+                    %with bootstrapped mean samples
+                    if strcmp(params.type,'ci')
+                        r=bootstrp(1000,@nanmean,r);
+                    end
+                    
+                    %Extract mean and covariance
+                    m=nanmean(r);
+                    cv=nancov(r);
+                    
+                    obj.results.ellipse{obj.r_ind,1}.mean=m;
+                    obj.results.ellipse{obj.r_ind,1}.cv=cv;
+                    
+                    conf_sphpoints=sphpoints;
+                    conf_sphpoints.vertices=bsxfun(@plus,sqrtm(cv)*conf_sphpoints.vertices'*k(0.05),m')';
+                    hndl=patch(conf_sphpoints,'FaceColor',draw_data.color,'EdgeColor','none','LineWidth',2,'FaceAlpha',0.2);
+                    
+                    plot3(m(1),m(2),m(3),'+','MarkerFaceColor',draw_data.color,'MarkerEdgeColor',draw_data.color,'MarkerSize',10);
                 end
-                
-                %Extract mean and covariance
-                m=nanmean(r);
-                cv=nancov(r);
-                
-                %Using a chi square with 2 degrees of freedom is proper
-                %here (tested: generated ellipse do contain 1-alpha of the
-                %points)
-                k=@(alpha) sqrt(chi2inv(1-alpha,2));
-                
-                %Compute ellipse points
-                conf_elpoints=sqrtm(cv)*elpoints*k(0.05);
-                
-                %Compute ellipse axes
-                [evec,eval]=eig(cv);
-                if eval(2,2)>eval(1,1) %Reorder
-                    evec=fliplr(evec);
-                    eval=fliplr(flipud(eval));
-                end
-                elaxes=sqrtm(cv)*evec*k(0.05);
-                
-                
-                obj.results.ellipse{obj.r_ind,1}.mean=m;
-                obj.results.ellipse{obj.r_ind,1}.cv=cv;
-                obj.results.ellipse{obj.r_ind,1}.major_axis=elaxes(:,1)';
-                obj.results.ellipse{obj.r_ind,1}.minor_axis=elaxes(:,2)';
-                
-                %plot([0 elaxes(1,1)]+m(1),[0 elaxes(2,1)]+m(2),'k')
-                %plot([0 elaxes(1,2)]+m(1),[0 elaxes(2,2)]+m(2),'k')
-                
-                switch params.geom
-                    case 'area'
-                        hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor',draw_data.color,'EdgeColor',draw_data.color,'LineWidth',2,'FaceAlpha',0.2);
-                        
-                    case 'line'
-                        hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor','none','EdgeColor',draw_data.color,'LineWidth',2);
-                end
-                set(hndl,params.patch_opts{:}); %displays a lot of stuff if we don't have an output value !
-                
-                plot(m(1),m(2),'+','MarkerFaceColor',draw_data.color,'MarkerEdgeColor',draw_data.color,'MarkerSize',10);
                 
             else
                 warning('Not enough points for ellipse')
@@ -2836,7 +2983,7 @@ classdef gramm < handle
                     obj.extra.mdltext(obj.current_row,obj.current_column)=obj.extra.mdltext(obj.current_row,obj.current_column)+0.03;
                 end
                 %Get formula and parameters
-                form=formula(mdl)
+                form=formula(mdl);
                 cvals=coeffvalues(mdl);
                 cnames=coeffnames(mdl);
                 %Replace parameter names by their value in the formula
@@ -3548,6 +3695,7 @@ p=inputParser;
 % x and y are mandatory first two arguments
 my_addParameter(p,'x',[]);
 my_addParameter(p,'y',[]);
+my_addParameter(p,'z',[]);
 
 % Other aesthetics are string-value pairs
 my_addParameter(p,'color',[]);
@@ -3628,6 +3776,15 @@ if ~iscell(out.y)
     end
 end
 
+%Handle special case when Z is a matrix
+if ~iscell(out.z)
+    if size(out.z,2)>1
+        out.z=num2cell(out.z,2); %We convert rows of y to cell elements
+        out.z=cellfun(@(c)shiftdim(c),out.z,'uniformOutput',false);
+        %out.y=shiftdim(out.y);
+    end
+end
+
 %Handle special case when Y is a matrix/cell and X is a single vector
 if iscell(out.y) && ~iscell(out.x)
     if size(out.x,2)>1 %X is a matrix
@@ -3648,7 +3805,7 @@ end
 
 aes_length=-1;
 for k=1:length(fields)
-    if numel(out.(fields{k}))>0
+    if numel(out.(fields{k}))>0 %Ignore empty ones
         if aes_length==-1 && numel(out.(fields{k}))~=1
             aes_length=numel(out.(fields{k}));
         else
@@ -3656,6 +3813,12 @@ for k=1:length(fields)
                 error('Aesthetics have fields of different lengths !')
             end
         end
+        
+        %Convert categorical data to cellstr.
+        if iscategorical(aes.(fields{k}))
+            out.(fields{k})=cellstr(out.(fields{k}));
+        end
+        
     end
 end
 
@@ -3666,17 +3829,17 @@ if numel(aes.size)==1
     out.size=ones(size(aes.x))*aes.size;
 end
 
-
+%Missing fields are replaced with arrays of ones
 for k=1:length(fields)
-    if isempty(aes.(fields{k}))
+    if isempty(aes.(fields{k})) && ~strcmp(fields{k},'z') %If z is empty we leave it empty
+        
         out.(fields{k})=ones(aes_length,1);
-        
-        
-        if strcmp(fields{k},'subset')
+        if strcmp(fields{k},'subset') %Or array of true for 'subset'
             out.(fields{k})=true(aes_length,1);
         end
         
     end
+
 end
 
 end
@@ -3758,14 +3921,14 @@ trans=@(in,shift,sz)bsxfun(@plus,bsxfun(@times,in,sz),shift);
 
 h=patch(trans(circlex,x,s)',trans(circley,y,s)',c,...
     'EdgeColor',c,'EdgeAlpha',0.8,...
-    'FaceColor',c,'FaceAlpha',0.2)
+    'FaceColor',c,'FaceAlpha',0.2);
 
 end
 
 
 function cmap=get_colormap(nc,nl,opts)
 
-if isstr(opts.map)
+if ischar(opts.map)
     if ~strcmp(opts.map,'lch') && nl>1
         error('Lightness not supported for non lch colormaps');
     end
@@ -3869,7 +4032,7 @@ end
 
 %Create unique in original order
 if old_matlab
-    [y,ia,ic]=unique(x);
+    [y,ia,~]=unique(x);
     [~,ind]=sort(ia); %Trick to get the original order in older matlab versions
     y=y(ind);
 else
@@ -3916,8 +4079,6 @@ if numel(sortopts)>1 %Custom ordering
         warning('Improper order array size: using default order');
         return;
     end
-    
-    
 else %Other orderings
     switch sortopts
         case 1

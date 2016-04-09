@@ -33,6 +33,8 @@ g1.stat_smooth('lambda',1000,'geom','area')
 g1.axe_property('XGrid','on','YGrid','on')
 g1.draw()
 
+
+
 %% Plot multiple gramm objects in single window
 
 %Just create an array of gramm objects, each graph being a different
@@ -46,7 +48,8 @@ g2(1,1).facet_grid(twoaltc,twoaltcb) %,'scales','independent'
 g2(1,1).stat_smooth('lambda',1000,'geom','area')
 g2(1,1).geom_point()
 
-g2(1,2)=gramm('x',y,'y',x,'color',twoaltc)
+%Also works with categorical data
+g2(1,2)=gramm('x',y,'y',x,'color',categorical(twoaltc))
 g2(1,2).geom_point()
  
 % X data can be a cellstr, data will be treated as being categorical
@@ -72,36 +75,42 @@ clear g3
 % Example with everything in the same plot
 g3(1,1)=gramm('x',x,'y',y,'color',fouraltc)
 g3(1,1).geom_point()
+g3(1,1).set_title('Original data')
 
 % 'fixed': same x and y scale for all subplots
 g3(1,2)=gramm('x',x,'y',y,'color',fouraltc)
 g3(1,2).facet_grid(twoaltc,twoaltcb,'scale','fixed') 
 g3(1,2).geom_point()
 g3(1,2).set_title('''fixed''')
+g3(1,2).no_legend()
 
 % 'free_x': subplots on the same columns have the same x scale
 g3(2,1)=gramm('x',x,'y',y,'color',fouraltc)
 g3(2,1).facet_grid(twoaltc,twoaltcb,'scale','free_x') 
 g3(2,1).geom_point()
 g3(2,1).set_title('''free_x''')
+g3(2,1).no_legend()
 
 % 'free_y': subplots on the same rows have the same y scale
 g3(2,2)=gramm('x',x,'y',y,'color',fouraltc)
 g3(2,2).facet_grid(twoaltc,twoaltcb,'scale','free_y') 
 g3(2,2).geom_point()
 g3(2,2).set_title('''free_y''')
+g3(2,2).no_legend()
 
 % 'free': subplots on the same rows  have the same y scale and facets on the same columns have the same x scale
 g3(3,1)=gramm('x',x,'y',y,'color',fouraltc)
 g3(3,1).facet_grid(twoaltc,twoaltcb,'scale','free') 
 g3(3,1).geom_point()
 g3(3,1).set_title('''free''')
+g3(3,1).no_legend()
 
 % 'independent': subplots are independent on each facet
 g3(3,2)=gramm('x',x,'y',y,'color',fouraltc)
 g3(3,2).facet_grid(twoaltc,twoaltcb,'scale','independent') 
 g3(3,2).geom_point()
 g3(3,2).set_title('''independent''')
+g3(3,2).no_legend()
 
 figure('Position',[100 100 700 800])
 g3.set_title('''scale'' option for facet_grid()','FontSize',16)
@@ -115,35 +124,47 @@ clear g4
 %Example with everything in the same plot
 g4(1,1)=gramm('x',x,'y',y,'color',fouraltc)
 g4(1,1).geom_point()
+g4(1,1).set_title('Original data')
 
 % 'fixed': same x and y scale for all subplots
 g4(1,2)=gramm('x',x,'y',y,'color',fouraltc)
 g4(1,2).facet_wrap(fouraltc,'scale','fixed','ncols',3) 
 g4(1,2).geom_point()
+g4(1,2).set_title('''fixed''')
+g4(1,2).no_legend()
 
 % 'free_x': subplots on the same columns have the same x scale -> for wrap, each plot
 %has its own x scale
 g4(2,1)=gramm('x',x,'y',y,'color',fouraltc)
 g4(2,1).facet_wrap(fouraltc,'scale','free_x','ncols',3) 
 g4(2,1).geom_point()
+g4(2,1).set_title('''free_x''')
+g4(2,1).no_legend()
 
 % 'free_y': subplots on the same rows have the same y scale -> for wrap, each plot has
 %its own y scale
 g4(2,2)=gramm('x',x,'y',y,'color',fouraltc)
 g4(2,2).facet_wrap(fouraltc,'scale','free_y','ncols',3) 
 g4(2,2).geom_point()
+g4(2,2).set_title('''free_y''')
+g4(2,2).no_legend()
 
 % 'free': behaves like 'independent' option when using facet_wrap
 g4(3,1)=gramm('x',x,'y',y,'color',fouraltc)
 g4(3,1).facet_wrap(fouraltc,'scale','free','ncols',3) 
 g4(3,1).geom_point()
+g4(3,1).set_title('''free''')
+g4(3,1).no_legend()
 
 % 'independent': scales are independent on each subplot
 g4(3,2)=gramm('x',x,'y',y,'color',fouraltc)
 g4(3,2).facet_wrap(fouraltc,'scale','independent','ncols',3) 
 g4(3,2).geom_point()
+g4(3,2).set_title('''independent''')
+g4(3,2).no_legend()
 
 figure('Position',[100 100 700 800])
+g4.set_title('''scale'' option for facet_wrap()','FontSize',16)
 g4.draw()
 
 %% Histograms with stat_bin()
@@ -166,24 +187,31 @@ x(cat==2)=x(cat==2)+2;
 clear g5
 g5(1,1)=gramm('x',x,'color',cat)
 g5(1,1).stat_bin() %by default, 'geom' is 'bar', where color groups are side-by-side (dodged)
+g5(1,1).set_title('''bar'' (default)')
 
 g5(1,2)=gramm('x',x,'color',cat)
 g5(1,2).stat_bin('geom','stacked_bar') %Stacked bars option
+g5(1,2).set_title('''stacked_bar''')
 
 g5(2,1)=gramm('x',x,'color',cat)
 g5(2,1).stat_bin('geom','line') %Draw lines instead of bars, easier to visualize when lots of categories, default fill to edges !
+g5(2,1).set_title('''line''')
 
 g5(2,2)=gramm('x',x,'color',cat)
 g5(2,2).stat_bin('geom','overlaid_bar') %Overlaid bar automatically changes bar coloring to transparent
+g5(2,2).set_title('''overlaid_bar''')
 
 g5(1,3)=gramm('x',x,'color',cat)
 g5(1,3).stat_bin('geom','point') 
+g5(1,3).set_title('''point''')
 
 
 g5(2,3)=gramm('x',x,'color',cat)
 g5(2,3).stat_bin('geom','stairs') %Default fill is edges
+g5(2,3).set_title('''stairs''')
 
 figure
+g5.set_title('''geom'' options for stat_bin()')
 g5.draw()
 
 %%
@@ -198,16 +226,21 @@ figure
 clear g6
 g6(1,1)=gramm('x',x,'color',cat)
 g6(1,1).stat_bin('fill','face')
+g6(1,1).set_title('''face''')
 
 g6(1,2)=gramm('x',x,'color',cat)
 g6(1,2).stat_bin('fill','all')
+g6(1,2).set_title('''all''')
 
 g6(2,1)=gramm('x',x,'color',cat)
 g6(2,1).stat_bin('fill','edge')
+g6(2,1).set_title('''edge''')
 
 g6(2,2)=gramm('x',x,'color',cat)
 g6(2,2).stat_bin('fill','transparent')
+g6(2,2).set_title('''transparent''')
 
+g6.set_title('''fill'' options for stat_bin()')
 g6.draw()
 
 %%
@@ -228,26 +261,30 @@ g7(1,1).stat_bin('geom','overlaid_bar') %Default binning (30 bins)
 %Normalization to 'probability'
 g7(2,1)=gramm('x',x,'color',cat)
 g7(2,1).stat_bin('normalization','probability','geom','overlaid_bar')
+g7(2,1).set_title('''normalization'',''probability''','FontSize',10)
 
 %Normalization to cumulative count
 g7(1,2)=gramm('x',x,'color',cat)
 g7(1,2).stat_bin('normalization','cumcount','geom','stairs')
+g7(1,2).set_title('''normalization'',''cumcount''','FontSize',10)
 
 %Normalization to cumulative density
 g7(2,2)=gramm('x',x,'color',cat)
 g7(2,2).stat_bin('normalization','cdf','geom','stairs')
+g7(2,2).set_title('''normalization'',''cdf''','FontSize',10)
 
 %Custom edges for the bins
 g7(1,3)=gramm('x',x,'color',cat)
 g7(1,3).stat_bin('edges',-1:0.5:10,'geom','overlaid_bar')
+g7(1,3).set_title('''edges'',-1:0.5:10','FontSize',10)
 
 %Custom edges with non-constand width (normalization 'countdensity'
 %recommended)
 g7(2,3)=gramm('x',x,'color',cat)
 g7(2,3).stat_bin('geom','overlaid_bar','normalization','countdensity','edges',[-5 -4 -2 -1 -0.5 -0.25 0 0.25 0.5  1 2 4 5])
+g7(2,3).set_title({'''normalization'',''countdensity'',' '''edges'',' '[-5 -4 -2 -1 -0.5 -0.25 0 0.25 0.5  1 2 4 5]'},'FontSize',10)
 
-
-
+g7.set_title('Other options for stat_bin()')
 g7.draw()
 
 %% Example from the readme
@@ -267,6 +304,8 @@ g.geom_point()
 g.stat_glm()
 % Set appropriate names for legends
 g.set_names('column','Origin','x','Year of production','y','Fuel economy (MPG)','color','# Cylinders')
+%Set title
+g.set_title('Evolution of fuel economy between 1970 and 1982')
 % Do the actual drawing
 g.draw()
 
@@ -308,6 +347,10 @@ g=gramm('x',x,'y',y,'color',c);
 g.geom_jitter('width',0.5);
 g.draw();
 
+figure
+g=gramm('x',x,'y',y);
+g.stat_boxplot();
+g.draw();
 
 
 figure
@@ -315,15 +358,20 @@ clear g
 g(1,1)=gramm('x',catx,'y',y,'color',c);
 g(1,1).stat_boxplot('spacing',0.5,'dodge',-1);
 g(1,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
+g(1,1).set_title('''spacing'',0.5,''dodge'',-1')
 g(2,1)=gramm('x',catx,'y',y,'color',c);
 g(2,1).stat_boxplot('spacing',0.2,'dodge',0);
 g(2,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
+g(2,1).set_title('''spacing'',0.2,''dodge'',0')
 g(3,1)=gramm('x',catx,'y',y,'color',c);
 g(3,1).stat_boxplot('spacing',0.2,'dodge',0.1);
 g(3,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
+g(3,1).set_title('''spacing'',0.5,''dodge'',0.1')
 g(4,1)=gramm('x',catx,'y',y,'color',c);
 g(4,1).facet_grid([],c);
 g(4,1).stat_boxplot('spacing',0.4,'dodge',-1);
+g(4,1).set_title('''spacing'',0.4,''dodge'',-1')
+g.set_title('Dodge and spacing options for stat_boxplot()')
 g.draw();
 
 
@@ -332,14 +380,18 @@ clear g
 g(1,1)=gramm('x',catx,'y',y,'color',c);
 g(1,1).stat_summary('geom',{'bar' 'black_errorbar'},'dodge',0);
 g(1,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
+g(1,1).set_title('''dodge'',0')
 g(2,1)=gramm('x',catx,'y',y,'color',c);
 g(2,1).stat_summary('geom',{'bar' 'black_errorbar'},'dodge',0.2);
+g(2,1).set_title('''dodge'',0.2')
 g(2,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
 g(3,1)=gramm('x',catx,'y',y,'color',c);
 g(3,1).stat_summary('geom',{'area'});
 g(4,1)=gramm('x',catx,'y',y,'color',c);
 g(4,1).stat_summary('geom',{'point' 'errorbar'},'dodge',0);
+g(4,1).set_title('''dodge'',0')
 g(4,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
+g.set_title('Dodge options for stat_summary()')
 g.draw();
 
 %% Quantile-quantile plots
@@ -347,17 +399,19 @@ g.draw();
 figure
 grp=repmat([1 2],1,500)';
 
+clear g
 %QQ plot against theoretical distribution
-g=gramm('x',randn(1000,1).*grp,'color',grp)
-g.stat_qq('Distribution',makedist('Normal',0,2))
-g.geom_abline()
-g.draw()
+g(1,1)=gramm('x',randn(1000,1).*grp,'color',grp)
+g(1,1).stat_qq('Distribution',makedist('Normal',0,2))
+g(1,1).geom_abline()
+g(1,1).set_title({'QQ plot of X against ' 'the theoretical Normal(0,2) distribution'})
 
-figure
+
 %QQ plot of Y against X
-g=gramm('x',randn(1000,1).*grp,'y',randn(1000,1),'color',grp)
-g.stat_qq('Distribution','y')
-g.geom_abline()
+g(2,1)=gramm('x',randn(1000,1).*grp,'y',randn(1000,1),'color',grp)
+g(2,1).stat_qq('Distribution','y')
+g(2,1).geom_abline()
+g(2,1).set_title('QQ plot of Y against X')
 g.draw()
 
 
@@ -370,18 +424,30 @@ g9=gramm('x',t+[0 0.1 1 5 6],'y',t+[1 2 3 4 5])
 g9.geom_line()
 g9.set_datetick('x',2)
 g9.set_datetick('y',1)
+g9.set_title('Example for different datetick formats on X and Y axes')
 g9.draw()
 
-%% GLM and linear fits
+%% GLM and linear fits, Possibility to superimpose similar gramm plots
 
 load carbig.mat %Load example dataset about cars
 
 figure
+
+
 g10=gramm('x',Horsepower,'y',Acceleration,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
 g10.set_names('color','# Cylinders','x','Horsepower','y','Acceleration')
 g10.stat_glm('geom','area','disp_fit',true) %Linear fit (default for stat_glm
 g10.geom_point()
-g10.draw()
+g10.draw(false) %To superimpose over a gramm plot, call draw with false as an argument
+
+%We add another gramm plot (without color) to have a fit across all
+%cylinders. Superimposition only works with gramm plots that have similar
+%faceting
+g10b=gramm('x',Horsepower,'y',Acceleration,'subset',Cylinders~=3 & Cylinders~=5)
+g10b.stat_glm('geom','line','disp_fit',false)
+g10b.set_color_options('chroma',0,'lightness',30)
+g10b.draw()
+
 
 %% Colormap customization
 
@@ -394,39 +460,46 @@ Origin=cellfun(@(c)strrep(c,' ',''),num2cell(Origin,2),'UniformOutput',false);
 %Default: LCH-based colormap with hue variation
 g(1,1)=gramm('x',Origin,'y',Horsepower,'color',Origin)
 g(1,1).stat_summary('geom',{'bar'},'dodge',-1)
+g(1,1).set_title('Default LCH colormap (''color'' grouping)')
 
 %Possibility to change the hue range as well as lightness and chroma of
 %the LCH-based colormap
 g(1,2)=gramm('x',Origin,'y',Horsepower,'color',Origin)
 g(1,2).stat_summary('geom',{'bar'},'dodge',-1)
 g(1,2).set_color_options('hue_range',[-60 60],'chroma',40,'lightness',90)
+g(1,2).set_title('Modified LCH colormap (''color'' grouping)')
 
 %Possibility to change the lightness and chroma range of the LCH-based
 %colormap when a 'lightness' variable is given
 g(1,3)=gramm('x',Origin,'y',Horsepower,'lightness',Origin)
 g(1,3).stat_summary('geom',{'bar'},'dodge',-1)
 g(1,3).set_color_options('lightness_range',[0 95],'chroma_range',[0 0])
+g(1,3).set_title('Modified LCH colormap (''lightness'' grouping)')
 
-%Go back to Matlab's defautl colormap
+%Go back to Matlab's defauls colormap
 g(2,1)=gramm('x',Origin,'y',Horsepower,'color',Origin)
 g(2,1).stat_summary('geom',{'bar'},'dodge',-1)
 g(2,1).set_color_options('map','matlab')
+g(2,1).set_title('Matlab 2014B+ colormap')
 
 %Brewer colormap 1
 g(2,2)=gramm('x',Origin,'y',Horsepower,'color',Origin)
 g(2,2).stat_summary('geom',{'bar'},'dodge',-1)
 g(2,2).set_color_options('map','brewer1')
+g(2,2).set_title('brewer1 colormap')
 
 %Brewer colormap 2
 g(2,3)=gramm('x',Origin,'y',Horsepower,'color',Origin)
 g(2,3).stat_summary('geom',{'bar'},'dodge',-1)
 g(2,3).set_color_options('map','brewer2')
+g(2,3).set_title('brewer2 colormap')
 
 %Some methods can be called on all objects at the same time !
 g.axe_property('YLim',[0 140])
 %g.axe_property('XTickLabelRotation',60) %Should work for recent Matlab
 %versions
 g.set_names('x','Origin','y','Horsepower','color','Origin','lightness','Origin')
+g.set_title('Colormap customizations examples')
 g.draw()
 
 %% Example of all the different input formats for x and y
@@ -526,11 +599,13 @@ g(1,1).geom_point()
 %'patch_opts' can be used to provide more options to the patch() internal
 %call
 g(1,1).stat_ellipse('type','95percentile','geom','area','patch_opts',{'FaceAlpha',0.1,'LineWidth',2})
+g(1,1).set_title('stat_ellispe()')
 
 %Plot point density as contour plot
 g(1,2)=gramm('x',x,'y',y,'color',test)
 g(1,2).stat_bin2d('nbins',[10 10],'geom','contour')
 g(1,2).set_names('color','grp')
+g(1,2).set_title('stat_bin2d(''geom'',''contour'')')
 
 %Plot density as point size (looks good only when axes have the same
 %scale, hence the 'DataAspectRatio' option, equivalent to axis equal)
@@ -538,6 +613,7 @@ g(2,1)=gramm('x',x,'y',y,'color',test)
 g(2,1).stat_bin2d('nbins',{-10:0.4:10 ; -10:0.4:10},'geom','point')
 g(2,1).axe_property('DataAspectRatio',[1 1 1])
 g(2,1).set_names('color','grp')
+g(2,1).set_title('stat_bin2d(''geom'',''point'')')
 
 %Plot density as heatmaps (Heatmaps don't work with multiple colors, so we separate
 %the categories with facets). With the heatmap we see better the
@@ -547,8 +623,9 @@ g(2,2).facet_grid([],test)
 g(2,2).stat_bin2d('nbins',[20 20],'geom','image')
 g(2,2).set_continuous_color('LCH_colormap',[0 100 ; 100 20 ;30 20]) %Let's try a custom LCH colormap !
 g(2,2).set_names('column','grp','color','count')
+g(2,2).set_title('stat_bin2d(''geom'',''image'')')
 
-
+g.set_title('Visualization of 2D densities')
 g.draw()
 
 %% stat_glm examples (statistics toolbox required)
@@ -559,28 +636,31 @@ x=repmat(1:10,1,20)
 %Create measurement (y=x+noise)
 y=x+randn(1,length(x))*3;
 
-
+clear g
 figure
-g=gramm('x',x,'y',y)
-g.geom_point()
+g(1,1)=gramm('x',x,'y',y)
+g(1,1).geom_point()
 %By default, stat_glm assumes a normal distribution and an identity link
 %function (i.e. it performs a linear model fit). The fit is represented as
 %a thick line and 95% CI as a shaded area
-g.stat_glm()
-g.draw()
+g(1,1).stat_glm()
+g(1,1).set_title('Default (LM fit)')
+
 
 
 %The measurements are now binomial (follows a logit curve centered on 5)
 y=random('binomial',1,1./(1+exp(5-x)))
 
 figure
-g=gramm('x',x,'y',y)
+g(1,2)=gramm('x',x,'y',y)
 %We plot jittered points to get a better idea of the distribution
 %g.geom_jitter('width',0.2,'height',0.1)
-g.geom_count()
+g(1,2).geom_count()
 %By specifying that the distribution is binomial, a logit link function is
 %used (see help for glm_fit).
-g.stat_glm('distribution','binomial','geom','lines')
+g(1,2).stat_glm('distribution','binomial','geom','lines')
+g(1,2).set_title('''distribution'',''binomial''')
+g.set_title('stat_glm() examples')
 g.draw()
 
 
@@ -601,9 +681,11 @@ y=y+randn(size(y))*1;
 
 %Gramm plot with fit !
 figure
+clear g
 g=gramm('x',x,'y',y,'color',cat)
 g.geom_point()
 g.stat_fit('fun',fun,'disp_fit',true) %We provide the function for the fit
+g.set_title('stat_fit() with user-provided function')
 g.draw()
 
 %% Changing the order of elements with set_order_options()
@@ -620,6 +702,7 @@ figure
 %alphabetically) input
 g(1,2)=gramm('x',x,'y',y,'lightness',x)
 g(1,2).stat_summary('geom','bar')
+g(1,2).set_title('Default output')
 
 
 %By using set_order_options('x',0), x are presented in the raw input order. The
@@ -627,6 +710,7 @@ g(1,2).stat_summary('geom','bar')
 g(2,1)=gramm('x',x,'y',y,'lightness',x)
 g(2,1).stat_summary('geom','bar')
 g(2,1).set_order_options('x',0)
+g(2,1).set_title('x in input order')
 
 %By using set_order_options('x',0,'lightness',{'XS' 'S' 'M' 'L' 'XL'
 %'XXL'}), we also order lightness in the desired order, here by
@@ -634,6 +718,7 @@ g(2,1).set_order_options('x',0)
 g(2,2)=gramm('x',x,'y',y,'lightness',x)
 g(2,2).stat_summary('geom','bar')
 g(2,2).set_order_options('x',0,'lightness',{'XS' 'S' 'M' 'L' 'XL' 'XXL'})
+g(2,2).set_title({'x in input order' 'lightness in custom order'})
 %Examples below properly fail
 %g(2,2).set_order_options('x',0,'lightness',{'XXL' 'XL' 'L' 'M' 'S' 'B'})
 %g(2,2).set_order_options('x',0,'lightness',{'XXL' 'XL' 'L' 'M' 'S' 1})
@@ -646,9 +731,13 @@ g(2,2).set_order_options('x',0,'lightness',{'XS' 'S' 'M' 'L' 'XL' 'XXL'})
 g(2,3)=gramm('x',x,'y',y,'lightness',x)
 g(2,3).stat_summary('geom','bar')
 g(2,3).set_order_options('x',0,'lightness',[6 4 1 2 3 5])
+g(2,3).set_title({'x in input order' 'lightness in custom order'})
 %Exampel below properly fail
 %g(2,3).set_order_options('x',0,'lightness',[6 4 1 2 3 3])
 
 g.set_names('x','US size','y','EU size','lightness','US size')
 g.draw()
+
+
+
 
