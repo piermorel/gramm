@@ -13,7 +13,7 @@ The typical workflow to generate a figure with gramm is the following:
 - In the last step, gramm draws the figure, and takes care of all the annoying parts: no need to loop over colors or subplots, colors and legends are generated automatically, axes limits are taken care of, etc.
 
 For example, with gramm, 7 lines of code are enough to create the figure below from the <code>carbig</code> dataset. Here the figure represents the evolution of fuel economy of new cars in time, with number of cylinders indicated by color, and regions of origin separated across subplot columns:
-<img src="/img/carbig_example.png" alt="gramm example" width="880">
+<img src="/img/carbig_example.png" alt="gramm example" width="800">
 
 ```matlab
 load carbig.mat %Load example dataset about cars
@@ -96,38 +96,38 @@ The code for the following figures and numerous others is in <code>examples.m</c
 ### Custom fits ###
 <code>stat_fit()</code>
 
-<img src="/img/fit_example.png" alt="Custom fits" width="561">
+<img src="/img/fit_example.png" alt="Custom fits" width="600">
 
 ### GLM fits (carbig data) ###
 <code>stat_glm()</code>
 Note that the fit is made across color groups. this is done by superimposing gramm plots.
 
-<img src="/img/carbig_glm_example.png" alt="GLM fits" width="560">
+<img src="/img/carbig_glm_example.png" alt="GLM fits" width="600">
 
 ### Multiple gramm objects in a single figure 
 Also shows histograms, categorical x values
 
-<img src="/img/multiple_gramm_example.png" alt="Multiple gramm" width="692">
+<img src="/img/multiple_gramm_example.png" alt="Multiple gramm" width="800">
 
 ### Histograms ###
 <code>stat_bin()</code> with different <code>'geom'</code> options: <code>'bar'</code>, <code>'stacked_bar'</code>,<code>'point'</code>,<code>'line'</code>, <code>'overlaid_bar'</code>,<code>'stairs'</code>
 
-<img src="/img/histograms_example.png" alt="Histograms example" width="933">
+<img src="/img/histograms_example.png" alt="Histograms example" width="800">
 
 ### Colormap customization ###
 <code>set_color_options()</code> with <code>'map'</code> set as <code>'lch'</code> with various customization on the first row. <code>'map'</code> set to <code>matlab</code>,
  <code>brewer1</code>, and <code>brewer2</code> on the second line
 
-<img src="/img/colormaps_example.png" alt="Colormaps example" width="944">
+<img src="/img/colormaps_example.png" alt="Colormaps example" width="800">
 
 ### 2D density visualizations ###
 <code>stat_ellipse()</code> and <code>stat_bin2d()</code> with <code>'geom'</code> set to <code>'contour'</code>,<code>'point'</code>,<code>'image'</code>
 
-<img src="/img/2D_densities_example.png" alt="2D density" width="649">
+<img src="/img/2D_densities_example.png" alt="2D density" width="600">
 
 ### Continuous colors
 
-<img src="/img/continuous_color_example.png" alt="Continuous colors" width="558">
+<img src="/img/continuous_color_example.png" alt="Continuous colors" width="600">
 
 ## Acknowledgements
 gramm was inspired and/or used code from:
