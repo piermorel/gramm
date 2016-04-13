@@ -72,6 +72,13 @@ classdef gramm < handle
         title
         title_options
         
+        first_redraw %true for first redraw, used to not repeat costly calls in redraw
+        legend_text_handles %Stores handles of text objects for legend
+        facet_text_handles %Stores handles of text objects for facet row and column titles
+        title_text_handle
+        cached_max_legend_ind %Stores index of legend text handle with rightmost ending
+        cached_max_facet_ind %Stores indices of facet text handles with rightmost and topmost ending
+        
         title_axe_handle %Store the handle of the title axis
         
         extra %Store extra geom-specific info
@@ -201,7 +208,11 @@ classdef gramm < handle
             obj.order_options.lightness=1;
             
             obj.with_legend=true;
-            
+            obj.first_redraw=true;
+            obj.legend_text_handles=[];
+            obj.facet_text_handles=[];
+            obj.cached_max_facet_ind=[];
+            obj.cached_max_legend_ind=[];
         end
         
 %          function disp(obj)
@@ -567,6 +578,7 @@ classdef gramm < handle
             % When display is set to true (default is false), the bounding boxes of all
             % elements are drawn in a separate figure
             
+            
 
             
             if nargin<2
@@ -589,6 +601,13 @@ classdef gramm < handle
                 end
                 return;
             end
+            
+            %Cool way to prevent reentrant callbacks !
+%             persistent inCallback
+%             if ~isempty(inCallback)
+%                 return;  
+%             end
+%             inCallback = true;
             
             %If x is empty the object probably is so we skip (happens for multiple graphs)
             if isempty(obj.aes.x) 
@@ -631,12 +650,21 @@ classdef gramm < handle
             legend_inset=get(obj.legend_axe_handle,'TightInset');
             legend_outer=get(obj.legend_axe_handle,'OuterPosition');
             
-            %Retrieve text handles
-            text_handles=findobj(gcf,'Type','text');
-            %Needed for the rest to work
-            set(text_handles,'Unit','normalized');
+            %Get legend axis width because units on legend text are not set
+            %to normalized
+            legend_xlim=get(obj.legend_axe_handle,'XLim');
+            legend_axis_width=diff(legend_xlim);
+            
+            
+            if obj.first_redraw %Takes a long time so we only do it once
+                %Needed for the rest to work
+                set(obj.title_text_handle,'Unit','normalized');
+                set(obj.facet_text_handles,'Unit','normalized');
+                %set(obj.legend_text_handles,'Unit','normalized');
+            end
             
             if display
+                text_handles=findobj(gcf,'Type','text');
                 figure(100)
                 hold on
                 rectangle('Position',[0 0 1 1])
@@ -652,6 +680,9 @@ classdef gramm < handle
                 rectangle('Position',[legend_pos(1)-legend_inset(1) legend_pos(2)-legend_inset(2) legend_pos(3)+legend_inset(3)+legend_inset(1)  legend_pos(4)+legend_inset(4)+legend_inset(2)],'EdgeColor','c');
                 
                 
+                %Retrieve text handles
+                
+                set(text_handles,'Unit','normalized');
                 %display text boxes
                 for t=1:length(text_handles)
                     parent_axe=ancestor(text_handles(t),'axes');
@@ -665,9 +696,23 @@ classdef gramm < handle
             
             %Move legend to the right
             %Get rightmost text
-            legend_text_pos=get(findobj(obj.legend_axe_handle,'Type','text'),'Extent');
+            if obj.first_redraw
+                legend_text_pos=get(obj.legend_text_handles,'Extent'); %On first redraw we get all extents
+            else
+                %On next redraws we only get extent of the rightmost one
+                legend_text_pos=get(obj.legend_text_handles(obj.cached_max_legend_ind),'Extent');
+                if ~isempty(legend_text_pos) && ~iscell(legend_text_pos)
+                    legend_text_pos={legend_text_pos};
+                end
+            end
+            
             if ~isempty(legend_text_pos)
-                max_text_x=max(cellfun(@(p)legend_pos(1)+legend_pos(3)*p(1)+legend_pos(3)*p(3),legend_text_pos));
+                %Here we correct by the width to get the coordinates in
+                %normalized values
+                [max_text_x,max_ind]=max(cellfun(@(p)legend_pos(1)+legend_pos(3)*(p(1)+p(3))/legend_axis_width,legend_text_pos));
+                if obj.first_redraw
+                    obj.cached_max_legend_ind=max_ind; %Cache the index of which text object is the rightmost
+                end
                 %Move accordingly (here the max available x position takes
                 %in account the multiple plots
                 set(obj.legend_axe_handle,'Position',legend_pos+[obj.multi.orig(2)+obj.multi.size(2)-spacing_w-max_text_x 0 0 0]);
@@ -675,10 +720,10 @@ classdef gramm < handle
             
             %Move title to the top
             if ~isempty(obj.title_axe_handle)
-                title_text_pos=get(findobj(obj.title_axe_handle,'Type','text'),'Extent');
+                title_text_pos=get(obj.title_text_handle,'Extent');
                 title_pos=get(obj.title_axe_handle,'Position');
                 max_text_y=title_pos(2)+title_pos(4)*title_text_pos(2)+title_pos(4)*title_text_pos(4);
-                set(obj.title_axe_handle,'Position',title_pos+[0 obj.multi.orig(1)+obj.multi.size(1)-spacing_h/2-max_text_y 0 0]);
+                set(obj.title_axe_handle,'Position',title_pos+[0 obj.multi.orig(1)+obj.multi.size(1)-spacing_h-max_text_y 0 0]);
             end
             
             %Move facets to the right
@@ -693,27 +738,50 @@ classdef gramm < handle
             %Move and rescale facets to fill up the available space
             %Get positions of facet text objects (row titles are the
             %rightmost things)
-            facet_text_pos=get(findobj(obj.facet_axes_handles,'Type','text'),'Extent');
+            if obj.first_redraw
+                facet_text_pos=get(obj.facet_text_handles,'Extent'); %On first call get all positions
+            else
+                % On the next calls we only get the extents of rightmost
+                % and topmost text objects
+                facet_text_pos=get(obj.facet_text_handles(obj.cached_max_facet_ind),'Extent');
+                if ~isempty(facet_text_pos) && ~iscell(facet_text_pos)
+                    facet_text_pos={facet_text_pos};
+                end
+            end
             
             if ~isempty(facet_text_pos)
                 %Get positions of the corresponding parent axes
                 %axe_text_pos=get(cell2mat(ancestor(findobj(obj.facet_axes_handles,'Type','text'),'axes')),'Position');
                 %%didn't work with HG2 graphics
-                temp_handles=ancestor(findobj(obj.facet_axes_handles,'Type','text'),'axes');
+                if obj.first_redraw
+                    temp_handles=ancestor(obj.facet_text_handles,'axes');
+                else
+                    temp_handles=ancestor(obj.facet_text_handles(obj.cached_max_facet_ind),'axes');
+                end
                 
                 %HACK (when there no color and no legend but a single piece of text from the
                 %glm fits we don't get cells here so the cellfuns get broken
-                if ~iscell(temp_handles)
-                    temp_handles={temp_handles};
-                    facet_text_pos={facet_text_pos};
+                 if ~iscell(temp_handles)
+                     temp_handles={temp_handles};
                 end
                 
                 axe_text_pos=cellfun(@(a)get(a,'Position'),temp_handles,'UniformOutput',false);
-               
+                if ~iscell(axe_text_pos)
+                    axe_text_pos={axe_text_pos};
+                end
                 
                 %Compute rightmost and topmost text
-                max_facet_x_text=max(cellfun(@(tp,ap)ap(1)+ap(3)*tp(1)+tp(3)*ap(3),facet_text_pos,axe_text_pos));
-                max_facet_y_text=max(cellfun(@(tp,ap)ap(2)+ap(4)*tp(2)+tp(4)*ap(4),facet_text_pos,axe_text_pos));
+                [max_facet_x_text,max_indx]=max(cellfun(@(tp,ap)ap(1)+ap(3)*tp(1)+tp(3)*ap(3),facet_text_pos,axe_text_pos));
+                [max_facet_y_text,max_indy]=max(cellfun(@(tp,ap)ap(2)+ap(4)*tp(2)+tp(4)*ap(4),facet_text_pos,axe_text_pos));
+                
+                %Cache rightmost and topmost text object handles for speed
+                if obj.first_redraw 
+                    if max_indx==max_indy
+                        obj.cached_max_facet_ind=max_indx;
+                    else
+                        obj.cached_max_facet_ind=[max_indx,max_indy];
+                    end
+                end
             else
                 max_facet_x_text=0;
                 max_facet_y_text=0;
@@ -747,7 +815,7 @@ classdef gramm < handle
             temp_available_y=obj.multi.orig(1)+obj.multi.size(1);
             %Place relative to title axis
             if ~isempty(obj.title_axe_handle)
-                title_text_pos=get(findobj(obj.title_axe_handle,'Type','text'),'Extent');
+                title_text_pos=get(obj.title_text_handle,'Extent');
                 title_pos=get(obj.title_axe_handle,'Position');
                 temp_available_y=title_pos(2)+title_pos(4)*title_text_pos(2);
                 %temp_available_y=tmp(2);
@@ -784,7 +852,7 @@ classdef gramm < handle
                 for r=1:nr
                     for c=1:nc
                         if ind<=length(obj.facet_axes_handles)
-                            axpos=get(obj.facet_axes_handles(ind),'Position');
+                            %axpos=get(obj.facet_axes_handles(ind),'Position');
                             set(obj.facet_axes_handles(ind),'Position',[min_facet_x+(neww+spacing_w)*(c-1) min_facet_y+(newh+spacing_h)*(nr-r) neww newh]);
                         end
                         ind=ind+1;
@@ -798,12 +866,65 @@ classdef gramm < handle
                 newh=max((max_available_y-min_facet_y-spacing_h*(nr-1))/nr,spacing_h);
                 for r=1:nr
                     for c=1:nc
-                        axpos=get(obj.facet_axes_handles(r,c),'Position');
+                        %axpos=get(obj.facet_axes_handles(r,c),'Position');
                         set(obj.facet_axes_handles(r,c),'Position',[min_facet_x+(neww+spacing_w)*(c-1) min_facet_y+(newh+spacing_h)*(nr-r) neww newh]);
                     end
                 end
             end
-                  
+            
+            %Resize legend y axis in order to get constant spacing between
+            %legend entries
+             L=length(obj.legend_text_handles);
+             if L>1
+                 legend_ylim=get(obj.legend_axe_handle,'YLim');
+    %              legend_text_pos=get(obj.legend_text_handles,'Extent');
+    %              legend_text_pos=vertcat(legend_text_pos{:});
+    %              legend_height=nanmean(legend_text_pos(:,4));
+    %              legend_spacing=nanmean(legend_text_pos(1:end-1,2)-(legend_text_pos(2:end,2)+legend_text_pos(2:end,4)));
+    %              legend_top=legend_text_pos(1,2)+legend_text_pos(1,4);
+    %              legend_bottom=legend_text_pos(end,2);
+    
+                 % We use the first and second legends to compute spacing,
+                 % first and last for top and bottom
+                 legend_text_pos=get(obj.legend_text_handles([1 end]),'Extent');
+                 legend_height=legend_text_pos{1}(4);
+                 %legend_spacing=legend_text_pos{1}(2)-(legend_text_pos{2}(2)+legend_text_pos{2}(4));
+                 legend_top=legend_text_pos{1}(2)+legend_text_pos{1}(4);
+                 legend_bottom=legend_text_pos{2}(2);
+
+                 %disp(['height: ' num2str(legend_height) ' spacing: ' num2str(legend_spacing) ])
+                 %Theoretical resizing
+                 %ratio=(legend_top-legend_bottom)/(legend_ylim(2)-legend_ylim(1));
+                 
+                 %Future text heught stays visually constant so scales inversely
+                 %relative to limits
+                 %height_in_mod=legend_height*ratio; 
+                 
+                 %Future spacing gets adjsuted according to relative text
+                 %size and number of text labels
+                 %spacing_in_mod=((legend_top-legend_bottom)-(height_in_mod*L))/(L-1);
+                 
+                 %disp(['mod height: ' num2str(height_in_mod) ' mod spacing: ' num2str(spacing_in_mod) ])
+                 %set(obj.legend_axe_handle,'YLim',[legend_bottom legend_top]);
+                 
+                 %Here we want future text height=future spacing so by
+                 %solving for ratio we get
+                 ratio=((legend_top-legend_bottom)/(L-1))/(legend_height+legend_height*L/(L-1));
+
+                 new_ylim=legend_ylim*ratio*1.4; %Correct the ratio to get text lines closer to each other
+                 
+                 %Center the limits relative to top and bottom
+                 new_ylim=new_ylim-(new_ylim(2)-legend_top)+(new_ylim(2)-legend_top+legend_bottom-new_ylim(1))/2;
+                 
+                 %Only adjust if it's not going tocut our legend.
+                 if new_ylim(1)<(-L+1) && new_ylim(2)>1
+                    set(obj.legend_axe_handle,'YLim',new_ylim);
+                 end
+             end
+
+            
+            obj.first_redraw=false;
+            %inCallback = [];
         end
         
         
@@ -824,7 +945,6 @@ classdef gramm < handle
             %Handle call of draw() on array of gramm objects by dividing the figure
             %up and launching the individual draw functions of each object
             if numel(obj)>1
-                
                 %Take care of the big title
                 if isempty(obj(1).bigtitle)
                     maxh=1;
@@ -858,7 +978,6 @@ classdef gramm < handle
                         set(gcf,'SizeChangedFcn',@(a,b)redraw(obj,0.04));
                     end
                 end
-                
                 return;
             end
             
@@ -866,6 +985,7 @@ classdef gramm < handle
             if isempty(obj.aes.x) 
                 return
             end
+            
             
             temp_aes=validate_aes(obj.aes);
             
@@ -1044,6 +1164,7 @@ classdef gramm < handle
             
 
             cmap=get_colormap(length(uni_color),length(uni_lightness),obj.color_options);
+            
             
             %Initialize results structure (n_groups is an overestimate if
             %there are redundant groups
@@ -1266,6 +1387,7 @@ classdef gramm < handle
                         end
                         
                         if ind_row==1
+                            obj.facet_text_handles=[obj.facet_text_handles ...
                             text('Interpreter','none','String',column_string,'Rotation',0,...
                                 'Units','normalized',...
                                 'Position',[0.5 1.05 2],...
@@ -1273,7 +1395,7 @@ classdef gramm < handle
                                 'HorizontalAlignment','Center',...
                                 'VerticalAlignment','bottom',...
                                 'FontWeight','bold',...
-                                'fontSize',12);
+                                'fontSize',12)];
                         end
                     end
                     if length(uni_row)>1
@@ -1284,6 +1406,7 @@ classdef gramm < handle
                         end
                         
                         if ind_column==length(uni_column)
+                            obj.facet_text_handles=[obj.facet_text_handles ...
                             text('Interpreter','none','String',row_string,'Rotation',-90,...
                                 'Units','normalized',...
                                 'Position',[1.05 0.5 2],...
@@ -1291,7 +1414,7 @@ classdef gramm < handle
                                 'HorizontalAlignment','Center',...
                                 'VerticalAlignment','bottom',...
                                 'FontWeight','bold',...
-                                'fontSize',12);
+                                'fontSize',12)];
                         end
                     end
                     
@@ -1310,9 +1433,9 @@ classdef gramm < handle
                     obj.multi.orig(1)+0.90*obj.multi.size(1) 0.8*obj.multi.size(2) 0.05*obj.multi.size(1)]);
                 
                 set(obj.title_axe_handle,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
-                tmp=text(0,0,obj.title,'FontWeight','bold','Interpreter','none','fontSize',14,'HorizontalAlignment','center');
+                obj.title_text_handle=text(0,0,obj.title,'FontWeight','bold','Interpreter','none','fontSize',14,'HorizontalAlignment','center');
                 if ~isempty(obj.title_options)
-                    set(tmp,obj.title_options{:});
+                    set(obj.title_axe_handle,obj.title_options{:});
                 end
             else
                 obj.title_axe_handle=[];
@@ -1329,6 +1452,7 @@ classdef gramm < handle
             
             ind_scale=0;
             ind_scale_step=1;
+            ind_scale_additional_step=0.5;
             
             if obj.with_legend
                 %Color legend
@@ -1336,82 +1460,114 @@ classdef gramm < handle
                     %Make a colormap with only the colors and no lightness
                     color_legend_map=get_colormap(length(uni_color),1,obj.color_options);
                     
-                    text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none','fontSize',12)
+                    obj.legend_text_handles=[obj.legend_text_handles...
+                        text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none','fontSize',12)];
                     ind_scale=ind_scale-ind_scale_step;
                     for ind_color=1:length(uni_color)
-                        plot([1 2],[ind_scale ind_scale],'-','Color',color_legend_map(ind_color,:),'lineWidth',2)
-                        text(2.5,ind_scale,num2str(uni_color{ind_color}),'Interpreter','none')
+                        plot([1 2],[ind_scale ind_scale],'-','Color',color_legend_map(ind_color,:),'lineWidth',3)
+                        %line(1.5,ind_scale,'lineStyle','none','Marker','s','MarkerSize',12,'MarkerFaceColor',color_legend_map(ind_color,:),'MarkerEdgeColor','none')
+                        %rectangle('Position',[1.25 ind_scale-0.25 0.5 0.5],'EdgeColor','none','FaceColor',color_legend_map(ind_color,:));
+                        obj.legend_text_handles=[obj.legend_text_handles...
+                            text(2.5,ind_scale,num2str(uni_color{ind_color}),'Interpreter','none')];
                         ind_scale=ind_scale-ind_scale_step;
                     end
                 end
                 
+                
                 %Lightness legend
                 if length(uni_lightness)>1
+                    ind_scale=ind_scale-ind_scale_additional_step;
                     
                     lightness_legend_map=pa_LCH2RGB([linspace(obj.color_options.lightness_range(1),obj.color_options.lightness_range(2),length(uni_lightness))' ...
                         zeros(length(uni_lightness),1)...
                         zeros(length(uni_lightness),1)]);
-                    
-                    text(1,ind_scale,obj.aes_names.lightness,'FontWeight','bold','Interpreter','none','fontSize',12)
+                    obj.legend_text_handles=[obj.legend_text_handles...
+                        text(1,ind_scale,obj.aes_names.lightness,'FontWeight','bold','Interpreter','none','fontSize',12)];
                     ind_scale=ind_scale-ind_scale_step;
                     for ind_lightness=1:length(uni_lightness)
-                        plot([1 2],[ind_scale ind_scale],'-','Color',lightness_legend_map(ind_lightness,:),'lineWidth',2)
-                        text(2.5,ind_scale,num2str(uni_lightness{ind_lightness}),'Interpreter','none')
+                        plot([1 2],[ind_scale ind_scale],'-','Color',lightness_legend_map(ind_lightness,:),'lineWidth',3)
+                        %line(1.5,ind_scale,'lineStyle','none','Marker','s','MarkerSize',12,'MarkerFaceColor',lightness_legend_map(ind_lightness,:),'MarkerEdgeColor','none')
+                        obj.legend_text_handles=[obj.legend_text_handles...
+                            text(2.5,ind_scale,num2str(uni_lightness{ind_lightness}),'Interpreter','none')];
                         ind_scale=ind_scale-ind_scale_step;
                     end
                 end
                 
                 %Continuous color legend
                 if obj.continuous_color
-                    text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none','fontSize',12)
-                    ind_scale=ind_scale-ind_scale_step;
+                    ind_scale=ind_scale-ind_scale_additional_step;
+                    
+                    obj.legend_text_handles=[obj.legend_text_handles...
+                        text(1,ind_scale,obj.aes_names.color,'FontWeight','bold','Interpreter','none','fontSize',12)];
+                    
+                    ind_scale=ind_scale-ind_scale_step; %HACK here, we have to multiply by 2 ??
                     
                     %                 image(ones(1,length(obj.continuous_color_colormap))+0.5,...
                     %                     linspace(ind_scale-2,ind_scale,length(obj.continuous_color_colormap)),...
                     %                     reshape(obj.continuous_color_colormap,length(obj.continuous_color_colormap),1,3));
                     
                     tmp_N=100;
-                    imagesc([1.3 1.7],[ind_scale-2 ind_scale],linspace(min(min(obj.plot_lim.minc)),max(max(obj.plot_lim.maxc)),tmp_N)')
+                    imagesc([1 1.5],[ind_scale-ind_scale_step*2 ind_scale],linspace(min(min(obj.plot_lim.minc)),max(max(obj.plot_lim.maxc)),tmp_N)')
+                    
+                    line([1.8 2.2 ; 1.8 2.2 ;1.8  2.2]',[ind_scale ind_scale;ind_scale-ind_scale_step ind_scale-ind_scale_step ;ind_scale-ind_scale_step*2 ind_scale-ind_scale_step*2 ]','Color','k')
                     
                     colormap(obj.continuous_color_colormap)
                     caxis([min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
                     
-                    text(2.5,ind_scale,num2str(max(max(obj.plot_lim.maxc))));
-                    text(2.5,ind_scale-2,num2str(min(min(obj.plot_lim.minc))));
+                    obj.legend_text_handles=[obj.legend_text_handles...
+                        text(2.5,ind_scale,num2str(max(max(obj.plot_lim.maxc))))];
+                    
+                    obj.legend_text_handles=[obj.legend_text_handles...
+                        text(2.5,ind_scale-ind_scale_step,num2str((max(max(obj.plot_lim.maxc))-min(min(obj.plot_lim.minc)))/2))];
+                    
+                    obj.legend_text_handles=[obj.legend_text_handles...
+                        text(2.5,ind_scale-ind_scale_step*2,num2str(min(min(obj.plot_lim.minc))))];
                     
                     ind_scale=ind_scale-ind_scale_step*3;
                 end
                 
                 %marker legend
                 if length(uni_marker)>1
-                    text(1,ind_scale,obj.aes_names.marker,'FontWeight','bold','Interpreter','none','fontSize',12)
+                    ind_scale=ind_scale-ind_scale_additional_step;
+                    
+                    obj.legend_text_handles=[obj.legend_text_handles...
+                        text(1,ind_scale,obj.aes_names.marker,'FontWeight','bold','Interpreter','none','fontSize',12)];
                     ind_scale=ind_scale-ind_scale_step;
                     for ind_marker=1:length(uni_marker)
                         plot(1.5,ind_scale,markers{ind_marker},'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0])
-                        text(2.5,ind_scale,num2str(uni_marker{ind_marker}),'Interpreter','none')
+                        obj.legend_text_handles=[obj.legend_text_handles...
+                            text(2.5,ind_scale,num2str(uni_marker{ind_marker}),'Interpreter','none')];
                         ind_scale=ind_scale-ind_scale_step;
                     end
                 end
                 
                 %linestyle legend
                 if length(uni_linestyle)>1
-                    text(1,ind_scale,obj.aes_names.linestyle,'FontWeight','bold','Interpreter','none','fontSize',12)
+                    ind_scale=ind_scale-ind_scale_additional_step;
+                    
+                    obj.legend_text_handles=[obj.legend_text_handles...
+                        text(1,ind_scale,obj.aes_names.linestyle,'FontWeight','bold','Interpreter','none','fontSize',12)];
                     ind_scale=ind_scale-ind_scale_step;
                     for ind_linestyle=1:length(uni_linestyle)
                         plot([1 2],[ind_scale ind_scale],line_styles{ind_linestyle},'Color',[0 0 0])
-                        text(2.5,ind_scale,num2str(uni_linestyle{ind_linestyle}),'Interpreter','none')
+                        obj.legend_text_handles=[obj.legend_text_handles...
+                            text(2.5,ind_scale,num2str(uni_linestyle{ind_linestyle}),'Interpreter','none')];
                         ind_scale=ind_scale-ind_scale_step;
                     end
                 end
                 
                 %Size legend
                 if length(uni_size)>1
-                    text(1,ind_scale,obj.aes_names.size,'FontWeight','bold','Interpreter','none','fontSize',12)
+                    ind_scale=ind_scale-ind_scale_additional_step;
+                    
+                    obj.legend_text_handles=[obj.legend_text_handles...
+                        text(1,ind_scale,obj.aes_names.size,'FontWeight','bold','Interpreter','none','fontSize',12)];
                     ind_scale=ind_scale-ind_scale_step;
                     for ind_size=1:length(uni_size)
                         plot([1 2],[ind_scale ind_scale],'lineWidth',sizes(ind_size)/4,'Color',[0 0 0])
                         plot(1.5,ind_scale,'o','markerSize',sizes(ind_size),'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0])
-                        text(2.5,ind_scale,num2str(uni_size{ind_size}),'Interpreter','none')
+                        obj.legend_text_handles=[obj.legend_text_handles...
+                            text(2.5,ind_scale,num2str(uni_size{ind_size}),'Interpreter','none')];
                         ind_scale=ind_scale-ind_scale_step;
                     end
                 end
@@ -1433,19 +1589,20 @@ classdef gramm < handle
                     
                     %Set current axes
                     ca = obj.facet_axes_handles(ind_row,ind_column);
-                    axes(ca);
+                    %axes(ca);
                     
                     
                     %Do the datetick
                     if ~isempty(obj.datetick_params)
                         for dtk=1:length(obj.datetick_params)
-                            datetick(obj.datetick_params{dtk}{:});
+                            datetick(ca,obj.datetick_params{dtk}{:});
                         end
                     end
                     
                     if obj.continuous_color
                         %Set color limits the same way on each plot
-                        caxis([min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
+                        %caxis([min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
+                        set(ca,'CLimMode','manual','CLim',[min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
                     end
                     
                     
@@ -1571,7 +1728,8 @@ classdef gramm < handle
                             case 'per_plot'
                                 temp_xlim=[obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)];
                         end
-                        xlim(temp_xlim+[-diff(temp_xlim)*obj.xlim_extra*0.5 diff(temp_xlim)*obj.xlim_extra*0.5]);
+                        set(ca,'XLim',temp_xlim+[-diff(temp_xlim)*obj.xlim_extra*0.5 diff(temp_xlim)*obj.xlim_extra*0.5]);
+                        %xlim(temp_xlim+[-diff(temp_xlim)*obj.xlim_extra*0.5 diff(temp_xlim)*obj.xlim_extra*0.5]);
                         
                         switch temp_yscale
                             case 'global'
@@ -1581,7 +1739,8 @@ classdef gramm < handle
                             case 'per_plot'
                                 temp_ylim=[obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)];
                         end
-                         ylim(temp_ylim+[-diff(temp_ylim)*obj.ylim_extra*0.5 diff(temp_ylim)*obj.ylim_extra*0.5]);
+                        set(ca,'YLim',temp_ylim+[-diff(temp_ylim)*obj.ylim_extra*0.5 diff(temp_ylim)*obj.ylim_extra*0.5]);
+                         %ylim(temp_ylim+[-diff(temp_ylim)*obj.ylim_extra*0.5 diff(temp_ylim)*obj.ylim_extra*0.5]);
                          
                          if ~isempty(temp_aes.z) %Only do the Z limit stuff if we have z data
                              
@@ -1591,7 +1750,8 @@ classdef gramm < handle
                                  case 'per_plot'
                                      temp_zlim=[obj.plot_lim.minz(ind_row,ind_column) obj.plot_lim.maxz(ind_row,ind_column)];
                              end
-                             zlim(temp_zlim+[-diff(temp_zlim)*obj.zlim_extra*0.5 diff(temp_zlim)*obj.zlim_extra*0.5]);
+                             set(ca,'ZLim',temp_zlim+[-diff(temp_zlim)*obj.zlim_extra*0.5 diff(temp_zlim)*obj.zlim_extra*0.5]);
+                             %zlim(temp_zlim+[-diff(temp_zlim)*obj.zlim_extra*0.5 diff(temp_zlim)*obj.zlim_extra*0.5]);
                              
                              %Always have ticks if we have z data
                              has_xtick=true;
@@ -1623,12 +1783,12 @@ classdef gramm < handle
                         %Set appropriate x ticks if labeled
                         if obj.x_factor
                             temp_xlim=get(ca,'xlim');
-                            xlim([temp_xlim(1)-1 temp_xlim(2)+1])
+                            set(ca,'XLim',[temp_xlim(1)-0.6 temp_xlim(2)+0.6]);
                             set(ca,'XTick',1:length(obj.x_ticks))
                             if has_xtick
                                 set(ca,'XTickLabel',obj.x_ticks)
-                                try
-                                    set(ca,'TickLabelInterpreter','none')%Just try it (doesn't exist in pre-2014b)
+                                if isprop(ca,'TickLabelInterpreter') %Just try it (doesn't exist in pre-2014b)
+                                    set(ca,'TickLabelInterpreter','none')
                                 end
                                 %set(ca,'XTickLabelRotation',30)
                             end
@@ -1636,15 +1796,15 @@ classdef gramm < handle
                         
                         %Add axes labels on right and botttom graphs only
                         if ind_column==1 || (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)==1) || ~isempty(temp_aes.z)
-                            ylabel(obj.aes_names.y,'Interpreter','none'); %,'Units','normalized','position',[-0.2 0.5 1]
+                            ylabel(ca,obj.aes_names.y,'Interpreter','none'); %,'Units','normalized','position',[-0.2 0.5 1]
                         end
                         if (ind_row==length(uni_row) && obj.wrap_ncols<=0) || (obj.wrap_ncols>0 && (length(uni_column)-ind_column)<obj.wrap_ncols) || ~isempty(temp_aes.z)
-                            xlabel(obj.aes_names.x,'Interpreter','none')
+                            xlabel(ca,obj.aes_names.x,'Interpreter','none')
                         end
                         %If we have z data
                         if ~isempty(temp_aes.z)
-                            zlabel(obj.aes_names.z,'Interpreter','none') %Ass z label
-                            view(3); %Reset the view so that it is a 3D view
+                            zlabel(ca,obj.aes_names.z,'Interpreter','none') %Ass z label
+                            view(ca,3); %Reset the view so that it is a 3D view
                             if ind_row==1 && ind_column==1
                                 %Link the camera properties between the
                                 %facets so that they all rotate together
@@ -1658,12 +1818,12 @@ classdef gramm < handle
                         %Make polar axes
                         if obj.polar.max_polar_y<0
                             if strcmp(obj.facet_scale,'fixed')
-                                draw_polar_axes(max(max(obj.plot_lim.maxy(:,:))));
+                                draw_polar_axes(ca,max(max(obj.plot_lim.maxy(:,:))));
                             else
-                                draw_polar_axes(obj.plot_lim.maxy(ind_row,ind_column));
+                                draw_polar_axes(ca,obj.plot_lim.maxy(ind_row,ind_column));
                             end
                         else
-                            draw_polar_axes(obj.polar.max_polar_y)
+                            draw_polar_axes(ca,obj.polar.max_polar_y)
                         end
                     end
                     
@@ -1682,19 +1842,19 @@ classdef gramm < handle
                         for line_ind=1:length(obj.abline.intercept)
                             if ~isnan(obj.abline.intercept(line_ind))
                                 %abline
-                                plot(xl,xl*obj.abline.slope(line_ind)+obj.abline.intercept(line_ind),obj.abline.style{line_ind});
+                                plot(xl,xl*obj.abline.slope(line_ind)+obj.abline.intercept(line_ind),obj.abline.style{line_ind},'Parent',ca);
                             else
                                 if ~isnan(obj.abline.xintercept(line_ind))
                                     %vline
                                      yl=get(ca,'ylim');
-                                     plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,obj.abline.style{line_ind});
+                                     plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,obj.abline.style{line_ind},'Parent',ca);
                                 else
                                     if ~isnan(obj.abline.yintercept(line_ind))
                                         %hline
-                                        plot(xl,[obj.abline.yintercept(line_ind) obj.abline.yintercept(line_ind)],obj.abline.style{line_ind});
+                                        plot(xl,[obj.abline.yintercept(line_ind) obj.abline.yintercept(line_ind)],obj.abline.style{line_ind},'Parent',ca);
                                     else
                                         temp_x=linspace(xl(1),xl(2),100);
-                                        plot(temp_x,obj.abline.fun{line_ind}(temp_x),obj.abline.style{line_ind});
+                                        plot(temp_x,obj.abline.fun{line_ind}(temp_x),obj.abline.style{line_ind},'Parent',ca);
                                     end
                                 end
                             end
@@ -1743,6 +1903,8 @@ classdef gramm < handle
             if verLessThan('matlab','8.4')
                 set(gcf,'Renderer','Painters')
             end
+            
+            
         end
         
 %% geom public methods
@@ -2271,11 +2433,11 @@ classdef gramm < handle
                 if iscell(draw_data.x)
                     [x,y]=obj.to_polar(draw_data.x,draw_data.y);
                     if iscell(draw_data.continuous_color)
-                        for k=1:length(x)
-                            hndl=scatter(comb(x),comb(y),draw_data.size,comb(draw_data.continuous_color),draw_data.marker,'MarkerFaceColor','flat','MarkerEdgeColor','none');
-                        end
+                        hndl=scatter(comb(x),comb(y),draw_data.size*6,comb(draw_data.continuous_color),draw_data.marker,'MarkerFaceColor','flat','MarkerEdgeColor','none');
                     else
-                        hndl=scatter(x{k},y{k},draw_data.size,repmat(draw_data.continuous_color(k),length(x{k}),1),draw_data.marker,'MarkerFaceColor','flat','MarkerEdgeColor','none');
+                        for k=1:length(x)
+                            hndl=scatter(x{k},y{k},draw_data.size*6,repmat(draw_data.continuous_color(k),length(x{k}),1),draw_data.marker,'MarkerFaceColor','flat','MarkerEdgeColor','none');
+                        end
                     end
                 else
                     [x,y]=obj.to_polar(comb(draw_data.x),comb(draw_data.y));
@@ -2288,9 +2450,9 @@ classdef gramm < handle
             else
                 if isempty(draw_data.z)
                     [x,y]=obj.to_polar(comb(draw_data.x),comb(draw_data.y));
-                    hndl=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+                    hndl=line(x,y,'LineStyle','none','Marker',draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
                 else
-                    hndl=plot3(draw_data.x,draw_data.y,draw_data.z,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+                    hndl=line(comb(draw_data.x),comb(draw_data.y),comb(draw_data.z),'LineStyle','none','Marker',draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
                 end
             end
             
@@ -2311,37 +2473,44 @@ classdef gramm < handle
                         %p=patch(draw_data.x{k},draw_data.y{k},draw_data.continuous_color,'faceColor','none','EdgeColor','interp','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
                         if iscell(draw_data.continuous_color)
                             %p=patch([obj.var_lim.minx-obj.var_lim.maxx ; x{k} ; obj.var_lim.maxx*2],[obj.var_lim.miny-10 ;y{k} ; obj.var_lim.miny-10],[draw_data.continuous_color{k}(1) ; draw_data.continuous_color{k} ; draw_data.continuous_color{k}(end)],'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
-                           p=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],[shiftdim(y{k}) ; flipud(shiftdim(y{k}))],[shiftdim(draw_data.continuous_color{k}) ; flipud(shiftdim(draw_data.continuous_color{k}))],'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
+                           hndl=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],[shiftdim(y{k}) ; flipud(shiftdim(y{k}))],[shiftdim(draw_data.continuous_color{k}) ; flipud(shiftdim(draw_data.continuous_color{k}))],'faceColor','none','EdgeColor','interp','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
                         else
                            %p=patch([obj.var_lim.minx-obj.var_lim.maxx ; x{k} ; obj.var_lim.maxx*2],[obj.var_lim.miny-10 ;y{k} ; obj.var_lim.miny-10],repmat(draw_data.continuous_color(k),length(x{k})+2,1),'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
-                           p=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],[shiftdim(y{k}) ; flipud(shiftdim(y{k}))],repmat(draw_data.continuous_color(k),length(x{k})*2,1),'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
+                           hndl=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],[shiftdim(y{k}) ; flipud(shiftdim(y{k}))],repmat(draw_data.continuous_color(k),length(x{k})*2,1),'faceColor','none','EdgeColor','interp','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
                         end
                     end
                 else
                     %p=patch([draw_data.x;flipud(draw_data.x)],[draw_data.y;flipud(draw_data.y)],[draw_data.continuous_color;flipud(draw_data.continuous_color)],'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
                     %p=patch([obj.var_lim.minx-obj.var_lim.maxx ; x ; obj.var_lim.maxx*2],[obj.var_lim.miny-10 ; y ; obj.var_lim.miny-10],[draw_data.continuous_color(1) ; draw_data.continuous_color ; draw_data.continuous_color(end)],'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
-                    p=patch([shiftdim(x) ; flipud(shiftdim(x))],[shiftdim(y) ; flipud(shiftdim(y))],[shiftdim(draw_data.continuous_color) ; flipud(shiftdim(draw_data.continuous_color))],'faceColor','none','EdgeColor','flat','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
+                    hndl=patch([shiftdim(x) ; flipud(shiftdim(x))],[shiftdim(y) ; flipud(shiftdim(y))],[shiftdim(draw_data.continuous_color) ; flipud(shiftdim(draw_data.continuous_color))],'faceColor','none','EdgeColor','interp','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
                 end
                 
                 
             else
-                if iscell(x)
-                    if isempty(draw_data.z)
-                        for k=1:length(draw_data.x)
-                            hndl=plot(x{k},y{k},'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
-                        end
-                    else
-                        for k=1:length(draw_data.x)
-                            hndl=plot3(draw_data.x{k},draw_data.y{k},draw_data.z{k},'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
-                        end
-                    end
+                
+                if isempty(draw_data.z)
+                    hndl=line(combnan(x),combnan(y),'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
                 else
-                    if isempty(draw_data.z)
-                        hndl=plot(x,y,'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
-                    else
-                        hndl=plot3(draw_data.x,draw_data.y,draw_data.z,'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
-                    end
+                    hndl=line(combnan(x),combnan(y),combnan(z),'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
                 end
+%                 if iscell(x)
+%                     if isempty(draw_data.z)
+%                           for k=1:length(draw_data.x)
+%                               hndl=line(x{k},y{k},'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+%                           end
+%                         hndl=line(combnan(x),combnan(y),'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+%                     else
+%                         for k=1:length(draw_data.x)
+%                             hndl=line(draw_data.x{k},draw_data.y{k},draw_data.z{k},'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+%                         end
+%                     end
+%                 else
+%                     if isempty(draw_data.z)
+%                         hndl=line(x,y,'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+%                     else
+%                         hndl=line(draw_data.x,draw_data.y,draw_data.z,'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+%                     end
+%                 end
             end
             
         end
@@ -2368,7 +2537,7 @@ classdef gramm < handle
             end
             
             %hndl=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
-            hndl=my_point(obj,draw_data)
+            hndl=my_point(obj,draw_data);
         end
         
         function hndl=my_count(obj,draw_data,params)
@@ -2452,7 +2621,7 @@ classdef gramm < handle
             if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/matrix
                 
                 %Duplicate the draw data
-                new_draw_data=draw_data;
+                %new_draw_data=draw_data;
                 
                 tempx=zeros(length(draw_data.y),params.npoints);
                 tempy=zeros(length(draw_data.y),params.npoints);
@@ -2807,7 +2976,7 @@ classdef gramm < handle
                 ang=0:pi/(0.5*res):2*pi;
                 elpoints=[cos(ang); sin(ang)];
                 [x,y,z]=sphere(10);
-                sphpoints=surf2patch(x,y,z)
+                sphpoints=surf2patch(x,y,z);
             end
             
             combx=shiftdim(comb(draw_data.x));
@@ -3047,6 +3216,8 @@ classdef gramm < handle
             if obj.x_factor %For categorical Xs (placed at integer values), we override and make the bins 0.5 1.5 2.5 ...
                 binranges=(0:length(obj.x_ticks))+0.5;
                 bincenters=1:length(obj.x_ticks);
+                %obj.plot_lim.minx(obj.current_row,obj.current_column)=0.5;
+                %obj.plot_lim.maxx(obj.current_row,obj.current_column)=length(obj.x_ticks)+0.5;
             else
                 if obj.polar.is_polar %For polar coordinates we make bin around 0:2pi
                     %Make data modulo 2pi
@@ -3590,6 +3761,27 @@ end
 function res=comb(dat)
 %Combines data in single array if originally in cells
 if iscell(dat)
+    if size(dat{1},1)==1
+        res=horzcat(dat{:});
+    else
+        res=vertcat(dat{:})';
+    end
+else
+    res=dat;
+end
+end
+
+function res=combnan(dat)
+%Combines data in single array with NaNs separating original arrays if originally in cells
+if iscell(dat) 
+    if ~iscellstr(dat)
+        if size(dat{1},1)==1
+            dat=cellfun(@(c)[c NaN],dat,'uniformOutput',false);
+        else
+            dat=cellfun(@(c)[c;NaN],dat,'uniformOutput',false);
+        end
+    end
+    
     if size(dat{1},1)==1
         res=horzcat(dat{:});
     else

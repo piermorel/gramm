@@ -1,12 +1,12 @@
-function hpol = draw_polar_axes(maxrho)
+function hpol = draw_polar_axes(cax,maxrho)
     %Modified version of Matlab's internal polar axis creation function
     %that draws the polar axes at the back of an existing figure
     
     % get hold state
-    cax = newplot;
+    %cax = newplot;
     
     next = lower(get(cax, 'NextPlot'));
-    hold_state = ishold(cax);
+    %hold_state = ishold(cax);
     
     % get x-axis text color so grid is in same color
     if graphicsversion(cax, 'handlegraphics')

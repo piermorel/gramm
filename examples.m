@@ -25,13 +25,13 @@ x(twoaltb==1)=x(twoaltb==1)-90;
 %% Example use
 
 figure
-g1=gramm('x',x,'y',y,'color',fouraltc,'linestyle',twoaltcb)
-g1.facet_grid(twoaltc,twoaltcb,'scale','fixed')
-g1.geom_point()
-g1.stat_smooth('lambda',1000,'geom','area')
+g1=gramm('x',x,'y',y,'color',fouraltc,'linestyle',twoaltcb);
+g1.facet_grid(twoaltc,twoaltcb,'scale','fixed');
+g1.geom_point();
+g1.stat_smooth('lambda',1000,'geom','area');
 %It's possible to set native axis properties
-g1.axe_property('XGrid','on','YGrid','on')
-g1.draw()
+g1.axe_property('XGrid','on','YGrid','on');
+g1.draw();
 
 
 
@@ -43,28 +43,28 @@ g1.draw()
 
 clear g2
 
-g2(1,1)=gramm('x',x,'y',y,'color',fouraltc)
-g2(1,1).facet_grid(twoaltc,twoaltcb) %,'scales','independent'
-g2(1,1).stat_smooth('lambda',1000,'geom','area')
-g2(1,1).geom_point()
+g2(1,1)=gramm('x',x,'y',y,'color',fouraltc);
+g2(1,1).facet_grid(twoaltc,twoaltcb); %,'scales','independent'
+g2(1,1).stat_smooth('lambda',1000,'geom','area');
+g2(1,1).geom_point();
 
 %Also works with categorical data
-g2(1,2)=gramm('x',y,'y',x,'color',categorical(twoaltc))
-g2(1,2).geom_point()
+g2(1,2)=gramm('x',y,'y',x,'color',categorical(twoaltc));
+g2(1,2).geom_point();
  
 % X data can be a cellstr, data will be treated as being categorical
-g2(2,1)=gramm('x',fouraltc,'y',y,'color',twoaltcb,'size',4)
-g2(2,1).facet_grid(twoaltc,[],'scale','fixed')
-g2(2,1).geom_jitter('width',0.2,'height',0) %We can jitter the points in the scatter plot to make the density more apparent
+g2(2,1)=gramm('x',fouraltc,'y',y,'color',twoaltcb,'size',4);
+g2(2,1).facet_grid(twoaltc,[],'scale','fixed');
+g2(2,1).geom_jitter('width',0.2,'height',0); %We can jitter the points in the scatter plot to make the density more apparent
 
-g2(2,2)=gramm('x',y,'color',twoaltc)
-g2(2,2).no_legend() %It's possible to drop the side legends (useful when the grouping is the same across multiple objects)
-g2(2,2).stat_bin('geom','bar') %Using stat_bin we can create histograms
-g2(2,2).set_limit_extra(0.1,0)
+g2(2,2)=gramm('x',y,'color',twoaltc);
+g2(2,2).no_legend(); %It's possible to drop the side legends (useful when the grouping is the same across multiple objects)
+g2(2,2).stat_bin('geom','bar'); %Using stat_bin we can create histograms
+g2(2,2).set_limit_extra(0.1,0);
 
 %And call the draw function on the whole array !
 figure
-g2.draw()
+g2.draw();
 
 
 
@@ -293,9 +293,11 @@ g7.draw()
 load carbig.mat %Load example dataset about cars
 origin_region=num2cell(org,2); %Convert origin data to a cellstr
 
+
+%figure('Position',[100 100 600 400])
 % Create a gramm object, provide x (year of production) and y (fuel economy) data,
 % color grouping data (number of cylinders) and select a subset of the data
-g=gramm('x',Model_Year,'y',MPG,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g=gramm('x',Model_Year,'y',MPG,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5) %& ~strcmp(origin_region,'Europe ')
 % Subdivide the data in subplots horizontally by region of origin
 g.facet_grid([],origin_region)
 % Plot raw data as points
@@ -304,8 +306,8 @@ g.geom_point()
 g.stat_glm()
 % Set appropriate names for legends
 g.set_names('column','Origin','x','Year of production','y','Fuel economy (MPG)','color','# Cylinders')
-%Set title
-g.set_title('Evolution of fuel economy between 1970 and 1982')
+%Set figure title
+g.set_title('Fuel economy of new cars between 1970 and 1982')
 % Do the actual drawing
 g.draw()
 
@@ -434,19 +436,19 @@ load carbig.mat %Load example dataset about cars
 figure
 
 
-g10=gramm('x',Horsepower,'y',Acceleration,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
-g10.set_names('color','# Cylinders','x','Horsepower','y','Acceleration')
-g10.stat_glm('geom','area','disp_fit',true) %Linear fit (default for stat_glm
-g10.geom_point()
-g10.draw(false) %To superimpose over a gramm plot, call draw with false as an argument
-
 %We add another gramm plot (without color) to have a fit across all
 %cylinders. Superimposition only works with gramm plots that have similar
 %faceting
 g10b=gramm('x',Horsepower,'y',Acceleration,'subset',Cylinders~=3 & Cylinders~=5)
-g10b.stat_glm('geom','line','disp_fit',false)
+g10b.stat_glm('geom','area','disp_fit',false)
 g10b.set_color_options('chroma',0,'lightness',30)
-g10b.draw()
+g10b.draw(false)
+g10=gramm('x',Horsepower,'y',Acceleration,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g10.set_names('color','# Cylinders','x','Horsepower','y','Acceleration')
+%g10.stat_glm('geom','area','disp_fit',true) %Linear fit (default for stat_glm
+g10.geom_point()
+g10.draw()
+
 
 
 %% Colormap customization
@@ -460,21 +462,21 @@ Origin=cellfun(@(c)strrep(c,' ',''),num2cell(Origin,2),'UniformOutput',false);
 %Default: LCH-based colormap with hue variation
 g(1,1)=gramm('x',Origin,'y',Horsepower,'color',Origin)
 g(1,1).stat_summary('geom',{'bar'},'dodge',-1)
-g(1,1).set_title('Default LCH colormap (''color'' grouping)')
+g(1,1).set_title('Default LCH colormap (''color'' groups)')
 
 %Possibility to change the hue range as well as lightness and chroma of
 %the LCH-based colormap
 g(1,2)=gramm('x',Origin,'y',Horsepower,'color',Origin)
 g(1,2).stat_summary('geom',{'bar'},'dodge',-1)
 g(1,2).set_color_options('hue_range',[-60 60],'chroma',40,'lightness',90)
-g(1,2).set_title('Modified LCH colormap (''color'' grouping)')
+g(1,2).set_title('Modified LCH colormap (''color'' groups)')
 
 %Possibility to change the lightness and chroma range of the LCH-based
 %colormap when a 'lightness' variable is given
 g(1,3)=gramm('x',Origin,'y',Horsepower,'lightness',Origin)
 g(1,3).stat_summary('geom',{'bar'},'dodge',-1)
 g(1,3).set_color_options('lightness_range',[0 95],'chroma_range',[0 0])
-g(1,3).set_title('Modified LCH colormap (''lightness'' grouping)')
+g(1,3).set_title('Modified LCH colormap (''lightness'' groups)')
 
 %Go back to Matlab's defauls colormap
 g(2,1)=gramm('x',Origin,'y',Horsepower,'color',Origin)
@@ -496,7 +498,7 @@ g(2,3).set_title('brewer2 colormap')
 
 %Some methods can be called on all objects at the same time !
 g.axe_property('YLim',[0 140])
-%g.axe_property('XTickLabelRotation',60) %Should work for recent Matlab
+g.axe_property('XTickLabelRotation',60) %Should work for recent Matlab
 %versions
 g.set_names('x','Origin','y','Horsepower','color','Origin','lightness','Origin')
 g.set_title('Colormap customizations examples')
@@ -575,7 +577,7 @@ figure
 %Here we create x as a 1xN array (see example above), and use a MxN matrix
 %for y. Color applies to the M rows of y.
 g18=gramm('x',900:2:1700,'y',NIR,'color',octane);
-g18.set_names('x','Wavelength (nm)','y','NIR','color','octane')
+g18.set_names('x','Wavelength (nm)','y','NIR','color','Octane')
 g18.set_continuous_color('colormap','hot')
 g18.geom_line;
 g18.draw;
@@ -651,7 +653,6 @@ g(1,1).set_title('Default (LM fit)')
 %The measurements are now binomial (follows a logit curve centered on 5)
 y=random('binomial',1,1./(1+exp(5-x)))
 
-figure
 g(1,2)=gramm('x',x,'y',y)
 %We plot jittered points to get a better idea of the distribution
 %g.geom_jitter('width',0.2,'height',0.1)
@@ -685,7 +686,7 @@ clear g
 g=gramm('x',x,'y',y,'color',cat)
 g.geom_point()
 g.stat_fit('fun',fun,'disp_fit',true) %We provide the function for the fit
-g.set_title('stat_fit() with user-provided function')
+g.set_title({'stat_fit() with user-provided function:' '@(alpha,beta,gamma,x)alpha*exp(cos(x-beta)*gamma)'})
 g.draw()
 
 %% Changing the order of elements with set_order_options()

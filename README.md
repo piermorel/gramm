@@ -12,8 +12,9 @@ The typical workflow to generate a figure with gramm is the following:
 - In the next steps, add graphical layers to your figure: raw data layers (directly plot data as points, lines...) or statistical layers (plot fits, histograms, densities, summaries with confidence intervals...). One instruction is enough to add each layer, and all layers offer many customization options.
 - In the last step, gramm draws the figure, and takes care of all the annoying parts: no need to loop over colors or subplots, colors and legends are generated automatically, axes limits are taken care of, etc.
 
-For example, with gramm, 6 lines of code are enough to create the figure below from the <code>carbig</code> dataset. Here the figure represents the evolution of fuel economy of new cars in time, with number of cylinders indicated by color, and regions of origin separated across subplot columns:
-<img src="/img/carbig_example.png" alt="gramm example" width="830">
+For example, with gramm, 7 lines of code are enough to create the figure below from the <code>carbig</code> dataset. Here the figure represents the evolution of fuel economy of new cars in time, with number of cylinders indicated by color, and regions of origin separated across subplot columns:
+<img src="/img/carbig_example.png" alt="gramm example" width="880">
+
 ```matlab
 load carbig.mat %Load example dataset about cars
 origin_region=num2cell(org,2); %Convert origin data to a cellstr
@@ -29,6 +30,8 @@ g.geom_point()
 g.stat_glm()
 % Set appropriate names for legends
 g.set_names('column','Origin','x','Year of production','y','Fuel economy (MPG)','color','# Cylinders')
+%Set figure title
+g.set_title('Fuel economy of new cars between 1970 and 1982')
 % Do the actual drawing
 g.draw()
 ```
@@ -44,7 +47,7 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 
 
 ## Features
-- Accepts x and y data as arrays, matrices or cells of arrays
+- Accepts X Y and Z data as arrays, matrices or cells of arrays
 - Accepts grouping data as arrays or cellstr.
 
 
@@ -70,6 +73,7 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
   - Custom fits with user-provided anonymous function (<code>stat_fit()</code>)
   - Ellipses of confidence (<code>stat_ellipse()</code>)
 
+- When Z data is provided in the call to <code>gramm()</code>, <code>geom_point()</code> and <code>geom_line()</code> generate 3D plots
 - Subplots are created without too much empty space in between (and resize properly !)
 - Polar coordinates (<code>set_polar()</code>)
 - Color data can also be displayed as a continous variable, not as a grouping factor (<code>set_continuous_color()</code>)
@@ -77,7 +81,7 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 - Possibility to change ordering of grouping variables between native, sorted, or custom (<code>set_order_options</code>)
 - Confidence intervals as shaded areas, error bars or thin lines
 - Results of computations from <code>stat_</code> plots are returned in the member structure <code>results</code>
-- Global title (<code>set_title()</code>)
+- Figure title (<code>set_title()</code>)
 - Multiple gramm plots can be combined in the same figure by creating a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix. An overarching title can be added by calling <code>set_title()</code> on the whole matrix.
 - Matlabs axes properties are acessible through the method <code>axe_property()</code>
 - Custom legend labels with <code>set_names()</code>
@@ -87,41 +91,43 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 
 ## Examples
 
+The code for the following figures and numerous others is in <code>examples.m</code>.
 
 ### Custom fits ###
 <code>stat_fit()</code>
 
-<img src="/img/fit_example.png" alt="Custom fits" width="558">
+<img src="/img/fit_example.png" alt="Custom fits" width="561">
 
 ### GLM fits (carbig data) ###
 <code>stat_glm()</code>
+Note that the fit is made across color groups. this is done by superimposing gramm plots.
 
-<img src="/img/carbig_glm_example.png" alt="GLM fits" width="559">
+<img src="/img/carbig_glm_example.png" alt="GLM fits" width="560">
 
 ### Multiple gramm objects in a single figure 
 Also shows histograms, categorical x values
 
-<img src="/img/multiple_gramm_example.png" alt="Multiple gramm" width="800">
+<img src="/img/multiple_gramm_example.png" alt="Multiple gramm" width="692">
 
 ### Histograms ###
 <code>stat_bin()</code> with different <code>'geom'</code> options: <code>'bar'</code>, <code>'stacked_bar'</code>,<code>'point'</code>,<code>'line'</code>, <code>'overlaid_bar'</code>,<code>'stairs'</code>
 
-<img src="/img/histograms_example.png" alt="Histograms example" width="733">
+<img src="/img/histograms_example.png" alt="Histograms example" width="933">
 
 ### Colormap customization ###
 <code>set_color_options()</code> with <code>'map'</code> set as <code>'lch'</code> with various customization on the first row. <code>'map'</code> set to <code>matlab</code>,
  <code>brewer1</code>, and <code>brewer2</code> on the second line
 
-<img src="/img/colormaps_example.png" alt="Colormaps example" width="788">
+<img src="/img/colormaps_example.png" alt="Colormaps example" width="944">
 
 ### 2D density visualizations ###
 <code>stat_ellipse()</code> and <code>stat_bin2d()</code> with <code>'geom'</code> set to <code>'contour'</code>,<code>'point'</code>,<code>'image'</code>
 
-<img src="/img/2D_densities_example.png" alt="2D density" width="653">
+<img src="/img/2D_densities_example.png" alt="2D density" width="649">
 
 ### Continuous colors
 
-<img src="/img/continuous_color_example.png" alt="Continuous colors" width="556">
+<img src="/img/continuous_color_example.png" alt="Continuous colors" width="558">
 
 ## Acknowledgements
 gramm was inspired and/or used code from:
