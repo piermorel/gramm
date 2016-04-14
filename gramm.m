@@ -1435,7 +1435,7 @@ classdef gramm < handle
                 set(obj.title_axe_handle,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
                 obj.title_text_handle=text(0,0,obj.title,'FontWeight','bold','Interpreter','none','fontSize',14,'HorizontalAlignment','center');
                 if ~isempty(obj.title_options)
-                    set(obj.title_axe_handle,obj.title_options{:});
+                    set(obj.title_text_handle,obj.title_options{:});
                 end
             else
                 obj.title_axe_handle=[];
@@ -2029,7 +2029,7 @@ classdef gramm < handle
             %
             % Option 'geom': 'line' or 'point'
             p=inputParser;
-            my_addParameter(p,'geom','point');
+            my_addParameter(p,'geom','line');
             parse(p,varargin{:});
             
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_raster(dd,p.Results)});
@@ -2145,7 +2145,8 @@ classdef gramm < handle
             p=inputParser;
             my_addParameter(p,'type','ci'); %'95percentile'
             my_addParameter(p,'geom','area');
-            my_addParameter(p,'dodge',-1);
+            my_addParameter(p,'dodge',[]);
+            my_addParameter(p,'width',[]);
             my_addParameter(p,'setylim',false);
             my_addParameter(p,'interp','none');
             my_addParameter(p,'interp_in',-1);
@@ -2173,8 +2174,8 @@ classdef gramm < handle
             %   touching.
             
             p=inputParser;
-            my_addParameter(p,'spacing',0.2);
-            my_addParameter(p,'dodge',0.1);
+            my_addParameter(p,'width',0.6);
+            my_addParameter(p,'dodge',0.7);
             parse(p,varargin{:});
             
             obj.geom=vertcat(obj.geom,{@(dd)obj.my_boxplot(dd,p.Results)});
@@ -2293,30 +2294,14 @@ classdef gramm < handle
             my_addParameter(p,'geom','bar'); %line, bar, overlaid_bar, stacked_bar,stairs, point
             my_addParameter(p,'normalization','count');
             my_addParameter(p,'fill',[]); %edge,face,all,transparent
-            my_addParameter(p,'bar_spacing',[]);
+            my_addParameter(p,'width',[]);
+            my_addParameter(p,'dodge',[]);
             parse(p,varargin{:});
 
-            temp=p.Results;
+
             
-            %Set up default fill options for the different geoms
-            if isempty(temp.fill)
-                switch temp.geom
-                    case 'bar'
-                        temp.fill='face';
-                    case 'line'
-                        temp.fill='edge';
-                    case 'overlaid_bar'
-                        temp.fill='transparent';
-                    case 'stacked_bar'
-                        temp.fill='face';
-                    case 'stairs'
-                        temp.fill='edge';
-                    case 'point'
-                        temp.fill='edge';
-                end
-            end
             
-            obj.geom=vertcat(obj.geom,{@(dd)obj.my_bin(dd,temp)});
+            obj.geom=vertcat(obj.geom,{@(dd)obj.my_bin(dd,p.Results)});
             obj.results.bin={};
         end
         
@@ -2705,6 +2690,25 @@ classdef gramm < handle
         
         function hndl=my_summary(obj,draw_data,params)
             
+            %Advanced defaults
+            if isempty(params.dodge)
+                if sum(strcmp(params.geom,'bar'))>0 && draw_data.n_colors>1 %If we have a bar in as geom, we dodge
+                    params.dodge=0.6;
+                else
+                    params.dodge=0;
+                end
+            end
+            
+            if isempty(params.width) %If no width given
+                if params.dodge>0 %Equal to dodge if dodge given
+                    params.width=params.dodge*0.8;
+                else
+                    params.width=0.5;
+                end
+            end
+            
+            
+            
             if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/matrix
                 
                 if params.interp_in>0 
@@ -2784,6 +2788,7 @@ classdef gramm < handle
                 end
             end
             
+
             %Do we set the y limits according to the smoothed curves or to
             %the original data ?
             if params.setylim
@@ -2799,6 +2804,16 @@ classdef gramm < handle
                             obj.plot_lim.miny(obj.current_row,obj.current_column)=min(min(yci));
                         end
                     end
+                end
+            end
+            
+            %When we do bar plots we want to have zero in the y axis anyway
+            if sum(strcmp(params.geom,'bar'))>0
+                if obj.plot_lim.miny(obj.current_row,obj.current_column)>0 %Values above zero -> change miny
+                    obj.plot_lim.miny(obj.current_row,obj.current_column)=0;
+                end
+                if obj.plot_lim.maxy(obj.current_row,obj.current_column)<0 %Values below zero -> change maxy
+                    obj.plot_lim.maxy(obj.current_row,obj.current_column)=0;
                 end
             end
             
@@ -2832,7 +2847,7 @@ classdef gramm < handle
             obj.results.summary{obj.r_ind,1}.yci=yci;
             
             %Do the actual plotting
-            hndl=obj.plotci(uni_x,ymean,yci,draw_data,params.geom,params.dodge);
+            hndl=obj.plotci(uni_x,ymean,yci,draw_data,params.geom,params.dodge,params.width);
             
         end
         
@@ -2846,9 +2861,6 @@ classdef gramm < handle
             facet_x=comb(draw_data.facet_x);
             uni_x=unique(facet_x);
             
-            %OLD
-            %uni_x=unique(x); %Sorted is the default
-            
             
             %Here we need to implement a loose 'unique' because of
             %potential numerical errors
@@ -2859,15 +2871,7 @@ classdef gramm < handle
             outliersx=[];
             outliersy=[];
             
-            %Adaptive width
-%             dx=diff(uni_x);
-%             if isempty(dx);
-%                 dx=1;
-%             end
-%             avl_w=zeros(length(uni_x),1);
-
-
-            
+        
             %Loop over unique X values
             for ind_x=1:length(uni_x)
                 %And here we have a loose selection also because of
@@ -2898,18 +2902,6 @@ classdef gramm < handle
                     p(ind_x,1)=min(ysel(sel_non_outlier));
                     p(ind_x,5)=max(ysel(sel_non_outlier));
                 end
-                
-                %Code for adaptive width
-                %Compute available width for boxes
-%                 if ind_x==1
-%                     avl_w(ind_x)=dx(ind_x); %Twice the space between 1 and 2 for the first
-%                 else
-%                     if ind_x==length(uni_x)
-%                         avl_w(ind_x)=dx(ind_x-1); %Twice the space between last and second to last for last
-%                     else
-%                         avl_w(ind_x)=(dx(ind_x-1)+dx(ind_x))/2; %Space between previous and space between next
-%                     end
-%                 end
 
             end
             
@@ -2920,20 +2912,17 @@ classdef gramm < handle
                 avl_w=1;
             end
             
-            
-            
-            
-            if params.dodge>=0 && draw_data.n_colors>1
-                spacing=avl_w*params.spacing; %Actual distance between groups of boxes in x 
-                dodging=avl_w*params.dodge./(draw_data.n_colors-1);% (Ncolors-1) spaces between boxes
-                boxw=avl_w*(1-params.spacing-params.dodge)./draw_data.n_colors; % Box width
-                boxleft=uni_x-0.5*avl_w+spacing*0.5+(draw_data.color_index-1)*(dodging+boxw); %We jump by box_width+spacing for each color
-                boxright=uni_x-0.5*avl_w+spacing*0.5+(draw_data.color_index-1)*(dodging+boxw)+boxw;
+            %Unified dodging logic
+            dodging=avl_w*params.dodge./(draw_data.n_colors);
+            if params.dodge>0
+                boxw=avl_w*params.width./(draw_data.n_colors);
             else
-                boxw=(1-params.spacing)*avl_w; %Box width
-                boxleft=uni_x-0.5*avl_w+avl_w*params.spacing*0.5;
-                boxright=uni_x-0.5*avl_w+avl_w*params.spacing*0.5+boxw;
+                boxw=avl_w*params.width;
             end
+            boxmid=uni_x-0.5*dodging*draw_data.n_colors+dodging*0.5+(draw_data.color_index-1)*dodging;
+            boxleft=boxmid-0.5*boxw;
+            boxright=boxmid+0.5*boxw;
+            
             
             xpatch=[boxleft' ; boxright' ; boxright' ; boxleft'];
             ypatch=[p(:,2)' ; p(:,2)' ; p(:,4)' ; p(:,4)'];
@@ -2947,7 +2936,7 @@ classdef gramm < handle
             line([boxleft' ; boxright'],[p(:,3)' ; p(:,3)'],'Color','k');
             
             %Draw wiskers
-            boxmid=(boxleft+boxright)/2;
+            
             line([boxmid' ; boxmid'],[p(:,1)' ; p(:,2)'],'Color','k')
             line([boxmid' ; boxmid'],[p(:,4)' ; p(:,5)'],'Color','k')
             
@@ -3211,13 +3200,49 @@ classdef gramm < handle
         
         
         function hndl=my_bin(obj,draw_data,params)
+       
+            %Presets for dodge parameter
+            if isempty(params.dodge)
+                if strcmp(params.geom,'bar') && draw_data.n_colors>1  %With 'bar' do we dodge by default if there are several colors
+                    params.dodge=0.8;
+                else
+                    params.dodge=0; %With all others we put don't dodge
+                end
+            end
+            
+            %Presets for width parameter
+            if isempty(params.width)
+                if params.dodge>0
+                    params.width=params.dodge; %If there is a dodge we modify the width accordingly
+                else
+                    params.width=1; %Otherwise we use the full with (histogram).
+                end
+            end
+            
+            
+            %Set up default fill options for the different geoms
+            if isempty(params.fill)
+                switch params.geom
+                    case 'bar'
+                        params.fill='face';
+                    case 'line'
+                        params.fill='edge';
+                    case 'overlaid_bar'
+                        params.fill='transparent';
+                    case 'stacked_bar'
+                        params.fill='face';
+                    case 'stairs'
+                        params.fill='edge';
+                    case 'point'
+                        params.fill='edge';
+                end
+            end
+            
             
             %Compute bins
             if obj.x_factor %For categorical Xs (placed at integer values), we override and make the bins 0.5 1.5 2.5 ...
                 binranges=(0:length(obj.x_ticks))+0.5;
                 bincenters=1:length(obj.x_ticks);
-                %obj.plot_lim.minx(obj.current_row,obj.current_column)=0.5;
-                %obj.plot_lim.maxx(obj.current_row,obj.current_column)=length(obj.x_ticks)+0.5;
             else
                 if obj.polar.is_polar %For polar coordinates we make bin around 0:2pi
                     %Make data modulo 2pi
@@ -3283,18 +3308,8 @@ classdef gramm < handle
             end
             
             
-            if isempty(params.bar_spacing)
-                if strcmp(params.geom,'bar') && draw_data.n_colors>1
-                    params.bar_spacing=0.2;
-                else
-                    params.bar_spacing=0;
-                end
-                    
-            end
-            
-            
-            
-            
+
+            %Set up colors according to fill
             face_alpha=1;
             edge_alpha=0.8;
             switch params.fill
@@ -3314,52 +3329,42 @@ classdef gramm < handle
             end
             
             
-            %All subplots/colors have the same bins, so dodginc
-            %computations are simple
-            spacing=0.5*params.bar_spacing*diff(binranges);
+            
+            %Set up dodging & width for bars
+            avl_w=diff(binranges);
+            dodging=avl_w.*params.dodge./(draw_data.n_colors);
+            if params.dodge>0
+                bar_width=avl_w.*params.width./(draw_data.n_colors);
+            else
+                bar_width=avl_w.*params.width;
+            end
+            bar_mid=bincenters-0.5*dodging*draw_data.n_colors+dodging*0.5+(draw_data.color_index-1)*dodging;
+            bar_left=bar_mid-0.5*bar_width;
+            bar_right=bar_mid+0.5*bar_width;
+            
+            
+            spacing=1-params.width;
+            
+            %overlaid_bar is just a bar without dodging
+            if strcmp(params.geom,'overlaid_bar')
+                params.geom='bar';
+            end
             
             switch params.geom
                 case 'bar'
-                    if draw_data.n_colors==1
-                        %hndl=bar(bincenters,bincounts(1:end),1,'faceColor',draw_data.color,'EdgeColor','k');
-%                         hndl=patch([binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing],...
-%                         [zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'],...
-%                         [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
-                        xpatch=[binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing];
-                        ypatch=[zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'];
-                        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
-                        hndl=patch(xpatch,...
-                        ypatch,...
-                        [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
-                    else
-                        %hndl=bar(bincenters+(draw_data.color_index/(draw_data.n_colors+1)-0.5)*(binranges(2)-binranges(1)),bincounts(1:end),1/(draw_data.n_colors+1),'faceColor',draw_data.color,'EdgeColor','k');
-                        barleft=binranges(1:end-1)+spacing+(1-params.bar_spacing)*(draw_data.color_index-1)*diff(binranges)./draw_data.n_colors;
-                        barright=binranges(1:end-1)+spacing+(1-params.bar_spacing)*(draw_data.color_index)*diff(binranges)./draw_data.n_colors;
-%                         hndl=patch([barleft ; barright ; barright ; barleft],...
-%                         [zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'],...
-%                         [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
-                        xpatch=[barleft ; barright ; barright ; barleft];
-                        ypatch=[zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'];
-                        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
-                        hndl=patch(xpatch,...
-                        ypatch,...
-                        [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
-                        %set(gca,'XTick',binranges);
-                        %plot(binranges,zeros(length(binranges),1),'k.','MarkerSize',10);
-                    end
-                case 'overlaid_bar'
-                    xpatch=[binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing];
+                    xpatch=[bar_right ; bar_left ; bar_left ; bar_right];
                     ypatch=[zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'];
                     [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
                     hndl=patch(xpatch,...
-                        ypatch,...
-                        [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
+                         ypatch,...
+                         [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
+                    
                 case 'line'
-                    xtemp=bincenters;
+                    xtemp=bar_mid;
                     ytemp=bincounts(1:end)';
                     [xtemp,ytemp]=to_polar(obj,xtemp,ytemp);
                     hndl=plot(xtemp,ytemp,'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.size/4);
-                    xpatch=[bincenters(1:end-1) ; bincenters(2:end) ; bincenters(2:end);bincenters(1:end-1)];
+                    xpatch=[bar_mid(1:end-1) ; bar_mid(2:end) ; bar_mid(2:end);bar_mid(1:end-1)];
                     ypatch=[zeros(1,length(bincounts)-1) ; zeros(1,length(bincounts)-1) ; bincounts(2:end)' ; bincounts(1:end-1)'];
                     [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
                     patch(xpatch,ypatch,[1 1 1],'FaceColor',face_color,'EdgeColor','none','FaceAlpha',face_alpha);
@@ -3378,14 +3383,13 @@ classdef gramm < handle
                     [xtemp,ytemp]=to_polar(obj,xtemp(:),ytemp(:));
                     hndl=plot(xtemp,ytemp,'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.size/4);
                     
-                    xpatch=[binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing];
+                    xpatch=[binranges(1:end-1) ; binranges(2:end) ; binranges(2:end) ; binranges(1:end-1)];
                     ypatch=[obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'];
                     [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
                     patch(xpatch,ypatch,[1 1 1],'FaceColor',face_color,'EdgeColor','none','FaceAlpha',face_alpha);
                     
-                    %hndl=stairs(binranges,[bincounts' bincounts(end)],'LineStyle',draw_data.line_style,'Color',draw_data.color,'lineWidth',draw_data.size/4);
                 case 'point'
-                    xtemp=bincenters;
+                    xtemp=bar_mid;
                     ytemp=bincounts(1:end)';
                     [xtemp,ytemp]=to_polar(obj,xtemp,ytemp);
                     hndl=plot(xtemp,ytemp,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
@@ -3599,29 +3603,18 @@ classdef gramm < handle
             
         end
         
-        function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge)
+        function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
             
             if nargin<7
-                dodge=-1;
+                dodge=0;
+            end
+            if nargin<8
+                width=0.5;
             end
             
             x=shiftdim(x)';
             y=shiftdim(y)';
             
-
-         
-%             
-%             if size(x,1)>1
-%                 x=x';
-%             end
-%             if size(y,1)>1
-%                 y=y';
-%                 yci=yci';
-%             end           
-            %Causes problems when plotting two things
-%             if size(yci,1)>2
-%                 yci=yci';
-%             end
             
             %Hackish but seems to work
             if size(yci,2)~=length(y) || size(yci,2)==2
@@ -3632,92 +3625,90 @@ classdef gramm < handle
                 geom={geom};
             end
             
-            %For area plots we remove NaNs otherwise it looks weird
-            if sum(strcmp(geom,{'area','solid_area'}))>0
-                selnan=isnan(x) | isnan(y) | isnan(yci(1,:)) | isnan(yci(1,:));
-                if sum(selnan)>0
-                    warning('NaN elements in area plot were skipped')
-                end
-                selnan=~selnan;
-                x=x(selnan);
-                y=y(selnan);
-                yci=yci(:,selnan);
-            end
-            
             if isempty(x) || isempty(y)
                 hndl=NaN;
                 return;
             end
             
+            %The available width is set to the minimum width within the
+            %provided data
             if length(x)>2
-                %x_spacing=x(2)-x(1);
-                x_spacing=min(diff(x));
+                avl_w=min(diff(x));
             else
-                x_spacing=1;
+                avl_w=1;
             end
             
+
             
-            if dodge>=0
-                bar_width=(x_spacing-dodge*x_spacing)/(draw_data.n_colors+1);
-                dodge_amount=dodge/(draw_data.n_colors-1);
-                x=x-x_spacing/2+bar_width+(bar_width+dodge_amount)*(draw_data.color_index-1);
+            %Compute dodging and bar width
+            dodging=avl_w*dodge./(draw_data.n_colors);
+            if dodge>0
+                bar_width=avl_w*width./(draw_data.n_colors);
             else
-                bar_width=x_spacing/2;
+                bar_width=avl_w*width;
             end
+            x=x-0.5*dodging*draw_data.n_colors+dodging*0.5+(draw_data.color_index-1)*dodging;
             
+            %Convert CIs to polar coordinates if needed
             [tmp_xci1,tmp_yci1]=obj.to_polar(x,yci(1,:));
             [tmp_xci2,tmp_yci2]=obj.to_polar(x,yci(2,:));
             yci=[tmp_yci1;tmp_yci2];
             xci=[tmp_xci1;tmp_xci2];
             [x,y]=obj.to_polar(x,y);
             
+            %Use vertices and faces for patch object construction (has the
+            %advantage of properly handling NaN datapoints
+            vertices=nan(length(x)*2,2);
+            vertices(1:2:end,:)=[tmp_xci1' tmp_yci1'];
+            vertices(2:2:end,:)=[tmp_xci2' tmp_yci2'];
+            faces=[(1:length(x)*2-2)' (1:length(x)*2-2)'+1 (1:length(x)*2-2)'+2];
+            
+            %Line plot  doesn't display anything if we have NaNs around, so find
+            %out which points are surrounded by NaNs and might not be
+            %displayed, we will display those as points
+            real_neighbors=zeros(size(y));
+            yreals=~isnan(y);
+            real_neighbors(2:end)=real_neighbors(2:end)+yreals(1:end-1);
+            real_neighbors(1:end-1)=real_neighbors(1:end-1)+yreals(2:end);
             
             
             for k=1:length(geom)
                 switch geom{k}
                     case 'line'
                         hndl=plot(x,y,'LineStyle',draw_data.line_style,'Color',draw_data.color,'LineWidth',draw_data.size/4);
+                         plot(x(real_neighbors==0),y(real_neighbors==0),'o','Color',draw_data.color,'MarkerSize',draw_data.size/3,'MarkerFaceColor',draw_data.color);
                     case 'lines'
                         hndl=plot(x,y,'LineStyle',draw_data.line_style,'Color',draw_data.color,'LineWidth',draw_data.size/4);
+                         plot(x(real_neighbors==0),y(real_neighbors==0),'o','Color',draw_data.color,'MarkerSize',draw_data.size/3,'MarkerFaceColor',draw_data.color);
                         plot(xci',yci','-','Color',draw_data.color+([1 1 1]-draw_data.color)*0.5);
                     case 'area'
                         %Transparent area (This does what we want but prevents a correct eps
-                        %export, and weirdly removes axes in older matlab versions)
-                        h=fill([xci(2,:) fliplr(xci(1,:))],[yci(2,:) fliplr(yci(1,:))],draw_data.color);
-                        set(h,'FaceAlpha',0.2);
-                        set(h,'EdgeColor','none')
+                        h=patch('Vertices',vertices,'Faces',faces,'FaceColor',draw_data.color,'FaceAlpha',0.2,'EdgeColor','none');
+                        
                         hndl=plot(x,y,'LineStyle',draw_data.line_style,'Color',draw_data.color,'LineWidth',draw_data.size/4);
+                        
+                        plot(x(real_neighbors==0),y(real_neighbors==0),'o','Color',draw_data.color,'MarkerSize',draw_data.size/3,'MarkerFaceColor',draw_data.color);
+                        %plot([x(real_neighbors==0) ; x(real_neighbors==0)], [yci(1,real_neighbors==0) ; yci(2,real_neighbors==0)],'Color',draw_data.color)
+                        
                     case 'solid_area'
                         %Solid area (no alpha)
-                        %h=fill([x fliplr(x)],[yci(2,:) fliplr(yci(1,:))],c+([1 1 1]-c)*0.8);
-                        h=fill([xci(2,:) fliplr(xci(1,:))],[yci(2,:) fliplr(yci(1,:))],c);
-                        set(h,'EdgeColor','none')%c+([1 1 1]-c)*0.8)
+                        h=patch('Vertices',vertices,'Faces',faces,'FaceColor',draw_data.color,'EdgeColor','none');
                         hndl=plot(x,y,'LineStyle',draw_data.line_style,'Color',draw_data.color,'LineWidth',draw_data.size/4);
-                    case 'errorbar'
-                        hndl=errorbar(x,y,y-yci(1,:),yci(2,:)-y,'color',draw_data.color);
-                        %hndl=errorbar(x,y,y-yci(:,1),yci(:,2)-y);
-                        %hndl=plot(xci,yci,'-','Color',c+([1 1 1]-c)*0.5);
-                        set(hndl,'Color',draw_data.color)%[0 0 0]
-                        set(hndl,'LineStyle','none')
-                    case 'black_errorbar'
-                        hndl=errorbar(x,y,y-yci(1,:),yci(2,:)-y,'color','k');
+                        plot(x(real_neighbors==0),y(real_neighbors==0),'o','Color',draw_data.color,'MarkerSize',draw_data.size/3,'MarkerFaceColor',draw_data.color);
                         
-                        %hndl=errorbar(x,y,y-yci(:,1)',yci(:,2)'-y);
-                        %hndl=plot(xci,yci,'-');
-                        set(hndl,'Color',[0 0 0])
-                        set(hndl,'LineStyle','none')
+                    case 'errorbar'
+                        hndl=my_errorbar(x,yci(1,:),yci(2,:),bar_width/4,draw_data.color);
+                        
+                    case 'black_errorbar'
+                        hndl=my_errorbar(x,yci(1,:),yci(2,:),bar_width/4,'k');
+                        
                     case 'bar'
                         barleft=x-bar_width/2;
                         barright=x+bar_width/2;
-%                         hndl=patch([barleft ; barright ; barright ; barleft],...
-%                         [zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'],...
-%                         [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
                         xpatch=[barleft ; barright ; barright ; barleft];
                         ypatch=[zeros(1,length(y)) ; zeros(1,length(y)) ; y ; y];
                         [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
                         hndl=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','none');
-                        %
-                        %hndl=bar(x,y,bar_width,'faceColor',draw_data.color,'EdgeColor','none');
                     case 'point'
                         hndl=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
                 end
@@ -3727,15 +3718,25 @@ classdef gramm < handle
                         %Adjust limits
             obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(max(x),obj.plot_lim.maxx(obj.current_row,obj.current_column));
             obj.plot_lim.minx(obj.current_row,obj.current_column)=min(min(x),obj.plot_lim.minx(obj.current_row,obj.current_column));
-            
-            
+
         end
 
         
     end
-    
-    
-    
+
+end
+
+function hndl=my_errorbar(X,L,U,width,color)
+    %Make all sizes work
+    X=shiftdim(X)';
+    L=shiftdim(L)';
+    U=shiftdim(U)';
+    nanarray=nan(1,length(X));
+    %Construct the lines of the errorbar by separating all components with
+    %NaN points
+    xcoords=[X ; X ;  nanarray ; X-width/2 ; X+width/2 ; nanarray ; X-width/2 ; X+width/2 ; nanarray ];
+    ycoords=[L ; U ;  nanarray ; U  ; U  ; nanarray ; L ; L ; nanarray];
+    hndl=line(xcoords(:),ycoords(:),'Color',color);
 end
 
 function ab=fill_abline(ab,varargin)

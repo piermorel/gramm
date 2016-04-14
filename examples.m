@@ -1,3 +1,5 @@
+saveimg=false;
+
 %% Generate fake data
 
 N=400
@@ -46,7 +48,7 @@ clear g2
 g2(1,1)=gramm('x',x,'y',y,'color',fouraltc);
 g2(1,1).facet_grid(twoaltc,twoaltcb); %,'scales','independent'
 g2(1,1).stat_smooth('lambda',1000,'geom','area');
-g2(1,1).geom_point();
+%g2(1,1).geom_point();
 
 %Also works with categorical data
 g2(1,2)=gramm('x',y,'y',x,'color',categorical(twoaltc));
@@ -63,9 +65,12 @@ g2(2,2).stat_bin('geom','bar'); %Using stat_bin we can create histograms
 g2(2,2).set_limit_extra(0.1,0);
 
 %And call the draw function on the whole array !
-figure
+figure('Position',[100 100 800 600])
 g2.draw();
-
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/multiple_gramm_example','-dpng','-r0')
+end
 
 
 %% Scaling options for faceting with facet_grid
@@ -210,9 +215,14 @@ g5(2,3)=gramm('x',x,'color',cat)
 g5(2,3).stat_bin('geom','stairs') %Default fill is edges
 g5(2,3).set_title('''stairs''')
 
-figure
 g5.set_title('''geom'' options for stat_bin()')
-g5.draw()
+
+figure('Position',[100 100 800 600])
+g5.draw();
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/histograms_example','-dpng','-r0')
+end
 
 %%
 % Example of alternative 'fill' options
@@ -239,6 +249,30 @@ g6(2,1).set_title('''edge''')
 g6(2,2)=gramm('x',x,'color',cat)
 g6(2,2).stat_bin('fill','transparent')
 g6(2,2).set_title('''transparent''')
+
+g6.set_title('''fill'' options for stat_bin()')
+g6.draw()
+
+
+%% Those also work for different geoms
+
+figure
+clear g6
+g6(1,1)=gramm('x',x,'color',cat)
+g6(1,1).stat_bin('geom','line','fill','transparent')
+g6(1,1).set_title('''transparent''')
+
+g6(1,2)=gramm('x',x,'color',cat)
+g6(1,2).stat_bin('geom','stairs','fill','transparent')
+g6(1,2).set_title('''transparent''')
+
+g6(2,1)=gramm('x',x,'color',cat)
+g6(2,1).stat_bin('geom','line','fill','face')
+g6(2,1).set_title('''face''')
+
+g6(2,2)=gramm('x',x,'color',cat)
+g6(2,2).stat_bin('geom','stairs','fill','all')
+g6(2,2).set_title('''all''')
 
 g6.set_title('''fill'' options for stat_bin()')
 g6.draw()
@@ -309,8 +343,12 @@ g.set_names('column','Origin','x','Year of production','y','Fuel economy (MPG)',
 %Set figure title
 g.set_title('Fuel economy of new cars between 1970 and 1982')
 % Do the actual drawing
-g.draw()
-
+figure('Position',[100 100 800 400])
+g.draw();
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/carbig_example','-dpng','-r0')
+end
 
 
 %% Example from the readme (old)
@@ -339,9 +377,9 @@ g8.draw() %Draw method
 
 x=repmat(1:10,1,100);
 catx=repmat({'A' 'B' 'C' 'F' 'E' 'D' 'G' 'H' 'I' 'J'},1,100);
-y=randn(1,1000);
-c=repmat([1 1 1 1 1 1 1 1 1 1    1 1 2 2 2 2 2 2 3 2     2 1 1 2 2 2 2 2 3 3     2 1 1 2 2 2 2 2 3 2],1,25);
-y=y+x+c*0.5;
+y=randn(1,1000)*3;
+c=repmat([1 1 1 1 1 1 1 1 1 1    1 1 2 2 2 2 2 3 2 2     2 1 1 2 2 2 2 3 2 3     2 1 1 2 2 2 2 2 2 2],1,25);
+y=2+y+x+c*0.5;
 
 
 figure
@@ -355,43 +393,57 @@ g.stat_boxplot();
 g.draw();
 
 
-figure
+figure('Position',[100 100 700 1000])
 clear g
 g(1,1)=gramm('x',catx,'y',y,'color',c);
-g(1,1).stat_boxplot('spacing',0.5,'dodge',-1);
+g(1,1).stat_boxplot();
 g(1,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
-g(1,1).set_title('''spacing'',0.5,''dodge'',-1')
+g(1,1).set_title('''width'',0.6,''dodge'',0.7 (Default)')
+
 g(2,1)=gramm('x',catx,'y',y,'color',c);
-g(2,1).stat_boxplot('spacing',0.2,'dodge',0);
+g(2,1).stat_boxplot('width',0.5,'dodge',0);
 g(2,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
-g(2,1).set_title('''spacing'',0.2,''dodge'',0')
+g(2,1).set_title('''width'',0.5,''dodge'',0')
+
 g(3,1)=gramm('x',catx,'y',y,'color',c);
-g(3,1).stat_boxplot('spacing',0.2,'dodge',0.1);
+g(3,1).stat_boxplot('width',1,'dodge',1);
 g(3,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
-g(3,1).set_title('''spacing'',0.5,''dodge'',0.1')
+g(3,1).set_title('''width'',1,''dodge'',1')
+
+
 g(4,1)=gramm('x',catx,'y',y,'color',c);
-g(4,1).facet_grid([],c);
-g(4,1).stat_boxplot('spacing',0.4,'dodge',-1);
-g(4,1).set_title('''spacing'',0.4,''dodge'',-1')
+g(4,1).stat_boxplot('width',0.6,'dodge',0.4);
+g(4,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
+g(4,1).set_title('''width'',0.6,''dodge'',0.4')
+
+g(5,1)=gramm('x',catx,'y',y,'color',c);
+g(5,1).facet_grid([],c);
+g(5,1).stat_boxplot('width',0.5,'dodge',0);
+g(5,1).set_title('''width'',0.5,''dodge'',0')
 g.set_title('Dodge and spacing options for stat_boxplot()')
 g.draw();
 
 
-figure
+
+figure('Position',[100 100 700 1000])
 clear g
 g(1,1)=gramm('x',catx,'y',y,'color',c);
-g(1,1).stat_summary('geom',{'bar' 'black_errorbar'},'dodge',0);
+g(1,1).stat_summary('geom',{'bar' 'black_errorbar'},'setylim',true);
 g(1,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
-g(1,1).set_title('''dodge'',0')
+g(1,1).set_title('Default')
+
 g(2,1)=gramm('x',catx,'y',y,'color',c);
-g(2,1).stat_summary('geom',{'bar' 'black_errorbar'},'dodge',0.2);
-g(2,1).set_title('''dodge'',0.2')
+g(2,1).stat_summary('geom',{'bar' 'black_errorbar'},'dodge',0.7,'width',0.7);
+g(2,1).set_title('''dodge'',0.7,''width'',0.7')
 g(2,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
+
 g(3,1)=gramm('x',catx,'y',y,'color',c);
 g(3,1).stat_summary('geom',{'area'});
+g(3,1).set_title('''geom'',''area''')
+
 g(4,1)=gramm('x',catx,'y',y,'color',c);
-g(4,1).stat_summary('geom',{'point' 'errorbar'},'dodge',0);
-g(4,1).set_title('''dodge'',0')
+g(4,1).stat_summary('geom',{'point' 'errorbar'},'dodge',0.3,'width',0.5);
+g(4,1).set_title('''dodge'',0.3,''width'',0.5')
 g(4,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
 g.set_title('Dodge options for stat_summary()')
 g.draw();
@@ -433,7 +485,7 @@ g9.draw()
 
 load carbig.mat %Load example dataset about cars
 
-figure
+figure('Position',[100 100 600 450])
 
 
 %We add another gramm plot (without color) to have a fit across all
@@ -447,7 +499,11 @@ g10=gramm('x',Horsepower,'y',Acceleration,'color',Cylinders,'subset',Cylinders~=
 g10.set_names('color','# Cylinders','x','Horsepower','y','Acceleration')
 %g10.stat_glm('geom','area','disp_fit',true) %Linear fit (default for stat_glm
 g10.geom_point()
-g10.draw()
+g10.draw();
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/carbig_glm_example','-dpng','-r0')
+end
 
 
 
@@ -455,46 +511,45 @@ g10.draw()
 
 load carbig.mat
 clear g
-figure
 
 Origin=cellfun(@(c)strrep(c,' ',''),num2cell(Origin,2),'UniformOutput',false);
 
 %Default: LCH-based colormap with hue variation
 g(1,1)=gramm('x',Origin,'y',Horsepower,'color',Origin)
-g(1,1).stat_summary('geom',{'bar'},'dodge',-1)
-g(1,1).set_title('Default LCH colormap (''color'' groups)')
+g(1,1).stat_summary('geom',{'bar'},'dodge',0)
+g(1,1).set_title('Default LCH (''color'' groups)','FontSize',12)
 
 %Possibility to change the hue range as well as lightness and chroma of
 %the LCH-based colormap
 g(1,2)=gramm('x',Origin,'y',Horsepower,'color',Origin)
-g(1,2).stat_summary('geom',{'bar'},'dodge',-1)
+g(1,2).stat_summary('geom',{'bar'},'dodge',0)
 g(1,2).set_color_options('hue_range',[-60 60],'chroma',40,'lightness',90)
-g(1,2).set_title('Modified LCH colormap (''color'' groups)')
+g(1,2).set_title('Modified LCH (''color'' groups)','FontSize',12)
 
 %Possibility to change the lightness and chroma range of the LCH-based
 %colormap when a 'lightness' variable is given
 g(1,3)=gramm('x',Origin,'y',Horsepower,'lightness',Origin)
-g(1,3).stat_summary('geom',{'bar'},'dodge',-1)
+g(1,3).stat_summary('geom',{'bar'},'dodge',0)
 g(1,3).set_color_options('lightness_range',[0 95],'chroma_range',[0 0])
-g(1,3).set_title('Modified LCH colormap (''lightness'' groups)')
+g(1,3).set_title('Modified LCH (''lightness'' groups)','FontSize',12)
 
 %Go back to Matlab's defauls colormap
 g(2,1)=gramm('x',Origin,'y',Horsepower,'color',Origin)
-g(2,1).stat_summary('geom',{'bar'},'dodge',-1)
+g(2,1).stat_summary('geom',{'bar'},'dodge',0)
 g(2,1).set_color_options('map','matlab')
-g(2,1).set_title('Matlab 2014B+ colormap')
+g(2,1).set_title('Matlab 2014B+ ','FontSize',12)
 
 %Brewer colormap 1
 g(2,2)=gramm('x',Origin,'y',Horsepower,'color',Origin)
-g(2,2).stat_summary('geom',{'bar'},'dodge',-1)
+g(2,2).stat_summary('geom',{'bar'},'dodge',0)
 g(2,2).set_color_options('map','brewer1')
-g(2,2).set_title('brewer1 colormap')
+g(2,2).set_title('Color Brewer 1','FontSize',12)
 
 %Brewer colormap 2
 g(2,3)=gramm('x',Origin,'y',Horsepower,'color',Origin)
-g(2,3).stat_summary('geom',{'bar'},'dodge',-1)
+g(2,3).stat_summary('geom',{'bar'},'dodge',0)
 g(2,3).set_color_options('map','brewer2')
-g(2,3).set_title('brewer2 colormap')
+g(2,3).set_title('Color Brewer 2','FontSize',12)
 
 %Some methods can be called on all objects at the same time !
 g.axe_property('YLim',[0 140])
@@ -502,7 +557,12 @@ g.axe_property('XTickLabelRotation',60) %Should work for recent Matlab
 %versions
 g.set_names('x','Origin','y','Horsepower','color','Origin','lightness','Origin')
 g.set_title('Colormap customizations examples')
-g.draw()
+figure('Position',[100 100 800 600])
+g.draw();
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/colormaps_example','-dpng','-r0')
+end
 
 %% Example of all the different input formats for x and y
 
@@ -573,14 +633,18 @@ g17.draw()
 
 load spectra.mat
 
-figure
 %Here we create x as a 1xN array (see example above), and use a MxN matrix
 %for y. Color applies to the M rows of y.
 g18=gramm('x',900:2:1700,'y',NIR,'color',octane);
 g18.set_names('x','Wavelength (nm)','y','NIR','color','Octane')
 g18.set_continuous_color('colormap','hot')
 g18.geom_line;
-g18.draw;
+figure('Position',[100 100 600 450])
+g18.draw();
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/continuous_color_example','-dpng','-r0')
+end
 
 %% Representation of 2D (bivariate) data
 
@@ -628,7 +692,12 @@ g(2,2).set_names('column','grp','color','count')
 g(2,2).set_title('stat_bin2d(''geom'',''image'')')
 
 g.set_title('Visualization of 2D densities')
-g.draw()
+figure('Position',[100 100 600 600])
+g.draw();
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/2D_densities_example','-dpng','-r0')
+end
 
 %% stat_glm examples (statistics toolbox required)
 
@@ -681,13 +750,17 @@ y(cat==2)=fun(3,2,1,x(cat==2));
 y=y+randn(size(y))*1;
 
 %Gramm plot with fit !
-figure
 clear g
 g=gramm('x',x,'y',y,'color',cat)
 g.geom_point()
 g.stat_fit('fun',fun,'disp_fit',true) %We provide the function for the fit
 g.set_title({'stat_fit() with user-provided function:' '@(alpha,beta,gamma,x)alpha*exp(cos(x-beta)*gamma)'})
-g.draw()
+figure('Position',[100 100 600 450])
+g.draw();
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/fit_example','-dpng','-r0')
+end
 
 %% Changing the order of elements with set_order_options()
 
@@ -702,14 +775,14 @@ figure
 %By default, both x and lightness are ordered according to sorted (here
 %alphabetically) input
 g(1,2)=gramm('x',x,'y',y,'lightness',x)
-g(1,2).stat_summary('geom','bar')
+g(1,2).stat_summary('geom','bar','dodge',0)
 g(1,2).set_title('Default output')
 
 
 %By using set_order_options('x',0), x are presented in the raw input order. The
 %color is still sorted
 g(2,1)=gramm('x',x,'y',y,'lightness',x)
-g(2,1).stat_summary('geom','bar')
+g(2,1).stat_summary('geom','bar','dodge',0)
 g(2,1).set_order_options('x',0)
 g(2,1).set_title('x in input order')
 
@@ -717,7 +790,7 @@ g(2,1).set_title('x in input order')
 %'XXL'}), we also order lightness in the desired order, here by
 %directly providing the desired order.
 g(2,2)=gramm('x',x,'y',y,'lightness',x)
-g(2,2).stat_summary('geom','bar')
+g(2,2).stat_summary('geom','bar','dodge',0)
 g(2,2).set_order_options('x',0,'lightness',{'XS' 'S' 'M' 'L' 'XL' 'XXL'})
 g(2,2).set_title({'x in input order' 'lightness in custom order'})
 %Examples below properly fail
@@ -730,13 +803,14 @@ g(2,2).set_title({'x in input order' 'lightness in custom order'})
 %practical for floating point numerical variables. For cells of string, the
 %way above is easier.
 g(2,3)=gramm('x',x,'y',y,'lightness',x)
-g(2,3).stat_summary('geom','bar')
+g(2,3).stat_summary('geom','bar','dodge',0)
 g(2,3).set_order_options('x',0,'lightness',[6 4 1 2 3 5])
 g(2,3).set_title({'x in input order' 'lightness in custom order'})
 %Exampel below properly fail
 %g(2,3).set_order_options('x',0,'lightness',[6 4 1 2 3 3])
 
 g.set_names('x','US size','y','EU size','lightness','US size')
+g.axe_property('YLim',[0 48])
 g.draw()
 
 

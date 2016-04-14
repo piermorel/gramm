@@ -80,6 +80,7 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 - Possibility to customize color generations in the LCH color space, chose alternative colormaps (Matlab's default, [colorbrewer2](http://colorbrewer2.org)), or provide a custom colormap (<code>set_color_options()</code>)
 - Possibility to change ordering of grouping variables between native, sorted, or custom (<code>set_order_options</code>)
 - Confidence intervals as shaded areas, error bars or thin lines
+- Set the width and dodging of graphical elements in <code>stat_bin()</code>, <code>stat_summary()</code>, and <code>stat_boxplot()</code>, with <code>'width'</code> and <code>'dodge'</code> arguments
 - Results of computations from <code>stat_</code> plots are returned in the member structure <code>results</code>
 - Figure title (<code>set_title()</code>)
 - Multiple gramm plots can be combined in the same figure by creating a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix. An overarching title can be added by calling <code>set_title()</code> on the whole matrix.
