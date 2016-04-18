@@ -1518,7 +1518,7 @@ classdef gramm < handle
                         text(2.5,ind_scale,num2str(max(max(obj.plot_lim.maxc))))];
                     
                     obj.legend_text_handles=[obj.legend_text_handles...
-                        text(2.5,ind_scale-ind_scale_step,num2str((max(max(obj.plot_lim.maxc))-min(min(obj.plot_lim.minc)))/2))];
+                        text(2.5,ind_scale-ind_scale_step,num2str((max(max(obj.plot_lim.maxc))+min(min(obj.plot_lim.minc)))/2))];
                     
                     obj.legend_text_handles=[obj.legend_text_handles...
                         text(2.5,ind_scale-ind_scale_step*2,num2str(min(min(obj.plot_lim.minc))))];
