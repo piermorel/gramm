@@ -95,31 +95,31 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 
 The code for the following figures and numerous others is in <code>examples.m</code>.
 
-###Visualization of the influence of categorical variables on a continuous variable
+###Relationships between categorical variables and a continuous variable
 
 <img src="/img/Visualization_Y_categoricalX.png" alt="" width="800">
 
-###Visualization of the distribution of a continuous variable
+###Distribution of a continuous variable
 Note that we by using Origin as a faceting variable, we visualize exactly the same quantities as in the figure above.
 
 <img src="/img/Visualization_X_density.png" alt="" width="800">
 
-###Visualization of the relationship between two continous variables
+###Relationship between two continous variables
 
 <img src="/img/Visualization_Y_X.png" alt="" width="800">
 
-###Visualization of repeated trajectories
+###Repeated trajectories
 Here the variable given as Y is a Nx1 cell of 1D arrays containing the individual trajectories. Color is given as a Nx1 cellstr.
 
 <img src="/img/Visualization_trajectories.png" alt="" width="800">
 
-###Visualization of repeated distributions
-This example highlights the potential use of gramm for neuroscientific data. Here X is a Nx1 cell containing spike trains (N trials).
+###Spike trains
+This example highlights the potential use of gramm for neuroscientific data. Here X is a Nx1 cell containing spike trains collected over N trials. Color is given as a Nx1 cellstr.
 Using <code>stat_bin()</code> it is possible to construct peristimulus time histograms.
 
 <img src="/img/visualization_spikes.png" alt="" width="800">
 
-### Visualization of 2D densities
+### 2D densities
 
 <img src="/img/Visualization_2D_density.png" alt="2D density" width="800">
 
