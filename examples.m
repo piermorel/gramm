@@ -221,7 +221,7 @@ figure('Position',[100 100 800 600])
 g5.draw();
 if saveimg
     set(gcf,'PaperPositionMode','auto')
-    print('img/histograms_example','-dpng','-r0')
+    print('img/histograms_options','-dpng','-r0')
 end
 
 %%
@@ -506,7 +506,6 @@ if saveimg
 end
 
 
-
 %% Colormap customization
 
 load carbig.mat
@@ -556,7 +555,7 @@ g.axe_property('YLim',[0 140])
 g.axe_property('XTickLabelRotation',60) %Should work for recent Matlab
 %versions
 g.set_names('x','Origin','y','Horsepower','color','Origin','lightness','Origin')
-g.set_title('Colormap customizations examples')
+%g.set_title('Colormap customizations examples')
 figure('Position',[100 100 800 600])
 g.draw();
 if saveimg
@@ -639,7 +638,7 @@ g18=gramm('x',900:2:1700,'y',NIR,'color',octane);
 g18.set_names('x','Wavelength (nm)','y','NIR','color','Octane')
 g18.set_continuous_color('colormap','hot')
 g18.geom_line;
-figure('Position',[100 100 600 450])
+figure('Position',[100 100 800 450])
 g18.draw();
 if saveimg
     set(gcf,'PaperPositionMode','auto')
@@ -656,8 +655,6 @@ test=repmat([0 1 0 0],1,N/4);
 y(test==0)=y(test==0)+3;
 
 clear g
-figure
-
 % Display points and 95% percentile confidence ellipse
 g(1,1)=gramm('x',x,'y',y,'color',test,'size',2)
 g(1,1).set_names('color','grp')
@@ -691,12 +688,12 @@ g(2,2).set_continuous_color('LCH_colormap',[0 100 ; 100 20 ;30 20]) %Let's try a
 g(2,2).set_names('column','grp','color','count')
 g(2,2).set_title('stat_bin2d(''geom'',''image'')')
 
-g.set_title('Visualization of 2D densities')
-figure('Position',[100 100 600 600])
+%g.set_title('Visualization of 2D densities')
+figure('Position',[100 100 800 600])
 g.draw();
 if saveimg
     set(gcf,'PaperPositionMode','auto')
-    print('img/2D_densities_example','-dpng','-r0')
+    print('img/Visualization_2D_density','-dpng','-r0')
 end
 
 %% stat_glm examples (statistics toolbox required)
@@ -811,8 +808,223 @@ g(2,3).set_title({'x in input order' 'lightness in custom order'})
 
 g.set_names('x','US size','y','EU size','lightness','US size')
 g.axe_property('YLim',[0 48])
+figure('Position',[100 100 800 600])
 g.draw()
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/ordering_options','-dpng','-r0')
+end
 
 
+%% Generic examples for categorical X variables
+
+load carbig.mat
+orig=num2cell(org,2);
+orig=strrep(orig,' ','');
+
+clear g
+g(1,1)=gramm('x',orig,'y',Horsepower,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g(1,1).geom_point()
+g(1,1).set_title('geom_point()')
+
+g(1,2)=gramm('x',orig,'y',Horsepower,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g(1,2).geom_jitter('width',0.4,'height',0)
+g(1,2).set_title('geom_jitter()')
+
+g(2,1)=gramm('x',orig,'y',Horsepower,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g(2,1).stat_summary('geom',{'bar','black_errorbar'})
+g(2,1).set_title('stat_summary()')
+
+g(2,2)=gramm('x',orig,'y',Horsepower,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g(2,2).stat_boxplot()
+g(2,2).set_title('stat_boxplot()')
+
+g.set_names('x','Origin','y','Horsepower','color','# Cyl')
+%g.set_title('Visualization of Y~X relationship with X as categorical variable')
+figure('Position',[100 100 800 550])
+g.draw()
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/Visualization_Y_categoricalX','-dpng','-r0')
+end
+
+%% Generic examples with the same data but using distribution plots
+
+clear g
+g(1,1)=gramm('x',Horsepower,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g(1,1).facet_grid(orig,[])
+g(1,1).geom_raster()
+g(1,1).set_title('geom_raster()')
+
+g(1,2)=gramm('x',Horsepower,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g(1,2).facet_grid(orig,[])
+g(1,2).stat_bin('nbins',8)
+g(1,2).set_title('stat_bin()')
 
 
+g(1,3)=gramm('x',Horsepower,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g(1,3).facet_grid(orig,[])
+g(1,3).stat_density()
+g(1,3).set_title('stat_density()')
+
+g.set_names('x','Horsepower','color','# Cyl','row','','y','')
+%g.set_title('Visualization of X densities')
+figure('Position',[100 100 800 350])
+g.draw()
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/Visualization_X_density','-dpng','-r0')
+end
+
+%% Continuous data
+
+clear g
+g(1,1)=gramm('x',Horsepower,'y',Acceleration,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g(1,1).geom_point()
+g(1,1).set_title('geom_point()')
+
+g(1,2)=gramm('x',Horsepower,'y',Acceleration,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g(1,2).stat_glm()
+g(1,2).set_title('stat_glm()')
+
+g(1,3)=gramm('x',Horsepower,'y',Acceleration,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g(1,3).stat_fit('fun',@(a,b,c,x)a./(x+b)+c,'intopt','functional')
+g(1,3).set_title('stat_fit(''fun'',@(a,b,c,x)a./(x+b)+c)')
+
+g(2,1)=gramm('x',Horsepower,'y',Acceleration,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g(2,1).stat_smooth()
+g(2,1).set_title('stat_smooth()')
+
+g(2,2)=gramm('x',Horsepower,'y',Acceleration,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5)
+g(2,2).stat_summary('bin_in',10)
+g(2,2).set_title('stat_summary(''bin_in'',10)')
+
+g.set_names('x','Horsepower','y','Acceleration','color','# Cylinders')
+%g.set_title('Visualization of Y~X relationship with X as continuous variable')
+figure('Position',[100 100 800 550])
+g.draw()
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/Visualization_Y_X','-dpng','-r0')
+end
+
+%% Visualization of repeated trajectories
+
+N=50
+cval={'A' 'B' 'C'};
+cind=randi(3,N,1);
+c=cval(cind);
+
+nx=40
+x=linspace(0,3,nx);
+
+y=arrayfun(@(c)sin(x*c)+randn(1,nx)/10+x*randn/5,cind,'UniformOutput',false);
+
+clear g
+g(1,1)=gramm('x',x,'y',y,'color',c)
+g(1,1).geom_point()
+g(1,1).set_title('geom_point()')
+
+g(1,2)=gramm('x',x,'y',y,'color',c)
+g(1,2).geom_line()
+g(1,2).set_title('geom_line()')
+
+g(2,1)=gramm('x',x,'y',y,'color',c)
+g(2,1).stat_smooth()
+g(2,1).set_title('stat_smooth()')
+
+g(2,2)=gramm('x',x,'y',y,'color',c)
+g(2,2).stat_summary()
+g(2,2).set_title('stat_summary()')
+
+figure('Position',[100 100 800 550])
+%g.set_title('Visualization of repeated trajectories ')
+g.draw()
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/Visualization_trajectories','-dpng','-r0')
+end
+
+%% Visualization of repeated densities (e.g. spike densities)
+
+N=50
+cval={'A' 'B' 'C'};
+cind=randi(3,N,1);
+c=cval(cind);
+
+trace_template=[zeros(1,300)  ones(1,200)];
+for k=1:N
+    temp_trace=rand*0.05+trace_template/(cind(k)*8);
+    U=rand(size(temp_trace));
+    spike_train{k}=find(U<temp_trace);
+end
+
+clear g
+g(1,1)=gramm('x',spike_train,'y',y,'color',c)
+g(1,1).geom_raster()
+g(1,1).set_title('geom_raster()')
+
+g(1,2)=gramm('x',spike_train,'y',y,'color',c)
+g(1,2).stat_bin('nbins',25,'geom','line')
+g(1,2).set_title('stat_bin()')
+
+figure('Position',[100 100 800 350])
+g.set_names('x','Time','y','')
+g.draw();
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/visualization_spikes','-dpng','-r0')
+end
+
+
+%% Spacing options for facet_grid
+
+N=2000
+colval={'A' 'B' 'C'};
+rowval={'I' 'II'};
+cind=randi(3,N,1);
+c=colval(cind);
+rind=randi(2,N,1);
+r=rowval(rind);
+
+x=randn(N,1);
+y=randn(N,1);
+
+x(cind==1 & rind==1)=x(cind==1  & rind==1)*5;
+x=x+cind*3;
+y(cind==3 & rind==2)=y(cind==3  & rind==2)*3;
+y=y-rind*4;
+
+clear g
+g(1,1)=gramm('x',x,'y',y,'color',c,'lightness',r)
+g(1,1).geom_point()
+g(1,1).set_title('No facets')
+
+g(1,2)=gramm('x',x,'y',y,'color',c,'lightness',r)
+g(1,2).facet_grid(r,c)
+g(1,2).geom_point()
+g(1,2).no_legend()
+g(1,2).set_title('facet_grid()')
+
+g(2,1)=gramm('x',x,'y',y,'color',c,'lightness',r)
+g(2,1).facet_grid(r,c,'scale','free')
+g(2,1).geom_point()
+g(2,1).no_legend()
+g(2,1).set_title('facet_grid(''scale'',''free'')')
+
+g(2,2)=gramm('x',x,'y',y,'color',c,'lightness',r)
+g(2,2).facet_grid(r,c,'scale','free','space','free')
+g(2,2).geom_point()
+g(2,2).no_legend()
+g(2,2).set_title('facet_grid(''scale'',''free'',''space'',''free'')')
+
+g.set_color_options('lightness_range',[40 80],'chroma_range',[80 40])
+g.set_names('column','','row','')
+%g.axe_property('color',[0.9 0.9 0.9],'XGrid','on','YGrid','on','GridColor',[1 1 1],'GridAlpha',0.8,'TickLength',[0 0],'XColor',[0.3 0.3 0.3],'YColor',[0.3 0.3 0.3])
+figure('Position',[100 100 800 600])
+%g.set_title('facet_grid() options')
+g.draw()
+if saveimg
+    set(gcf,'PaperPositionMode','auto')
+    print('img/facet_grid_options','-dpng','-r0')
+end

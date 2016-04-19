@@ -51,6 +51,7 @@ classdef gramm < handle
         
         wrap_ncols %After how many columns do we wrap around subplots
         facet_scale %Do we have independent scales between facets ?
+        facet_space %Do scale axes between facets ?
         force_ticks %Do we force ticks on all facets
         
         abline %structure containing the abline parameters: on, slope, intercept,style,xintercept,yintecept
@@ -230,19 +231,28 @@ classdef gramm < handle
             % rows or columns of subplots only, set the other
             % argument to [] (empty array). These arguments can be 1D numerical arrays or
             % 1D cell arrays of strings of length N.
-            % This function can receive an other argument as a name value
-            % pair. 'scale' can be set to either 'fixed', 'free_x',
-            % 'free_y', 'free', or 'independent' so that the scale of the subplots is respectively
-            % the same over all subplots, x adjusted per columns of subplots ,
-            % y adjusted per rows of subplots, x adjusted per rows and y per columns,
-            % or x and y adjusted independently per subplot
+            % This function can receive other arguments as a name value
+            % pair. 
+            % - 'scale' can be set to either 'fixed', 'free_x',
+            %   'free_y', 'free', or 'independent' so that the scale of the subplots is respectively
+            %    the same over all subplots, x adjusted per columns of subplots ,
+            %    y adjusted per rows of subplots, x adjusted per rows and y per columns,
+            %    or x and y adjusted independently per subplot
+            % - 'space' can be set to either 'fixed' (default), 'free_x','free_y' or 'free'.
+            %   'free_x' makes the width of the facets proportional to the
+            %   extent of the x axis limits, while 'free_y' makes the height of
+            %   the facets proportional to the extent of the y axis limits. 'free'
+            %   changes both the width and the height. This option has an
+            %   effect only if the corresponding 'scale' parameter is set.
             
             p=inputParser;
             my_addParameter(p,'scale','fixed'); %options 'free' 'free_x' 'free_y' 'independent'
+            my_addParameter(p,'space','fixed'); %'free_x','free_y','free'
             my_addParameter(p,'force_ticks',false);
             parse(p,varargin{:});
             
             obj.facet_scale=p.Results.scale;
+            obj.facet_space=p.Results.space;
             
             if strcmp(obj.facet_scale,'independent') %Force ticks by default in that case
                 obj.force_ticks=true;
@@ -261,7 +271,8 @@ classdef gramm < handle
             % Example syntax (default arguments): gramm_object.facet_wrap(variable,'ncols',4,'scale','fixed')
             % This is similar to faced_grid except that only one variable
             % is given, and subplots are arranged by column, with a wrap
-            % around to the tnext row after 'ncols' columns.
+            % around to the tnext row after 'ncols' columns. There is no
+            % 'space' option.
             
             p=inputParser;
             my_addParameter(p,'ncols',4);
@@ -382,7 +393,7 @@ classdef gramm < handle
             % values for the variable and must contain all the integers
             % between 1 and the number of unique values.
             %
-            % 'color',[10 34 20 5], or 'color',['S' 'M' 'L' 'XL'] Allows to directly describe
+            % 'color',[10 34 20 5], or 'color',{'S' 'M' 'L' 'XL'} Allows to directly describe
             % the desired order by givin an array or a cell array.
             % The values in the array should correspond to the unique
             % values of the variable used for grouping.
@@ -542,6 +553,8 @@ classdef gramm < handle
             % set_names Set names for aesthetics to be displayed in legends and axes
             %
             % Example syntax : gramm_object.set_names('x','Time (ms)','y','Hand position (mm)','color','Movement direction (°)','row','Subject')
+            % Supported aesthetics: 'x' 'y' 'z' 'color' 'linestyle' 'size'
+            % 'marker' 'row' 'column' 'lightness'
             
             p=inputParser;
             
@@ -842,6 +855,9 @@ classdef gramm < handle
 %                 end
             end
             
+
+            
+            
             %Do the move
             if obj.wrap_ncols>0
                 nr=ceil(length(obj.facet_axes_handles)/obj.wrap_ncols);
@@ -861,13 +877,63 @@ classdef gramm < handle
             else
                 nr=size(obj.facet_axes_handles,1);
                 nc=size(obj.facet_axes_handles,2);
-                %We don't let those go below a small value (spacing)
-                neww=max((max_available_x-min_facet_x-spacing_w*(nc-1))/nc,spacing_w);
-                newh=max((max_available_y-min_facet_y-spacing_h*(nr-1))/nr,spacing_h);
+                %OLD
+%                 %We don't let those go below a small value (spacing)
+%                 neww=max((max_available_x-min_facet_x-spacing_w*(nc-1))/nc,spacing_w);
+%                 newh=max((max_available_y-min_facet_y-spacing_h*(nr-1))/nr,spacing_h);
+%                 for r=1:nr
+%                     for c=1:nc
+%                         %axpos=get(obj.facet_axes_handles(r,c),'Position');
+%                         set(obj.facet_axes_handles(r,c),'Position',[min_facet_x+(neww+spacing_w)*(c-1) min_facet_y+(newh+spacing_h)*(nr-r) neww newh]);
+%                     end
+%                 end
+
+                %NEW
+                %Available space for axes
+                avl_x=max_available_x-min_facet_x-spacing_w*(nc-1);
+                avl_y=max_available_y-min_facet_y-spacing_h*(nr-1);
+                if (strcmp(obj.facet_space,'free') || strcmp(obj.facet_space,'free_x')) && ~strcmp(obj.facet_scale,'independent')
+                    %Get axes limits for spacing computation
+                    xdataw=zeros(1,nc);
+                    for c=1:nc
+                        tmp_xlim=get(obj.facet_axes_handles(1,c),'XLim');
+                        xdataw(c)=tmp_xlim(2)-tmp_xlim(1);
+                    end
+                    %Compute axis width depending on data width
+                    x_scale_ratio=xdataw/sum(xdataw);
+                    facet_width=avl_x*x_scale_ratio;
+                else
+                    facet_width=ones(1,nc)*avl_x/nc;
+                end
+                if (strcmp(obj.facet_space,'free') || strcmp(obj.facet_space,'free_y')) && ~strcmp(obj.facet_scale,'independent')
+                    ydataw=zeros(1,nr);
+                    for r=1:nr
+                        tmp_ylim=get(obj.facet_axes_handles(r,1),'YLim');
+                        ydataw(r)=tmp_ylim(2)-tmp_ylim(1);
+                    end
+                    y_scale_ratio=ydataw/sum(ydataw);
+                    facet_height=avl_y*y_scale_ratio;
+                else
+                    facet_height=ones(1,nr)*avl_y/nr;
+                end
+
+
                 for r=1:nr
                     for c=1:nc
-                        %axpos=get(obj.facet_axes_handles(r,c),'Position');
-                        set(obj.facet_axes_handles(r,c),'Position',[min_facet_x+(neww+spacing_w)*(c-1) min_facet_y+(newh+spacing_h)*(nr-r) neww newh]);
+                        %Compute facet x offset
+                        if c>1
+                            x_offset=min_facet_x+sum(facet_width(1:c-1))+spacing_w*(c-1);
+                        else
+                            x_offset=min_facet_x;
+                        end
+                        %compute facet y offset
+                        if r==nr
+                            y_offset=min_facet_y;
+                        else
+                            y_offset=min_facet_y+sum(facet_height(r+1:nr))+spacing_h*(nr-r);
+                        end
+                        %Place facet
+                        set(obj.facet_axes_handles(r,c),'Position',[x_offset y_offset facet_width(c) facet_height(r)]);
                     end
                 end
             end
@@ -896,7 +962,7 @@ classdef gramm < handle
                  %Theoretical resizing
                  %ratio=(legend_top-legend_bottom)/(legend_ylim(2)-legend_ylim(1));
                  
-                 %Future text heught stays visually constant so scales inversely
+                 %Future text height stays visually constant so scales inversely
                  %relative to limits
                  %height_in_mod=legend_height*ratio; 
                  
@@ -935,6 +1001,14 @@ classdef gramm < handle
             % syntax: gramm_object.draw()
             % Call draw on an array of gramm objects in order to have
             % multiple gramms on a single figure.
+            % An optional logical argument can be given. Use
+            % gramm_object.draw(false) in order to allow the nex gramm plot to be 
+            % superimposed on the same figure (useful for plotting with
+            % different grouping aesthetics). When using superimposed
+            % plots, the last draw() should be given without this false
+            % argument. Giving false as argument deactivates the automatic
+            % call for the redraw() function, i.e. deactivates the fancy
+            % axis placement.
             
             if nargin<2
                 do_redraw=true;
@@ -1240,12 +1314,12 @@ classdef gramm < handle
                             obj.plot_lim.minz(obj.current_row,obj.current_column)=0;
                         end
                     else
-                        obj.plot_lim.maxy(obj.current_row,obj.current_column)=0;
-                        obj.plot_lim.miny(obj.current_row,obj.current_column)=0;
-                        obj.plot_lim.maxx(obj.current_row,obj.current_column)=0;
-                        obj.plot_lim.minx(obj.current_row,obj.current_column)=0;
-                        obj.plot_lim.maxz(obj.current_row,obj.current_column)=0;
-                        obj.plot_lim.minz(obj.current_row,obj.current_column)=0;
+                        obj.plot_lim.maxy(obj.current_row,obj.current_column)=NaN;
+                        obj.plot_lim.miny(obj.current_row,obj.current_column)=NaN;
+                        obj.plot_lim.maxx(obj.current_row,obj.current_column)=NaN;
+                        obj.plot_lim.minx(obj.current_row,obj.current_column)=NaN;
+                        obj.plot_lim.maxz(obj.current_row,obj.current_column)=NaN;
+                        obj.plot_lim.minz(obj.current_row,obj.current_column)=NaN;
                     end
                     
 
@@ -1611,6 +1685,7 @@ classdef gramm < handle
                     obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)=obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)+0.01;
                     obj.plot_lim.maxz(obj.plot_lim.minz==obj.plot_lim.maxz)=obj.plot_lim.maxz(obj.plot_lim.minz==obj.plot_lim.maxz)+0.01;
                     
+                    
                     if ~obj.polar.is_polar % XY Limits are only useful for non-polar plots
                         
                         %Set axes limits logic according to facet_scale and
@@ -1728,7 +1803,9 @@ classdef gramm < handle
                             case 'per_plot'
                                 temp_xlim=[obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)];
                         end
-                        set(ca,'XLim',temp_xlim+[-diff(temp_xlim)*obj.xlim_extra*0.5 diff(temp_xlim)*obj.xlim_extra*0.5]);
+                        if sum(isnan(temp_xlim))==0
+                            set(ca,'XLim',temp_xlim+[-diff(temp_xlim)*obj.xlim_extra*0.5 diff(temp_xlim)*obj.xlim_extra*0.5]);
+                        end
                         %xlim(temp_xlim+[-diff(temp_xlim)*obj.xlim_extra*0.5 diff(temp_xlim)*obj.xlim_extra*0.5]);
                         
                         switch temp_yscale
@@ -1739,7 +1816,9 @@ classdef gramm < handle
                             case 'per_plot'
                                 temp_ylim=[obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)];
                         end
-                        set(ca,'YLim',temp_ylim+[-diff(temp_ylim)*obj.ylim_extra*0.5 diff(temp_ylim)*obj.ylim_extra*0.5]);
+                        if sum(isnan(temp_ylim))==0
+                            set(ca,'YLim',temp_ylim+[-diff(temp_ylim)*obj.ylim_extra*0.5 diff(temp_ylim)*obj.ylim_extra*0.5]);
+                        end
                          %ylim(temp_ylim+[-diff(temp_ylim)*obj.ylim_extra*0.5 diff(temp_ylim)*obj.ylim_extra*0.5]);
                          
                          if ~isempty(temp_aes.z) %Only do the Z limit stuff if we have z data
@@ -1831,7 +1910,11 @@ classdef gramm < handle
                     %Set custom axes properties
                     if ~isempty(obj.axe_properties)
                         for ap=1:size(obj.axe_properties,1)
-                            set(ca,obj.axe_properties{ap,1},obj.axe_properties{ap,2})
+                            if isprop(ca,obj.axe_properties{ap,1})
+                                set(ca,obj.axe_properties{ap,1},obj.axe_properties{ap,2})
+                            else
+                                warning(['Improper ''' obj.axe_properties{ap,1} ''' custom axe property'])
+                            end
                         end
                     end
                     
@@ -1901,6 +1984,7 @@ classdef gramm < handle
             %Windows the patch objects behave strangely. So we switch to
             %painters renderer
             if verLessThan('matlab','8.4')
+                warning('Pre-2014b version detected, forcing to ''Painters'' renderer. Use set(gcf,''Renderer'',''OpenGL'') to restore transparency')
                 set(gcf,'Renderer','Painters')
             end
             
@@ -2012,6 +2096,12 @@ classdef gramm < handle
         end
         
         function obj=geom_funline(obj,varargin)
+            % geom_funline Display a custom curve in each facet
+            %
+            % Example syntax: gramm_object.geom_funline('fun',@(x)3*sin(x),'style','k--')
+            % The 'fun' argument allows to pass an anonymous function to
+            % plot
+            
             p=inputParser;
             my_addParameter(p,'fun',@(x)x);
             my_addParameter(p,'style','k--');
@@ -2028,6 +2118,7 @@ classdef gramm < handle
             % geom_raster Plot X data as a raster plot
             %
             % Option 'geom': 'line' or 'point'
+            
             p=inputParser;
             my_addParameter(p,'geom','line');
             parse(p,varargin{:});
@@ -2056,11 +2147,18 @@ classdef gramm < handle
 %% stat public methods    
         function obj=stat_smooth(obj,varargin)
             % stat_smooth Display a smoothed estimate of the data with
-            % optional 95% confidence interval
+            % optional 95% bootstrapped confidence interval
             %
-            % Warning: If used with repeated data (ie when y is given as 2D
-            % array or cell array), the confidence interval will probably
-            % be too small; it's better to use stat_summary in that case.
+            % Arguments given as 'name,value pairs:
+            % - 'lambda': smoothing parameter (default is 1000)
+            % - 'geom': how is the smooth displayed (see stat_summary()
+            % documentation)
+            % - 'npoints': number of points over which the smooth is
+            % evaluated (default is 100).
+            %
+            % If used with repeated data (ie when y is given as 2D
+            % array or cell array), each trajectory will be smoothed and
+            % displayed individually (without confidence interval computation)
             
             p=inputParser;
             my_addParameter(p,'lambda',1000);
@@ -2100,11 +2198,11 @@ classdef gramm < handle
             %       - 'fitpoissonci'
             %        - 'fit95percentile'
             % - 'geom':
-            %       - 'line': displays a line the connects the locations
+            %       - 'line': displays a line that connects the central locations
             %       (mean,median)
-            %       - 'lines': displays a line that connects the locations
+            %       - 'lines': displays a line that connects the central locations
             %       and lighter lines for the variabilities
-            %       - 'area': displays a line that connects the locations
+            %       - 'area': displays a line that connects the central locations
             %       and a transparent area for the variabilities. WARNING:
             %       this changes the renderer to opengl and disables proper
             %       vector output on older matlab versions
@@ -2119,8 +2217,8 @@ classdef gramm < handle
             % points.
             % - 'interp': Use to interpolate the output, takes the same parameters as
             % interp1 in order to specify the interpolation type. When the
-            % polar mode is specified as closed, the interpolation uses
-            % interpft, which supposes regular sampling around the circle.
+            % polar mode is specified as closed, or when 'interp','polar' is used
+            % the interpolation uses interpft, which supposes regular sampling around the circle.
             % - 'interp_in': Use to (linearly) interpolate the input. This is intended
             % for input given as cells when the x value is different for
             % each cell and not aligned. The argument corresponds to the
@@ -2129,16 +2227,45 @@ classdef gramm < handle
             % the x resolution of the data, otherwise some data will be
             % unused.
             % - 'bin_in': Use to bin the input. This is intended for input
-            % given as array, creates bins over x and computes the summary
+            % given as a 1-D array, creates bins over x and computes the summary
             % over the binned data. Argument corresponds to the number of
             % bins
             % - 'dodge': use to dodge the plotted elements depending on
             % color (recommended for 'bar', 'errorbar', 'black_errorbar').
-            % Negative values deactivate dodging (default), other values set the space
-            % between the dodged elements as ratio of the x intervals. Set
-            % to 0 for bars to touch each other, increase for inceased
-            % spacing.
-            
+            % A value of 0 deactivates dodging. Other values set the space
+            % between the dodged elements as ratio of the x intervals.
+            % - 'width': use to set the width of bars and error bars (error
+            % bars are 1/4 th the width of bars).
+            % 
+            % A setting of 'dodge',1,'width',1 will create bars that are
+            % fully dodged (ie don't overlap, but are not separated) and where
+            % all bars occupy the full interval between the x values, e.g.:
+            % * __    *
+            % *|  |__ *
+            % *|  |  |*
+            % *|__|__|*
+            %
+            % A setting of 'dodge',0.8,'width',0.8 will have fully dodged bars that are
+            % not separated, but only occupy 50% of the space between x
+            % values, e.g.:
+            % *  _    *
+            % * | |_  *
+            % * | | | *
+            % * |_|_| *
+            %
+            %A setting of 'dodge',0.8,'width',0.6 will add some
+            % spacing between the bars, e.g.:
+            % *  _      *
+            % * | |  _  *
+            % * | | | | *
+            % * |_| |_| *
+            %
+            % A setting of 'dodge',0.8,'width',1 will create dodged but overlapping
+            % bars, e.g.:
+            % *  ___    *
+            % * |  _|_  *
+            % * | |   | *
+            % * |_|___| *   
             
             
             
@@ -2160,18 +2287,18 @@ classdef gramm < handle
         function obj=stat_boxplot(obj,varargin)
             %stat_boxplot() Create box and whiskers plots 
             %
-            % stat_boxplot() will create boc and whisker plots of Y values for
+            % stat_boxplot() will create box and whisker plots of Y values for
             %unique values of X. The box is drawn between the 25 and 75
             %percentiles, with a line indicating the median. The wiskers
-            %extend above and below the box by a distance equal to 1.5
-            %times the interquartile range. Points outside the whiskers
-            %ranges are plotted.
-            % - 'spacing' allows to set the spacing between boxes or groups
-            %   of boxes between unique values of x (expressed as a ratio)
+            %extend above and below the box to the most extreme data points that are within 
+            % a distance to the box equal to 1.5 times the interquartile
+            % range (Tukey boxplot).
+            % Points outside the whiskers ranges are plotted.
             % - 'dodge' allows to set the spacing between boxes of
-            %   different colors within an unique value of x. Set to a
-            %   negative value to deactivate dodging. Set to zero for boxes
-            %   touching.
+            %   different colors within an unique value of x.
+            % - 'width' allows to set the width of the individual boxes.
+            % See the documentation of stat_summary() for the behavior of
+            % 'dodge' and 'width'
             
             p=inputParser;
             my_addParameter(p,'width',0.6);
@@ -2255,6 +2382,10 @@ classdef gramm < handle
             % to compute, 'observation' for bounds of a new observation
             % (default), or 'functional' for bounds of the fitted curve.
             % - 'geom', 'fullrange', 'disp_fit' options: see stat_glm()
+            % - 'fullrange': set to true if you want the fits to be
+            %   displayed over the whole width of each subplot instead of
+            %   being displayed over the range of x values used for the fit
+            % - 'disp_fit': set to true to display the fitted parameters
             
             p=inputParser;
             my_addParameter(p,'fun',@(a,b,x)a*x+b);
@@ -2277,7 +2408,8 @@ classdef gramm < handle
             % geom_point Displays an histogram of the data in x
             %
             % Example syntax (default arguments): gramm_object.stat_bin('nbins',30,'geom','bar')
-            % 'geom' can be 'bar', 'overlaid_bar', 'line', 'stairs', 'point' or 'stacked_bar'
+            % Options can be given as 'name',value pairs:
+            % - 'geom' can be 'bar', 'overlaid_bar', 'line', 'stairs', 'point' or 'stacked_bar'
             % The 'normalization' argument allows to optionally normalize
             % the bin counts (see the doc for Matlab's histcounts() ).
             % Default is 'count', for normalization to 1 use 'probability'
@@ -2753,7 +2885,9 @@ classdef gramm < handle
                     bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
                     [~,binind]=my_histcounts(x,binranges,'count');
                     uni_x=bincenters;
-                    x=bincenters(binind);
+                    sel=binind~=0; %histcounts can return zero as bin index if NaN data we remove them here
+                    x=bincenters(binind(sel));
+                    y=y(sel);
                 else
                     %NEW: compute unique Xs at the facet level to avoid
                     %weird bar sizing issues when dodging and when
@@ -2823,8 +2957,12 @@ classdef gramm < handle
                     yci=yci';
                 end
                 
-                if obj.polar.is_polar && obj.polar.is_polar_closed 
-                    %If the plot is polar we override the interpolation typ do an optimal fft interpolation
+                if obj.polar.is_polar && obj.polar.is_polar_closed && ~strcmp(params.interp,'polar')
+                    disp([params.interp ' interpolation overriden, ''polar'' used']);
+                    params.interp='polar'; %%If the plot is polar we override the interpolation type do an optimal fft interpolation
+                end
+                
+                if strcmp(params.interp,'polar')
                     uni_x=0:pi/50:2*pi-pi/50;
                     ymean=interpft(ymean,100);
                     tmp_yci1=interpft(yci(1,:),100);
@@ -2956,8 +3094,8 @@ classdef gramm < handle
         function hndl=my_ellipse(obj,draw_data,params)
             
             
-            persistent elpoints
-            persistent sphpoints
+            persistent elpoints;
+            persistent sphpoints;
 
             %Cache unity ellipse points
             if isempty(elpoints)
@@ -3026,7 +3164,7 @@ classdef gramm < handle
                             
                             
                     end
-                    set(hndl,params.patch_opts{:}); %displays a lot of stuff if we don't have an output value !
+                    tmp = set(hndl,params.patch_opts{:}); %displays a lot of stuff if we don't have an output value !
                     
                     plot(m(1),m(2),'+','MarkerFaceColor',draw_data.color,'MarkerEdgeColor',draw_data.color,'MarkerSize',10);
                 else
@@ -3105,6 +3243,11 @@ classdef gramm < handle
             
             combx=comb(draw_data.x)';
             comby=comb(draw_data.y)';
+            
+            %Remove NaNs
+            sel=~isnan(combx) & ~isnan(comby);
+            combx=combx(sel);
+            comby=comby(sel);
             
             %Do the fit depending on options
             if isempty(params.StartPoint)
@@ -3856,6 +3999,8 @@ try
             pd=fitdist(y,'Normal');
             ymean=pd.icdf(0.5);
             yci=pd.icdf([0.025 0.975]);
+        otherwise
+            warning(['Unknown CI type ' type]);
     end
 catch
     disp('Not enough samples for CI computation...skipping')

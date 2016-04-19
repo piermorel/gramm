@@ -53,7 +53,7 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 
 - Multiple ways of separating groups of data: 
   - Colors, lightness, point markers, line styles, and point/line size (<code>'color'</code>, <code>'lightness'</code>, <code>'marker'</code>, <code>'linestyle'</code>,  <code>'size'</code>)
-  - Subplots by row and/or columns, or wrapping columns (<code>facet_grid()</code> and <code>facet_wrap()</code>). Multiple <code>'scale'</code> options for consistent axis limits across facets, rows, columns, etc.
+  - Subplots by row and/or columns, or wrapping columns (<code>facet_grid()</code> and <code>facet_wrap()</code>). Multiple options for consistent axis limits across facets, rows, columns, etc. (using <code>'scale'</code> and <code>'space'</code>)
 
 - Multiple ways of directly plotting the data: 
   - scatter plots (<code>geom_point()</code>) and jittered scatter plot (<code>geom_jitter()</code>)
@@ -90,45 +90,70 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 - Date ticks with set_datetick()
 - Gramm works best with table-like data: separate variables / structure fields / table columns for the variables of interest, with each variable having as many elements as observations.
 
-## Examples
+
+## Use cases and examples
 
 The code for the following figures and numerous others is in <code>examples.m</code>.
 
-### Custom fits ###
-<code>stat_fit()</code>
+###Visualization of the influence of categorical variables on a continuous variable
 
-<img src="/img/fit_example.png" alt="Custom fits" width="600">
+<img src="/img/Visualization_Y_categoricalX.png" alt="" width="800">
 
-### GLM fits (carbig data) ###
-<code>stat_glm()</code>
-Note that the fit is made across color groups. this is done by superimposing gramm plots.
+###Visualization of the distribution of a continuous variable
+Note that we by using Origin as a faceting variable, we visualize exactly the same quantities as in the figure above.
 
-<img src="/img/carbig_glm_example.png" alt="GLM fits" width="600">
+<img src="/img/Visualization_X_density.png" alt="" width="800">
 
-### Multiple gramm objects in a single figure 
-Also shows histograms, categorical x values
+###Visualization of the relationship between two continous variables
 
-<img src="/img/multiple_gramm_example.png" alt="Multiple gramm" width="800">
+<img src="/img/Visualization_Y_X.png" alt="" width="800">
 
-### Histograms ###
-<code>stat_bin()</code> with different <code>'geom'</code> options: <code>'bar'</code>, <code>'stacked_bar'</code>,<code>'point'</code>,<code>'line'</code>, <code>'overlaid_bar'</code>,<code>'stairs'</code>
+###Visualization of repeated trajectories
+Here the variable given as Y is a Nx1 cell of 1D arrays containing the individual trajectories. Color is given as a Nx1 cellstr.
 
-<img src="/img/histograms_example.png" alt="Histograms example" width="800">
+<img src="/img/Visualization_trajectories.png" alt="" width="800">
+
+###Visualization of repeated distributions
+This example highlights the potential use of gramm for neuroscientific data. Here X is a Nx1 cell containing spike trains (N trials).
+Using <code>stat_bin()</code> it is possible to construct peristimulus time histograms.
+
+<img src="/img/visualization_spikes.png" alt="" width="800">
+
+### Visualization of 2D densities
+
+<img src="/img/Visualization_2D_density.png" alt="2D density" width="800">
+
+### stat_bin() options ###
+
+<img src="/img/histogram_options.png" alt="Histograms example" width="800">
+
+### facet_grid() options ###
+
+<img src="/img/facet_grid_options.png" alt="facet_grid() options" width="800">
 
 ### Colormap customization ###
-<code>set_color_options()</code> with <code>'map'</code> set as <code>'lch'</code> with various customization on the first row. <code>'map'</code> set to <code>matlab</code>,
- <code>brewer1</code>, and <code>brewer2</code> on the second line
+With <code>set_color_options()</code>
 
 <img src="/img/colormaps_example.png" alt="Colormaps example" width="800">
 
-### 2D density visualizations ###
-<code>stat_ellipse()</code> and <code>stat_bin2d()</code> with <code>'geom'</code> set to <code>'contour'</code>,<code>'point'</code>,<code>'image'</code>
-
-<img src="/img/2D_densities_example.png" alt="2D density" width="600">
-
 ### Continuous colors
 
-<img src="/img/continuous_color_example.png" alt="Continuous colors" width="600">
+<img src="/img/continuous_color_example.png" alt="Continuous colors" width="800">
+
+###Reordering of categorical variables
+With <code>set_order_options()</code>
+
+<img src="/img/ordering_options.png" alt="Continuous colors" width="800">
+
+### Multiple gramm objects in a single figure 
+
+<img src="/img/multiple_gramm_example.png" alt="Multiple gramm" width="800">
+
+### Superimposition of gramm objects on the same axes
+By making the first draw call as draw(false), the same axes can be reused for another gramm plot.
+Here this allows to use different groupings for the points and for the glm fit.
+
+<img src="/img/carbig_glm_example.png" alt="gramm superimposition" width="800">
 
 ## Acknowledgements
 gramm was inspired and/or used code from:
