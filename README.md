@@ -95,7 +95,7 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 
 The code for the following figures and numerous others is in <code>examples.m</code>.
 
-###Relationships between categorical variables and a continuous variable
+###Relationship categorical and continuous variables
 
 <img src="/img/Visualization_Y_categoricalX.png" alt="" width="800">
 
