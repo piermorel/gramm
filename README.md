@@ -125,7 +125,7 @@ Using <code>stat_bin()</code> it is possible to construct peristimulus time hist
 
 ### stat_bin() options ###
 
-<img src="/img/histogram_options.png" alt="Histograms example" width="800">
+<img src="/img/histograms_options.png" alt="Histograms example" width="800">
 
 ### facet_grid() options ###
 
@@ -153,7 +153,7 @@ With <code>set_order_options()</code>
 By making the first draw call as draw(false), the same axes can be reused for another gramm plot.
 Here this allows to use different groupings for the points and for the glm fit.
 
-<img src="/img/carbig_glm_example.png" alt="gramm superimposition" width="800">
+<img src="/img/carbig_glm_example.png" alt="gramm superimposition" width="600">
 
 ## Acknowledgements
 gramm was inspired and/or used code from:
