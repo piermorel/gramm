@@ -3,9 +3,9 @@
 Gramm is a powerful plotting toolbox which allows to quickly create complex, publication-quality figures in Matlab, and is inspired by R's [ggplot2](http://ggplot2.org) library by [Hadley Wickham](http://had.co.nz). As a reference to this inspiration, gramm stands for **GRAM**mar of graphics for **M**atlab.
 
 ## Table of contents ##
-- [Using gramm](using-gramm)
-- [Features](features)
-- [Use cases and examples (screenshots)](use-cases-and-examples)
+- [Using gramm](#using-gramm)
+- [Features](#features)
+- [Use cases and examples (screenshots)](#use-cases-and-examples)
 
 ## Using gramm ##
 
