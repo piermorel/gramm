@@ -2824,7 +2824,7 @@ classdef gramm < handle
             
             %Advanced defaults
             if isempty(params.dodge)
-                if sum(strcmp(params.geom,'bar'))>0 && draw_data.n_colors>1 %If we have a bar in as geom, we dodge
+                if sum(strcmp(params.geom,'bar'))>0 && draw_data.n_colors>1 %If we have a bar as geom, we dodge
                     params.dodge=0.6;
                 else
                     params.dodge=0;
@@ -2889,15 +2889,18 @@ classdef gramm < handle
                     x=bincenters(binind(sel));
                     y=y(sel);
                 else
-                    %NEW: compute unique Xs at the facet level to avoid
-                    %weird bar sizing issues when dodging and when
-                    %colors are missing
-                    facet_x=comb(draw_data.facet_x);
-                    uni_x=unique(facet_x);
-            
-                    %OLD
-                    %uni_x=unique(x); %Sorted is the default
-                    
+                    if sum(strcmp(params.geom,'area'))>0 || sum(strcmp(params.geom,'line'))>0 ||...
+                            sum(strcmp(params.geom,'lines'))>0  || sum(strcmp(params.geom,'solid_area'))>0
+                        %To avoid interruptions in line and area plots we
+                        %compute uniques over current data only
+                        uni_x=unique(x); %Sorted is the default
+                    else
+                        %compute unique Xs at the facet level to avoid
+                        %weird bar sizing issues when dodging and when
+                        %colors are missing
+                        facet_x=comb(draw_data.facet_x);
+                        uni_x=unique(facet_x);
+                    end
                     %Here we need to implement a loose 'unique' because of
                      %potential numerical errors
                     uni_x(diff(uni_x)<1e-10)=[];
