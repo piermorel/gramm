@@ -1,0 +1,46 @@
+function obj=facet_wrap(obj,col,varargin)
+% facet_grid Create subplots according to one factor, with wrap
+%
+% Example syntax (default arguments): gramm_object.facet_wrap(variable,'ncols',4,'scale','fixed')
+% This is similar to faced_grid except that only one variable
+% is given, and subplots are arranged by column, with a wrap
+% around to the tnext row after 'ncols' columns. There is no
+% 'space' option.
+
+p=inputParser;
+my_addParameter(p,'ncols',4);
+my_addParameter(p,'scale','fixed'); %options 'free' 'free_x' 'free_y'
+my_addParameter(p,'force_ticks',false);
+parse(p,varargin{:});
+
+obj.facet_scale=p.Results.scale;
+
+if strcmp(obj.facet_scale,'independent') || strcmp(obj.facet_scale,'free') %Force ticks by default in these case
+    obj.force_ticks=true;
+else
+    obj.force_ticks=p.Results.force_ticks;
+end
+
+%Handle case where facet_wrap is called after update()
+if obj.updater.updated
+    if isnumeric(obj.row_facet) && isnumeric(obj.col_facet) && all(obj.row_facet==1) && all(obj.col_facet==1)
+        %We go from one to multiple facets
+        obj.updater.facet_updated=1;
+    else
+        if isempty(col)
+            %We go from multiple to one facets
+            obj.updater.facet_updated=-1;
+        else
+            error('Updating facet only works when going from one to multiple facets or vice versa');
+        end
+    end
+end
+
+obj.wrap_ncols=p.Results.ncols;
+if iscategorical(col)
+    obj.col_facet=shiftdim(cellstr(col));
+else
+    obj.col_facet=shiftdim(col);
+end
+obj.row_facet=[];
+end
