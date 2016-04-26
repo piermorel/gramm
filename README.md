@@ -42,7 +42,7 @@ g.draw()
 ```
 
 ### Installation
-Add the folder containing gramm.m to your path
+Add the folder containing the @gramm class folder to your path
 ### Compatibility
 Tested under Matlab 2014b+ versions. With pre-2014b versions, gramm forces <code>'painters'</code>, renderer to avoid some graphic bugs, which deactivates transparencies (use non-transparent geoms, for example <code>stat_summary('geom','lines')</code>). The statistics toolbox is required for some methods: <code>stat_glm()</code>, some <code>stat_summary()</code> methods, <code>stat_density()</code>. The curve fitting toolbox is required for <code>stat_fit()</code/>.
 #### Documentation
@@ -86,9 +86,10 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 - Possibility to change ordering of grouping variables between native, sorted, or custom (<code>set_order_options</code>)
 - Confidence intervals as shaded areas, error bars or thin lines
 - Set the width and dodging of graphical elements in <code>stat_bin()</code>, <code>stat_summary()</code>, and <code>stat_boxplot()</code>, with <code>'width'</code> and <code>'dodge'</code> arguments
-- Results of computations from <code>stat_</code> plots are returned in the member structure <code>results</code>
+- The member structure <code>results</code> contains the results of computations from <code>stat_</code> plots as well as graphic handles for all plotted elements
 - Figure title (<code>set_title()</code>)
 - Multiple gramm plots can be combined in the same figure by creating a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix. An overarching title can be added by calling <code>set_title()</code> on the whole matrix.
+- Different groupings can be used for different <code>stat_</code> and <code>geom_</code> layers with the <code>update()</code> method
 - Matlabs axes properties are acessible through the method <code>axe_property()</code>
 - Custom legend labels with <code>set_names()</code>
 - Plot reference line on the plots with <code>geom_abline()</code>, <code>geom_vline()</code>,<code>geom_hline()</code>
@@ -154,7 +155,6 @@ With <code>set_color_options()</code>
 With <code>set_order_options()</code>
 
 <img src="/html/examples_19.png" alt="Reordering" width="800">
-
 
 
 ### Superimposition of gramm objects on the same axes
