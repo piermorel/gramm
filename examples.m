@@ -784,14 +784,9 @@ g(2,3).set_title({'x in input order' 'lightness in custom order'});
 
 g.set_names('x','US size','y','EU size','lightness','US size');
 g.axe_property('YLim',[0 48]);
+
 figure('Position',[100 100 800 600]);
 g.draw();
-if saveimg
-    set(gcf,'PaperPositionMode','auto');
-    print('img/ordering_options','-dpng','-r0');
-end
-
-
 
 
 %% Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)

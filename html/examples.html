@@ -671,43 +671,36 @@ g(2,3).set_title({<span class="string">'x in input order'</span> <span class="st
 
 g.set_names(<span class="string">'x'</span>,<span class="string">'US size'</span>,<span class="string">'y'</span>,<span class="string">'EU size'</span>,<span class="string">'lightness'</span>,<span class="string">'US size'</span>);
 g.axe_property(<span class="string">'YLim'</span>,[0 48]);
+
 figure(<span class="string">'Position'</span>,[100 100 800 600]);
 g.draw();
-<span class="keyword">if</span> saveimg
-    set(gcf,<span class="string">'PaperPositionMode'</span>,<span class="string">'auto'</span>);
-    print(<span class="string">'img/ordering_options'</span>,<span class="string">'-dpng'</span>,<span class="string">'-r0'</span>);
-<span class="keyword">end</span>
 </pre><pre class="codeoutput">ordering given as values
 ordering given as indices
-</pre><pre class="codeoutput error">Undefined function or variable 'saveimg'.
-
-Error in examples (line 789)
-if saveimg
-</pre><h2>Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)<a name="27"></a></h2><p>Standard ggplot-like input (arrays for everything) Note the continuous line connecting all blue data points, gramm can't know when to start a new line in this case</p><pre class="codeinput">Y=[1 2 3 4 5 2 3 4 5 6 3 4 5 6 7];
+</pre><img vspace="5" hspace="5" src="examples_19.png" alt=""> <h2>Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)<a name="27"></a></h2><p>Standard ggplot-like input (arrays for everything) Note the continuous line connecting all blue data points, gramm can't know when to start a new line in this case</p><pre class="codeinput">Y=[1 2 3 4 5 2 3 4 5 6 3 4 5 6 7];
 X=[1 2 3 4 5 0 1 2 3 4 -1 0 1 2 3];
 C=[1 1 1 1 1 2 2 2 2 2 2 2 2 2 2];
 figure
 g11=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g11.geom_line();
 g11.draw();
-</pre><p>Adding a group variable solves the problem in a ggplot-like way</p><pre class="codeinput">G=[1 1 1 1 1 2 2 2 2 2 3 3 3 3 3];
+</pre><img vspace="5" hspace="5" src="examples_20.png" alt=""> <p>Adding a group variable solves the problem in a ggplot-like way</p><pre class="codeinput">G=[1 1 1 1 1 2 2 2 2 2 3 3 3 3 3];
 figure
 g12=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C,<span class="string">'group'</span>,G);
 g12.geom_line();
 g12.draw();
-</pre><p>For a more matlab-like solution, Y and X can be 2D arrays, rows will automatically be considered as groups. as a consequence grouping data (color, etc...) are provided for the rows !</p><pre class="codeinput">Y=[1 2 3 4 5;2 3 4 5 6; 3 4 5 6 7];
+</pre><img vspace="5" hspace="5" src="examples_21.png" alt=""> <p>For a more matlab-like solution, Y and X can be 2D arrays, rows will automatically be considered as groups. as a consequence grouping data (color, etc...) are provided for the rows !</p><pre class="codeinput">Y=[1 2 3 4 5;2 3 4 5 6; 3 4 5 6 7];
 X=[1 2 3 4 5; 0 1 2 3 4; -1 0 1 2 3];
 C=[1 2 2];
 figure
 g13=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g13.geom_line();
 g13.draw();
-</pre><p>If all X values are the same, it's possible to provide X as a single row</p><pre class="codeinput">X=[1 2 3 4 5];
+</pre><img vspace="5" hspace="5" src="examples_22.png" alt=""> <p>If all X values are the same, it's possible to provide X as a single row</p><pre class="codeinput">X=[1 2 3 4 5];
 figure
 g14=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g14.geom_line();
 g14.draw();
-</pre><p>Similar results can be obtained with cells of arrays</p><pre class="codeinput">Y={[1 2 3 4 5] [2 3 4 5 6] [3 4 5 6 7]};
+</pre><img vspace="5" hspace="5" src="examples_23.png" alt=""> <p>Similar results can be obtained with cells of arrays</p><pre class="codeinput">Y={[1 2 3 4 5] [2 3 4 5 6] [3 4 5 6 7]};
 X={[1 2 3 4 5] [0 1 2 3 4] [-1 0 1 2 3]};
 figure
 g15=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
@@ -720,13 +713,13 @@ figure
 g16=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g16.geom_line();
 g16.draw();
-</pre><p>With cells of arrays, there is the opportunity to have different lengths for different groups</p><pre class="codeinput">Y={[1 2 3 4 5] [3 4 5] [3 4 5 6 7]};
+</pre><img vspace="5" hspace="5" src="examples_24.png" alt=""> <img vspace="5" hspace="5" src="examples_25.png" alt=""> <p>With cells of arrays, there is the opportunity to have different lengths for different groups</p><pre class="codeinput">Y={[1 2 3 4 5] [3 4 5] [3 4 5 6 7]};
 X={[1 2 3 4 5] [1 2 3] [-1 0 1 2 3]};
 figure
 g17=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g17.geom_line();
 g17.draw();
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="examples_26.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% gramm examples
 % Examples and how-tos for gramm
@@ -1514,14 +1507,9 @@ g(2,3).set_title({'x in input order' 'lightness in custom order'});
 
 g.set_names('x','US size','y','EU size','lightness','US size');
 g.axe_property('YLim',[0 48]);
+
 figure('Position',[100 100 800 600]);
 g.draw();
-if saveimg
-    set(gcf,'PaperPositionMode','auto');
-    print('img/ordering_options','-dpng','-r0');
-end
-
-
 
 
 %% Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)
