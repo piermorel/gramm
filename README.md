@@ -153,7 +153,7 @@ With <code>set_color_options()</code>
 ###Reordering of categorical variables
 With <code>set_order_options()</code>
 
-<img src="//html/examples_19.png" alt="Continuous colors" width="800">
+<img src="/html/examples_19.png" alt="Reordering" width="800">
 
 
 
