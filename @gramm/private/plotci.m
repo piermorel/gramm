@@ -27,7 +27,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
             
             %The available width is set to the minimum width within the
             %provided data
-            if length(x)>2
+            if length(x)>=2
                 avl_w=min(diff(x));
             else
                 avl_w=1;

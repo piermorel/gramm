@@ -125,6 +125,7 @@ g(2,1).set_title('stat_summary()');
 g(2,2).stat_boxplot();
 g(2,2).set_title('stat_boxplot()');
 
+%These functions can be called on arrays of gramm objects
 g.set_names('x','Origin','y','Horsepower','color','# Cyl');
 g.set_title('Visualization of Y~X relationships with X as categorical variable');
 
@@ -340,7 +341,7 @@ g.draw();
 %% Options for separating groups across subplots with facet_grid()
 % To separate groups in different rows and columns of sublots, the grouping
 % variable just need to be passed to the
-% |facet_grid(goup_rows,group_columns)| function or |facet_wrap(group_columns)Ó. Both have multiple
+% |facet_grid(goup_rows,group_columns)| function or |facet_wrap(group_columns)|. Both have multiple
 % options concerning the scaling of data between subplots.
 %
 % * By default |'scale','fixed'| all subplots have the same limits

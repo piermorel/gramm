@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>gramm examples</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-04-26"><meta name="DC.source" content="examples.m"><style type="text/css">
+      --><title>gramm examples</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-04-29"><meta name="DC.source" content="examples.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -145,6 +145,7 @@ g(2,1).set_title(<span class="string">'stat_summary()'</span>);
 g(2,2).stat_boxplot();
 g(2,2).set_title(<span class="string">'stat_boxplot()'</span>);
 
+<span class="comment">%These functions can be called on arrays of gramm objects</span>
 g.set_names(<span class="string">'x'</span>,<span class="string">'Origin'</span>,<span class="string">'y'</span>,<span class="string">'Horsepower'</span>,<span class="string">'color'</span>,<span class="string">'# Cyl'</span>);
 g.set_title(<span class="string">'Visualization of Y~X relationships with X as categorical variable'</span>);
 
@@ -325,7 +326,7 @@ g.set_title(<span class="string">'Visualization of spike densities'</span>);
 
 figure(<span class="string">'Position'</span>,[100 100 800 350]);
 g.draw();
-</pre><img vspace="5" hspace="5" src="examples_08.png" alt=""> <h2>Options for separating groups across subplots with facet_grid()<a name="16"></a></h2><p>To separate groups in different rows and columns of sublots, the grouping variable just need to be passed to the <tt>facet_grid(goup_rows,group_columns)</tt> function or |facet_wrap(group_columns)&Oacute;. Both have multiple options concerning the scaling of data between subplots.</p><div><ul><li>By default <tt>'scale','fixed'</tt> all subplots have the same limits</li><li><tt>'scale','free_x'</tt>: subplots on the same columns have the same x limits</li><li><tt>'scale','free_y'</tt>: subplots on the same rows have the same y limits</li><li><tt>'scale','free'</tt>: subplots on the same rows have the same y limits, subplots on the same columns have the same x limits</li><li><tt>'scale','independent'</tt>: subplots have independent limits</li></ul></div><p>In <tt>facet_grid()</tt>; the <tt>'space'</tt> option allows to set how the subplot axes themselves scale with the data. It should be used in conjunction with the corresponding <tt>'scale'</tt> option.</p><pre class="codeinput"><span class="comment">% Generating fake data</span>
+</pre><img vspace="5" hspace="5" src="examples_08.png" alt=""> <h2>Options for separating groups across subplots with facet_grid()<a name="16"></a></h2><p>To separate groups in different rows and columns of sublots, the grouping variable just need to be passed to the <tt>facet_grid(goup_rows,group_columns)</tt> function or <tt>facet_wrap(group_columns)</tt>. Both have multiple options concerning the scaling of data between subplots.</p><div><ul><li>By default <tt>'scale','fixed'</tt> all subplots have the same limits</li><li><tt>'scale','free_x'</tt>: subplots on the same columns have the same x limits</li><li><tt>'scale','free_y'</tt>: subplots on the same rows have the same y limits</li><li><tt>'scale','free'</tt>: subplots on the same rows have the same y limits, subplots on the same columns have the same x limits</li><li><tt>'scale','independent'</tt>: subplots have independent limits</li></ul></div><p>In <tt>facet_grid()</tt>; the <tt>'space'</tt> option allows to set how the subplot axes themselves scale with the data. It should be used in conjunction with the corresponding <tt>'scale'</tt> option.</p><pre class="codeinput"><span class="comment">% Generating fake data</span>
 N=2000;
 colval={<span class="string">'A'</span> <span class="string">'B'</span> <span class="string">'C'</span>};
 rowval={<span class="string">'I'</span> <span class="string">'II'</span>};
@@ -848,6 +849,7 @@ g(2,1).set_title('stat_summary()');
 g(2,2).stat_boxplot();
 g(2,2).set_title('stat_boxplot()');
 
+%These functions can be called on arrays of gramm objects
 g.set_names('x','Origin','y','Horsepower','color','# Cyl');
 g.set_title('Visualization of Y~X relationships with X as categorical variable');
 
@@ -1063,7 +1065,7 @@ g.draw();
 %% Options for separating groups across subplots with facet_grid()
 % To separate groups in different rows and columns of sublots, the grouping
 % variable just need to be passed to the
-% |facet_grid(goup_rows,group_columns)| function or |facet_wrap(group_columns)Ó. Both have multiple
+% |facet_grid(goup_rows,group_columns)| function or |facet_wrap(group_columns)|. Both have multiple
 % options concerning the scaling of data between subplots.
 %
 % * By default |'scale','fixed'| all subplots have the same limits
