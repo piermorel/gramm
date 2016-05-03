@@ -6,11 +6,23 @@ function obj=update(obj,varargin)
 
 %Parse new aes
 new_aes=parse_aes(varargin{:});
-%Replace fields given here in the original aes
-new_fields=varargin(1:2:end);
-for k=1:length(new_fields)
-    obj.aes.(new_fields{k})=new_aes.(new_fields{k});
+
+%Do we have new x values?
+if ~isempty(new_aes.x) && numel(new_aes.x)~=numel(obj.aes.x)
+    disp('New X of different size given, all data from first gramm cleared')
+    %if so we clear everything
+    obj.row_facet=[]
+    obj.col_facet=[];
+    obj.aes=new_aes;
+else
+    %Replace fields given here in the original aes
+    new_fields=varargin(1:2:end);
+    for k=1:length(new_fields)
+        obj.aes.(new_fields{k})=new_aes.(new_fields{k});
+    end
 end
+
+
 
 %Initialize geoms
 obj.geom={};

@@ -187,11 +187,16 @@ else %If input was provided as 1D array
             %compute uniques over current data only
             uni_x=unique(x); %Sorted is the default
         else
-            %compute unique Xs at the facet level to avoid
-            %weird bar sizing issues when dodging and when
-            %colors are missing
-            facet_x=comb(draw_data.facet_x);
-            uni_x=unique(facet_x);
+            if obj.x_factor
+                %If x is a factor we space everything as one
+                uni_x=obj.var_lim.minx:1:obj.var_lim.maxx;
+            else
+                %compute unique Xs at the facet level to avoid
+                %weird bar sizing issues when dodging and when
+                %colors are missing
+                facet_x=comb(draw_data.facet_x);
+                uni_x=unique(facet_x);
+            end
         end
         %Here we need to implement a loose 'unique' because of
         %potential numerical errors

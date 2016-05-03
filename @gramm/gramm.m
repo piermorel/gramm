@@ -126,6 +126,8 @@ classdef gramm < matlab.mixin.Copyable
         
         redraw_cache=[] %Cache store for faster redraw() calls
         
+        parent=[]
+        
         handle_graphics
         extra %Store extra geom-specific info
     end
@@ -219,7 +221,13 @@ classdef gramm < matlab.mixin.Copyable
         obj=stat_density(obj,varargin)
         obj=stat_qq(obj,varargin)
         
+        function obj=set_parent(obj,parent)
+            obj.parent=parent;
+        end
+        
     end
+    
+
     
 end
 

@@ -12,7 +12,7 @@ function obj=redraw(obj,spacing,display)
 
 
 if nargin<2
-    spacing=0.02;
+    spacing=0.04;
 end
 if nargin<3
     display=0;

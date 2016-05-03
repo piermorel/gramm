@@ -82,6 +82,9 @@ obj.results.stat_boxplot{obj.result_ind,1}.boxplot_data=p;
 %Constant width: we pick the the minimum available width over
 %the dataset for the span of dodged boxplots
 avl_w=min(diff(uni_x));
+if obj.x_factor %If x is a factor we are limited anyway
+    avl_w=1;
+end
 if isempty(avl_w)
     avl_w=1;
 end

@@ -18,6 +18,12 @@ if nargin<2
 end
 
 
+if isempty(obj(1).parent)
+    for obj_ind=1:numel(obj)
+        obj(obj_ind).parent=gcf;
+    end
+end
+
 
 %Handle call of draw() on array of gramm objects by dividing the figure
 %up and launching the individual draw functions of each object
@@ -27,7 +33,7 @@ if numel(obj)>1
         maxh=1;
     else
         maxh=0.94;
-        tmp=axes('Position',[0.1 0.965 0.8 0.01]);
+        tmp=axes('Position',[0.1 0.965 0.8 0.01],'Parent',obj(1).parent);
         set(tmp,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
         tmp=text(0,0,obj(1).bigtitle,'FontWeight','bold','Interpreter','none','fontSize',14,'HorizontalAlignment','center');
         if ~isempty(obj(1).bigtitle_options)
@@ -152,7 +158,7 @@ temp_col_facet=temp_col_facet(nonempty);
 mysubtightplot=@(m,n,p,gap,marg_h,marg_w)my_tightplot(m,n,p,...
     [gap(1)*obj.multi.size(1) gap(2)*obj.multi.size(2)],...
     [obj.multi.orig(1)+obj.multi.size(1)*marg_h(1) 1-obj.multi.orig(1)-obj.multi.size(1)*(1-marg_h(2))],...
-    [obj.multi.orig(2)+obj.multi.size(2)*marg_w(1) 1-obj.multi.orig(2)-obj.multi.size(2)*(1-marg_w(2))]);
+    [obj.multi.orig(2)+obj.multi.size(2)*marg_w(1) 1-obj.multi.orig(2)-obj.multi.size(2)*(1-marg_w(2))],'Parent',obj.parent);
 
 %Set subplot generation parameters and functions
 if obj.force_ticks  %Independent scales require more space between subplots for ticks
@@ -332,12 +338,12 @@ for ind_row=1:length(uni_row)
                 obj.facet_axes_handles(ind_row,ind_column)=mysubplot_wrap(length(uni_column),ind_column);
             else
                 obj.facet_axes_handles(ind_row,ind_column)=mysubplot(length(uni_row),length(uni_column),ind_row,ind_column);
-            end
+            end            
         else %If we are in a draw() call after an update() call
             if obj.updater.facet_updated==1 %If faceting was updated from one to multiple facets
                 if ind_column==1 && ind_row==1 %If we are in the first facet
                     %We don't need to create it again, it exists
-                    axes(obj.facet_axes_handles(ind_row,ind_column));
+                    %axes(obj.facet_axes_handles(ind_row,ind_column));
                     %Store content of first facet for copying it on the other facets !
                     first_axes_children=allchild(obj.facet_axes_handles(ind_row,ind_column));
                 else
@@ -350,10 +356,10 @@ for ind_row=1:length(uni_row)
                     %And we copy the contents of the first facet in the new ones
                     copyobj(first_axes_children,obj.facet_axes_handles(ind_row,ind_column));
                 end
-            else
+            %else
                 %In other cases (same facets or multiple to
                 %one facet), the facets already exist
-                axes(obj.facet_axes_handles(ind_row,ind_column));
+                %axes(obj.facet_axes_handles(ind_row,ind_column));
             end
             
             if obj.updater.facet_updated==-1 %If facets were updated from many to one facets
@@ -365,6 +371,9 @@ for ind_row=1:length(uni_row)
                 end
             end
         end
+        
+        %Make axes current
+         axes(obj.facet_axes_handles(ind_row,ind_column));
         
         
         hold on
@@ -505,7 +514,8 @@ for ind_row=1:length(uni_row)
                         'HorizontalAlignment','Center',...
                         'VerticalAlignment','bottom',...
                         'FontWeight','bold',...
-                        'fontSize',12)];
+                        'fontSize',12,...
+                        'Parent',obj.facet_axes_handles(ind_row,ind_column))];
                 end
             end
             if length(uni_row)>1
@@ -524,7 +534,8 @@ for ind_row=1:length(uni_row)
                         'HorizontalAlignment','Center',...
                         'VerticalAlignment','bottom',...
                         'FontWeight','bold',...
-                        'fontSize',12)];
+                        'fontSize',12,...
+                        'Parent',obj.facet_axes_handles(ind_row,ind_column))];
                 end
             end
         end
@@ -536,10 +547,11 @@ end
 %% draw() Title
 if ~isempty(obj.title) && obj.updater.first_draw
     obj.title_axe_handle=axes('Position',[obj.multi.orig(2)+0.1*obj.multi.size(2)...
-        obj.multi.orig(1)+0.90*obj.multi.size(1) 0.8*obj.multi.size(2) 0.05*obj.multi.size(1)]);
+        obj.multi.orig(1)+0.90*obj.multi.size(1) 0.8*obj.multi.size(2) 0.05*obj.multi.size(1)],...
+        'Parent',obj.parent);
     
     set(obj.title_axe_handle,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
-    obj.title_text_handle=text(0,0,obj.title,'FontWeight','bold','Interpreter','none','fontSize',14,'HorizontalAlignment','center');
+    obj.title_text_handle=text(0,0,obj.title,'FontWeight','bold','Interpreter','none','fontSize',14,'HorizontalAlignment','center','Parent',obj.title_axe_handle);
     if ~isempty(obj.title_options)
         set(obj.title_text_handle,obj.title_options{:});
     end
@@ -552,9 +564,10 @@ end
 %Create axes for legends
 if obj.updater.first_draw
     obj.legend_axe_handle=axes('Position',[obj.multi.orig(2)+0.85*obj.multi.size(2)...
-        obj.multi.orig(1)+0.1*obj.multi.size(1) 0.15*obj.multi.size(2) 0.8*obj.multi.size(1)]);
+        obj.multi.orig(1)+0.1*obj.multi.size(1) 0.15*obj.multi.size(2) 0.8*obj.multi.size(1)],...
+        'Parent',obj.parent);
     hold on
-    set(obj.legend_axe_handle,'Visible','off');
+    set(obj.legend_axe_handle,'Visible','off','NextPlot','add');
 else
     axes(obj.legend_axe_handle)
 end
@@ -569,14 +582,14 @@ if obj.with_legend
         color_legend_map=get_colormap(length(uni_color),1,obj.color_options);
         
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(1,obj.legend_y,obj.aes_names.color,'FontWeight','bold','Interpreter','none','fontSize',12)];
+            text(1,obj.legend_y,obj.aes_names.color,'FontWeight','bold','Interpreter','none','fontSize',12,'Parent',obj.legend_axe_handle)];
         obj.legend_y=obj.legend_y-legend_y_step;
         for ind_color=1:length(uni_color)
-            plot([1 2],[obj.legend_y obj.legend_y],'-','Color',color_legend_map(ind_color,:),'lineWidth',3)
+            plot([1 2],[obj.legend_y obj.legend_y],'-','Color',color_legend_map(ind_color,:),'lineWidth',3,'Parent',obj.legend_axe_handle)
             %line(1.5,obj.legend_y,'lineStyle','none','Marker','s','MarkerSize',12,'MarkerFaceColor',color_legend_map(ind_color,:),'MarkerEdgeColor','none')
             %rectangle('Position',[1.25 obj.legend_y-0.25 0.5 0.5],'EdgeColor','none','FaceColor',color_legend_map(ind_color,:));
             obj.legend_text_handles=[obj.legend_text_handles...
-                text(2.5,obj.legend_y,num2str(uni_color{ind_color}),'Interpreter','none')];
+                text(2.5,obj.legend_y,num2str(uni_color{ind_color}),'Interpreter','none','Parent',obj.legend_axe_handle)];
             obj.legend_y=obj.legend_y-legend_y_step;
         end
     end
@@ -590,13 +603,13 @@ if obj.with_legend
             zeros(length(uni_lightness),1)...
             zeros(length(uni_lightness),1)]);
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(1,obj.legend_y,obj.aes_names.lightness,'FontWeight','bold','Interpreter','none','fontSize',12)];
+            text(1,obj.legend_y,obj.aes_names.lightness,'FontWeight','bold','Interpreter','none','fontSize',12,'Parent',obj.legend_axe_handle)];
         obj.legend_y=obj.legend_y-legend_y_step;
         for ind_lightness=1:length(uni_lightness)
-            plot([1 2],[obj.legend_y obj.legend_y],'-','Color',lightness_legend_map(ind_lightness,:),'lineWidth',3)
+            plot([1 2],[obj.legend_y obj.legend_y],'-','Color',lightness_legend_map(ind_lightness,:),'lineWidth',3,'Parent',obj.legend_axe_handle)
             %line(1.5,obj.legend_y,'lineStyle','none','Marker','s','MarkerSize',12,'MarkerFaceColor',lightness_legend_map(ind_lightness,:),'MarkerEdgeColor','none')
             obj.legend_text_handles=[obj.legend_text_handles...
-                text(2.5,obj.legend_y,num2str(uni_lightness{ind_lightness}),'Interpreter','none')];
+                text(2.5,obj.legend_y,num2str(uni_lightness{ind_lightness}),'Interpreter','none','Parent',obj.legend_axe_handle)];
             obj.legend_y=obj.legend_y-legend_y_step;
         end
     end
@@ -606,7 +619,7 @@ if obj.with_legend
         obj.legend_y=obj.legend_y-legend_y_additional_step;
         
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(1,obj.legend_y,obj.aes_names.color,'FontWeight','bold','Interpreter','none','fontSize',12)];
+            text(1,obj.legend_y,obj.aes_names.color,'FontWeight','bold','Interpreter','none','fontSize',12,'Parent',obj.legend_axe_handle)];
         
         obj.legend_y=obj.legend_y-legend_y_step; %HACK here, we have to multiply by 2 ??
         
@@ -615,21 +628,21 @@ if obj.with_legend
         %                     reshape(obj.continuous_color_colormap,length(obj.continuous_color_colormap),1,3));
         
         tmp_N=100;
-        imagesc([1 1.5],[obj.legend_y-legend_y_step*2 obj.legend_y],linspace(min(min(obj.plot_lim.minc)),max(max(obj.plot_lim.maxc)),tmp_N)')
+        imagesc([1 1.5],[obj.legend_y-legend_y_step*2 obj.legend_y],linspace(min(min(obj.plot_lim.minc)),max(max(obj.plot_lim.maxc)),tmp_N)','Parent',obj.legend_axe_handle);
         
-        line([1.8 2.2 ; 1.8 2.2 ;1.8  2.2]',[obj.legend_y obj.legend_y;obj.legend_y-legend_y_step obj.legend_y-legend_y_step ;obj.legend_y-legend_y_step*2 obj.legend_y-legend_y_step*2 ]','Color','k')
+        line([1.8 2.2 ; 1.8 2.2 ;1.8  2.2]',[obj.legend_y obj.legend_y;obj.legend_y-legend_y_step obj.legend_y-legend_y_step ;obj.legend_y-legend_y_step*2 obj.legend_y-legend_y_step*2 ]','Color','k','Parent',obj.legend_axe_handle)
         
         colormap(obj.continuous_color_colormap)
         caxis([min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
         
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(2.5,obj.legend_y,num2str(max(max(obj.plot_lim.maxc))))];
+            text(2.5,obj.legend_y,num2str(max(max(obj.plot_lim.maxc))),'Parent',obj.legend_axe_handle)];
         
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(2.5,obj.legend_y-legend_y_step,num2str((max(max(obj.plot_lim.maxc))+min(min(obj.plot_lim.minc)))/2))];
+            text(2.5,obj.legend_y-legend_y_step,num2str((max(max(obj.plot_lim.maxc))+min(min(obj.plot_lim.minc)))/2),'Parent',obj.legend_axe_handle)];
         
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(2.5,obj.legend_y-legend_y_step*2,num2str(min(min(obj.plot_lim.minc))))];
+            text(2.5,obj.legend_y-legend_y_step*2,num2str(min(min(obj.plot_lim.minc))),'Parent',obj.legend_axe_handle)];
         
         obj.legend_y=obj.legend_y-legend_y_step*3;
     end
@@ -639,12 +652,12 @@ if obj.with_legend
         obj.legend_y=obj.legend_y-legend_y_additional_step;
         
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(1,obj.legend_y,obj.aes_names.marker,'FontWeight','bold','Interpreter','none','fontSize',12)];
+            text(1,obj.legend_y,obj.aes_names.marker,'FontWeight','bold','Interpreter','none','fontSize',12,'Parent',obj.legend_axe_handle)];
         obj.legend_y=obj.legend_y-legend_y_step;
         for ind_marker=1:length(uni_marker)
-            plot(1.5,obj.legend_y,markers{ind_marker},'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0])
+            plot(1.5,obj.legend_y,markers{ind_marker},'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0],'Parent',obj.legend_axe_handle)
             obj.legend_text_handles=[obj.legend_text_handles...
-                text(2.5,obj.legend_y,num2str(uni_marker{ind_marker}),'Interpreter','none')];
+                text(2.5,obj.legend_y,num2str(uni_marker{ind_marker}),'Interpreter','none','Parent',obj.legend_axe_handle)];
             obj.legend_y=obj.legend_y-legend_y_step;
         end
     end
@@ -654,12 +667,12 @@ if obj.with_legend
         obj.legend_y=obj.legend_y-legend_y_additional_step;
         
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(1,obj.legend_y,obj.aes_names.linestyle,'FontWeight','bold','Interpreter','none','fontSize',12)];
+            text(1,obj.legend_y,obj.aes_names.linestyle,'FontWeight','bold','Interpreter','none','fontSize',12,'Parent',obj.legend_axe_handle)];
         obj.legend_y=obj.legend_y-legend_y_step;
         for ind_linestyle=1:length(uni_linestyle)
-            plot([1 2],[obj.legend_y obj.legend_y],line_styles{ind_linestyle},'Color',[0 0 0])
+            plot([1 2],[obj.legend_y obj.legend_y],line_styles{ind_linestyle},'Color',[0 0 0],'Parent',obj.legend_axe_handle)
             obj.legend_text_handles=[obj.legend_text_handles...
-                text(2.5,obj.legend_y,num2str(uni_linestyle{ind_linestyle}),'Interpreter','none')];
+                text(2.5,obj.legend_y,num2str(uni_linestyle{ind_linestyle}),'Interpreter','none','Parent',obj.legend_axe_handle)];
             obj.legend_y=obj.legend_y-legend_y_step;
         end
     end
@@ -669,21 +682,23 @@ if obj.with_legend
         obj.legend_y=obj.legend_y-legend_y_additional_step;
         
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(1,obj.legend_y,obj.aes_names.size,'FontWeight','bold','Interpreter','none','fontSize',12)];
+            text(1,obj.legend_y,obj.aes_names.size,'FontWeight','bold','Interpreter','none','fontSize',12,'Parent',obj.legend_axe_handle)];
         obj.legend_y=obj.legend_y-legend_y_step;
         for ind_size=1:length(uni_size)
-            plot([1 2],[obj.legend_y obj.legend_y],'lineWidth',sizes(ind_size)/4,'Color',[0 0 0])
-            plot(1.5,obj.legend_y,'o','markerSize',sizes(ind_size),'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0])
+            plot([1 2],[obj.legend_y obj.legend_y],'lineWidth',sizes(ind_size)/4,'Color',[0 0 0],'Parent',obj.legend_axe_handle)
+            plot(1.5,obj.legend_y,'o','markerSize',sizes(ind_size),'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0],'Parent',obj.legend_axe_handle)
             obj.legend_text_handles=[obj.legend_text_handles...
-                text(2.5,obj.legend_y,num2str(uni_size{ind_size}),'Interpreter','none')];
+                text(2.5,obj.legend_y,num2str(uni_size{ind_size}),'Interpreter','none','Parent',obj.legend_axe_handle)];
             obj.legend_y=obj.legend_y-legend_y_step;
         end
     end
 end
 %Set size of legend axes
-xlim([1 8])
+set(obj.legend_axe_handle,'XLim',[1 8])
+%xlim([1 8])
 if obj.legend_y<0
-    ylim([obj.legend_y 1])
+    set(obj.legend_axe_handle,'YLim',[obj.legend_y 1])
+    %ylim([obj.legend_y 1])
 end
 
 

@@ -24,8 +24,13 @@ end
 %Handle case where facet_wrap is called after update()
 if obj.updater.updated
     if isnumeric(obj.row_facet) && isnumeric(obj.col_facet) && all(obj.row_facet==1) && all(obj.col_facet==1)
-        %We go from one to multiple facets
-        obj.updater.facet_updated=1;
+        if isempty(obj.row_facet) && isempty(obj.col_facet)
+            %User probably tried to update all the data
+            obj.updater.facet_updated=0;
+        else
+            %We go from one to multiple facets
+            obj.updater.facet_updated=1;
+        end
     else
         if isempty(col)
             %We go from multiple to one facets
