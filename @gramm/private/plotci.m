@@ -90,10 +90,10 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                         hndl.extra_point_handle=plot(x(real_neighbors==0),y(real_neighbors==0),'o','Color',draw_data.color,'MarkerSize',draw_data.size/3,'MarkerFaceColor',draw_data.color);
                         
                     case 'errorbar'
-                        hndl.errorbar_handle=my_errorbar(x,yci(1,:),yci(2,:),bar_width/4,draw_data.color);
+                        hndl.errorbar_handle=my_errorbar(x,yci(1,:),yci(2,:),bar_width/4,draw_data.color,draw_data.size/4);
                         
                     case 'black_errorbar'
-                        hndl.errorbar_handle=my_errorbar(x,yci(1,:),yci(2,:),bar_width/4,'k');
+                        hndl.errorbar_handle=my_errorbar(x,yci(1,:),yci(2,:),bar_width/4,'k',draw_data.size/4);
                         
                     case 'bar'
                         barleft=x-bar_width/2;

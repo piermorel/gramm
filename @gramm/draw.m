@@ -227,14 +227,16 @@ end
 %number of subplots
 n_columns=length(uni_column);
 n_rows=length(uni_row);
-obj.plot_lim.minx=nan(n_rows,n_columns);
-obj.plot_lim.maxx=nan(n_rows,n_columns);
-obj.plot_lim.miny=nan(n_rows,n_columns);
-obj.plot_lim.maxy=nan(n_rows,n_columns);
-obj.plot_lim.minz=nan(n_rows,n_columns);
-obj.plot_lim.maxz=nan(n_rows,n_columns);
-obj.plot_lim.minc=nan(n_rows,n_columns);
-obj.plot_lim.maxc=nan(n_rows,n_columns);
+if obj.updater.first_draw || obj.updater.facet_updated==1
+    obj.plot_lim.minx=nan(n_rows,n_columns);
+    obj.plot_lim.maxx=nan(n_rows,n_columns);
+    obj.plot_lim.miny=nan(n_rows,n_columns);
+    obj.plot_lim.maxy=nan(n_rows,n_columns);
+    obj.plot_lim.minz=nan(n_rows,n_columns);
+    obj.plot_lim.maxz=nan(n_rows,n_columns);
+    obj.plot_lim.minc=nan(n_rows,n_columns);
+    obj.plot_lim.maxc=nan(n_rows,n_columns);
+end
 
 %Get colormap
 cmap=get_colormap(length(uni_color),length(uni_lightness),obj.color_options);
@@ -296,26 +298,40 @@ for ind_row=1:length(uni_row)
         %Store limits of the subplots
         if sum(sel_column)>0
             if iscell(temp_aes.x(sel_column))
-                obj.plot_lim.maxx(obj.current_row,obj.current_column)=cellmax(temp_aes.x(sel_column));
-                obj.plot_lim.minx(obj.current_row,obj.current_column)=cellmin(temp_aes.x(sel_column));
+                %Here we do max/min with the current values for draw after
+                %update() calls
+                obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(cellmax(temp_aes.x(sel_column)),...
+                    obj.plot_lim.maxx(obj.current_row,obj.current_column));
+                obj.plot_lim.minx(obj.current_row,obj.current_column)=min(cellmin(temp_aes.x(sel_column)),...
+                    obj.plot_lim.minx(obj.current_row,obj.current_column));
             else
-                obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(temp_aes.x(sel_column));
-                obj.plot_lim.minx(obj.current_row,obj.current_column)=min(temp_aes.x(sel_column));
+                obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(max(temp_aes.x(sel_column)),...
+                    obj.plot_lim.maxx(obj.current_row,obj.current_column));
+                obj.plot_lim.minx(obj.current_row,obj.current_column)=min(min(temp_aes.x(sel_column)),...
+                    obj.plot_lim.minx(obj.current_row,obj.current_column));
             end
             if iscell(temp_aes.y(sel_column))
-                obj.plot_lim.maxy(obj.current_row,obj.current_column)=cellmax(temp_aes.y(sel_column));
-                obj.plot_lim.miny(obj.current_row,obj.current_column)=cellmin(temp_aes.y(sel_column));
+                obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(cellmax(temp_aes.y(sel_column)),...
+                    obj.plot_lim.maxy(obj.current_row,obj.current_column));
+                obj.plot_lim.miny(obj.current_row,obj.current_column)=min(cellmin(temp_aes.y(sel_column)),...
+                    obj.plot_lim.miny(obj.current_row,obj.current_column));
             else
-                obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(temp_aes.y(sel_column));
-                obj.plot_lim.miny(obj.current_row,obj.current_column)=min(temp_aes.y(sel_column));
+                obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(max(temp_aes.y(sel_column)),...
+                    obj.plot_lim.maxy(obj.current_row,obj.current_column));
+                obj.plot_lim.miny(obj.current_row,obj.current_column)=min(min(temp_aes.y(sel_column)),...
+                    obj.plot_lim.miny(obj.current_row,obj.current_column));
             end
             if ~isempty(temp_aes.z)
                 if iscell(temp_aes.z(sel_column))
-                    obj.plot_lim.maxz(obj.current_row,obj.current_column)=cellmax(temp_aes.z(sel_column));
-                    obj.plot_lim.minz(obj.current_row,obj.current_column)=cellmin(temp_aes.z(sel_column));
+                    obj.plot_lim.maxz(obj.current_row,obj.current_column)=max(cellmax(temp_aes.z(sel_column)),...
+                        obj.plot_lim.maxz(obj.current_row,obj.current_column));
+                    obj.plot_lim.minz(obj.current_row,obj.current_column)=min(cellmin(temp_aes.z(sel_column)),...
+                        obj.plot_lim.minz(obj.current_row,obj.current_column));
                 else
-                    obj.plot_lim.maxz(obj.current_row,obj.current_column)=max(temp_aes.z(sel_column));
-                    obj.plot_lim.minz(obj.current_row,obj.current_column)=min(temp_aes.z(sel_column));
+                    obj.plot_lim.maxz(obj.current_row,obj.current_column)=max(max(temp_aes.z(sel_column)),...
+                        obj.plot_lim.maxz(obj.current_row,obj.current_column));
+                    obj.plot_lim.minz(obj.current_row,obj.current_column)=min(min(temp_aes.z(sel_column)),...
+                        obj.plot_lim.minz(obj.current_row,obj.current_column));
                 end
             else
                 obj.plot_lim.maxz(obj.current_row,obj.current_column)=0;

@@ -41,7 +41,7 @@ g.draw();
 % Providing grouping variables to change visual properties is done in the
 % constructor call |gramm()|. Grouping variables that determine subplotting
 % are provided by calls to the |facet_grid()| or |facet_wrap()| methods.
-% Not that *all the mappings presented below can be combined*, i.e. it's
+% Note that *all the mappings presented below can be combined*, i.e. it's
 % possible to previde different variables to each of the options.
 %
 % In order to plot multiple, diferent gramm objects in the same figure, an array of gramm objects
@@ -651,26 +651,25 @@ g.draw();
 
 clear g10
 figure('Position',[100 100 600 450]);
-g10(1,1)=gramm('x',cars.Horsepower,'y',cars.Acceleration,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
-g10(1,1).set_names('color','# Cylinders','x','Horsepower','y','Acceleration','Column','Origin');
-g10(1,1).set_color_options('chroma',0,'lightness',30);
-g10(1,1).stat_glm('geom','area','disp_fit',false);
-g10.draw();
+g10=gramm('x',cars.Horsepower,'y',cars.Acceleration,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
+g10.set_names('color','# Cylinders','x','Horsepower','y','Acceleration','Column','Origin');
+g10.set_color_options('chroma',0,'lightness',30);
+g10.stat_glm('geom','area','disp_fit',false);
+g10.draw()
 snapnow;
 
 %%
-% After the first draw() call, we call the update() method by specifying a
+% After the first draw() call (optional), we call the update() method by specifying a
 % new grouping variable determining colors. We also change the facet_grid()
 % options, which will duplicate the fit made earlier across all new facets.
 % Last, color options are reinitialized to default values
 
-g10(1,1).update('color',cars.Cylinders);
-g10(1,1).facet_grid([],cars.Origin_Region);
-g10(1,1).set_color_options();
-g10(1,1).geom_point();
-
-
+g10.update('color',cars.Cylinders);
+g10.facet_grid([],cars.Origin_Region);
+g10.set_color_options();
+g10.geom_point();
 g10.draw();
+
 
 %% Customizing color maps with set_color_options()
 % With the method set_color_options(), automatic color generation for

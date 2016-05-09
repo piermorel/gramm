@@ -4,6 +4,15 @@ function obj=update(obj,varargin)
 % Update takes the same arguments as the constructor gramm(). Only provide
 % the data you want to replace.
 
+if numel(obj)>1
+    error('update() can only be called on a single gramm object');
+end
+
+%Automatically draw if not done yet
+if obj.updater.first_draw
+    draw(obj);
+end
+
 %Parse new aes
 new_aes=parse_aes(varargin{:});
 
@@ -11,7 +20,7 @@ new_aes=parse_aes(varargin{:});
 if ~isempty(new_aes.x) && numel(new_aes.x)~=numel(obj.aes.x)
     disp('New X of different size given, all data from first gramm cleared')
     %if so we clear everything
-    obj.row_facet=[]
+    obj.row_facet=[];
     obj.col_facet=[];
     obj.aes=new_aes;
 else
@@ -28,6 +37,7 @@ end
 obj.geom={};
 
 obj.updater.updated=true;
+obj.updater.facet_updated=false;
 
 %Remove ablines
 obj.abline=[];
