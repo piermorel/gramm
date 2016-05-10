@@ -679,9 +679,10 @@ g10.draw();
 clear g
 g(1,1)=gramm('x',cars.Origin,'y',cars.Horsepower,'color',cars.Origin);
 g(1,2)=copy(g(1));
-g(1,3)=copy(g(1));
+g(1,3)=gramm('x',cars.Origin,'y',cars.Horsepower,'lightness',cars.Origin);
 g(2,1)=copy(g(1));
 g(2,2)=copy(g(1));
+g(2,3)=copy(g(1));
 
 
 g(1,1).stat_summary('geom',{'bar'},'dodge',0);

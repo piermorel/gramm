@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>gramm examples</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-03"><meta name="DC.source" content="examples.m"><style type="text/css">
+      --><title>gramm examples</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-10"><meta name="DC.source" content="examples.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -75,7 +75,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 </pre><p>Set figure title</p><pre class="codeinput">g.set_title(<span class="string">'Fuel economy of new cars between 1970 and 1982'</span>);
 </pre><p>Do the actual drawing</p><pre class="codeinput">figure(<span class="string">'Position'</span>,[100 100 800 400]);
 g.draw();
-</pre><img vspace="5" hspace="5" src="examples_01.png" alt=""> <h2>Grouping options in gramm<a name="9"></a></h2><p>With gramm there are a lot ways to map groups to visual properties of plotted data, or even subplots. Providing grouping variables to change visual properties is done in the constructor call <tt>gramm()</tt>. Grouping variables that determine subplotting are provided by calls to the <tt>facet_grid()</tt> or <tt>facet_wrap()</tt> methods. Not that <b>all the mappings presented below can be combined</b>, i.e. it's possible to previde different variables to each of the options.</p><p>In order to plot multiple, diferent gramm objects in the same figure, an array of gramm objects is created, and the <tt>draw()</tt> function called at the end on the whole array</p><pre class="codeinput">clear <span class="string">g</span>
+</pre><img vspace="5" hspace="5" src="examples_01.png" alt=""> <h2>Grouping options in gramm<a name="9"></a></h2><p>With gramm there are a lot ways to map groups to visual properties of plotted data, or even subplots. Providing grouping variables to change visual properties is done in the constructor call <tt>gramm()</tt>. Grouping variables that determine subplotting are provided by calls to the <tt>facet_grid()</tt> or <tt>facet_wrap()</tt> methods. Note that <b>all the mappings presented below can be combined</b>, i.e. it's possible to previde different variables to each of the options.</p><p>In order to plot multiple, diferent gramm objects in the same figure, an array of gramm objects is created, and the <tt>draw()</tt> function called at the end on the whole array</p><pre class="codeinput">clear <span class="string">g</span>
 g(1,1)=gramm(<span class="string">'x'</span>,cars.Horsepower,<span class="string">'y'</span>,cars.MPG,<span class="string">'subset'</span>,cars.Cylinders~=3 &amp; cars.Cylinders~=5);
 g(1,1).geom_point();
 g(1,1).set_names(<span class="string">'x'</span>,<span class="string">'Horsepower'</span>,<span class="string">'y'</span>,<span class="string">'MPG'</span>);
@@ -563,26 +563,33 @@ figure(<span class="string">'Position'</span>,[100 100 800 1000]);
 g.draw();
 </pre><img vspace="5" hspace="5" src="examples_14.png" alt=""> <h2>Using different groups for different stat_ and geom_ methods by superimposing gramm plots<a name="22"></a></h2><p>By using the method update() after a first draw() call of a gramm object, it is possible to add or remove grouping variables. Here in a first gramm plot we make a glm fit of cars Acceleration as a function of Horsepower, across all countries and number of cylinders, and change the color options so that the fit appears in grey</p><pre class="codeinput">clear <span class="string">g10</span>
 figure(<span class="string">'Position'</span>,[100 100 600 450]);
-g10(1,1)=gramm(<span class="string">'x'</span>,cars.Horsepower,<span class="string">'y'</span>,cars.Acceleration,<span class="string">'subset'</span>,cars.Cylinders~=3 &amp; cars.Cylinders~=5);
-g10(1,1).set_names(<span class="string">'color'</span>,<span class="string">'# Cylinders'</span>,<span class="string">'x'</span>,<span class="string">'Horsepower'</span>,<span class="string">'y'</span>,<span class="string">'Acceleration'</span>,<span class="string">'Column'</span>,<span class="string">'Origin'</span>);
-g10(1,1).set_color_options(<span class="string">'chroma'</span>,0,<span class="string">'lightness'</span>,30);
-g10(1,1).stat_glm(<span class="string">'geom'</span>,<span class="string">'area'</span>,<span class="string">'disp_fit'</span>,false);
-g10.draw();
+g10=gramm(<span class="string">'x'</span>,cars.Horsepower,<span class="string">'y'</span>,cars.Acceleration,<span class="string">'subset'</span>,cars.Cylinders~=3 &amp; cars.Cylinders~=5);
+g10.set_names(<span class="string">'color'</span>,<span class="string">'# Cylinders'</span>,<span class="string">'x'</span>,<span class="string">'Horsepower'</span>,<span class="string">'y'</span>,<span class="string">'Acceleration'</span>,<span class="string">'Column'</span>,<span class="string">'Origin'</span>);
+g10.set_color_options(<span class="string">'chroma'</span>,0,<span class="string">'lightness'</span>,30);
+g10.stat_glm(<span class="string">'geom'</span>,<span class="string">'area'</span>,<span class="string">'disp_fit'</span>,false);
+g10.draw()
 snapnow;
-</pre><img vspace="5" hspace="5" src="examples_15.png" alt=""> <p>After the first draw() call, we call the update() method by specifying a new grouping variable determining colors. We also change the facet_grid() options, which will duplicate the fit made earlier across all new facets. Last, color options are reinitialized to default values</p><pre class="codeinput">g10(1,1).update(<span class="string">'color'</span>,cars.Cylinders);
-g10(1,1).facet_grid([],cars.Origin_Region);
-g10(1,1).set_color_options();
-g10(1,1).geom_point();
+</pre><pre class="codeoutput">
+ans = 
 
+  gramm with properties:
 
+    facet_axes_handles: [1x1 Axes]
+               results: [1x1 struct]
+
+</pre><img vspace="5" hspace="5" src="examples_15.png" alt=""> <p>After the first draw() call (optional), we call the update() method by specifying a new grouping variable determining colors. We also change the facet_grid() options, which will duplicate the fit made earlier across all new facets. Last, color options are reinitialized to default values</p><pre class="codeinput">g10.update(<span class="string">'color'</span>,cars.Cylinders);
+g10.facet_grid([],cars.Origin_Region);
+g10.set_color_options();
+g10.geom_point();
 g10.draw();
 </pre><img vspace="5" hspace="5" src="examples_16.png" alt=""> <h2>Customizing color maps with set_color_options()<a name="24"></a></h2><p>With the method set_color_options(), automatic color generation for color and lightness groups can be tweaked</p><pre class="codeinput"><span class="comment">%Default: LCH-based colormap with hue variation</span>
 clear <span class="string">g</span>
 g(1,1)=gramm(<span class="string">'x'</span>,cars.Origin,<span class="string">'y'</span>,cars.Horsepower,<span class="string">'color'</span>,cars.Origin);
 g(1,2)=copy(g(1));
-g(1,3)=copy(g(1));
+g(1,3)=gramm(<span class="string">'x'</span>,cars.Origin,<span class="string">'y'</span>,cars.Horsepower,<span class="string">'lightness'</span>,cars.Origin);
 g(2,1)=copy(g(1));
 g(2,2)=copy(g(1));
+g(2,3)=copy(g(1));
 
 
 g(1,1).stat_summary(<span class="string">'geom'</span>,{<span class="string">'bar'</span>},<span class="string">'dodge'</span>,0);
@@ -798,7 +805,7 @@ g.draw();
 % Providing grouping variables to change visual properties is done in the
 % constructor call |gramm()|. Grouping variables that determine subplotting
 % are provided by calls to the |facet_grid()| or |facet_wrap()| methods.
-% Not that *all the mappings presented below can be combined*, i.e. it's
+% Note that *all the mappings presented below can be combined*, i.e. it's
 % possible to previde different variables to each of the options.
 %
 % In order to plot multiple, diferent gramm objects in the same figure, an array of gramm objects
@@ -1408,26 +1415,25 @@ g.draw();
 
 clear g10
 figure('Position',[100 100 600 450]);
-g10(1,1)=gramm('x',cars.Horsepower,'y',cars.Acceleration,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
-g10(1,1).set_names('color','# Cylinders','x','Horsepower','y','Acceleration','Column','Origin');
-g10(1,1).set_color_options('chroma',0,'lightness',30);
-g10(1,1).stat_glm('geom','area','disp_fit',false);
-g10.draw();
+g10=gramm('x',cars.Horsepower,'y',cars.Acceleration,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
+g10.set_names('color','# Cylinders','x','Horsepower','y','Acceleration','Column','Origin');
+g10.set_color_options('chroma',0,'lightness',30);
+g10.stat_glm('geom','area','disp_fit',false);
+g10.draw()
 snapnow;
 
 %%
-% After the first draw() call, we call the update() method by specifying a
+% After the first draw() call (optional), we call the update() method by specifying a
 % new grouping variable determining colors. We also change the facet_grid()
 % options, which will duplicate the fit made earlier across all new facets.
 % Last, color options are reinitialized to default values
 
-g10(1,1).update('color',cars.Cylinders);
-g10(1,1).facet_grid([],cars.Origin_Region);
-g10(1,1).set_color_options();
-g10(1,1).geom_point();
-
-
+g10.update('color',cars.Cylinders);
+g10.facet_grid([],cars.Origin_Region);
+g10.set_color_options();
+g10.geom_point();
 g10.draw();
+
 
 %% Customizing color maps with set_color_options()
 % With the method set_color_options(), automatic color generation for
@@ -1437,9 +1443,10 @@ g10.draw();
 clear g
 g(1,1)=gramm('x',cars.Origin,'y',cars.Horsepower,'color',cars.Origin);
 g(1,2)=copy(g(1));
-g(1,3)=copy(g(1));
+g(1,3)=gramm('x',cars.Origin,'y',cars.Horsepower,'lightness',cars.Origin);
 g(2,1)=copy(g(1));
 g(2,2)=copy(g(1));
+g(2,3)=copy(g(1));
 
 
 g(1,1).stat_summary('geom',{'bar'},'dodge',0);

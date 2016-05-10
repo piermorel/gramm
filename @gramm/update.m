@@ -17,8 +17,8 @@ end
 new_aes=parse_aes(varargin{:});
 
 %Do we have new x values?
-if ~isempty(new_aes.x) && numel(new_aes.x)~=numel(obj.aes.x)
-    disp('New X of different size given, all data from first gramm cleared')
+if (~isempty(new_aes.x) && numel(new_aes.x)~=numel(obj.aes.x)) || (~isempty(new_aes.y) && numel(new_aes.y)~=numel(obj.aes.y))
+    disp('New X or Y of different size given, all data from first gramm cleared')
     %if so we clear everything
     obj.row_facet=[];
     obj.col_facet=[];

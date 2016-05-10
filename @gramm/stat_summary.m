@@ -147,6 +147,11 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
         x=padded_cell2mat(draw_data.x);
         y=padded_cell2mat(draw_data.y);
         uni_x=nanmean(x);
+        %Add a check for X alignment
+        x_diff=max(x)-min(x);
+        if any(x_diff(1:end-1)>diff(uni_x)/10) %More than a tenth of delta x variation
+            warning(['some repeated X values are misaligned (max ' num2str(max(x_diff)) '), use ''interp_in'' in stat_summary() or live with the consequences'])
+        end
     end
     
     if params.bin_in>0
