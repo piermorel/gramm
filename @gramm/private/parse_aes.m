@@ -5,6 +5,8 @@ p=inputParser;
 % x and y are mandatory first two arguments
 my_addParameter(p,'x',[]);
 my_addParameter(p,'y',[]);
+my_addParameter(p,'ymin',[]);
+my_addParameter(p,'ymax',[]);
 my_addParameter(p,'z',[]);
 
 % Other aesthetics are string-value pairs
@@ -15,6 +17,8 @@ my_addParameter(p,'linestyle',[]);
 my_addParameter(p,'size',[]);
 my_addParameter(p,'marker',[]);
 my_addParameter(p,'subset',[]);
+my_addParameter(p,'row',[]);
+my_addParameter(p,'column',[]);
 
 parse(p,varargin{:});
 

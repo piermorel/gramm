@@ -39,8 +39,8 @@ end
 
 %Handle case where facet_grid is called after update()
 if obj.updater.updated
-    if isnumeric(obj.row_facet) && isnumeric(obj.col_facet) && all(obj.row_facet==1) && all(obj.col_facet==1)
-        if isempty(obj.row_facet) && isempty(obj.col_facet)
+    if isnumeric(obj.aes.row) && isnumeric(obj.aes.column) && all(obj.aes.row==1) && all(obj.aes.column==1)
+        if isempty(obj.aes.row) && isempty(obj.aes.column)
             %User probably tried to update all the data
             obj.updater.facet_updated=0;
         else
@@ -57,15 +57,8 @@ if obj.updater.updated
     end
 end
 
-if iscategorical(row)
-    obj.row_facet=shiftdim(cellstr(row));
-else
-    obj.row_facet=shiftdim(row);
-end
-if iscategorical(col)
-    obj.col_facet=shiftdim(cellstr(col));
-else
-    obj.col_facet=shiftdim(col);
-end
+obj.aes.row=shiftdim(row);
+obj.aes.column=shiftdim(col);
+
 obj.wrap_ncols=-1;
 end

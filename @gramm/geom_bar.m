@@ -10,6 +10,7 @@ function obj=geom_bar(obj,varargin)
 p=inputParser;
 my_addParameter(p,'width',0.80);
 my_addParameter(p,'stacked',false);
+my_addParameter(p,'dodge',0);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dd)my_bar(obj,dd,p.Results)});
@@ -31,33 +32,33 @@ if params.stacked
     
     %Problem with stacked bar when different x values are used
     if obj.firstrun(obj.current_row,obj.current_column)
-        obj.extra.stacked_bar_height=zeros(1,length(x));
+        %Store heights at the level of dodge x
+        obj.extra.stacked_bar_height=zeros(1,length(draw_data.dodge_x));
         obj.plot_lim.minx(obj.current_row,obj.current_column)=min(x)-width;
         obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(x)+width;
         %obj.firstrun(obj.current_row,obj.current_column)=0;
     end
     
+    x_stack_ind=arrayfun(@(xin)find(abs(draw_data.dodge_x-xin)<1e-10,1),x);
+    
     hndl=patch([x-width/2 ; x+width/2 ; x+width/2 ; x-width/2],...
-        [obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+y ; obj.extra.stacked_bar_height+y],...
+        [obj.extra.stacked_bar_height(x_stack_ind) ; obj.extra.stacked_bar_height(x_stack_ind) ; obj.extra.stacked_bar_height(x_stack_ind)+y ; obj.extra.stacked_bar_height(x_stack_ind)+y],...
         draw_data.color,'EdgeColor','k');
     
-    obj.extra.stacked_bar_height=obj.extra.stacked_bar_height+y;
+    obj.results.geom_bar_handle{obj.result_ind,1}=hndl;
     
+    obj.extra.stacked_bar_height(x_stack_ind)=obj.extra.stacked_bar_height(x_stack_ind)+y;
     if obj.plot_lim.maxy(obj.current_row,obj.current_column)<max(obj.extra.stacked_bar_height)
         obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(obj.extra.stacked_bar_height);
     end
     
 else
     
-    if min(x+(draw_data.color_index/(draw_data.n_colors+1)-0.5)*width-width/(draw_data.n_colors+1))<obj.plot_lim.minx(obj.current_row,obj.current_column)
-        obj.plot_lim.minx(obj.current_row,obj.current_column)=min((draw_data.color_index/(draw_data.n_colors+1)-0.5)*width-width/(draw_data.n_colors+1));
-    end
-    if max(x+(draw_data.color_index/(draw_data.n_colors+1)-0.5)*width+width/(draw_data.n_colors+1))>obj.plot_lim.maxx(obj.current_row,obj.current_column)
-        obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(x+(draw_data.color_index/(draw_data.n_colors+1)-0.5)*width+width/(draw_data.n_colors+1));
-    end
+
+    hndl=plotci(obj,x,y,[y y],draw_data,'edge_bar',params.dodge,params.width);
+    obj.results.geom_bar_handle{obj.result_ind,1}=hndl.bar_handle;
     
-    hndl=bar(x+(draw_data.color_index/(draw_data.n_colors+1)-0.5)*width,y,width/(draw_data.n_colors+1),'faceColor',draw_data.color,'EdgeColor','none');
 end
 
-obj.results.geom_bar_handle{obj.result_ind,1}=hndl;
+
 end

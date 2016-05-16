@@ -8,23 +8,13 @@ function out=validate_aes(aes)
 out=aes;
 fields=fieldnames(aes);
 
-%Handle special case when Y is a matrix
-if ~iscell(out.y)
-    if size(out.y,2)>1
-        out.y=num2cell(out.y,2); %We convert rows of y to cell elements
-        out.y=cellfun(@(c)shiftdim(c),out.y,'uniformOutput',false);
-        %out.y=shiftdim(out.y);
-    end
-end
+%Handle special case when Y is a matrix (convert to cell)
+out.y=process_mat(out.y);
+out.ymin=process_mat(out.ymin);
+out.ymax=process_mat(out.ymax);
 
-%Handle special case when Z is a matrix
-if ~iscell(out.z)
-    if size(out.z,2)>1
-        out.z=num2cell(out.z,2); %We convert rows of y to cell elements
-        out.z=cellfun(@(c)shiftdim(c),out.z,'uniformOutput',false);
-        %out.y=shiftdim(out.y);
-    end
-end
+%Handle special case when Z is a matrix (convert to cell)
+out.z=process_mat(out.z);
 
 %Handle special case when Y is a matrix/cell and X is a single vector
 if iscell(out.y) && ~iscell(out.x)
@@ -72,7 +62,7 @@ end
 
 %Missing fields are replaced with arrays of ones
 for k=1:length(fields)
-    if isempty(aes.(fields{k})) && ~strcmp(fields{k},'z') %If z is empty we leave it empty
+    if isempty(aes.(fields{k})) && sum(strcmp(fields{k},{'z' 'ymin' 'ymax'}))==0 %If z, ymin, ymax are empty we leave them empty
         
         out.(fields{k})=ones(aes_length,1);
         if strcmp(fields{k},'subset') %Or array of true for 'subset'
@@ -83,4 +73,13 @@ for k=1:length(fields)
 
 end
 
+end
+
+function m=process_mat(m)
+if ~iscell(m)
+    if size(m,2)>1
+        m=num2cell(m,2); %We convert rows of y to cell elements
+        m=cellfun(@(c)shiftdim(c),m,'uniformOutput',false);
+    end
+end
 end

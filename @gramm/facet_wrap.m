@@ -23,8 +23,8 @@ end
 
 %Handle case where facet_wrap is called after update()
 if obj.updater.updated
-    if isnumeric(obj.row_facet) && isnumeric(obj.col_facet) && all(obj.row_facet==1) && all(obj.col_facet==1)
-        if isempty(obj.row_facet) && isempty(obj.col_facet)
+    if isnumeric(obj.aes.row) && isnumeric(obj.aes.column) && all(obj.aes.row==1) && all(obj.aes.column==1)
+        if isempty(obj.aes.row) && isempty(obj.aes.column)
             %User probably tried to update all the data
             obj.updater.facet_updated=0;
         else
@@ -42,10 +42,7 @@ if obj.updater.updated
 end
 
 obj.wrap_ncols=p.Results.ncols;
-if iscategorical(col)
-    obj.col_facet=shiftdim(cellstr(col));
-else
-    obj.col_facet=shiftdim(col);
-end
-obj.row_facet=[];
+obj.aes.column=shiftdim(col);
+obj.aes.row=[];
+
 end

@@ -63,6 +63,7 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 - Multiple ways of directly plotting the data: 
   - scatter plots (<code>geom_point()</code>) and jittered scatter plot (<code>geom_jitter()</code>)
   - lines (<code>geom_line()</code>)
+  - confidence intervals (<code>geom_interval()</code>)
   - bars plots (<code>geom_bar()</code>)
   - raster plots (<code>geom_raster()</code>)
   - point counts (<code>point_count()</code>)
@@ -85,7 +86,7 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 - Possibility to customize color generations in the LCH color space, chose alternative colormaps (Matlab's default, [colorbrewer2](http://colorbrewer2.org)), or provide a custom colormap (<code>set_color_options()</code>)
 - Possibility to change ordering of grouping variables between native, sorted, or custom (<code>set_order_options</code>)
 - Confidence intervals as shaded areas, error bars or thin lines
-- Set the width and dodging of graphical elements in <code>stat_bin()</code>, <code>stat_summary()</code>, and <code>stat_boxplot()</code>, with <code>'width'</code> and <code>'dodge'</code> arguments
+- Set the width and dodging of graphical elements in <code>geom_</code> functions, <code>stat_bin()</code>, <code>stat_summary()</code>, and <code>stat_boxplot()</code>, with <code>'width'</code> and <code>'dodge'</code> arguments
 - The member structure <code>results</code> contains the results of computations from <code>stat_</code> plots as well as graphic handles for all plotted elements
 - Figure title (<code>set_title()</code>)
 - Multiple gramm plots can be combined in the same figure by creating a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix. An overarching title can be added by calling <code>set_title()</code> on the whole matrix.
@@ -121,47 +122,47 @@ Note that we by using Origin as a faceting variable, we visualize exactly the sa
 
 ### 2D densities
 
-<img src="/html/examples_06.png" alt="2D density" width="800">
+<img src="/html/examples_07.png" alt="2D density" width="800">
 
 ###Repeated trajectories
 Here the variable given as Y is a Nx1 cell of 1D arrays containing the individual trajectories. Color is given as a Nx1 cellstr.
 
-<img src="/html/examples_07.png" alt="" width="800">
+<img src="/html/examples_08.png" alt="" width="800">
 
 ###Spike trains
 This example highlights the potential use of gramm for neuroscientific data. Here X is a Nx1 cell containing spike trains collected over N trials. Color is given as a Nx1 cellstr.
 Using <code>stat_bin()</code> it is possible to construct peristimulus time histograms.
 
-<img src="/html/examples_08.png" alt="" width="800">
+<img src="/html/examples_09.png" alt="" width="800">
 
 ### stat_bin() options ###
 
-<img src="/html/examples_10.png" alt="Histograms example" width="800">
+<img src="/html/examples_11.png" alt="Histograms example" width="800">
 
 ### facet_grid() options ###
 
-<img src="/html/examples_09.png" alt="facet_grid() options" width="800">
+<img src="/html/examples_10.png" alt="facet_grid() options" width="800">
 
 ### Colormap customization ###
 With <code>set_color_options()</code>
 
-<img src="/html/examples_17.png" alt="Colormaps example" width="800">
+<img src="/html/examples_18.png" alt="Colormaps example" width="800">
 
 ### Continuous colors
 
-<img src="/html/examples_18.png" alt="Continuous colors" width="800">
+<img src="/html/examples_19.png" alt="Continuous colors" width="800">
 
 ###Reordering of categorical variables
 With <code>set_order_options()</code>
 
-<img src="/html/examples_19.png" alt="Reordering" width="800">
+<img src="/html/examples_20.png" alt="Reordering" width="800">
 
 
 ### Superimposition of gramm objects on the same axes
 By making calling the update() method after a first draw, the same axes can be reused for another gramm plot.
 Here this allows to use different groupings for the points and for the glm fit.
 
-<img src="/html/examples_16.png" alt="gramm superimposition" width="600">
+<img src="/html/examples_17.png" alt="gramm superimposition" width="600">
 
 ## Acknowledgements
 gramm was inspired and/or used code from:

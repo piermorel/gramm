@@ -1,13 +1,18 @@
-function obj=geom_point(obj)
+function obj=geom_point(obj,varargin)
 % geom_point Display data as points
 %
 % This will add a layer that will display data as points
 
-obj.geom=vertcat(obj.geom,{@(dd)my_point(obj,dd)});
+p=inputParser;
+my_addParameter(p,'dodge',0);
+parse(p,varargin{:});
+
+
+obj.geom=vertcat(obj.geom,{@(dd)my_point(obj,dd,p.Results)});
 obj.results.geom_point_handle={};
 end
 
-function hndl=my_point(obj,draw_data)
+function hndl=my_point(obj,draw_data,params)
 
 if obj.continuous_color
     if iscell(draw_data.x)
@@ -28,7 +33,12 @@ if obj.continuous_color
     
 else
     if isempty(draw_data.z)
-        [x,y]=to_polar(obj,comb(draw_data.x),comb(draw_data.y));
+        %Normal case !
+        x=comb(draw_data.x);
+       
+        x=dodger(x,draw_data,params.dodge);
+
+        [x,y]=to_polar(obj,x,comb(draw_data.y));
         hndl=line(x,y,'LineStyle','none','Marker',draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
     else
         hndl=line(comb(draw_data.x),comb(draw_data.y),comb(draw_data.z),'LineStyle','none','Marker',draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);

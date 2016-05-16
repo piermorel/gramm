@@ -1,19 +1,25 @@
-function obj=geom_line(obj)
+function obj=geom_line(obj,varargin)
 % geom_line Display data as lines
 %
 % This will add a layer that will display data as lines
 % If the data is not properly grouped/ordered things can look weird.
 
-obj.geom=vertcat(obj.geom,{@(dd)my_line(obj,dd)});
+p=inputParser;
+my_addParameter(p,'dodge',0);
+parse(p,varargin{:});
+
+obj.geom=vertcat(obj.geom,{@(dd)my_line(obj,dd,p.Results)});
 obj.results.geom_line_handle={};
 end
 
 
-function hndl=my_line(obj,draw_data)
+function hndl=my_line(obj,draw_data,params)
 
-[x,y]=to_polar(obj,draw_data.x,draw_data.y);
+
 
 if obj.continuous_color
+    
+    [x,y]=to_polar(obj,draw_data.x,draw_data.y);
     
     obj.plot_lim.maxc(obj.current_row,obj.current_column)=max(obj.plot_lim.maxc(obj.current_row,obj.current_column),max(comb(draw_data.continuous_color)));
     obj.plot_lim.minc(obj.current_row,obj.current_column)=min(obj.plot_lim.minc(obj.current_row,obj.current_column),min(comb(draw_data.continuous_color)));
@@ -38,6 +44,12 @@ else
     %Combnan allows for drawing multiple lines without loops
     %(it adds a NaN between lines that have to be separated)
     if isempty(draw_data.z)
+        
+        x=combnan(draw_data.x);
+        y=combnan(draw_data.y);
+        x=dodger(x,draw_data,params.dodge);
+        [x,y]=to_polar(obj,x,y);
+        
         hndl=line(combnan(x),combnan(y),'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
     else
         hndl=line(combnan(x),combnan(y),combnan(z),'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);

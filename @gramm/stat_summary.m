@@ -140,6 +140,7 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
         uni_x=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.interp_in);
         [x,y]=cellfun(@(x,y)deal(uni_x,interp1(x,y,uni_x,'linear')),draw_data.x,draw_data.y,'UniformOutput',false);
         y=padded_cell2mat(y);
+        
     else
         %If not we just make a padded matrix for fast
         %computations (we'll assume that X are roughly at the
@@ -186,30 +187,33 @@ else %If input was provided as 1D array
         x=bincenters(binind(sel));
         y=y(sel);
     else
-        if sum(strcmp(params.geom,'area'))>0 || sum(strcmp(params.geom,'line'))>0 ||...
-                sum(strcmp(params.geom,'lines'))>0  || sum(strcmp(params.geom,'solid_area'))>0
-            %To avoid interruptions in line and area plots we
-            %compute uniques over current data only
-            uni_x=unique(x); %Sorted is the default
-        else
-            if obj.x_factor
-                %If x is a factor we space everything as one
-                uni_x=obj.var_lim.minx:1:obj.var_lim.maxx;
-            else
-                %compute unique Xs at the facet level to avoid
-                %weird bar sizing issues when dodging and when
-                %colors are missing
-                facet_x=comb(draw_data.facet_x);
-                uni_x=unique(facet_x);
-            end
-        end
+%         if sum(strcmp(params.geom,'area'))>0 || sum(strcmp(params.geom,'line'))>0 ||...
+%                 sum(strcmp(params.geom,'lines'))>0  || sum(strcmp(params.geom,'solid_area'))>0
+%             %To avoid interruptions in line and area plots we
+%             %compute uniques over current data only
+%             uni_x=unique(x); %Sorted is the default
+%         else
+%             if obj.x_factor
+%                 %If x is a factor we space everything as one
+%                 uni_x=obj.var_lim.minx:1:obj.var_lim.maxx;
+%             else
+%                 %compute unique Xs at the facet level to avoid
+%                 %weird bar sizing issues when dodging and when
+%                 %colors are missing
+%                 facet_x=comb(draw_data.facet_x);
+%                 uni_x=unique(facet_x);
+%             end
+%         end
+        
+        uni_x=unique(x);
+
         %Here we need to implement a loose 'unique' because of
         %potential numerical errors
         uni_x(diff(uni_x)<1e-10)=[];
     end
     
     if params.interp_in>0
-        warning('inter_in in stat_summary() not supported for non Matrix/Cell X/Y inputs');
+        warning('interp_in in stat_summary() not supported for non Matrix/Cell X/Y inputs');
     end
     
     ymean=nan(length(uni_x),1);
@@ -282,6 +286,20 @@ if ~strcmp(params.interp,'none')
         yci=[tmp_yci1 ; tmp_yci2];
         uni_x=new_x;
     end
+end
+
+%If X were modified
+if params.bin_in>0 || params.interp_in>0 || ~strcmp(params.interp,'none')
+    %We reinitialize dodging parameters for plotci to work correctly
+    draw_data.dodge_avl_w=uni_x(2)-uni_x(1);
+    draw_data.dodge_fallback=true;
+    draw_data.dodge_x=1;
+    draw_data.dodge_n=draw_data.n_colors;
+    draw_data.dodge_ind=draw_data.color_index;
+    
+    %draw_data.dodge_x=shiftdim(uni_x);
+    %draw_data.dodge_n=repmat(draw_data.n_colors,length(uni_x),1);
+    %draw_data.dodge_ind=repmat(draw_data.color_index,length(uni_x),1);
 end
 
 %Store results

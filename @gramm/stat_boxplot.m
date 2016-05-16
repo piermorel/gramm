@@ -34,8 +34,11 @@ y=comb(draw_data.y);
 
 %NEW: compute unique Xs at the facet level (to avoid problems
 %with bar dodging width computation)
-facet_x=comb(draw_data.facet_x);
-uni_x=unique(facet_x);
+%facet_x=comb(draw_data.facet_x);
+%uni_x=unique(facet_x);
+
+%NEW DODGING
+uni_x=unique(x);
 
 
 %Here we need to implement a loose 'unique' because of
@@ -79,24 +82,15 @@ end
 
 obj.results.stat_boxplot{obj.result_ind,1}.boxplot_data=p;
 
-%Constant width: we pick the the minimum available width over
-%the dataset for the span of dodged boxplots
-avl_w=min(diff(uni_x));
-if obj.x_factor %If x is a factor we are limited anyway
-    avl_w=1;
-end
-if isempty(avl_w)
-    avl_w=1;
-end
 
-%Unified dodging logic
-dodging=avl_w*params.dodge./(draw_data.n_colors);
 if params.dodge>0
-    boxw=avl_w*params.width./(draw_data.n_colors);
+    boxw=draw_data.dodge_avl_w*params.width./(draw_data.n_colors);
 else
-    boxw=avl_w*params.width;
+    boxw=draw_data.dodge_avl_w*params.width;
 end
-boxmid=uni_x-0.5*dodging*draw_data.n_colors+dodging*0.5+(draw_data.color_index-1)*dodging;
+boxmid=dodger(uni_x,draw_data,params.dodge);
+
+
 boxleft=boxmid-0.5*boxw;
 boxright=boxmid+0.5*boxw;
 

@@ -76,22 +76,9 @@ if (~obj.updater.first_draw && ~obj.updater.updated)
     return
 end
 
-temp_aes=validate_aes(obj.aes);
+obj.aes=validate_aes(obj.aes);
 
-% Create replacement row_facet and color_facet if they were
-% empty
-if isempty(obj.row_facet)
-    obj.row_facet=ones(size(temp_aes.subset));
-end
-
-if isempty(obj.col_facet)
-    obj.col_facet=ones(size(temp_aes.subset));
-end
-
-temp_row_facet=obj.row_facet(temp_aes.subset);
-temp_col_facet=obj.col_facet(temp_aes.subset);
-
-temp_aes=select_aes(temp_aes,temp_aes.subset);
+temp_aes=select_aes(obj.aes,obj.aes.subset);
 
 %Find min and max of x and y to have homogenous scales
 nonemptycell=@(c)~cellfun(@isempty,c);
@@ -126,14 +113,23 @@ else
     obj.var_lim.minx=min(min(temp_aes.x));
 end
 
+%Depending on whether ymin of ymax are present we change what to pick for
+%limit computation
+if ~isempty(temp_aes.ymin) && ~isempty(temp_aes.ymax)
+    tmp_y_for_min=temp_aes.ymin;
+    tmp_y_for_max=temp_aes.ymax;
+else
+    tmp_y_for_min=temp_aes.y;
+    tmp_y_for_max=temp_aes.y;
+end
+
 if iscell(temp_aes.y)
     nonempty=nonempty & nonemptycell(temp_aes.y);
-    
-    obj.var_lim.maxy=cellmax(temp_aes.y);
-    obj.var_lim.miny=cellmin(temp_aes.y);
+    obj.var_lim.maxy=cellmax(tmp_y_for_max);
+    obj.var_lim.miny=cellmin(tmp_y_for_min);
 else
-    obj.var_lim.maxy=max(max(temp_aes.y));
-    obj.var_lim.miny=min(min(temp_aes.y));
+    obj.var_lim.maxy=max(max(tmp_y_for_max));
+    obj.var_lim.miny=min(min(tmp_y_for_min));
 end
 
 if ~isempty(temp_aes.z)
@@ -149,8 +145,6 @@ if ~isempty(temp_aes.z)
 end
 
 temp_aes=select_aes(temp_aes,nonempty);
-temp_row_facet=temp_row_facet(nonempty);
-temp_col_facet=temp_col_facet(nonempty);
 
 %Handles the multiple gramm case: we set up subtightplot so
 %that it restricts the drawing (using margins) to a portion of
@@ -171,8 +165,8 @@ end
 mysubplot_wrap=@(ncol,col)mysubtightplot(ceil(ncol/obj.wrap_ncols),obj.wrap_ncols,col,[0.09 0.03],[0.1 0.2],[0.1 0.2]);
 
 %Find uniques in aesthetics and sort according to options
-uni_row=unique_and_sort(temp_row_facet,obj.order_options.row);
-uni_column=unique_and_sort(temp_col_facet,obj.order_options.column);
+uni_row=unique_and_sort(temp_aes.row,obj.order_options.row);
+uni_column=unique_and_sort(temp_aes.column,obj.order_options.column);
 uni_linestyle=unique_and_sort(temp_aes.linestyle,obj.order_options.linestyle);
 uni_marker=unique_and_sort(temp_aes.marker,obj.order_options.marker);
 uni_lightness=unique_and_sort(temp_aes.lightness,obj.order_options.lightness);
@@ -218,12 +212,12 @@ if ~iscell(uni_marker)
     uni_marker=num2cell(uni_marker);
 end
 
-%Correct empty facet_grids
+%Correct empty facets when wrapping
 if obj.wrap_ncols>length(uni_column)
     obj.wrap_ncols=length(uni_column);
 end
 
-%The plot minumums and maximums arrays the size of the
+%The plot minimums and maximums arrays the size of the
 %number of subplots
 n_columns=length(uni_column);
 n_rows=length(uni_row);
@@ -271,12 +265,19 @@ obj.firstrun=ones(n_rows,n_columns);
 %Index in the loops
 obj.result_ind=1;
 
+%Initialize facet axes handles
 if obj.updater.first_draw
-    if obj.handle_graphics
+    if obj.handle_graphics %Post 2014b we return objects
         obj.facet_axes_handles=gobjects(length(uni_row),length(uni_column));
     else
         obj.facet_axes_handles=zeros(length(uni_row),length(uni_column));
     end
+end
+
+%Set the dodge width across all facets
+draw_data.dodge_avl_w=min(diff(unique(comb(temp_aes.x))));
+if isempty(draw_data.dodge_avl_w) || draw_data.dodge_avl_w==0
+    draw_data.dodge_avl_w=1;
 end
 
 
@@ -284,14 +285,14 @@ end
 %Loop over rows
 for ind_row=1:length(uni_row)
     
-    sel_row=multi_sel(temp_row_facet,uni_row{ind_row});
+    sel_row=multi_sel(temp_aes.row,uni_row{ind_row});
     
     obj.current_row=ind_row;
     
     %Loop over columns
     for ind_column=1:length(uni_column)
         
-        sel_column=sel_row & multi_sel(temp_col_facet,uni_column{ind_column});
+        sel_column=sel_row & multi_sel(temp_aes.column,uni_column{ind_column});
         
         obj.current_column=ind_column;
         
@@ -311,14 +312,14 @@ for ind_row=1:length(uni_row)
                     obj.plot_lim.minx(obj.current_row,obj.current_column));
             end
             if iscell(temp_aes.y(sel_column))
-                obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(cellmax(temp_aes.y(sel_column)),...
+                obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(cellmax(tmp_y_for_max(sel_column)),...
                     obj.plot_lim.maxy(obj.current_row,obj.current_column));
-                obj.plot_lim.miny(obj.current_row,obj.current_column)=min(cellmin(temp_aes.y(sel_column)),...
+                obj.plot_lim.miny(obj.current_row,obj.current_column)=min(cellmin(tmp_y_for_min(sel_column)),...
                     obj.plot_lim.miny(obj.current_row,obj.current_column));
             else
-                obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(max(temp_aes.y(sel_column)),...
+                obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(max(tmp_y_for_max(sel_column)),...
                     obj.plot_lim.maxy(obj.current_row,obj.current_column));
-                obj.plot_lim.miny(obj.current_row,obj.current_column)=min(min(temp_aes.y(sel_column)),...
+                obj.plot_lim.miny(obj.current_row,obj.current_column)=min(min(tmp_y_for_min(sel_column)),...
                     obj.plot_lim.miny(obj.current_row,obj.current_column));
             end
             if ~isempty(temp_aes.z)
@@ -400,6 +401,9 @@ for ind_row=1:length(uni_row)
         %missing data).
         draw_data.facet_x=temp_aes.x(sel_column);
         
+        %Store data for advanced dodging
+        [dodge_data.fallback,dodge_data.x,dodge_data.color,dodge_data.lightness,dodge_data.ind,dodge_data.n]=dodge_comp(temp_aes.x(sel_column),temp_aes.color(sel_column),temp_aes.lightness(sel_column),uni_color,uni_lightness);
+        
         %Loop over point shapes
         for ind_marker=1:length(uni_marker)
             
@@ -435,6 +439,19 @@ for ind_row=1:length(uni_row)
                                 uni_group=num2cell(uni_group);
                             end
                             
+                            %Select dodging parameters for current color
+                            %and lightness
+                            if obj.continuous_color
+                                sel_dodge=true(size(dodge_data.color));
+                            else
+                                sel_dodge=multi_sel(dodge_data.color,uni_color{ind_color}) & multi_sel(dodge_data.lightness,uni_lightness{ind_lightness});
+                            end
+                            
+                            draw_data.dodge_fallback=dodge_data.fallback;
+                            draw_data.dodge_x=dodge_data.x(sel_dodge);
+                            draw_data.dodge_ind=dodge_data.ind(sel_dodge);
+                            draw_data.dodge_n=dodge_data.n(sel_dodge);
+                            
                             %Loop over groups
                             for ind_group=1:length(uni_group)
                                 
@@ -468,6 +485,13 @@ for ind_row=1:length(uni_row)
                                     %individual geoms
                                     draw_data.x=temp_aes.x(sel);
                                     draw_data.y=temp_aes.y(sel);
+                                    if ~isempty(temp_aes.ymin) && ~isempty(temp_aes.ymax)
+                                        draw_data.ymin=temp_aes.ymin(sel);
+                                        draw_data.ymax=temp_aes.ymax(sel);
+                                    else
+                                        draw_data.ymin=[];
+                                        draw_data.ymax=[];
+                                    end
                                     if ~isempty(temp_aes.z)
                                         draw_data.z=temp_aes.z(sel);
                                     else

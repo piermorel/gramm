@@ -23,9 +23,6 @@ classdef gramm < matlab.mixin.Copyable
             'lightness','Lightness',...
             'group','Group') 
         
-        row_facet=[] %Contains data used to set subplot rows
-        col_facet=[] %Contains data used to set subplot columns
-        
         axe_properties={} %Contains the axes properties to be set to each subplot
         
         geom={} %Cell containing successive plotting function handles
@@ -198,8 +195,8 @@ classdef gramm < matlab.mixin.Copyable
         obj=set_names(obj,varargin)
         
         % geom  methods
-        obj=geom_line(obj)
-        obj=geom_point(obj)
+        obj=geom_line(obj,varargin)
+        obj=geom_point(obj,varargin)
         obj=geom_count(obj,varargin)
         obj=geom_jitter(obj,varargin)
         obj=geom_abline(obj,varargin)
@@ -208,6 +205,7 @@ classdef gramm < matlab.mixin.Copyable
         obj=geom_funline(obj,varargin)
         obj=geom_raster(obj,varargin)
         obj=geom_bar(obj,varargin)
+        obj=geom_interval(obj,varargin)
         
         % stat methods
         obj=stat_smooth(obj,varargin)

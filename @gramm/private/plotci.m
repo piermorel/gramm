@@ -25,24 +25,13 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                 return;
             end
             
-            %The available width is set to the minimum width within the
-            %provided data
-            if length(x)>=2
-                avl_w=min(diff(x));
-            else
-                avl_w=1;
-            end
-            
-
-            
-            %Compute dodging and bar width
-            dodging=avl_w*dodge./(draw_data.n_colors);
             if dodge>0
-                bar_width=avl_w*width./(draw_data.n_colors);
+                bar_width=draw_data.dodge_avl_w*width./(draw_data.n_colors);
             else
-                bar_width=avl_w*width;
+                bar_width=draw_data.dodge_avl_w*width;
             end
-            x=x-0.5*dodging*draw_data.n_colors+dodging*0.5+(draw_data.color_index-1)*dodging;
+            
+            x=dodger(x',draw_data,dodge)';
             
             %Convert CIs to polar coordinates if needed
             [tmp_xci1,tmp_yci1]=to_polar(obj,x,yci(1,:));
@@ -82,6 +71,8 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                         hndl.line_handle=plot(x,y,'LineStyle',draw_data.line_style,'Color',draw_data.color,'LineWidth',draw_data.size/4);
                         hndl.extra_point_handle=plot(x(real_neighbors==0),y(real_neighbors==0),'o','Color',draw_data.color,'MarkerSize',draw_data.size/3,'MarkerFaceColor',draw_data.color);
                         %plot([x(real_neighbors==0) ; x(real_neighbors==0)], [yci(1,real_neighbors==0) ; yci(2,real_neighbors==0)],'Color',draw_data.color)
+                    case 'area_only'
+                        hndl.area_handle=patch('Vertices',vertices,'Faces',faces,'FaceColor',draw_data.color,'FaceAlpha',0.2,'EdgeColor','none');
                         
                     case 'solid_area'
                         %Solid area (no alpha)
@@ -102,6 +93,13 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                         ypatch=[zeros(1,length(y)) ; zeros(1,length(y)) ; y ; y];
                         [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
                         hndl.bar_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','none');
+                   case 'edge_bar'
+                        barleft=x-bar_width/2;
+                        barright=x+bar_width/2;
+                        xpatch=[barleft ; barright ; barright ; barleft];
+                        ypatch=[zeros(1,length(y)) ; zeros(1,length(y)) ; y ; y];
+                        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+                        hndl.bar_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','k');
                     case 'point'
                         hndl.point_handle=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
                 end

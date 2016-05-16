@@ -20,8 +20,6 @@ new_aes=parse_aes(varargin{:});
 if (~isempty(new_aes.x) && numel(new_aes.x)~=numel(obj.aes.x)) || (~isempty(new_aes.y) && numel(new_aes.y)~=numel(obj.aes.y))
     disp('New X or Y of different size given, all data from first gramm cleared')
     %if so we clear everything
-    obj.row_facet=[];
-    obj.col_facet=[];
     obj.aes=new_aes;
 else
     %Replace fields given here in the original aes

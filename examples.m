@@ -132,6 +132,7 @@ g.set_title('Visualization of Y~X relationships with X as categorical variable')
 figure('Position',[100 100 800 550]);
 g.draw();
 
+
 %% Methods for visualizing X densities
 % The following methods can be used in order to represent the density of a continuous variable. Note that here
 % we represent the same data as in the previous figure, this time with Horsepower as X
@@ -207,6 +208,45 @@ g.set_names('x','Horsepower','y','Acceleration','color','# Cylinders');
 g.set_title('Visualization of Y~X relationship with both X and Y as continuous variables');
 figure('Position',[100 100 800 550]);
 g.draw();
+
+
+%% Methods for visualizing custom confidence intervals
+% With |geom_interval()| it is possible to plot custom confidence intervals
+% by provinding |'ymin'| and |'ymax'| values to |gramm()|. All options to
+% display confidence intervals in |stat_summary()| are available, including
+% dodging.
+
+cars_table=struct2table(cars);
+cars_summary=rowfun(@(hp)deal(nanmean(hp),bootci(200,@(x)nanmean(x),hp)'),cars_table(cars.Cylinders~=3 & cars.Cylinders~=5,:),...
+    'InputVariables',{'Horsepower'},...
+    'GroupingVariables',{'Origin_Region' 'Cylinders'},...
+    'OutputVariableNames',{'hp_mean' 'hp_ci'});
+
+clear g
+%Bars and error bars
+g(1,1)=gramm('x',cars_summary.Origin_Region,'y',cars_summary.hp_mean,...
+    'ymin',cars_summary.hp_ci(:,1),'ymax',cars_summary.hp_ci(:,2),'color',cars_summary.Cylinders);
+g(1,1).set_names('x','Origin','y','Horsepower','color','# Cylinders');
+g(1,1).geom_bar('dodge',0.8,'width',0.6);
+g(1,1).geom_interval('geom','black_errorbar','dodge',0.8,'width',1);
+
+%points and error bars
+g(1,2)=gramm('x',categorical(cars_summary.Cylinders),'y',cars_summary.hp_mean,...
+    'ymin',cars_summary.hp_ci(:,1),'ymax',cars_summary.hp_ci(:,2),'color',cars_summary.Origin_Region);
+g(1,2).set_names('color','Origin','y','Horsepower','x','# Cylinders');
+g(1,3)=copy(g(1,2));
+g(1,2).set_color_options('map','matlab');
+
+g(1,2).geom_point('dodge',0.2);
+g(1,2).geom_interval('geom','errorbar','dodge',0.2,'width',0.8);
+
+%Shaded area
+g(1,3).geom_interval('geom','area');
+
+figure('Position',[100 100 800 450]);
+g.axe_property('YLim',[-10 190]);
+g.draw()
+
 
 %% Methods for visualizing 2D densities
 % The following methods can be used to visualize 2D densities for
@@ -286,10 +326,8 @@ g(2,2)=copy(g(1));
 g(1,1).geom_point();
 g(1,1).set_title('geom_point()');
 
-
 g(1,2).geom_line();
 g(1,2).set_title('geom_line()');
-
 
 g(2,1).stat_smooth();
 g(2,1).set_title('stat_smooth()');

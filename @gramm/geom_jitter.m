@@ -9,6 +9,7 @@ function obj=geom_jitter(obj,varargin)
 p=inputParser;
 my_addParameter(p,'width',0.2);
 my_addParameter(p,'height',0.2);
+my_addParameter(p,'dodge',0);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dd)my_jitter(obj,dd,p.Results)});
@@ -17,6 +18,8 @@ end
 
 
 function  hndl=my_jitter(obj,draw_data,params)
+
+draw_data.x=dodger(draw_data.x,draw_data,params.dodge);
 
 draw_data.x=draw_data.x+rand(size(draw_data.x))*params.width-params.width/2;
 draw_data.y=draw_data.y+rand(size(draw_data.y))*params.height-params.height/2;
