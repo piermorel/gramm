@@ -52,7 +52,7 @@ else
         
         hndl=line(combnan(x),combnan(y),'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
     else
-        hndl=line(combnan(x),combnan(y),combnan(z),'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+        hndl=line(combnan(draw_data.x),combnan(draw_data.y),combnan(draw_data.z),'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
     end
 end
 obj.results.geom_line_handle{obj.result_ind,1}=hndl;
