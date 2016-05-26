@@ -169,7 +169,12 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
             [ymean(ind_x),yci(ind_x,:)]=computeci(y(:,ind_x),params.type);
         end
     else
-        [ymean,yci]=computeci(y,params.type);
+        if size(y,1)==1
+            ymean=y;
+            yci=nan(length(uni_x),2);
+        else
+            [ymean,yci]=computeci(y,params.type);
+        end
     end
     
 else %If input was provided as 1D array

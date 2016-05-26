@@ -13,11 +13,12 @@ function obj=draw(obj,do_redraw)
 % call for the redraw() function, i.e. deactivates the fancy
 % axis placement.
 
+%We set redraw() as resize callback by default
 if nargin<2
     do_redraw=true;
 end
 
-
+%If no parent was given we use the current figure
 if isempty(obj(1).parent)
     for obj_ind=1:numel(obj)
         obj(obj_ind).parent=gcf;
@@ -78,16 +79,14 @@ end
 
 obj.aes=validate_aes(obj.aes);
 
+%Apply subset
 temp_aes=select_aes(obj.aes,obj.aes.subset);
 
-%Find min and max of x and y to have homogenous scales
+%Make sure that we work on cells that are not empty
 nonemptycell=@(c)~cellfun(@isempty,c);
-cellmax=@(c)max(cellfun(@max,c(nonemptycell(c))));
-cellmin=@(c)min(cellfun(@min,c(nonemptycell(c))));
-
 
 if iscell(temp_aes.x)
-    nonempty=nonemptycell(temp_aes.x);
+    nonempty=nonemptycell(temp_aes.x); %Find empty X cells
     
     if iscellstr(temp_aes.x)
         %Convert factor data to numeric
@@ -98,22 +97,30 @@ if iscell(temp_aes.x)
             tempx(strcmp(temp_aes.x,obj.x_ticks{k}))=k;
         end
         temp_aes.x=tempx;
-        
-        obj.var_lim.maxx=max(temp_aes.x);
-        obj.var_lim.minx=min(temp_aes.x);
     else
-        obj.var_lim.maxx=cellmax(temp_aes.x);
-        obj.var_lim.minx=cellmin(temp_aes.x);
-        
         obj.x_factor=false;
     end
 else
     nonempty=true(length(temp_aes.y),1);
-    obj.var_lim.maxx=max(max(temp_aes.x));
-    obj.var_lim.minx=min(min(temp_aes.x));
 end
 
-%Depending on whether ymin of ymax are present we change what to pick for
+if iscell(temp_aes.y)
+    nonempty=nonempty & nonemptycell(temp_aes.y); %Find empty Y cells
+end
+
+if ~isempty(temp_aes.z) && iscell(temp_aes.z)
+    nonempty=nonempty & nonemptycell(temp_aes.z); %Find empty Z cells
+end
+
+
+%Remove empty cells
+temp_aes=select_aes(temp_aes,nonempty);
+
+%Compute x limits
+obj.var_lim.maxx=allmax(temp_aes.x);
+obj.var_lim.minx=allmin(temp_aes.x);
+
+%Depending on whether ymin of ymax are present we change what to pick for Y
 %limit computation
 if ~isempty(temp_aes.ymin) && ~isempty(temp_aes.ymax)
     tmp_y_for_min=temp_aes.ymin;
@@ -123,28 +130,16 @@ else
     tmp_y_for_max=temp_aes.y;
 end
 
-if iscell(temp_aes.y)
-    nonempty=nonempty & nonemptycell(temp_aes.y);
-    obj.var_lim.maxy=cellmax(tmp_y_for_max);
-    obj.var_lim.miny=cellmin(tmp_y_for_min);
-else
-    obj.var_lim.maxy=max(max(tmp_y_for_max));
-    obj.var_lim.miny=min(min(tmp_y_for_min));
-end
+%Compute y limits
+obj.var_lim.maxy=allmax(tmp_y_for_max);
+obj.var_lim.miny=allmin(tmp_y_for_min);
 
+%Compute z limits
 if ~isempty(temp_aes.z)
-    if iscell(temp_aes.z)
-        nonempty=nonempty & nonemptycell(temp_aes.z);
-        
-        obj.var_lim.maxz=cellmax(temp_aes.z);
-        obj.var_lim.minz=cellmin(temp_aes.z);
-    else
-        obj.var_lim.maxz=max(max(temp_aes.z));
-        obj.var_lim.minz=min(min(temp_aes.z));
-    end
+   obj.var_lim.maxz=allmax(temp_aes.z);
+   obj.var_lim.minz=allmin(temp_aes.z);
 end
 
-temp_aes=select_aes(temp_aes,nonempty);
 
 %Handles the multiple gramm case: we set up subtightplot so
 %that it restricts the drawing (using margins) to a portion of
@@ -217,7 +212,7 @@ if obj.wrap_ncols>length(uni_column)
     obj.wrap_ncols=length(uni_column);
 end
 
-%The plot minimums and maximums arrays the size of the
+%The plot minimums and maximums are stored in arrays the size of the
 %number of subplots
 n_columns=length(uni_column);
 n_rows=length(uni_row);
@@ -298,53 +293,27 @@ for ind_row=1:length(uni_row)
         
         %Store limits of the subplots
         if sum(sel_column)>0
-            if iscell(temp_aes.x(sel_column))
-                %Here we do max/min with the current values for draw after
-                %update() calls
-                obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(cellmax(temp_aes.x(sel_column)),...
-                    obj.plot_lim.maxx(obj.current_row,obj.current_column));
-                obj.plot_lim.minx(obj.current_row,obj.current_column)=min(cellmin(temp_aes.x(sel_column)),...
-                    obj.plot_lim.minx(obj.current_row,obj.current_column));
-            else
-                obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(max(temp_aes.x(sel_column)),...
-                    obj.plot_lim.maxx(obj.current_row,obj.current_column));
-                obj.plot_lim.minx(obj.current_row,obj.current_column)=min(min(temp_aes.x(sel_column)),...
-                    obj.plot_lim.minx(obj.current_row,obj.current_column));
-            end
-            if iscell(temp_aes.y(sel_column))
-                obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(cellmax(tmp_y_for_max(sel_column)),...
-                    obj.plot_lim.maxy(obj.current_row,obj.current_column));
-                obj.plot_lim.miny(obj.current_row,obj.current_column)=min(cellmin(tmp_y_for_min(sel_column)),...
-                    obj.plot_lim.miny(obj.current_row,obj.current_column));
-            else
-                obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(max(tmp_y_for_max(sel_column)),...
-                    obj.plot_lim.maxy(obj.current_row,obj.current_column));
-                obj.plot_lim.miny(obj.current_row,obj.current_column)=min(min(tmp_y_for_min(sel_column)),...
-                    obj.plot_lim.miny(obj.current_row,obj.current_column));
-            end
-            if ~isempty(temp_aes.z)
-                if iscell(temp_aes.z(sel_column))
-                    obj.plot_lim.maxz(obj.current_row,obj.current_column)=max(cellmax(temp_aes.z(sel_column)),...
-                        obj.plot_lim.maxz(obj.current_row,obj.current_column));
-                    obj.plot_lim.minz(obj.current_row,obj.current_column)=min(cellmin(temp_aes.z(sel_column)),...
-                        obj.plot_lim.minz(obj.current_row,obj.current_column));
-                else
-                    obj.plot_lim.maxz(obj.current_row,obj.current_column)=max(max(temp_aes.z(sel_column)),...
-                        obj.plot_lim.maxz(obj.current_row,obj.current_column));
-                    obj.plot_lim.minz(obj.current_row,obj.current_column)=min(min(temp_aes.z(sel_column)),...
-                        obj.plot_lim.minz(obj.current_row,obj.current_column));
-                end
+            %Here we do max/min with the current values for draw after
+            %update() calls
+            obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(allmax(temp_aes.x(sel_column)),...
+                obj.plot_lim.maxx(obj.current_row,obj.current_column));
+            obj.plot_lim.minx(obj.current_row,obj.current_column)=min(allmin(temp_aes.x(sel_column)),...
+                obj.plot_lim.minx(obj.current_row,obj.current_column));
+            
+            obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(allmax(tmp_y_for_max(sel_column)),...
+                obj.plot_lim.maxy(obj.current_row,obj.current_column));
+            obj.plot_lim.miny(obj.current_row,obj.current_column)=min(allmin(tmp_y_for_min(sel_column)),...
+                obj.plot_lim.miny(obj.current_row,obj.current_column));
+            
+            if ~isempty(temp_aes.z) 
+                obj.plot_lim.maxz(obj.current_row,obj.current_column)=max(allmax(temp_aes.z(sel_column)),...
+                    obj.plot_lim.maxz(obj.current_row,obj.current_column));
+                obj.plot_lim.minz(obj.current_row,obj.current_column)=min(allmin(temp_aes.z(sel_column)),...
+                    obj.plot_lim.minz(obj.current_row,obj.current_column)); 
             else
                 obj.plot_lim.maxz(obj.current_row,obj.current_column)=0;
                 obj.plot_lim.minz(obj.current_row,obj.current_column)=0;
             end
-        else
-            obj.plot_lim.maxy(obj.current_row,obj.current_column)=NaN;
-            obj.plot_lim.miny(obj.current_row,obj.current_column)=NaN;
-            obj.plot_lim.maxx(obj.current_row,obj.current_column)=NaN;
-            obj.plot_lim.minx(obj.current_row,obj.current_column)=NaN;
-            obj.plot_lim.maxz(obj.current_row,obj.current_column)=NaN;
-            obj.plot_lim.minz(obj.current_row,obj.current_column)=NaN;
         end
         
         
@@ -1086,4 +1055,22 @@ if verLessThan('matlab','8.4')
 end
 
 obj.updater.first_draw=false;
+end
+
+function out=allmax(in)
+%Return maximum of an array or of a cell of arrays
+if iscell(in)
+    out=max(cellfun(@max,in(~cellfun(@isempty,in)))); %Cellfun on non empty cells
+else
+    out=max(in);
+end
+end
+
+function out=allmin(in)
+%Return minimum of an array or of a cell of arrays
+if iscell(in)
+    out=min(cellfun(@min,in(~cellfun(@isempty,in))));  %Cellfun on non empty cells
+else
+    out=min(in);
+end
 end
