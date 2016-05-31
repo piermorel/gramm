@@ -3,6 +3,8 @@ classdef gramm < matlab.mixin.Copyable
     % Pierre Morel 2015
     
     properties (Access=public)
+        legend_axe_handle %Store the handle of the legend axis
+        title_axe_handle %Store the handle of the title axis
         facet_axes_handles %Stores the handles of the facet axes
         results %Stores the results of the draw functions and statistics computations
     end
@@ -109,8 +111,7 @@ classdef gramm < matlab.mixin.Copyable
         
         legend_y=0 %Current y position of the legend text
         
-        legend_axe_handle %Store the handle of the legend axis
-        title_axe_handle %Store the handle of the title axis
+        
         
         bigtitle=''
         bigtitle_options={}
