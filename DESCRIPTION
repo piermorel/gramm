@@ -4,7 +4,7 @@ Date: 2016-06-03
 Author: Pascal
 Maintainer: Pascal
 Title: GRAMmar of graphics for Matlab
-Description: 
+Description: Powerful plotting toolbox which allows to quickly create complex, publication-quality figures, and is inspired by R's ggplot2 library by Hadley Wickham
 Depends: octave (>= 4.0.0)
 Autoload: no
 License: MIT
