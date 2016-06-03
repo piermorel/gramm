@@ -1,0 +1,11 @@
+Name: gramm
+Version: 1.0.0
+Date: 
+Author: 
+Maintainer: 
+Title: GRAMmar of graphics for Matlab
+Description: 
+Depends: octave (>= 4.0.0)
+Autoload: no
+License: MIT
+Url: https://github.com/piermorel/gramm
