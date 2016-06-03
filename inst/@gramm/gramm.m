@@ -1,17 +1,17 @@
 classdef gramm < matlab.mixin.Copyable
     %GRAMM Implementation of the features from R's ggplot2 (GRAMmar of graphics plots) in Matlab
     % Pierre Morel 2015
-    
+
     properties (Access=public)
         legend_axe_handle %Store the handle of the legend axis
         title_axe_handle %Store the handle of the title axis
         facet_axes_handles %Stores the handles of the facet axes
         results %Stores the results of the draw functions and statistics computations
     end
-    
+
     properties (Access=protected,Hidden=true)
         aes %aesthetics (contains data set by the constructor and used to generate the plots)
-        
+
         %Name of the aesthetics and column/rows for the legend
         aes_names=struct('x','x',...
             'y','y',...
@@ -23,52 +23,52 @@ classdef gramm < matlab.mixin.Copyable
             'row','Row',...
             'column','Column',...
             'lightness','Lightness',...
-            'group','Group') 
-        
+            'group','Group')
+
         axe_properties={} %Contains the axes properties to be set to each subplot
-        
+
         geom={} %Cell containing successive plotting function handles
-        
+
         var_lim %Contains the min and max values of variables (minx,maxx,miny,maxy)
-        
+
         %Contains the min and max values of variables in sub plots
         %(minx,maxx,miny,maxy,minc,maxc), c being for the continuous color
         %values. Each of these is a matrix
         %corresponding to the facets, used to set axis limits
         plot_lim
-        
+
         xlim_extra=0.1 %extend range of XLim (ratio of original XLim width)
         ylim_extra=0.1 %extend range of XLim (ratio of original YLim width)
         zlim_extra=0.1
-        
+
         %Structure containing polar-related parameters: is_polar stores
         %whether to display polar plots, is_polar_closed to  set if the
         %polar lines must close around the circle, and max_polar_y to
         %define the limits in radius.
         polar=struct('is_polar',false,...
             'is_polar_closed',false)
-        
+
         x_factor %Is X a categorical variable ?
         x_ticks %Store the ticks used for x
-        
+
         %store variables used when making multiple gramm plots in the same window:
         multi=struct('orig',[0 0],...   origin (x,y) of the current gramm plot in normalized
             'size',[1 1],...   size (w,h) of the current gramm plot in normalized values
             'active',false)
-        
+
         %Stores variables relative to gramm updating
         updater=struct('facet_updated',0,...
             'updated',false,...
             'first_draw',true)
-        
+
         firstrun %Is it the first time the plotting function is run
         result_ind %current index in the draw loops
-        
+
         wrap_ncols=-1 %After how many columns do we wrap around subplots
         facet_scale='fixed' %Do we have independent scales between facets ?
         facet_space='fixed' %Do scale axes between facets ?
         force_ticks=false %Do we force ticks on all facets
-        
+
         %structure containing the abline parameters
         abline=struct('on',0,...
             'slope',[],...
@@ -77,18 +77,18 @@ classdef gramm < matlab.mixin.Copyable
             'yintercept',[],...
             'style',[],...
             'fun',[])
-        
+
         datetick_params={} %cell containng datetick parameters
         current_row %What is the currently drawn row of the subplot
         current_column %What is the currently drawn column of the subplot
-        
+
         continuous_color=false %Do we use continuous colors (rather than discrete)
-        
+
          %Store the continuous color colormap
         continuous_color_colormap=pa_LCH2RGB([linspace(0,100,256)'...
                 repmat(100,256,1)...
                 linspace(30,90,256)']);
-        
+
         %Store options for generating colors
         color_options =struct('lightness_range',[85 15],...
             'chroma_range',[30 90],...
@@ -96,7 +96,7 @@ classdef gramm < matlab.mixin.Copyable
             'lightness',65,...
             'chroma',75,...
             'map','lch')
-        
+
         %Store options for sorting data/categories
         order_options=struct('x',1,...
             'color',1,...
@@ -106,32 +106,32 @@ classdef gramm < matlab.mixin.Copyable
             'row',1,...
             'column',1,...
             'lightness',1)
-        
+
         with_legend=true %Do we have a side legend for colors etc. ?
-        
+
         legend_y=0 %Current y position of the legend text
-        
-        
-        
+
+
+
         bigtitle=''
         bigtitle_options={}
         title=''
         title_options={}
-        
+
         legend_text_handles=[] %Stores handles of text objects for legend
         facet_text_handles=[] %Stores handles of text objects for facet row and column titles
         title_text_handle=[] %Stores handle of title text object
-        
+
         redraw_cache=[] %Cache store for faster redraw() calls
-        
+
         parent=[]
-        
+
         handle_graphics
         extra %Store extra geom-specific info
     end
-    
+
     methods (Access=public)
-        
+
         % Constructor
         function obj=gramm(varargin)
             % gramm Constructor for the class
@@ -170,19 +170,19 @@ classdef gramm < matlab.mixin.Copyable
             %     array of the same size (N*M). It can also be a 1D numerical
             %     array of size M, in which case the same abcissa will be
             %     used for every row of y.
-            
+
             obj.aes=parse_aes(varargin{:});
             obj.handle_graphics=~verLessThan('matlab','8.4.0');
         end
-        
+
         obj=update(obj,varargin)
-        
+
         obj=facet_grid(obj,row,col,varargin)
         obj=facet_wrap(obj,col,varargin)
-        
+
         obj=redraw(obj,spacing,display)
         obj=draw(obj,do_redraw)
-           
+
         % Customization methods
         obj=set_polar(obj,varargin)
         obj=set_color_options(obj,varargin)
@@ -194,7 +194,7 @@ classdef gramm < matlab.mixin.Copyable
         obj=set_datetick(obj,varargin)
         obj=set_title(obj,title,varargin)
         obj=set_names(obj,varargin)
-        
+
         % geom  methods
         obj=geom_line(obj,varargin)
         obj=geom_point(obj,varargin)
@@ -207,7 +207,7 @@ classdef gramm < matlab.mixin.Copyable
         obj=geom_raster(obj,varargin)
         obj=geom_bar(obj,varargin)
         obj=geom_interval(obj,varargin)
-        
+
         % stat methods
         obj=stat_smooth(obj,varargin)
         obj=stat_summary(obj,varargin)
@@ -219,34 +219,14 @@ classdef gramm < matlab.mixin.Copyable
         obj=stat_bin2d(obj,varargin)
         obj=stat_density(obj,varargin)
         obj=stat_qq(obj,varargin)
-        
+
         function obj=set_parent(obj,parent)
             obj.parent=parent;
         end
-        
+
     end
-    
 
-    
+
+
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
