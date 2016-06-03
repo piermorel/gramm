@@ -50,7 +50,8 @@ help:
 $(RELEASE_DIR): .git/index
 	@echo "Creating package version $(VERSION) release ..."
 	-rm -rf $@
-	git archive master --worktree-attributes --output $@
+	mkdir $@
+	git archive --worktree-attributes --format=tar master | (cd $@ && tar xf -)
 	chmod -R a+rX,u+w,go-w $@
 
 $(RELEASE_TARBALL): $(RELEASE_DIR)

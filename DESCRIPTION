@@ -1,8 +1,8 @@
 Name: gramm
 Version: 1.0.0
-Date: 
-Author: 
-Maintainer: 
+Date: 2016-06-03
+Author: Pascal
+Maintainer: Pascal
 Title: GRAMmar of graphics for Matlab
 Description: 
 Depends: octave (>= 4.0.0)
