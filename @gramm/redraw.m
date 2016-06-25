@@ -410,5 +410,12 @@ if L>1
     end
 end
 
+
+if ~isempty(obj.redraw_fun)
+    for k=1:length(obj.redraw_fun)
+        obj.redraw_fun{k}();
+    end
+end
+
 %inCallback = [];
 end

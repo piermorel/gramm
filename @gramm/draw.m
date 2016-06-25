@@ -230,6 +230,10 @@ end
 %Get colormap
 cmap=get_colormap(length(uni_color),length(uni_lightness),obj.color_options);
 
+%Initialize continuous colormap
+obj.continuous_color_colormap=pa_LCH2RGB([linspace(0,100,256)'...
+    repmat(100,256,1)...
+    linspace(30,90,256)']);
 
 %Initialize results structure (n_groups is an overestimate if
 %there are redundant groups
@@ -274,6 +278,8 @@ draw_data.dodge_avl_w=min(diff(unique(comb(temp_aes.x))));
 if isempty(draw_data.dodge_avl_w) || draw_data.dodge_avl_w==0
     draw_data.dodge_avl_w=1;
 end
+
+obj.data_size=numel(temp_aes.x);
 
 
 %% draw() looping
@@ -867,7 +873,7 @@ for ind_row=1:length(uni_row) %Loop over rows
                     temp_xlim=[obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)];
             end
             if sum(isnan(temp_xlim))==0
-                set(ca,'XLim',temp_xlim+[-diff(temp_xlim)*obj.xlim_extra*0.5 diff(temp_xlim)*obj.xlim_extra*0.5]);
+                set(ca,'XLim',temp_xlim+[-diff(temp_xlim)*obj.xlim_extra(1) diff(temp_xlim)*obj.xlim_extra(2)]);
             end
             
             switch temp_yscale
@@ -879,7 +885,7 @@ for ind_row=1:length(uni_row) %Loop over rows
                     temp_ylim=[obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)];
             end
             if sum(isnan(temp_ylim))==0
-                set(ca,'YLim',temp_ylim+[-diff(temp_ylim)*obj.ylim_extra*0.5 diff(temp_ylim)*obj.ylim_extra*0.5]);
+                set(ca,'YLim',temp_ylim+[-diff(temp_ylim)*obj.ylim_extra(1) diff(temp_ylim)*obj.ylim_extra(2)]);
             end
             
             if ~isempty(temp_aes.z) %Only do the Z limit stuff if we have z data
@@ -890,7 +896,7 @@ for ind_row=1:length(uni_row) %Loop over rows
                     case 'per_plot'
                         temp_zlim=[obj.plot_lim.minz(ind_row,ind_column) obj.plot_lim.maxz(ind_row,ind_column)];
                 end
-                set(ca,'ZLim',temp_zlim+[-diff(temp_zlim)*obj.zlim_extra*0.5 diff(temp_zlim)*obj.zlim_extra*0.5]);
+                set(ca,'ZLim',temp_zlim+[-diff(temp_zlim)*obj.zlim_extra(1) diff(temp_zlim)*obj.zlim_extra(2)]);
                 
                 %Always have ticks if we have z data
                 has_xtick=true;

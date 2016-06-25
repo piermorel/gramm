@@ -7,6 +7,7 @@ classdef gramm < matlab.mixin.Copyable
         title_axe_handle %Store the handle of the title axis
         facet_axes_handles %Stores the handles of the facet axes
         results %Stores the results of the draw functions and statistics computations
+        
     end
     
     properties (Access=protected,Hidden=true)
@@ -37,9 +38,9 @@ classdef gramm < matlab.mixin.Copyable
         %corresponding to the facets, used to set axis limits
         plot_lim
         
-        xlim_extra=0.1 %extend range of XLim (ratio of original XLim width)
-        ylim_extra=0.1 %extend range of XLim (ratio of original YLim width)
-        zlim_extra=0.1
+        xlim_extra=[0.05 0.05] %extend range of XLim (ratio of original XLim width)
+        ylim_extra=[0.05 0.05] %extend range of XLim (ratio of original YLim width)
+        zlim_extra=[0.05 0.05]
         
         %Structure containing polar-related parameters: is_polar stores
         %whether to display polar plots, is_polar_closed to  set if the
@@ -84,10 +85,7 @@ classdef gramm < matlab.mixin.Copyable
         
         continuous_color=false %Do we use continuous colors (rather than discrete)
         
-         %Store the continuous color colormap
-        continuous_color_colormap=pa_LCH2RGB([linspace(0,100,256)'...
-                repmat(100,256,1)...
-                linspace(30,90,256)']);
+        continuous_color_colormap=[];
         
         %Store options for generating colors
         color_options =struct('lightness_range',[85 15],...
@@ -123,11 +121,15 @@ classdef gramm < matlab.mixin.Copyable
         title_text_handle=[] %Stores handle of title text object
         
         redraw_cache=[] %Cache store for faster redraw() calls
+        redraw_fun={};
         
         parent=[]
         
         handle_graphics
+        data_size
+        
         extra %Store extra geom-specific info
+       
     end
     
     methods (Access=public)
@@ -219,6 +221,8 @@ classdef gramm < matlab.mixin.Copyable
         obj=stat_bin2d(obj,varargin)
         obj=stat_density(obj,varargin)
         obj=stat_qq(obj,varargin)
+        obj=stat_cornerhist(obj,varargin)
+        obj=stat_violin(obj,varargin)
         
         function obj=set_parent(obj,parent)
             obj.parent=parent;

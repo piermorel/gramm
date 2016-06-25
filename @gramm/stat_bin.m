@@ -140,26 +140,8 @@ end
 
 
 %Set up colors according to fill
-face_alpha=1;
-edge_alpha=0.8;
-switch params.fill
-    case 'edge'
-        edge_color=draw_data.color;
-        face_color=draw_data.color;
-        face_alpha=0;
-    case 'face'
-        edge_color='k';
-        edge_alpha=1;
-        face_color=draw_data.color;
-    case 'all'
-        edge_color=draw_data.color;
-        edge_alpha=0;
-        face_color=draw_data.color;
-    case 'transparent'
-        edge_color=draw_data.color;
-        face_color=draw_data.color;
-        face_alpha=0.4;
-end
+[face_color , face_alpha , edge_color , edge_alpha] = parse_fill (params.fill,draw_data.color);
+
 
 
 

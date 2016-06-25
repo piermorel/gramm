@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>gramm examples</title><meta name="generator" content="MATLAB 8.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-16"><meta name="DC.source" content="examples.m"><style type="text/css">
+      --><title>gramm examples</title><meta name="generator" content="MATLAB 8.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-06-25"><meta name="DC.source" content="examples.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>gramm examples</h1><!--introduction--><p>Examples and how-tos for gramm</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Example from the readme</a></li><li><a href="#9">Grouping options in gramm</a></li><li><a href="#10">Methods for visualizing Y~X relationships with X as categorical variable</a></li><li><a href="#11">Methods for visualizing X densities</a></li><li><a href="#12">Methods for visualizing Y~X relationship with both X and Y as continuous variables</a></li><li><a href="#13">Methods for visualizing custom confidence intervals</a></li><li><a href="#14">Methods for visualizing 2D densities</a></li><li><a href="#15">Methods for visualizing repeated trajectories</a></li><li><a href="#16">Methods for visualizing repeated densities (e.g. spike densities)</a></li><li><a href="#17">Options for separating groups across subplots with facet_grid()</a></li><li><a href="#18">Options for creating histograms with stat_bin()</a></li><li><a href="#21">Options for dodging and spacing graphic elements in <tt>stat_summary()</tt> and <tt>stat_boxplot()</tt></a></li><li><a href="#23">Using different groups for different stat_ and geom_ methods by superimposing gramm plots</a></li><li><a href="#25">Customizing color maps with set_color_options()</a></li><li><a href="#26">Using a continuous color scale</a></li><li><a href="#27">Changing the order of elements with set_order_options()</a></li><li><a href="#28">Advanced customization of gramm figures</a></li><li><a href="#29">Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)</a></li></ul></div><h2>Example from the readme<a name="1"></a></h2><p>Here we plot the evolution of fuel economy of new cars bewteen 1970 and 1980 (carbig dataset). Gramm is used to easily separate groups on the basis of the number of cylinders of the cars (color), and on the basis of the region of origin of the cars (subplot columns). Both the raw data (points) and a glm fit with 95% confidence interval (line+shaded area) are plotted.</p><p>We stat by loading the sample data (structure created from the carbig dataset)</p><pre class="codeinput">load <span class="string">example_data</span>;
+  </style></head><body><div class="content"><h1>gramm examples</h1><!--introduction--><p>Examples and how-tos for gramm</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Example from the readme</a></li><li><a href="#9">Grouping options in gramm</a></li><li><a href="#10">Methods for visualizing Y~X relationships with X as categorical variable</a></li><li><a href="#11">Methods for visualizing X densities</a></li><li><a href="#12">Methods for visualizing Y~X relationship with both X and Y as continuous variables</a></li><li><a href="#13">Methods for visualizing custom confidence intervals</a></li><li><a href="#14">Methods for visualizing 2D densities</a></li><li><a href="#15">Methods for visualizing repeated trajectories</a></li><li><a href="#16">Methods for visualizing repeated densities (e.g. spike densities)</a></li><li><a href="#17">Options for separating groups across subplots with facet_grid()</a></li><li><a href="#18">Options for creating histograms with stat_bin()</a></li><li><a href="#21">Graphic and normalization options in stat_violin()</a></li><li><a href="#22">Options for dodging and spacing graphic elements in <tt>stat_summary()</tt> and <tt>stat_boxplot()</tt></a></li><li><a href="#24">Using different groups for different stat_ and geom_ methods by superimposing gramm plots</a></li><li><a href="#26">Customizing color maps with set_color_options()</a></li><li><a href="#27">Using a continuous color scale</a></li><li><a href="#28">Changing the order of elements with set_order_options()</a></li><li><a href="#29">Advanced customization of gramm figures</a></li><li><a href="#30">Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)</a></li></ul></div><h2>Example from the readme<a name="1"></a></h2><p>Here we plot the evolution of fuel economy of new cars bewteen 1970 and 1980 (carbig dataset). Gramm is used to easily separate groups on the basis of the number of cylinders of the cars (color), and on the basis of the region of origin of the cars (subplot columns). Both the raw data (points) and a glm fit with 95% confidence interval (line+shaded area) are plotted.</p><p>We stat by loading the sample data (structure created from the carbig dataset)</p><pre class="codeinput">load <span class="string">example_data</span>;
 </pre><p>Create a gramm object, provide x (year of production) and y (fuel economy) data, color grouping data (number of cylinders) and select a subset of the data</p><pre class="codeinput">g=gramm(<span class="string">'x'</span>,cars.Model_Year,<span class="string">'y'</span>,cars.MPG,<span class="string">'color'</span>,cars.Cylinders,<span class="string">'subset'</span>,cars.Cylinders~=3 &amp; cars.Cylinders~=5);
 </pre><p>Subdivide the data in subplots horizontally by region of origin using facet_grid()</p><pre class="codeinput">g.facet_grid([],cars.Origin_Region);
 </pre><p>Plot raw data as points</p><pre class="codeinput">g.geom_point();
@@ -126,6 +126,7 @@ g.draw();
 
 g(1,1)=gramm(<span class="string">'x'</span>,cars.Origin_Region,<span class="string">'y'</span>,cars.Horsepower,<span class="string">'color'</span>,cars.Cylinders,<span class="string">'subset'</span>,cars.Cylinders~=3 &amp; cars.Cylinders~=5);
 g(1,2)=copy(g(1));
+g(1,3)=copy(g(1));
 g(2,1)=copy(g(1));
 g(2,2)=copy(g(1));
 
@@ -138,12 +139,16 @@ g(1,2).geom_jitter(<span class="string">'width'</span>,0.4,<span class="string">
 g(1,2).set_title(<span class="string">'geom_jitter()'</span>);
 
 <span class="comment">%Averages with confidence interval</span>
-g(2,1).stat_summary(<span class="string">'geom'</span>,{<span class="string">'bar'</span>,<span class="string">'black_errorbar'</span>});
-g(2,1).set_title(<span class="string">'stat_summary()'</span>);
+g(1,3).stat_summary(<span class="string">'geom'</span>,{<span class="string">'bar'</span>,<span class="string">'black_errorbar'</span>});
+g(1,3).set_title(<span class="string">'stat_summary()'</span>);
 
 <span class="comment">%Boxplots</span>
-g(2,2).stat_boxplot();
-g(2,2).set_title(<span class="string">'stat_boxplot()'</span>);
+g(2,1).stat_boxplot();
+g(2,1).set_title(<span class="string">'stat_boxplot()'</span>);
+
+<span class="comment">%Violin plots</span>
+g(2,2).stat_violin(<span class="string">'fill'</span>,<span class="string">'transparent'</span>);
+g(2,2).set_title(<span class="string">'stat_violin()'</span>);
 
 <span class="comment">%These functions can be called on arrays of gramm objects</span>
 g.set_names(<span class="string">'x'</span>,<span class="string">'Origin'</span>,<span class="string">'y'</span>,<span class="string">'Horsepower'</span>,<span class="string">'color'</span>,<span class="string">'# Cyl'</span>);
@@ -252,6 +257,8 @@ ans =
 
   1x3 gramm array with properties:
 
+    legend_axe_handle
+    title_axe_handle
     facet_axes_handles
     results
 
@@ -526,7 +533,42 @@ g7.set_title(<span class="string">'Other options for stat_bin()'</span>);
 
 figure(<span class="string">'Position'</span>,[100 100 800 600]);
 g7.draw();
-</pre><img vspace="5" hspace="5" src="examples_13.png" alt=""> <h2>Options for dodging and spacing graphic elements in <tt>stat_summary()</tt> and <tt>stat_boxplot()</tt><a name="21"></a></h2><p><tt>stat_summary()</tt> and <tt>stat_boxplot()</tt>, as well as <tt>stat_bin()</tt>, use a pair of options for setting the width of graphical elements (<tt>'width'</tt>) and setting how elements of different colors can be dodged to the side to avoid overlap (<tt>'dodge'</tt>)</p><pre class="codeinput"><span class="comment">%Create data</span>
+</pre><img vspace="5" hspace="5" src="examples_13.png" alt=""> <h2>Graphic and normalization options in stat_violin()<a name="21"></a></h2><pre class="codeinput">clear <span class="string">g</span>
+g(1,1)=gramm(<span class="string">'x'</span>,cars.Origin_Region,<span class="string">'y'</span>,cars.Horsepower,<span class="string">'color'</span>,cars.Cylinders,<span class="string">'subset'</span>,cars.Cylinders~=3 &amp; cars.Cylinders~=5);
+g(1,1).set_names(<span class="string">'x'</span>,<span class="string">'Origin'</span>,<span class="string">'y'</span>,<span class="string">'Horsepower'</span>,<span class="string">'color'</span>,<span class="string">'# Cyl'</span>);
+g(1,2)=copy(g(1,1));
+g(1,3)=copy(g(1,1));
+g(2,1)=copy(g(1,1));
+g(2,2)=copy(g(1,1));
+
+<span class="comment">%Jittered scatter plot</span>
+g(1,1).geom_jitter(<span class="string">'width'</span>,0.6,<span class="string">'height'</span>,0,<span class="string">'dodge'</span>,0.7);
+g(1,1).set_title(<span class="string">'jittered data'</span>);
+
+
+g(1,2).stat_violin(<span class="string">'normalization'</span>,<span class="string">'area'</span>);
+g(1,2).set_title(<span class="string">'''normalization'',''area'' (Default)'</span>);
+
+g(1,3).stat_violin(<span class="string">'normalization'</span>,<span class="string">'width'</span>);
+g(1,3).set_title(<span class="string">'''normalization'',''width'''</span>);
+
+g(2,1).stat_violin(<span class="string">'normalization'</span>,<span class="string">'count'</span>,<span class="string">'fill'</span>,<span class="string">'all'</span>);
+g(2,1).set_title(<span class="string">'''normalization'',''count'' , ''fill'',''all'''</span>);
+
+g(2,2).stat_violin(<span class="string">'half'</span>,true,<span class="string">'normalization'</span>,<span class="string">'count'</span>,<span class="string">'width'</span>,1,<span class="string">'fill'</span>,<span class="string">'transparent'</span>);
+g(2,2).set_title(<span class="string">'''half'',true , ''fill'',''transparent'''</span>);
+
+g(2,3)=gramm(<span class="string">'x'</span>,cars.Origin_Region,<span class="string">'y'</span>,cars.Horsepower,<span class="string">'color'</span>,cars.Origin_Region,<span class="string">'subset'</span>,cars.Cylinders~=3 &amp; cars.Cylinders~=5);
+g(2,3).set_names(<span class="string">'x'</span>,<span class="string">'Origin'</span>,<span class="string">'y'</span>,<span class="string">'Horsepower'</span>,<span class="string">'color'</span>,<span class="string">'Origin'</span>);
+g(2,3).stat_violin(<span class="string">'normalization'</span>,<span class="string">'area'</span>,<span class="string">'dodge'</span>,0,<span class="string">'fill'</span>,<span class="string">'edge'</span>);
+g(2,3).stat_boxplot(<span class="string">'width'</span>,0.15);
+g(2,3).set_title(<span class="string">'with stat_boxplot()'</span>);
+g(2,3).set_color_options(<span class="string">'map'</span>,<span class="string">'brewer_dark'</span>);
+
+g.set_title(<span class="string">'Options for stat_violin()'</span>);
+figure(<span class="string">'Position'</span>,[100 100 800 600]);
+g.draw();
+</pre><img vspace="5" hspace="5" src="examples_14.png" alt=""> <h2>Options for dodging and spacing graphic elements in <tt>stat_summary()</tt> and <tt>stat_boxplot()</tt><a name="22"></a></h2><p><tt>stat_summary()</tt> and <tt>stat_boxplot()</tt>, as well as <tt>stat_bin()</tt>, use a pair of options for setting the width of graphical elements (<tt>'width'</tt>) and setting how elements of different colors can be dodged to the side to avoid overlap (<tt>'dodge'</tt>)</p><pre class="codeinput"><span class="comment">%Create data</span>
 x=repmat(1:10,1,100);
 catx=repmat({<span class="string">'A'</span> <span class="string">'B'</span> <span class="string">'C'</span> <span class="string">'F'</span> <span class="string">'E'</span> <span class="string">'D'</span> <span class="string">'G'</span> <span class="string">'H'</span> <span class="string">'I'</span> <span class="string">'J'</span>},1,100);
 y=randn(1,1000)*3;
@@ -566,7 +608,7 @@ g.set_title(<span class="string">'Dodge and spacing options for stat_boxplot()'<
 
 figure(<span class="string">'Position'</span>,[100 100 800 1000]);
 g.draw();
-</pre><img vspace="5" hspace="5" src="examples_14.png" alt=""> <p>With <tt>stat_summary()</tt>, <tt>'width'</tt> controls the width of bars and error bars.</p><pre class="codeinput">clear <span class="string">g</span>
+</pre><img vspace="5" hspace="5" src="examples_15.png" alt=""> <p>With <tt>stat_summary()</tt>, <tt>'width'</tt> controls the width of bars and error bars.</p><pre class="codeinput">clear <span class="string">g</span>
 g(1,1)=gramm(<span class="string">'x'</span>,catx,<span class="string">'y'</span>,y,<span class="string">'color'</span>,c);
 g(2,1)=copy(g(1));
 g(3,1)=copy(g(1));
@@ -597,7 +639,7 @@ g.set_title(<span class="string">'Dodge and width options for stat_summary()'</s
 
 figure(<span class="string">'Position'</span>,[100 100 800 1000]);
 g.draw();
-</pre><img vspace="5" hspace="5" src="examples_15.png" alt=""> <h2>Using different groups for different stat_ and geom_ methods by superimposing gramm plots<a name="23"></a></h2><p>By using the method update() after a first draw() call of a gramm object, it is possible to add or remove grouping variables. Here in a first gramm plot we make a glm fit of cars Acceleration as a function of Horsepower, across all countries and number of cylinders, and change the color options so that the fit appears in grey</p><pre class="codeinput">clear <span class="string">g10</span>
+</pre><img vspace="5" hspace="5" src="examples_16.png" alt=""> <h2>Using different groups for different stat_ and geom_ methods by superimposing gramm plots<a name="24"></a></h2><p>By using the method update() after a first draw() call of a gramm object, it is possible to add or remove grouping variables. Here in a first gramm plot we make a glm fit of cars Acceleration as a function of Horsepower, across all countries and number of cylinders, and change the color options so that the fit appears in grey</p><pre class="codeinput">clear <span class="string">g10</span>
 figure(<span class="string">'Position'</span>,[100 100 600 450]);
 g10=gramm(<span class="string">'x'</span>,cars.Horsepower,<span class="string">'y'</span>,cars.Acceleration,<span class="string">'subset'</span>,cars.Cylinders~=3 &amp; cars.Cylinders~=5);
 g10.set_names(<span class="string">'color'</span>,<span class="string">'# Cylinders'</span>,<span class="string">'x'</span>,<span class="string">'Horsepower'</span>,<span class="string">'y'</span>,<span class="string">'Acceleration'</span>,<span class="string">'Column'</span>,<span class="string">'Origin'</span>);
@@ -610,15 +652,17 @@ ans =
 
   gramm with properties:
 
+     legend_axe_handle: [1x1 Axes]
+      title_axe_handle: []
     facet_axes_handles: [1x1 Axes]
                results: [1x1 struct]
 
-</pre><img vspace="5" hspace="5" src="examples_16.png" alt=""> <p>After the first draw() call (optional), we call the update() method by specifying a new grouping variable determining colors. We also change the facet_grid() options, which will duplicate the fit made earlier across all new facets. Last, color options are reinitialized to default values</p><pre class="codeinput">g10.update(<span class="string">'color'</span>,cars.Cylinders);
+</pre><img vspace="5" hspace="5" src="examples_17.png" alt=""> <p>After the first draw() call (optional), we call the update() method by specifying a new grouping variable determining colors. We also change the facet_grid() options, which will duplicate the fit made earlier across all new facets. Last, color options are reinitialized to default values</p><pre class="codeinput">g10.update(<span class="string">'color'</span>,cars.Cylinders);
 g10.facet_grid([],cars.Origin_Region);
 g10.set_color_options();
 g10.geom_point();
 g10.draw();
-</pre><img vspace="5" hspace="5" src="examples_17.png" alt=""> <h2>Customizing color maps with set_color_options()<a name="25"></a></h2><p>With the method set_color_options(), automatic color generation for color and lightness groups can be tweaked</p><pre class="codeinput"><span class="comment">%Default: LCH-based colormap with hue variation</span>
+</pre><img vspace="5" hspace="5" src="examples_18.png" alt=""> <h2>Customizing color maps with set_color_options()<a name="26"></a></h2><p>With the method set_color_options(), automatic color generation for color and lightness groups can be tweaked</p><pre class="codeinput"><span class="comment">%Default: LCH-based colormap with hue variation</span>
 clear <span class="string">g</span>
 g(1,1)=gramm(<span class="string">'x'</span>,cars.Origin,<span class="string">'y'</span>,cars.Horsepower,<span class="string">'color'</span>,cars.Origin);
 g(1,2)=copy(g(1));
@@ -666,7 +710,7 @@ g.set_title(<span class="string">'Colormap customizations examples'</span>);
 
 figure(<span class="string">'Position'</span>,[100 100 800 600])
 g.draw();
-</pre><img vspace="5" hspace="5" src="examples_18.png" alt=""> <h2>Using a continuous color scale<a name="26"></a></h2><p>When the variable provided as 'color' contains too many different values (&gt;15), or when set_continuous_color is used, gramm switches from a categorical color scale to a gradient-based continuous color scale.</p><pre class="codeinput">load <span class="string">spectra.mat</span>
+</pre><img vspace="5" hspace="5" src="examples_19.png" alt=""> <h2>Using a continuous color scale<a name="27"></a></h2><p>When the variable provided as 'color' contains too many different values (&gt;15), or when set_continuous_color is used, gramm switches from a categorical color scale to a gradient-based continuous color scale.</p><pre class="codeinput">load <span class="string">spectra.mat</span>
 
 <span class="comment">%Here we create x as a 1xN array (see example above), and use a MxN matrix</span>
 <span class="comment">%for y. Color applies to the M rows of y.</span>
@@ -676,7 +720,7 @@ g18.set_continuous_color(<span class="string">'colormap'</span>,<span class="str
 g18.geom_line;
 figure(<span class="string">'Position'</span>,[100 100 800 450]);
 g18.draw();
-</pre><img vspace="5" hspace="5" src="examples_19.png" alt=""> <h2>Changing the order of elements with set_order_options()<a name="27"></a></h2><p>By default, gramm uses grouping data in increasing order of the group value (alphabetical for cellstr, numerical for arrays). Using set_order_options(), it is possible to fine tweak the orders of color, lightness, facet rows and columns, as well as categorical X</p><pre class="codeinput">y=[36 38 40 42 44 46];
+</pre><img vspace="5" hspace="5" src="examples_20.png" alt=""> <h2>Changing the order of elements with set_order_options()<a name="28"></a></h2><p>By default, gramm uses grouping data in increasing order of the group value (alphabetical for cellstr, numerical for arrays). Using set_order_options(), it is possible to fine tweak the orders of color, lightness, facet rows and columns, as well as categorical X</p><pre class="codeinput">y=[36 38 40 42 44 46];
 x={<span class="string">'XS'</span> <span class="string">'S'</span> <span class="string">'M'</span> <span class="string">'L'</span> <span class="string">'XL'</span> <span class="string">'XXL'</span>};
 
 
@@ -725,7 +769,7 @@ figure(<span class="string">'Position'</span>,[100 100 800 600]);
 g.draw();
 </pre><pre class="codeoutput">ordering given as values
 ordering given as indices
-</pre><img vspace="5" hspace="5" src="examples_20.png" alt=""> <h2>Advanced customization of gramm figures<a name="28"></a></h2><p>The options for the geom_ and stat_ methods, as well as the <tt>axe_property()</tt> method allow for high-level customization of gramm figures. Since the gramm object allows access to all handles for graphical objects, it's also possible to do more precise customizations and modifications of a gramm figure once it's drawn. In this figure:</p><div><ul><li>Y grid is turned on on all facets with <tt>axe_property('YGrid','on')</tt></li><li>A vertical line and text is added to only one of the facets by using the <tt>facet_axes_handles</tt> public property of gramm objects</li><li>All points are made smaller by using their handles <tt>results.grom_point_handle</tt> in the <tt>set()</tt> function</li><li>Similarly, all confidence areas are made grey <tt>g.results.stat_glm.area_handle</tt></li><li>A subset of the glm lines are made thicker by calling <tt>set()</tt> on a subset teir handles |g.results.stat_glm(g.results.color==4).line_handle]</li></ul></div><p>It is also possible to set where the gramm axes are drawn by using the <tt>set_parent(parent_handle)</tt> function, which receives the handle of a figure/uipanel/uitab object to use as parent as argument.</p><pre class="codeinput">f=figure(<span class="string">'Position'</span>,[100 100 800 500]);
+</pre><img vspace="5" hspace="5" src="examples_21.png" alt=""> <h2>Advanced customization of gramm figures<a name="29"></a></h2><p>The options for the geom_ and stat_ methods, as well as the <tt>axe_property()</tt> method allow for high-level customization of gramm figures. Since the gramm object allows access to all handles for graphical objects, it's also possible to do more precise customizations and modifications of a gramm figure once it's drawn. In this figure:</p><div><ul><li>Y grid is turned on on all facets with <tt>axe_property('YGrid','on')</tt></li><li>A vertical line and text is added to only one of the facets by using the <tt>facet_axes_handles</tt> public property of gramm objects</li><li>All points are made smaller by using their handles <tt>results.grom_point_handle</tt> in the <tt>set()</tt> function</li><li>Similarly, all confidence areas are made grey <tt>g.results.stat_glm.area_handle</tt></li><li>A subset of the glm lines are made thicker by calling <tt>set()</tt> on a subset teir handles |g.results.stat_glm(g.results.color==4).line_handle]</li></ul></div><p>It is also possible to set where the gramm axes are drawn by using the <tt>set_parent(parent_handle)</tt> function, which receives the handle of a figure/uipanel/uitab object to use as parent as argument.</p><pre class="codeinput">f=figure(<span class="string">'Position'</span>,[100 100 800 500]);
 <span class="comment">%Create fake button</span>
 c=uicontrol(<span class="string">'Style'</span>,<span class="string">'pushbutton'</span>,<span class="string">'String'</span>,<span class="string">'Dummy'</span>,<span class="string">'Units'</span>,<span class="string">'normalized'</span>,<span class="string">'Position'</span>,[0.8 0.45 0.15 0.1]);
 <span class="comment">%Create uipanel to put our gramm plots</span>
@@ -753,31 +797,31 @@ set([g.results.geom_point_handle],<span class="string">'MarkerSize'</span>,5);
 set([g.results.stat_glm.area_handle],<span class="string">'FaceColor'</span>,[0.4 0.4 0.4]);
 <span class="comment">%Or on a subset of them (here only for the lines of glms of 4-cylinder cars)</span>
 set([g.results.stat_glm(g.results.color==4).line_handle],<span class="string">'LineWidth'</span>,3);
-</pre><img vspace="5" hspace="5" src="examples_21.png" alt=""> <h2>Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)<a name="29"></a></h2><p>Standard ggplot-like input (arrays for everything) Note the continuous line connecting all blue data points, gramm can't know when to start a new line in this case</p><pre class="codeinput">Y=[1 2 3 4 5 2 3 4 5 6 3 4 5 6 7];
+</pre><img vspace="5" hspace="5" src="examples_22.png" alt=""> <h2>Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)<a name="30"></a></h2><p>Standard ggplot-like input (arrays for everything) Note the continuous line connecting all blue data points, gramm can't know when to start a new line in this case</p><pre class="codeinput">Y=[1 2 3 4 5 2 3 4 5 6 3 4 5 6 7];
 X=[1 2 3 4 5 0 1 2 3 4 -1 0 1 2 3];
 C=[1 1 1 1 1 2 2 2 2 2 2 2 2 2 2];
 figure
 g11=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g11.geom_line();
 g11.draw();
-</pre><img vspace="5" hspace="5" src="examples_22.png" alt=""> <p>Adding a group variable solves the problem in a ggplot-like way</p><pre class="codeinput">G=[1 1 1 1 1 2 2 2 2 2 3 3 3 3 3];
+</pre><img vspace="5" hspace="5" src="examples_23.png" alt=""> <p>Adding a group variable solves the problem in a ggplot-like way</p><pre class="codeinput">G=[1 1 1 1 1 2 2 2 2 2 3 3 3 3 3];
 figure
 g12=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C,<span class="string">'group'</span>,G);
 g12.geom_line();
 g12.draw();
-</pre><img vspace="5" hspace="5" src="examples_23.png" alt=""> <p>For a more matlab-like solution, Y and X can be 2D arrays, rows will automatically be considered as groups. as a consequence grouping data (color, etc...) are provided for the rows !</p><pre class="codeinput">Y=[1 2 3 4 5;2 3 4 5 6; 3 4 5 6 7];
+</pre><img vspace="5" hspace="5" src="examples_24.png" alt=""> <p>For a more matlab-like solution, Y and X can be 2D arrays, rows will automatically be considered as groups. as a consequence grouping data (color, etc...) are provided for the rows !</p><pre class="codeinput">Y=[1 2 3 4 5;2 3 4 5 6; 3 4 5 6 7];
 X=[1 2 3 4 5; 0 1 2 3 4; -1 0 1 2 3];
 C=[1 2 2];
 figure
 g13=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g13.geom_line();
 g13.draw();
-</pre><img vspace="5" hspace="5" src="examples_24.png" alt=""> <p>If all X values are the same, it's possible to provide X as a single row</p><pre class="codeinput">X=[1 2 3 4 5];
+</pre><img vspace="5" hspace="5" src="examples_25.png" alt=""> <p>If all X values are the same, it's possible to provide X as a single row</p><pre class="codeinput">X=[1 2 3 4 5];
 figure
 g14=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g14.geom_line();
 g14.draw();
-</pre><img vspace="5" hspace="5" src="examples_25.png" alt=""> <p>Similar results can be obtained with cells of arrays</p><pre class="codeinput">Y={[1 2 3 4 5] [2 3 4 5 6] [3 4 5 6 7]};
+</pre><img vspace="5" hspace="5" src="examples_26.png" alt=""> <p>Similar results can be obtained with cells of arrays</p><pre class="codeinput">Y={[1 2 3 4 5] [2 3 4 5 6] [3 4 5 6 7]};
 X={[1 2 3 4 5] [0 1 2 3 4] [-1 0 1 2 3]};
 figure
 g15=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
@@ -790,13 +834,13 @@ figure
 g16=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g16.geom_line();
 g16.draw();
-</pre><img vspace="5" hspace="5" src="examples_26.png" alt=""> <img vspace="5" hspace="5" src="examples_27.png" alt=""> <p>With cells of arrays, there is the opportunity to have different lengths for different groups</p><pre class="codeinput">Y={[1 2 3 4 5] [3 4 5] [3 4 5 6 7]};
+</pre><img vspace="5" hspace="5" src="examples_27.png" alt=""> <img vspace="5" hspace="5" src="examples_28.png" alt=""> <p>With cells of arrays, there is the opportunity to have different lengths for different groups</p><pre class="codeinput">Y={[1 2 3 4 5] [3 4 5] [3 4 5 6 7]};
 X={[1 2 3 4 5] [1 2 3] [-1 0 1 2 3]};
 figure
 g17=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g17.geom_line();
 g17.draw();
-</pre><img vspace="5" hspace="5" src="examples_28.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015b</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="examples_29.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% gramm examples
 % Examples and how-tos for gramm
@@ -906,6 +950,7 @@ clear g
 
 g(1,1)=gramm('x',cars.Origin_Region,'y',cars.Horsepower,'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
 g(1,2)=copy(g(1));
+g(1,3)=copy(g(1));
 g(2,1)=copy(g(1));
 g(2,2)=copy(g(1));
 
@@ -918,12 +963,16 @@ g(1,2).geom_jitter('width',0.4,'height',0);
 g(1,2).set_title('geom_jitter()');
 
 %Averages with confidence interval
-g(2,1).stat_summary('geom',{'bar','black_errorbar'});
-g(2,1).set_title('stat_summary()');
+g(1,3).stat_summary('geom',{'bar','black_errorbar'});
+g(1,3).set_title('stat_summary()');
 
 %Boxplots
-g(2,2).stat_boxplot();
-g(2,2).set_title('stat_boxplot()');
+g(2,1).stat_boxplot();
+g(2,1).set_title('stat_boxplot()');
+
+%Violin plots
+g(2,2).stat_violin('fill','transparent');
+g(2,2).set_title('stat_violin()');
 
 %These functions can be called on arrays of gramm objects
 g.set_names('x','Origin','y','Horsepower','color','# Cyl');
@@ -1393,6 +1442,44 @@ g7.set_title('Other options for stat_bin()');
 
 figure('Position',[100 100 800 600]);
 g7.draw();
+
+%% Graphic and normalization options in stat_violin()
+
+clear g
+g(1,1)=gramm('x',cars.Origin_Region,'y',cars.Horsepower,'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
+g(1,1).set_names('x','Origin','y','Horsepower','color','# Cyl');
+g(1,2)=copy(g(1,1));
+g(1,3)=copy(g(1,1));
+g(2,1)=copy(g(1,1));
+g(2,2)=copy(g(1,1));
+
+%Jittered scatter plot
+g(1,1).geom_jitter('width',0.6,'height',0,'dodge',0.7);
+g(1,1).set_title('jittered data');
+
+
+g(1,2).stat_violin('normalization','area');
+g(1,2).set_title('''normalization'',''area'' (Default)');
+
+g(1,3).stat_violin('normalization','width');
+g(1,3).set_title('''normalization'',''width''');
+
+g(2,1).stat_violin('normalization','count','fill','all');
+g(2,1).set_title('''normalization'',''count'' , ''fill'',''all''');
+
+g(2,2).stat_violin('half',true,'normalization','count','width',1,'fill','transparent');
+g(2,2).set_title('''half'',true , ''fill'',''transparent''');
+
+g(2,3)=gramm('x',cars.Origin_Region,'y',cars.Horsepower,'color',cars.Origin_Region,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
+g(2,3).set_names('x','Origin','y','Horsepower','color','Origin');
+g(2,3).stat_violin('normalization','area','dodge',0,'fill','edge');
+g(2,3).stat_boxplot('width',0.15);
+g(2,3).set_title('with stat_boxplot()');
+g(2,3).set_color_options('map','brewer_dark');
+
+g.set_title('Options for stat_violin()');
+figure('Position',[100 100 800 600]);
+g.draw();
 
 
 
