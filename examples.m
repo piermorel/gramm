@@ -678,8 +678,8 @@ g(4,1).geom_vline('xintercept',0.5:1:10.5,'style','k-');
 g(4,1).set_title('''width'',0.6,''dodge'',0.4');
 
 g(5,1).facet_grid([],c);
-g(5,1).stat_boxplot('width',0.5,'dodge',0);
-g(5,1).set_title('''width'',0.5,''dodge'',0');
+g(5,1).stat_boxplot('width',0.5,'dodge',0,'notch',true);
+g(5,1).set_title('''width'',0.5,''dodge'',0,''notch'',true');
 
 g.set_title('Dodge and spacing options for stat_boxplot()');
 

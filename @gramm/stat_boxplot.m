@@ -8,6 +8,7 @@ function obj=stat_boxplot(obj,varargin)
 % a distance to the box equal to 1.5 times the interquartile
 % range (Tukey boxplot).
 % Points outside the whiskers ranges are plotted.
+% - 'notch', set to true to display notches at median ± 1.58*IQR/sqrt(N)
 % - 'dodge' allows to set the spacing between boxes of
 %   different colors within an unique value of x.
 % - 'width' allows to set the width of the individual boxes.
@@ -17,6 +18,7 @@ function obj=stat_boxplot(obj,varargin)
 p=inputParser;
 my_addParameter(p,'width',0.6);
 my_addParameter(p,'dodge',0.7);
+my_addParameter(p,'notch',false);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dd)my_boxplot(obj,dd,p.Results)});
@@ -46,7 +48,11 @@ uni_x=unique(x);
 uni_x(diff(uni_x)<1e-10)=[];
 
 %Initialize arrays
-p=zeros(length(uni_x),5);
+if params.notch
+    p=zeros(length(uni_x),7);
+else
+    p=zeros(length(uni_x),5);
+end
 outliersx=[];
 outliersy=[];
 
@@ -60,11 +66,17 @@ for ind_x=1:length(uni_x)
     %Quartiles
     temp=prctile(ysel,[25 50 75]);
     
-    %Outlier limits at 1.5 Inter Quartile Range
-    p(ind_x,:)=[temp(1)-1.5*(temp(3)-temp(1)) , temp , temp(3)+1.5*(temp(3)-temp(1))];
+    IQR=temp(3)-temp(1);
+    
+    if params.notch
+        p(ind_x,:)=[temp(1)-1.5*IQR , temp(1), temp(2)-1.58*IQR/sqrt(length(ysel)) , temp(2) , temp(2)+1.58*IQR/sqrt(length(ysel)) , temp(3) , temp(3)+1.5*IQR];
+    else
+        %Outlier limits at 1.5 Inter Quartile Range
+        p(ind_x,:)=[temp(1)-1.5*IQR , temp , temp(3)+1.5*IQR];
+    end
     
     %Outliers
-    sel_outlier=ysel<p(ind_x,1) | ysel>p(ind_x,5);
+    sel_outlier=ysel<p(ind_x,1) | ysel>p(ind_x,end);
     if sum(sel_outlier)>0
         outliersy=[outliersy ysel(sel_outlier)'];
         outliersx=[outliersx repmat(ind_x,1,sum(sel_outlier))];
@@ -75,7 +87,7 @@ for ind_x=1:length(uni_x)
     sel_non_outlier=~sel_outlier;
     if sum(sel_non_outlier)>0
         p(ind_x,1)=min(ysel(sel_non_outlier));
-        p(ind_x,5)=max(ysel(sel_non_outlier));
+        p(ind_x,end)=max(ysel(sel_non_outlier));
     end
     
 end
@@ -94,9 +106,17 @@ boxmid=dodger(uni_x,draw_data,params.dodge);
 boxleft=boxmid-0.5*boxw;
 boxright=boxmid+0.5*boxw;
 
+notchleft=boxmid-0.25*boxw;
+notchright=boxmid+0.25*boxw;
 
-xpatch=[boxleft' ; boxright' ; boxright' ; boxleft'];
-ypatch=[p(:,2)' ; p(:,2)' ; p(:,4)' ; p(:,4)'];
+if params.notch
+    xpatch=[boxleft' ; boxright' ; boxright' ; notchright'; boxright' ; boxright' ; boxleft' ; boxleft' ; notchleft' ; boxleft'];
+    ypatch=[p(:,2)'  ; p(:,2)'   ; p(:,3)'   ; p(:,4)'    ; p(:,5)'   ; p(:,6)'   ; p(:,6)'  ; p(:,5)' ; p(:,4)'     ; p(:,3)'];
+else
+    xpatch=[boxleft' ; boxright' ; boxright' ; boxleft'];
+    ypatch=[p(:,2)' ; p(:,2)' ; p(:,4)' ; p(:,4)'];
+
+end
 
 %Draw boxes
 hndl=patch(xpatch,...
@@ -106,12 +126,15 @@ hndl=patch(xpatch,...
 obj.results.stat_boxplot{obj.result_ind,1}.box_handle=hndl;
 
 %Draw medians
-obj.results.stat_boxplot{obj.result_ind,1}.median_handle=line([boxleft' ; boxright'],[p(:,3)' ; p(:,3)'],'Color','k');
+if params.notch
+    obj.results.stat_boxplot{obj.result_ind,1}.median_handle=line([notchleft' ; notchright'],[p(:,4)' ; p(:,4)'],'Color','k');
+else
+    obj.results.stat_boxplot{obj.result_ind,1}.median_handle=line([boxleft' ; boxright'],[p(:,3)' ; p(:,3)'],'Color','k');
+end
 
 %Draw whiskers
-
 obj.results.stat_boxplot{obj.result_ind,1}.lower_whisker_handle=line([boxmid' ; boxmid'],[p(:,1)' ; p(:,2)'],'Color','k');
-obj.results.stat_boxplot{obj.result_ind,1}.upper_whisker_handle=line([boxmid' ; boxmid'],[p(:,4)' ; p(:,5)'],'Color','k');
+obj.results.stat_boxplot{obj.result_ind,1}.upper_whisker_handle=line([boxmid' ; boxmid'],[p(:,end-1)' ; p(:,end)'],'Color','k');
 
 %Draw outliers
 obj.results.stat_boxplot{obj.result_ind,1}.outliers_handle=plot(boxmid(outliersx),outliersy,'o','MarkerEdgeColor','none','MarkerFaceColor',draw_data.color);
@@ -120,7 +143,7 @@ obj.results.stat_boxplot{obj.result_ind,1}.outliers_handle=plot(boxmid(outliersx
 obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(max(boxright),obj.plot_lim.maxx(obj.current_row,obj.current_column));
 obj.plot_lim.minx(obj.current_row,obj.current_column)=min(min(boxleft),obj.plot_lim.minx(obj.current_row,obj.current_column));
 
-obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(max(p(:,5)),obj.plot_lim.maxy(obj.current_row,obj.current_column));
+obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(max(p(:,end)),obj.plot_lim.maxy(obj.current_row,obj.current_column));
 obj.plot_lim.miny(obj.current_row,obj.current_column)=min(min(p(:,1)),obj.plot_lim.miny(obj.current_row,obj.current_column));
 
 

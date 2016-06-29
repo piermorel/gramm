@@ -95,7 +95,10 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
             case 'line'
                 hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor','none','EdgeColor',draw_data.color,'LineWidth',2);    
         end
-        tmp = set(hndl,params.patch_opts{:}); %displays a lot of stuff if we don't have an output value !
+        set(hndl,params.patch_opts{:});
+        %One matlab version displayed stuff if no output value was set (but
+        %crashes 2014a and earlier versions)
+        %tmp = set(hndl,params.patch_opts{:}); 
         
         
         
