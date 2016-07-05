@@ -210,6 +210,15 @@ g(2,2).stat_summary('bin_in',10);
 g(2,2).set_title('stat_summary(''bin_in'',10)');
 
 g.set_names('x','Horsepower','y','Acceleration','color','# Cylinders');
+
+%Corner histogram
+g(2,3)=gramm('x',(cars.Horsepower-nanmean(cars.Horsepower))/nanstd(cars.Horsepower),'y',-(cars.Acceleration-nanmean(cars.Acceleration))/nanstd(cars.Acceleration),'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
+g(2,3).geom_point();
+g(2,3).stat_cornerhist('edges',-4:0.2:4,'aspect',0.6)
+g(2,3).geom_abline()
+g(2,3).set_title('stat_cornerhist()');
+g(2,3).set_names('x','z(Horsepower)','y','-z(Acceleration)')
+
 g.set_title('Visualization of Y~X relationship with both X and Y as continuous variables');
 figure('Position',[100 100 800 550]);
 g.draw();
@@ -598,6 +607,35 @@ g7.set_title('Other options for stat_bin()');
 
 figure('Position',[100 100 800 600]);
 g7.draw();
+
+%% Visualize x-y difference with inset histogram using stat_cornerhist()
+
+
+%Generate sample data
+N=200;
+x=randn(1,N*4);
+y=x+randn(1,N*4)/2;
+c=repmat([1 2],1,N*2);
+b=repmat([1 2 2 2],1,N);
+y(c==1 & b==2)=y(c==1 & b==2)+2;
+
+
+clear g
+g=gramm('x',x,'y',y,'color',c);
+g.facet_grid([],b);
+g.geom_point();
+g.stat_cornerhist('edges',-4:0.1:2,'aspect',0.5);
+g.geom_abline();
+
+g.set_title('Visualize x-y with stat_cornerhist()');
+figure('Position',[100 100 800 600]);
+g.draw();
+
+%Possibility to use axe handles of the inset axes to add elements or change
+%properties
+plot(g.results.stat_cornerhist(2).child_axe_handle,[-2 -2],[0 50],'k:','LineWidth',2)
+%set([g.results.stat_cornerhist.child_axe_handle],'XTick',[])
+
 
 %% Graphic and normalization options in stat_violin()
 

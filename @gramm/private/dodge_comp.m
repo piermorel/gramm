@@ -11,6 +11,14 @@ else
     %Here we need to implement a loose 'unique' because of
     %potential numerical errors
     uni_x(diff(uni_x)<1e-10)=[];
+    
+    %Fallback if there are too many unique x values (dodging only makes
+    %sense for discrete x values)... 4000 x unique values is already a lot
+    %but quick enough to compute below
+    if numel(uni_x)>4000
+        fallback=true;
+        uni_x=1;
+    end
 end
 
 N=length(uni_x)*length(uni_color)*length(uni_lightness);

@@ -147,23 +147,23 @@ Using <code>stat_bin()</code> it is possible to construct peristimulus time hist
 ### Colormap customization ###
 With <code>set_color_options()</code>
 
-<img src="/html/examples_19.png" alt="Colormaps example" width="800">
+<img src="/html/examples_20.png" alt="Colormaps example" width="800">
 
 ### Continuous colors
 
-<img src="/html/examples_20.png" alt="Continuous colors" width="800">
+<img src="/html/examples_21.png" alt="Continuous colors" width="800">
 
 ###Reordering of categorical variables
 With <code>set_order_options()</code>
 
-<img src="/html/examples_21.png" alt="Reordering" width="800">
+<img src="/html/examples_22.png" alt="Reordering" width="800">
 
 
 ### Superimposition of gramm objects on the same axes
 By making calling the update() method after a first draw, the same axes can be reused for another gramm plot.
 Here this allows to use different groupings for the points and for the glm fit.
 
-<img src="/html/examples_18.png" alt="gramm superimposition" width="600">
+<img src="/html/examples_19.png" alt="gramm superimposition" width="600">
 
 ## Acknowledgements
 gramm was inspired and/or used code from:
