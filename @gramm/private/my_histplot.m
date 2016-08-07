@@ -153,7 +153,7 @@ switch params.geom
         xtemp=bar_mid;
         ytemp=bincounts(1:end)';
         [xtemp,ytemp]=to_polar(obj,xtemp,ytemp);
-        results.line_handle=plot(xtemp,ytemp,'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.size/4);
+        results.line_handle=plot(xtemp,ytemp,'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.line_size);
         xpatch=[bar_mid(1:end-1) ; bar_mid(2:end) ; bar_mid(2:end);bar_mid(1:end-1)];
         ypatch=[zeros(1,length(bincounts)-1) ; zeros(1,length(bincounts)-1) ; bincounts(2:end)' ; bincounts(1:end-1)'];
         [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
@@ -171,7 +171,7 @@ switch params.geom
         xtemp=[binranges(1:end-1) ; binranges(2:end)];
         ytemp=[bincounts' ; bincounts'];
         [xtemp,ytemp]=to_polar(obj,xtemp(:),ytemp(:));
-        results.line_handle=plot(xtemp,ytemp,'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.size/4);
+        results.line_handle=plot(xtemp,ytemp,'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.line_size);
         
         xpatch=[binranges(1:end-1) ; binranges(2:end) ; binranges(2:end) ; binranges(1:end-1)];
         ypatch=[obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'];
@@ -183,7 +183,7 @@ switch params.geom
         xtemp=bar_mid;
         ytemp=bincounts(1:end)';
         [xtemp,ytemp]=to_polar(obj,xtemp,ytemp);
-        results.point_handle=plot(xtemp,ytemp,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+        results.point_handle=plot(xtemp,ytemp,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',draw_data.color);
 end
 
 

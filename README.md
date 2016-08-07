@@ -85,6 +85,9 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 - Polar coordinates (<code>set_polar()</code>)
 - Color data can also be displayed as a continous variable, not as a grouping factor (<code>set_continuous_color()</code>)
 - Possibility to customize color generations in the LCH color space, chose alternative colormaps (Matlab's default, [colorbrewer2](http://colorbrewer2.org)), or provide a custom colormap (<code>set_color_options()</code>)
+- Possibility to customize marker shapes and sizes with (<code>set_point_options()</code>)
+- Possibility to customize line styles and width with (<code>set_line_options()</code>)
+- Possibility to customize text elements with (<code>set_text_options()</code>)
 - Possibility to change ordering of grouping variables between native, sorted, or custom (<code>set_order_options</code>)
 - Confidence intervals as shaded areas, error bars or thin lines
 - Set the width and dodging of graphical elements in <code>geom_</code> functions, <code>stat_bin()</code>, <code>stat_summary()</code>, and <code>stat_boxplot()</code>, with <code>'width'</code> and <code>'dodge'</code> arguments

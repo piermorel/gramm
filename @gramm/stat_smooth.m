@@ -37,7 +37,7 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
         %[new_draw_data.y{k},new_draw_data.x{k}, ~] = turbotrend(draw_data.x{k}, draw_data.y{k}, params.lambda, 100);
         [tempy(k,:),tempx(k,:), ~] = turbotrend(draw_data.x{k}, draw_data.y{k}, params.lambda, params.npoints);
     end
-    hndl=plot(tempx',tempy','LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+    hndl=plot(tempx',tempy','LineStyle',draw_data.line_style,'lineWidth',draw_data.line_size,'Color',draw_data.color);
     
     %                 %Create fake params for call to stat_summary
     %                 summ_params.type='ci';

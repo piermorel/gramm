@@ -53,7 +53,7 @@ end
 obj.results.stat_qq{obj.result_ind,1}.x=xdist;
 obj.results.stat_qq{obj.result_ind,1}.y=y;
 
-hndl=plot(xdist,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+hndl=plot(xdist,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',draw_data.color);
 
 obj.results.stat_qq{obj.result_ind,1}.point_handle=hndl;
 

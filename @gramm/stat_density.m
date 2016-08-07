@@ -63,7 +63,7 @@ obj.results.stat_density{obj.result_ind,1}.x=xi;
 obj.results.stat_density{obj.result_ind,1}.y=f;
 
 [xi,f]=to_polar(obj,xi,f);
-hndl=plot(xi,f,'LineStyle',draw_data.line_style,'Color',draw_data.color,'lineWidth',draw_data.size/4);
+hndl=plot(xi,f,'LineStyle',draw_data.line_style,'Color',draw_data.color,'lineWidth',draw_data.line_size);
 
 obj.results.stat_density{obj.result_ind,1}.handle=hndl;
 end

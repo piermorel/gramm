@@ -4,6 +4,11 @@ function out=validate_aes(aes)
 %consistency. Handle special case of size parameter that can be set by the
 %user
 
+%Old matlab test for iscategorical absent from pre 2013b
+persistent old_matlab
+if isempty(old_matlab)
+    old_matlab=verLessThan('matlab','8.2');
+end
 
 out=aes;
 fields=fieldnames(aes);
@@ -37,28 +42,22 @@ end
 aes_length=-1;
 for k=1:length(fields)
     if numel(out.(fields{k}))>0 %Ignore empty ones
-        if aes_length==-1 && numel(out.(fields{k}))~=1
+        if aes_length==-1 %First aesthetic
             aes_length=numel(out.(fields{k}));
         else
-            if aes_length~=numel(out.(fields{k})) && numel(out.(fields{k}))~=1 %Handle special case of size
+            if aes_length~=numel(out.(fields{k}))
                 error('Aesthetics have fields of different lengths !')
             end
         end
         
         %Convert categorical data to cellstr.
-        if iscategorical(aes.(fields{k}))
+        if ~old_matlab && iscategorical(aes.(fields{k}))
             out.(fields{k})=cellstr(out.(fields{k}));
         end
         
     end
 end
 
-
-
-%Special case for size:
-if numel(aes.size)==1
-    out.size=ones(size(aes.x))*aes.size;
-end
 
 %Missing fields are replaced with arrays of ones
 for k=1:length(fields)

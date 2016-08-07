@@ -30,13 +30,13 @@ if obj.continuous_color
     if iscell(x)
         for k=1:length(x)
             if iscell(draw_data.continuous_color) %Within-line continuous color given
-                hndl=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],[shiftdim(y{k}) ; flipud(shiftdim(y{k}))],[shiftdim(draw_data.continuous_color{k}) ; flipud(shiftdim(draw_data.continuous_color{k}))],'faceColor','none','EdgeColor','interp','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
+                hndl=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],[shiftdim(y{k}) ; flipud(shiftdim(y{k}))],[shiftdim(draw_data.continuous_color{k}) ; flipud(shiftdim(draw_data.continuous_color{k}))],'faceColor','none','EdgeColor','interp','lineWidth',draw_data.line_size,'LineStyle',draw_data.line_style);
             else %Per-line continuous color given
-                hndl=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],[shiftdim(y{k}) ; flipud(shiftdim(y{k}))],repmat(draw_data.continuous_color(k),length(x{k})*2,1),'faceColor','none','EdgeColor','interp','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
+                hndl=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],[shiftdim(y{k}) ; flipud(shiftdim(y{k}))],repmat(draw_data.continuous_color(k),length(x{k})*2,1),'faceColor','none','EdgeColor','interp','lineWidth',draw_data.line_size,'LineStyle',draw_data.line_style);
             end
         end
     else
-        hndl=patch([shiftdim(x) ; flipud(shiftdim(x))],[shiftdim(y) ; flipud(shiftdim(y))],[shiftdim(draw_data.continuous_color) ; flipud(shiftdim(draw_data.continuous_color))],'faceColor','none','EdgeColor','interp','lineWidth',draw_data.size/4,'LineStyle',draw_data.line_style);
+        hndl=patch([shiftdim(x) ; flipud(shiftdim(x))],[shiftdim(y) ; flipud(shiftdim(y))],[shiftdim(draw_data.continuous_color) ; flipud(shiftdim(draw_data.continuous_color))],'faceColor','none','EdgeColor','interp','lineWidth',draw_data.line_size,'LineStyle',draw_data.line_style);
     end
     
     
@@ -50,9 +50,9 @@ else
         x=dodger(x,draw_data,params.dodge);
         [x,y]=to_polar(obj,x,y);
         
-        hndl=line(combnan(x),combnan(y),'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+        hndl=line(combnan(x),combnan(y),'LineStyle',draw_data.line_style,'lineWidth',draw_data.line_size,'Color',draw_data.color);
     else
-        hndl=line(combnan(draw_data.x),combnan(draw_data.y),combnan(draw_data.z),'LineStyle',draw_data.line_style,'lineWidth',draw_data.size/4,'Color',draw_data.color);
+        hndl=line(combnan(draw_data.x),combnan(draw_data.y),combnan(draw_data.z),'LineStyle',draw_data.line_style,'lineWidth',draw_data.line_size,'Color',draw_data.color);
     end
 end
 obj.results.geom_line_handle{obj.result_ind,1}=hndl;

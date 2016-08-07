@@ -87,23 +87,15 @@ classdef gramm < matlab.mixin.Copyable
         
         continuous_color_colormap=[];
         
-        %Store options for generating colors
-        color_options =struct('lightness_range',[85 15],...
-            'chroma_range',[30 90],...
-            'hue_range',[25 385],...
-            'lightness',65,...
-            'chroma',75,...
-            'map','lch')
+        color_options %Structure holding color options
         
-        %Store options for sorting data/categories
-        order_options=struct('x',1,...
-            'color',1,...
-            'marker',1,...
-            'linestyle',1,...
-            'size',1,...
-            'row',1,...
-            'column',1,...
-            'lightness',1)
+        order_options %Structure holding order options
+        
+        text_options %Structure holding text options
+        
+        line_options %Structure holding line options
+        
+        point_options %Structure holding point options
         
         with_legend=true %Do we have a side legend for colors etc. ?
         
@@ -175,6 +167,14 @@ classdef gramm < matlab.mixin.Copyable
             
             obj.aes=parse_aes(varargin{:});
             obj.handle_graphics=~verLessThan('matlab','8.4.0');
+            
+            %Run the set_xx_options() functions without arguments to set
+            %defaults
+            set_order_options(obj);
+            set_color_options(obj);
+            set_text_options(obj);
+            set_line_options(obj);
+            set_point_options(obj);
         end
         
         obj=update(obj,varargin)
@@ -188,6 +188,9 @@ classdef gramm < matlab.mixin.Copyable
         % Customization methods
         obj=set_polar(obj,varargin)
         obj=set_color_options(obj,varargin)
+        obj=set_text_options(obj,varargin)
+        obj=set_line_options(obj,varargin)
+        obj=set_point_options(obj,varargin)
         obj=set_order_options(obj,varargin)
         obj=set_continuous_color(obj,varargin)
         obj=no_legend(obj)

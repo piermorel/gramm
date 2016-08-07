@@ -34,9 +34,9 @@ if iscell(draw_data.x)
         %Fast version
         allx=[temp_x(:) temp_x(:) temp_x(:)]';
         ally=[temp_y(:) temp_y(:)+0.9 NaN(numel(temp_x),1)]';
-        hndl=line(allx(:),ally(:),'color',draw_data.color,'lineWidth',draw_data.size/4);
+        hndl=line(allx(:),ally(:),'color',draw_data.color,'lineWidth',draw_data.line_size);
     else
-        hndl=line(temp_x,temp_y,'o','MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+        hndl=line(temp_x,temp_y,'LineStyle','none','Marker','o','MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',draw_data.color);
     end
     
 else
@@ -44,10 +44,10 @@ else
     if strcmp(params.geom,'line')
         allx=[shiftdim(draw_data.x) shiftdim(draw_data.x) nan(length(draw_data.x),1)]';
         ally=repmat([obj.extra.raster_position obj.extra.raster_position+0.9 NaN ],length(draw_data.x),1)';
-        hndl=line(allx(:),ally(:),'color',draw_data.color,'lineWidth',draw_data.size/4);
+        hndl=line(allx(:),ally(:),'color',draw_data.color,'lineWidth',draw_data.line_size);
     else
         hndl=line(shiftdim(draw_data.x),repmat(obj.extra.raster_position,1,length(draw_data.x)),...
-            'LineStyle','none','Marker','o','MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+            'LineStyle','none','Marker','o','MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',draw_data.color);
     end
     obj.extra.raster_position=obj.extra.raster_position+1;
     

@@ -39,7 +39,7 @@ if min(draw_data.y)<obj.plot_lim.miny(obj.current_row,obj.current_column);
 end
 
 %hndl=my_point(obj,draw_data);
-hndl=line(draw_data.x,draw_data.y,'LineStyle','none','Marker',draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.size,'MarkerFaceColor',draw_data.color);
+hndl=line(draw_data.x,draw_data.y,'LineStyle','none','Marker',draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',draw_data.color);
 
 obj.results.geom_jitter_handle{obj.result_ind,1}=hndl;
 end

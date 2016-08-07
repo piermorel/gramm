@@ -92,6 +92,7 @@ g(3,2).geom_point();
 g(3,2).set_names('x','Horsepower','y','MPG','column','# Cyl');
 g(3,2).set_title('subplot columns');
 
+
 figure('Position',[100 100 800 800]);
 g.draw();
 
@@ -913,6 +914,43 @@ g.axe_property('YLim',[0 48]);
 figure('Position',[100 100 800 600]);
 g.draw();
 
+%% Customize the size and style of graphic elements with set_line_options() and set_point_options()
+
+clear g
+x=repmat(1:10,1,5);
+y=reshape(bsxfun(@times,1:5,(1:10)'),1,50);
+sz=reshape(repmat(1:5,10,1),1,50);
+
+g(1,1)=gramm('x',x,'y',y,'size',sz);
+g(1,1).geom_point();
+g(1,1).geom_line();
+g(1,1).set_title('Default');
+
+g(1,2)=gramm('x',x,'y',y,'size',sz);
+g(1,2).geom_point();
+g(1,2).geom_line();
+g(1,2).set_line_options('base_size',1,'step_size',0.2,'style',{':' '-' '--' '-.'});
+g(1,2).set_point_options('base_size',4,'step_size',1);
+g(1,2).set_title('Modified point and line base and step size + line style');
+
+g(2,1)=gramm('x',x,'y',y,'size',sz,'subset',sz~=3 & sz~=4);
+g(2,1).geom_line();
+g(2,1).geom_point();
+g(2,1).set_title('Default (size according to category)');
+
+g(2,2)=gramm('x',x,'y',y,'size',sz,'subset',sz~=3 & sz~=4);
+g(2,2).geom_line();
+g(2,2).geom_point();
+g(2,2).set_line_options('use_input',true,'input_fun',@(s)1.5+s);
+g(2,2).set_point_options('use_input',true,'input_fun',@(s)5+s*2);
+g(2,2).set_title('Size according to value');
+
+g.set_title('Customization of line and point options');
+
+figure('Position',[100 100 800 600]);
+g.draw();
+
+
 %% Advanced customization of gramm figures
 % The options for the geom_ and stat_ methods, as well as the
 % |axe_property()| method allow for high-level customization of gramm figures. Since
@@ -920,6 +958,7 @@ g.draw();
 % also possible to do more precise customizations and modifications of a
 % gramm figure once it's drawn. In this figure:
 %
+% * Text sizes and fonts are changed with |set_text_options()|
 % * Y grid is turned on on all facets with |axe_property('YGrid','on')|
 % * A vertical line and text is added to only one of the facets by using
 % the |facet_axes_handles| public property of gramm objects
@@ -949,11 +988,20 @@ g.set_names('column','Origin','x','Year of production','y','Fuel economy (MPG)',
 g.set_title('Fuel economy of new cars between 1970 and 1982');
 g.axe_property('YGrid','on');
 g.set_parent(p);
+
+g.set_text_options('font','Courier',...
+    'base_size',12,...
+    'label_scaling',0.8,...
+    'legend_scaling',1.5,...
+    'legend_title_scaling',1.5,...
+    'facet_scaling',1,...
+    'title_scaling',1.5);
+
 g.draw();
 
 %It's possible to use the axes handles to add elements to single axes
 line([75 75],[0 50],'Color','k','LineStyle','--','Parent',g.facet_axes_handles(1));
-text(75.3,47,'Important event','Parent',g.facet_axes_handles(1));
+text(75.3,47,{'Important' 'event'},'Parent',g.facet_axes_handles(1),'FontName','Courier');
 
 %It's also possible to change properties of graphical elements
 %Either all at once
