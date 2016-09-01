@@ -182,3 +182,4 @@ gramm was inspired and/or used code from:
 - [Panda](http://www.neural-code.com/index.php/panda) for color conversion
 - [subtightplot](http://www.mathworks.com/matlabcentral/fileexchange/39664-subtightplot) for subplot creation
 - [colorbrewer2](http://colorbrewer2.org)
+- [viridis colormap](https://bids.github.io/colormap/)
