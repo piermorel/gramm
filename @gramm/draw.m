@@ -55,17 +55,18 @@ if numel(obj)>1
             obj(l,c).multi.orig=[(nl-l)*maxh/nl (c-1)/nc];
             obj(l,c).multi.size=[maxh/nl 1/nc];
             obj(l,c).multi.active=true;
+            obj(l,c).redraw_spacing=obj(l,c).redraw_spacing/max(nl,nc);
             draw(obj(l,c));
         end
     end
     
     %Set up tight redrawing for multiple plots
     if do_redraw
-        redraw(obj,0.04);
+        redraw(obj);
         if verLessThan('matlab','8.4')
-            set(gcf,'ResizeFcn',@(a,b)redraw(obj,0.04));
+            set(gcf,'ResizeFcn',@(a,b)redraw(obj));
         else
-            set(gcf,'SizeChangedFcn',@(a,b)redraw(obj,0.04));
+            set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
         end
     end
     return;
@@ -88,39 +89,19 @@ obj.aes=validate_aes(obj.aes);
 %Apply subset
 temp_aes=select_aes(obj.aes,obj.aes.subset);
 
-%Make sure that we work on cells that are not empty
-nonemptycell=@(c)~cellfun(@isempty,c);
-
-if iscell(temp_aes.x)
-    nonempty=nonemptycell(temp_aes.x); %Find empty X cells
-    
-    if iscellstr(temp_aes.x)
-        %Convert factor data to numeric
-        obj.x_factor=true;
-        obj.x_ticks=unique_and_sort(temp_aes.x,obj.order_options.x);
-        tempx=zeros(length(temp_aes.x),1);
-        for k=1:length(obj.x_ticks)
-            tempx(strcmp(temp_aes.x,obj.x_ticks{k}))=k;
-        end
-        temp_aes.x=tempx;
-    else
-        obj.x_factor=false;
+%Convert factor data to numeric
+if iscellstr(temp_aes.x)
+    obj.x_factor=true;
+    obj.x_ticks=unique_and_sort(temp_aes.x,obj.order_options.x);
+    tempx=zeros(length(temp_aes.x),1);
+    for k=1:length(obj.x_ticks)
+        tempx(strcmp(temp_aes.x,obj.x_ticks{k}))=k;
     end
+    temp_aes.x=tempx;
 else
-    nonempty=true(length(temp_aes.y),1);
+    obj.x_factor=false;
 end
 
-if iscell(temp_aes.y)
-    nonempty=nonempty & nonemptycell(temp_aes.y); %Find empty Y cells
-end
-
-if ~isempty(temp_aes.z) && iscell(temp_aes.z)
-    nonempty=nonempty & nonemptycell(temp_aes.z); %Find empty Z cells
-end
-
-
-%Remove empty cells (SKIPS TRIALS WITH NO SPIKES IN RASTER PLOT !)
-temp_aes=select_aes(temp_aes,nonempty);
 
 %Compute x limits
 obj.var_lim.maxx=allmax(temp_aes.x);
@@ -176,14 +157,14 @@ uni_size=unique_and_sort(temp_aes.size,obj.order_options.size);
 %If the color is in a cell array of doubles, we set it as
 %continuous color
 if iscell(temp_aes.color) && ~iscellstr(temp_aes.color)
-    obj.continuous_color=true;
+    set_continuous_color(obj);
 else
     uni_color=unique_and_sort(temp_aes.color,obj.order_options.color);
     
     %If we have too many numerical values for the color we
     %switch to continuous color
     if length(uni_color)>15 && ~iscellstr(uni_color)
-        obj.continuous_color=true;
+        set_continuous_color(obj);
     end
 end
 if obj.continuous_color
@@ -235,11 +216,6 @@ end
 
 %Get colormap
 cmap=get_colormap(length(uni_color),length(uni_lightness),obj.color_options);
-
-%Initialize continuous colormap
-obj.continuous_color_colormap=pa_LCH2RGB([linspace(0,100,256)'...
-    repmat(100,256,1)...
-    linspace(30,90,256)']);
 
 %Initialize results structure (n_groups is an overestimate if
 %there are redundant groups
@@ -470,7 +446,7 @@ for ind_row=1:length(uni_row)
                                     draw_data.marker=obj.point_options.markers{1+mod(ind_marker-1,length(obj.point_options.markers))};
                                     draw_data.line_style=obj.line_options.styles{1+mod(ind_linestyle-1,length(obj.line_options.styles))};
                                     if obj.line_options.use_input
-                                        draw_data.line_size=obj.line_options.input_fun(uni_size{ind_size})
+                                        draw_data.line_size=obj.line_options.input_fun(uni_size{ind_size});
                                     else
                                         draw_data.line_size=obj.line_options.base_size+(ind_size-1)*obj.line_options.step_size;
                                     end
@@ -564,21 +540,23 @@ for ind_row=1:length(uni_row)
 end
 
 %% draw() Title
-if ~isempty(obj.title) && obj.updater.first_draw
-    obj.title_axe_handle=axes('Position',[obj.multi.orig(2)+0.1*obj.multi.size(2)...
-        obj.multi.orig(1)+0.90*obj.multi.size(1) 0.8*obj.multi.size(2) 0.05*obj.multi.size(1)],...
-        'Parent',obj.parent);
-    
-    set(obj.title_axe_handle,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
-    obj.title_text_handle=text(0,0,obj.title,...
-        'FontWeight','bold',...
-        'Interpreter','none',...
-        'FontName',obj.text_options.font,...
-        'FontSize',obj.text_options.base_size*obj.text_options.title_scaling,...
-        'HorizontalAlignment','center',...
-        'Parent',obj.title_axe_handle);
-    if ~isempty(obj.title_options)
-        set(obj.title_text_handle,obj.title_options{:});
+if ~isempty(obj.title)
+    if obj.updater.first_draw
+        obj.title_axe_handle=axes('Position',[obj.multi.orig(2)+0.1*obj.multi.size(2)...
+            obj.multi.orig(1)+0.90*obj.multi.size(1) 0.8*obj.multi.size(2) 0.05*obj.multi.size(1)],...
+            'Parent',obj.parent);
+        
+        set(obj.title_axe_handle,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
+        obj.title_text_handle=text(0,0,obj.title,...
+            'FontWeight','bold',...
+            'Interpreter','none',...
+            'FontName',obj.text_options.font,...
+            'FontSize',obj.text_options.base_size*obj.text_options.title_scaling,...
+            'HorizontalAlignment','center',...
+            'Parent',obj.title_axe_handle);
+        if ~isempty(obj.title_options)
+            set(obj.title_text_handle,obj.title_options{:});
+        end
     end
 else
     obj.title_axe_handle=[];
@@ -1131,15 +1109,15 @@ end
 
 
 %White background !
-set(gcf,'color','w');
+set(gcf,'color','w','PaperPositionMode','auto');
 
 % Make everything tight and set the resize function so that it stays so
 if do_redraw  && ~obj.multi.active %Redrawing for multiple plots is handled at the beginning of draw()
-    redraw(obj,0.04);
+    redraw(obj);
     if verLessThan('matlab','8.4')
-        set(gcf,'ResizeFcn',@(a,b)redraw(obj,0.04));
+        set(gcf,'ResizeFcn',@(a,b)redraw(obj));
     else
-        set(gcf,'SizeChangedFcn',@(a,b)redraw(obj,0.04));
+        set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
     end
 end
 

@@ -37,6 +37,18 @@ if iscell(out.y) && ~iscell(out.x)
     out.x=shiftdim(out.x);
 end
 
+if iscell(out.y) && iscell(out.x) && ~iscellstr(out.x)
+    equal_lengths=cellfun(@(x,y)length(x)==length(y),out.x,out.y);
+    if ~all(equal_lengths)
+        error('Cells in X and Y have different lengths');
+    end
+    if iscell(out.z)
+        equal_lengths=cellfun(@(y,z)length(y)==length(z),out.y,out.z);
+        if ~all(equal_lengths)
+            error('Cells in Z and X/Y have different lengths');
+        end
+    end
+end
 
 
 aes_length=-1;
@@ -46,7 +58,7 @@ for k=1:length(fields)
             aes_length=numel(out.(fields{k}));
         else
             if aes_length~=numel(out.(fields{k}))
-                error('Aesthetics have fields of different lengths !')
+                error('Data inputs have different lengths !')
             end
         end
         

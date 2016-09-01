@@ -59,7 +59,7 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         %If a CI on the mean is requested, we replace the original points
         %with bootstrapped mean samples
         if strcmp(params.type,'ci')
-            r=bootstrp(1000,@nanmean,r);
+            r=bootstrp(obj.stat_options.nboot,@nanmean,r);
         end
         
         %Extract mean and covariance
@@ -68,7 +68,7 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         
         
         %Compute ellipse points
-        conf_elpoints=sqrtm(cv)*elpoints*k(0.05);
+        conf_elpoints=sqrtm(cv)*elpoints*k(obj.stat_options.alpha);
         
         %Compute ellipse axes
         [evec,eval]=eig(cv);
@@ -76,7 +76,7 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
             evec=fliplr(evec);
             eval=fliplr(flipud(eval));
         end
-        elaxes=sqrtm(cv)*evec*k(0.05);
+        elaxes=sqrtm(cv)*evec*k(obj.stat_options.alpha);
         
         
         
@@ -111,7 +111,7 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         %If a CI on the mean is requested, we replace the original points
         %with bootstrapped mean samples
         if strcmp(params.type,'ci')
-            r=bootstrp(1000,@nanmean,r);
+            r=bootstrp(obj.stat_options.nboot,@nanmean,r);
         end
         
         %Extract mean and covariance
@@ -122,7 +122,7 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         obj.results.ellipse{obj.result_ind,1}.cv=cv;
         
         conf_sphpoints=sphpoints;
-        conf_sphpoints.vertices=bsxfun(@plus,sqrtm(cv)*conf_sphpoints.vertices'*k(0.05),m')';
+        conf_sphpoints.vertices=bsxfun(@plus,sqrtm(cv)*conf_sphpoints.vertices'*k(obj.stat_options.alpha),m')';
         hndl=patch(conf_sphpoints,'FaceColor',draw_data.color,'EdgeColor','none','LineWidth',2,'FaceAlpha',0.2);
         
         center_hndl=plot3(m(1),m(2),m(3),'+','MarkerFaceColor',draw_data.color,'MarkerEdgeColor',draw_data.color,'MarkerSize',10);

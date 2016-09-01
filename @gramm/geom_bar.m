@@ -23,7 +23,14 @@ function hndl=my_bar(obj,draw_data,params)
 width=params.width;
 x=comb(draw_data.x);
 y=comb(draw_data.y);
-obj.plot_lim.miny(obj.current_row,obj.current_column)=0;
+
+if min(y)>0
+    obj.plot_lim.miny(obj.current_row,obj.current_column)=0;
+end
+if max(y)<0
+    obj.plot_lim.maxy(obj.current_row,obj.current_column)=0;
+end
+    
 
 if params.stacked
     
@@ -57,7 +64,7 @@ if params.stacked
 else
     
 
-    hndl=plotci(obj,x,y,[y y],draw_data,'edge_bar',params.dodge,params.width);
+    hndl=plotci(obj,shiftdim(x),shiftdim(y),[shiftdim(y) shiftdim(y)],draw_data,'edge_bar',params.dodge,params.width);
     obj.results.geom_bar_handle{obj.result_ind,1}=hndl.bar_handle;
     
 end

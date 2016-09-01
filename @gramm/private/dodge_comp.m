@@ -15,7 +15,7 @@ else
     %Fallback if there are too many unique x values (dodging only makes
     %sense for discrete x values)... 4000 x unique values is already a lot
     %but quick enough to compute below
-    if numel(uni_x)>4000
+    if numel(uni_x)>2000
         fallback=true;
         uni_x=1;
     end

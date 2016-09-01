@@ -215,8 +215,8 @@ g.set_names('x','Horsepower','y','Acceleration','color','# Cylinders');
 %Corner histogram
 g(2,3)=gramm('x',(cars.Horsepower-nanmean(cars.Horsepower))/nanstd(cars.Horsepower),'y',-(cars.Acceleration-nanmean(cars.Acceleration))/nanstd(cars.Acceleration),'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
 g(2,3).geom_point();
-g(2,3).stat_cornerhist('edges',-4:0.2:4,'aspect',0.6)
-g(2,3).geom_abline()
+g(2,3).stat_cornerhist('edges',-4:0.2:4,'aspect',0.6);
+g(2,3).geom_abline();
 g(2,3).set_title('stat_cornerhist()');
 g(2,3).set_names('x','z(Horsepower)','y','-z(Acceleration)')
 
@@ -260,7 +260,7 @@ g(1,3).geom_interval('geom','area');
 
 figure('Position',[100 100 800 450]);
 g.axe_property('YLim',[-10 190]);
-g.draw()
+g.draw();
 
 
 %% Methods for visualizing 2D densities
@@ -775,6 +775,7 @@ g10=gramm('x',cars.Horsepower,'y',cars.Acceleration,'subset',cars.Cylinders~=3 &
 g10.set_names('color','# Cylinders','x','Horsepower','y','Acceleration','Column','Origin');
 g10.set_color_options('chroma',0,'lightness',30);
 g10.stat_glm('geom','area','disp_fit',false);
+g10.set_title('Update example') %Title must be provided before the first draw() call
 g10.draw()
 snapnow;
 

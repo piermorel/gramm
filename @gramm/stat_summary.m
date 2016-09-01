@@ -8,7 +8,7 @@ function obj=stat_summary(obj,varargin)
 % - 'type':
 %       - 'ci' : display the mean and the 95% confidence
 %       interval of the mean (based on the assumption of a normal
-%       distribution
+%       distribution)
 %       - 'bootci' : display the mean and the 95% confidence
 %       interval of the mean computed by bootstrap
 %       - 'sem' : display the mean and the standard error of
@@ -138,7 +138,7 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
     if params.interp_in>0
         %If requested we interpolate the input
         uni_x=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.interp_in);
-        [x,y]=cellfun(@(x,y)deal(uni_x,interp1(x,y,uni_x,'linear')),draw_data.x,draw_data.y,'UniformOutput',false);
+        [x,y]=cellfun(@(x,y)deal(uni_x,interp1(x,y,uni_x,'linear')),draw_data.x,draw_data.y,'UniformOutput',false,'ErrorHandler',@(st,a,b)deal([],[]));
         y=padded_cell2mat(y);
         
     else
@@ -166,14 +166,14 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
         ymean=zeros(length(uni_x),1);
         yci=zeros(length(uni_x),2);
         for ind_x=1:length(uni_x)
-            [ymean(ind_x),yci(ind_x,:)]=computeci(y(:,ind_x),params.type);
+            [ymean(ind_x),yci(ind_x,:)]=computeci(y(:,ind_x),params.type,obj.stat_options.alpha,obj.stat_options.nboot);
         end
     else
         if size(y,1)==1
             ymean=y;
             yci=nan(length(uni_x),2);
         else
-            [ymean,yci]=computeci(y,params.type);
+            [ymean,yci]=computeci(y,params.type,obj.stat_options.alpha,obj.stat_options.nboot);
         end
     end
     
@@ -192,26 +192,26 @@ else %If input was provided as 1D array
         x=bincenters(binind(sel));
         y=y(sel);
     else
-%         if sum(strcmp(params.geom,'area'))>0 || sum(strcmp(params.geom,'line'))>0 ||...
-%                 sum(strcmp(params.geom,'lines'))>0  || sum(strcmp(params.geom,'solid_area'))>0
-%             %To avoid interruptions in line and area plots we
-%             %compute uniques over current data only
-%             uni_x=unique(x); %Sorted is the default
-%         else
-%             if obj.x_factor
-%                 %If x is a factor we space everything as one
-%                 uni_x=obj.var_lim.minx:1:obj.var_lim.maxx;
-%             else
-%                 %compute unique Xs at the facet level to avoid
-%                 %weird bar sizing issues when dodging and when
-%                 %colors are missing
-%                 facet_x=comb(draw_data.facet_x);
-%                 uni_x=unique(facet_x);
-%             end
-%         end
+        %         if sum(strcmp(params.geom,'area'))>0 || sum(strcmp(params.geom,'line'))>0 ||...
+        %                 sum(strcmp(params.geom,'lines'))>0  || sum(strcmp(params.geom,'solid_area'))>0
+        %             %To avoid interruptions in line and area plots we
+        %             %compute uniques over current data only
+        %             uni_x=unique(x); %Sorted is the default
+        %         else
+        %             if obj.x_factor
+        %                 %If x is a factor we space everything as one
+        %                 uni_x=obj.var_lim.minx:1:obj.var_lim.maxx;
+        %             else
+        %                 %compute unique Xs at the facet level to avoid
+        %                 %weird bar sizing issues when dodging and when
+        %                 %colors are missing
+        %                 facet_x=comb(draw_data.facet_x);
+        %                 uni_x=unique(facet_x);
+        %             end
+        %         end
         
         uni_x=unique(x);
-
+        
         %Here we need to implement a loose 'unique' because of
         %potential numerical errors
         uni_x(diff(uni_x)<1e-10)=[];
@@ -231,7 +231,7 @@ else %If input was provided as 1D array
         ysel=y(abs(x-uni_x(ind_x))<1e-10);
         
         if ~isempty(ysel)
-            [ymean(ind_x),yci(ind_x,:)]=computeci(ysel,params.type);
+            [ymean(ind_x),yci(ind_x,:)]=computeci(ysel,params.type,obj.stat_options.alpha,obj.stat_options.nboot);
         end
     end
 end
@@ -324,15 +324,31 @@ end
 
 
 
-function [ymean,yci]=computeci(y,type)
+function [ymean,yci]=computeci(y,type,alpha,nboot)
 
 ymean=nanmean(y);
+
+%Check number of samples
+nsamp=size(y,1);
+if nsamp<3 && strcmp(type,'bootci')
+    disp('Less than 3 samples for bootstrap CI computation...Skipping')
+    yci=repmat([NaN NaN],size(y,2));
+    return;
+end
+if nsamp<2
+    disp('Less than 2 samples for CI computation...Skipping')
+    yci=repmat([NaN NaN],size(y,2));
+    return;
+end
+
 try
     switch type
         case 'bootci'
-            yci=bootci(200,@(y)nanmean(y),y);
+            yci=bootci(nboot,{@(ty)nanmean(ty),y},'alpha',alpha);
         case 'ci'
-            ci=1.96*nanstd(y)./sqrt(sum(~isnan(y)));
+            %ci=1.96*nanstd(y)./sqrt(sum(~isnan(y)));
+            %Correction for small samples (equivalent to fitnormalci)
+            ci=tinv(1-alpha/2,sum(~isnan(y))-1).*nanstd(y)./sqrt(sum(~isnan(y)));
             yci=bsxfun(@plus,ymean,[-ci;ci]);
         case 'std'
             ci=nanstd(y);
@@ -349,17 +365,22 @@ try
         case 'fitnormalci'
             pd=fitdist(y,'Normal');
             ymean=pd.mean();
-            ci=pd.paramci();
+            ci=paramci(pd,alpha);
             yci=ci(:,1)';
         case 'fitpoissonci'
             pd=fitdist(y,'Poisson');
             ymean=pd.mean();
-            ci=pd.paramci();
+            ci=paramci(pd,alpha);
+            yci=ci(:,1)';
+        case 'fitnegbinomialci'
+            pd=fitdist(y,'NegativeBinomial');
+            ymean=pd.mean();
+            ci=paramci(pd,alpha);
             yci=ci(:,1)';
         case 'fitbinomialci'
             pd=fitdist(y,'Binomial');
             ymean=pd.mean;
-            ci=pd.paramci;
+            ci=paramci(pd,alpha);
             yci=ci(:,2)';
         case 'fit95percentile'
             pd=fitdist(y,'Normal');
@@ -368,8 +389,8 @@ try
         otherwise
             warning(['Unknown CI type ' type]);
     end
-catch
-    disp('Not enough samples for CI computation...skipping')
+catch ME
+    disp(['Error in CI computation: ' ME.message ' ...skipping']);
     yci=repmat([NaN NaN],size(y,2));
 end
 end

@@ -12,8 +12,18 @@ function obj=redraw(obj,spacing,display)
 
 
 if nargin<2
-    spacing=0.04;
+    spacing=obj(1).redraw_spacing;
+else
+    nl=size(obj,1);
+    nc=size(obj,2);
+    spacing=spacing/max(nl,nc);
+    for l=1:nl
+        for c=1:nc
+            obj(l,c).redraw_spacing=spacing;
+        end
+    end
 end
+
 if nargin<3
     display=0;
 end
@@ -26,7 +36,7 @@ if numel(obj)>1
         for c=1:nc
             %Make multiple calls to redraw with smaller spacing
             %other parameters should be fine
-            redraw(obj(l,c),spacing/max(nl,nc),display);
+            redraw(obj(l,c),spacing,display);
         end
     end
     return;
@@ -114,7 +124,7 @@ if display
     
     %Retrieve text handles
     
-    set(text_handles,'Unit','normalized');
+    set(obj.legend_text_handles,'Unit','normalized');
     %display text boxes
     for t=1:length(text_handles)
         parent_axe=ancestor(text_handles(t),'axes');
@@ -123,7 +133,7 @@ if display
         %rectangle('Position',[txtpos(1)+axpos(1) txtpos(2)+axpos(2) txtpos(3) txtpos(4)],'EdgeColor','g');
         rectangle('Position',[txtpos(1)*axpos(3)+axpos(1) txtpos(2)*axpos(4)+axpos(2) txtpos(3)*axpos(3) txtpos(4)*axpos(4)],'EdgeColor','g');
     end
-    
+    set(obj.legend_text_handles,'Unit','data');
 end
 
 %Move legend to the right
@@ -172,14 +182,14 @@ end
 %rightmost things)
 if first_redraw || ~isfield(obj.redraw_cache,'max_facet_ind')
     facet_text_pos=get(obj.facet_text_handles,'Extent'); %On first call get all positions
-else
-    % On the next calls we only get the extents of rightmost
-    % and topmost text objects
-    facet_text_pos=get(obj.facet_text_handles(obj.redraw_cache.max_facet_ind),'Extent');
-    if ~isempty(facet_text_pos) && ~iscell(facet_text_pos)
-        facet_text_pos={facet_text_pos};
-    end
-end
+ else
+     % On the next calls we only get the extents of rightmost
+     % and topmost text objects
+     facet_text_pos=get(obj.facet_text_handles(obj.redraw_cache.max_facet_ind),'Extent');
+     if ~isempty(facet_text_pos) && ~iscell(facet_text_pos)
+         facet_text_pos={facet_text_pos};
+     end
+ end
 
 if ~isempty(facet_text_pos)
     %Get positions of the corresponding parent axes
@@ -219,6 +229,8 @@ else
     max_facet_y_text=0;
 end
 
+
+
 %Get updated position
 facet_pos=get(obj.facet_axes_handles,'Position');
 %Handle case of single facet
@@ -232,6 +244,9 @@ min_facet_x=min(cellfun(@(p)p(1),facet_pos));
 max_facet_y=max(cellfun(@(p)p(2)+p(4),facet_pos));
 min_facet_y=min(cellfun(@(p)p(2),facet_pos));
 
+% max_facet_x_text
+% max_facet_x
+
 %Correction if no row  or column legends
 max_facet_x_text=max(max_facet_x_text,max_facet_x);
 max_facet_y_text=max(max_facet_y_text,max_facet_y);
@@ -243,6 +258,9 @@ if ~isempty(legend_text_pos)  && obj.with_legend %Place relative to legend axis 
     temp_available_x=tmp(1);
 end
 max_available_x=temp_available_x-spacing_w-(max_facet_x_text-max_facet_x);
+
+% temp_available_x
+% max_available_x
 
 temp_available_y=obj.multi.orig(1)+obj.multi.size(1);
 %Place relative to title axis

@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>gramm examples</title><meta name="generator" content="MATLAB 8.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-08-07"><meta name="DC.source" content="examples.m"><style type="text/css">
+      --><title>gramm examples</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-09-01"><meta name="DC.source" content="examples.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -221,8 +221,8 @@ g.set_names(<span class="string">'x'</span>,<span class="string">'Horsepower'</s
 <span class="comment">%Corner histogram</span>
 g(2,3)=gramm(<span class="string">'x'</span>,(cars.Horsepower-nanmean(cars.Horsepower))/nanstd(cars.Horsepower),<span class="string">'y'</span>,-(cars.Acceleration-nanmean(cars.Acceleration))/nanstd(cars.Acceleration),<span class="string">'color'</span>,cars.Cylinders,<span class="string">'subset'</span>,cars.Cylinders~=3 &amp; cars.Cylinders~=5);
 g(2,3).geom_point();
-g(2,3).stat_cornerhist(<span class="string">'edges'</span>,-4:0.2:4,<span class="string">'aspect'</span>,0.6)
-g(2,3).geom_abline()
+g(2,3).stat_cornerhist(<span class="string">'edges'</span>,-4:0.2:4,<span class="string">'aspect'</span>,0.6);
+g(2,3).geom_abline();
 g(2,3).set_title(<span class="string">'stat_cornerhist()'</span>);
 g(2,3).set_names(<span class="string">'x'</span>,<span class="string">'z(Horsepower)'</span>,<span class="string">'y'</span>,<span class="string">'-z(Acceleration)'</span>)
 
@@ -239,29 +239,11 @@ ans =
     facet_axes_handles: []
                results: [1x1 struct]
 
-
-ans = 
-
-  gramm with properties:
-
-     legend_axe_handle: []
-      title_axe_handle: []
-    facet_axes_handles: []
-               results: [1x1 struct]
-
-
-ans = 
-
-  gramm with properties:
-
-     legend_axe_handle: []
-      title_axe_handle: []
-    facet_axes_handles: []
-               results: [1x1 struct]
-
 Warning: Start point not provided, choosing random start point. 
 Warning: Start point not provided, choosing random start point. 
 Warning: Start point not provided, choosing random start point. 
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
 </pre><img vspace="5" hspace="5" src="examples_05.png" alt=""> <h2>Methods for visualizing custom confidence intervals<a name="13"></a></h2><p>With <tt>geom_interval()</tt> it is possible to plot custom confidence intervals by provinding <tt>'ymin'</tt> and <tt>'ymax'</tt> values to <tt>gramm()</tt>. All options to display confidence intervals in <tt>stat_summary()</tt> are available, including dodging.</p><pre class="codeinput">cars_table=struct2table(cars);
 cars_summary=rowfun(@(hp)deal(nanmean(hp),bootci(200,@(x)nanmean(x),hp)'),cars_table(cars.Cylinders~=3 &amp; cars.Cylinders~=5,:),<span class="keyword">...</span>
     <span class="string">'InputVariables'</span>,{<span class="string">'Horsepower'</span>},<span class="keyword">...</span>
@@ -291,17 +273,7 @@ g(1,3).geom_interval(<span class="string">'geom'</span>,<span class="string">'ar
 
 figure(<span class="string">'Position'</span>,[100 100 800 450]);
 g.axe_property(<span class="string">'YLim'</span>,[-10 190]);
-g.draw()
-</pre><pre class="codeoutput">
-ans = 
-
-  1x3 gramm array with properties:
-
-    legend_axe_handle
-    title_axe_handle
-    facet_axes_handles
-    results
-
+g.draw();
 </pre><img vspace="5" hspace="5" src="examples_06.png" alt=""> <h2>Methods for visualizing 2D densities<a name="14"></a></h2><p>The following methods can be used to visualize 2D densities for bivariate data</p><pre class="codeinput"><span class="comment">%Create point cloud with two categories</span>
 N=10^4;
 x=randn(1,N);
@@ -709,6 +681,7 @@ g10=gramm(<span class="string">'x'</span>,cars.Horsepower,<span class="string">'
 g10.set_names(<span class="string">'color'</span>,<span class="string">'# Cylinders'</span>,<span class="string">'x'</span>,<span class="string">'Horsepower'</span>,<span class="string">'y'</span>,<span class="string">'Acceleration'</span>,<span class="string">'Column'</span>,<span class="string">'Origin'</span>);
 g10.set_color_options(<span class="string">'chroma'</span>,0,<span class="string">'lightness'</span>,30);
 g10.stat_glm(<span class="string">'geom'</span>,<span class="string">'area'</span>,<span class="string">'disp_fit'</span>,false);
+g10.set_title(<span class="string">'Update example'</span>) <span class="comment">%Title must be provided before the first draw() call</span>
 g10.draw()
 snapnow;
 </pre><pre class="codeoutput">
@@ -716,8 +689,18 @@ ans =
 
   gramm with properties:
 
-     legend_axe_handle: [1x1 Axes]
+     legend_axe_handle: []
       title_axe_handle: []
+    facet_axes_handles: []
+               results: [1x1 struct]
+
+
+ans = 
+
+  gramm with properties:
+
+     legend_axe_handle: [1x1 Axes]
+      title_axe_handle: [1x1 Axes]
     facet_axes_handles: [1x1 Axes]
                results: [1x1 struct]
 
@@ -774,6 +757,12 @@ g.set_title(<span class="string">'Colormap customizations examples'</span>);
 
 figure(<span class="string">'Position'</span>,[100 100 800 600])
 g.draw();
+</pre><pre class="codeoutput">Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
 </pre><img vspace="5" hspace="5" src="examples_20.png" alt=""> <h2>Using a continuous color scale<a name="28"></a></h2><p>When the variable provided as 'color' contains too many different values (&gt;15), or when set_continuous_color is used, gramm switches from a categorical color scale to a gradient-based continuous color scale.</p><pre class="codeinput">load <span class="string">spectra.mat</span>
 
 <span class="comment">%Here we create x as a 1xN array (see example above), and use a MxN matrix</span>
@@ -831,8 +820,32 @@ g.axe_property(<span class="string">'YLim'</span>,[0 48]);
 
 figure(<span class="string">'Position'</span>,[100 100 800 600]);
 g.draw();
-</pre><pre class="codeoutput">ordering given as values
+</pre><pre class="codeoutput">Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+ordering given as values
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
 ordering given as indices
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
 </pre><img vspace="5" hspace="5" src="examples_22.png" alt=""> <h2>Customize the size and style of graphic elements with set_line_options() and set_point_options()<a name="30"></a></h2><pre class="codeinput">clear <span class="string">g</span>
 x=repmat(1:10,1,5);
 y=reshape(bsxfun(@times,1:5,(1:10)'),1,50);
@@ -866,68 +879,6 @@ g.set_title(<span class="string">'Customization of line and point options'</span
 
 figure(<span class="string">'Position'</span>,[100 100 800 600]);
 g.draw();
-</pre><pre class="codeoutput">
-draw_data = 
-
-         dodge_avl_w: 1
-             facet_x: [30x1 double]
-      dodge_fallback: 0
-             dodge_x: [10x1 double]
-           dodge_ind: [10x1 double]
-             dodge_n: [10x1 double]
-                   x: [10x1 double]
-                   y: [10x1 double]
-                ymin: []
-                ymax: []
-                   z: []
-    continuous_color: [10x1 double]
-               color: [1 0.3673 0.4132]
-              marker: 'o'
-          line_style: '-'
-           line_size: 2.5000
-
-
-draw_data = 
-
-         dodge_avl_w: 1
-             facet_x: [30x1 double]
-      dodge_fallback: 0
-             dodge_x: [10x1 double]
-           dodge_ind: [10x1 double]
-             dodge_n: [10x1 double]
-                ymin: []
-                ymax: []
-               color: [1 0.3673 0.4132]
-              marker: 'o'
-          line_style: '-'
-           line_size: 3.5000
-          point_size: 7
-                   x: [10x1 double]
-                   y: [10x1 double]
-                   z: []
-    continuous_color: [10x1 double]
-
-
-draw_data = 
-
-         dodge_avl_w: 1
-             facet_x: [30x1 double]
-      dodge_fallback: 0
-             dodge_x: [10x1 double]
-           dodge_ind: [10x1 double]
-             dodge_n: [10x1 double]
-                ymin: []
-                ymax: []
-               color: [1 0.3673 0.4132]
-              marker: 'o'
-          line_style: '-'
-           line_size: 6.5000
-          point_size: 9
-                   x: [10x1 double]
-                   y: [10x1 double]
-                   z: []
-    continuous_color: [10x1 double]
-
 </pre><img vspace="5" hspace="5" src="examples_23.png" alt=""> <h2>Advanced customization of gramm figures<a name="31"></a></h2><p>The options for the geom_ and stat_ methods, as well as the <tt>axe_property()</tt> method allow for high-level customization of gramm figures. Since the gramm object allows access to all handles for graphical objects, it's also possible to do more precise customizations and modifications of a gramm figure once it's drawn. In this figure:</p><div><ul><li>Text sizes and fonts are changed with <tt>set_text_options()</tt></li><li>Y grid is turned on on all facets with <tt>axe_property('YGrid','on')</tt></li><li>A vertical line and text is added to only one of the facets by using the <tt>facet_axes_handles</tt> public property of gramm objects</li><li>All points are made smaller by using their handles <tt>results.grom_point_handle</tt> in the <tt>set()</tt> function</li><li>Similarly, all confidence areas are made grey <tt>g.results.stat_glm.area_handle</tt></li><li>A subset of the glm lines are made thicker by calling <tt>set()</tt> on a subset teir handles |g.results.stat_glm(g.results.color==4).line_handle]</li></ul></div><p>It is also possible to set where the gramm axes are drawn by using the <tt>set_parent(parent_handle)</tt> function, which receives the handle of a figure/uipanel/uitab object to use as parent as argument.</p><pre class="codeinput">f=figure(<span class="string">'Position'</span>,[100 100 800 500]);
 <span class="comment">%Create fake button</span>
 c=uicontrol(<span class="string">'Style'</span>,<span class="string">'pushbutton'</span>,<span class="string">'String'</span>,<span class="string">'Dummy'</span>,<span class="string">'Units'</span>,<span class="string">'normalized'</span>,<span class="string">'Position'</span>,[0.8 0.45 0.15 0.1]);
@@ -1008,7 +959,7 @@ figure
 g17=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g17.geom_line();
 g17.draw();
-</pre><img vspace="5" hspace="5" src="examples_31.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015b</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="examples_31.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% gramm examples
 % Examples and how-tos for gramm
@@ -1227,8 +1178,8 @@ g.set_names('x','Horsepower','y','Acceleration','color','# Cylinders');
 %Corner histogram
 g(2,3)=gramm('x',(cars.Horsepower-nanmean(cars.Horsepower))/nanstd(cars.Horsepower),'y',-(cars.Acceleration-nanmean(cars.Acceleration))/nanstd(cars.Acceleration),'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
 g(2,3).geom_point();
-g(2,3).stat_cornerhist('edges',-4:0.2:4,'aspect',0.6)
-g(2,3).geom_abline()
+g(2,3).stat_cornerhist('edges',-4:0.2:4,'aspect',0.6);
+g(2,3).geom_abline();
 g(2,3).set_title('stat_cornerhist()');
 g(2,3).set_names('x','z(Horsepower)','y','-z(Acceleration)')
 
@@ -1272,7 +1223,7 @@ g(1,3).geom_interval('geom','area');
 
 figure('Position',[100 100 800 450]);
 g.axe_property('YLim',[-10 190]);
-g.draw()
+g.draw();
 
 
 %% Methods for visualizing 2D densities
@@ -1787,6 +1738,7 @@ g10=gramm('x',cars.Horsepower,'y',cars.Acceleration,'subset',cars.Cylinders~=3 &
 g10.set_names('color','# Cylinders','x','Horsepower','y','Acceleration','Column','Origin');
 g10.set_color_options('chroma',0,'lightness',30);
 g10.stat_glm('geom','area','disp_fit',false);
+g10.set_title('Update example') %Title must be provided before the first draw() call
 g10.draw()
 snapnow;
 

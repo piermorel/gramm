@@ -35,8 +35,8 @@ end
 
 function hndl=my_fit(obj,draw_data,params)
 
-combx=comb(draw_data.x)';
-comby=comb(draw_data.y)';
+combx=comb(draw_data.x);
+comby=comb(draw_data.y);
 
 %Remove NaNs
 sel=~isnan(combx) & ~isnan(comby);
@@ -45,9 +45,9 @@ comby=comby(sel);
 
 %Do the fit depending on options
 if isempty(params.StartPoint)
-    mdl=fit(combx',comby',params.fun);
+    mdl=fit(shiftdim(combx),shiftdim(comby),params.fun);
 else
-    mdl=fit(combx',comby',params.fun,'StartPoint',params.StartPoint);
+    mdl=fit(shiftdim(combx),shiftdim(comby),params.fun,'StartPoint',params.StartPoint);
 end
 
 %Create x values for the fit plot
@@ -58,7 +58,7 @@ else
 end
 %Get fit value and CI
 newy=feval(mdl,newx);
-yci=predint(mdl,newx,0.95,params.intopt);
+yci=predint(mdl,newx,1-obj.stat_options.alpha,params.intopt);
 
 
 obj.results.stat_fit{obj.result_ind,1}.x=newx;

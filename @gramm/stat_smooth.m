@@ -31,11 +31,13 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
     %Duplicate the draw data
     %new_draw_data=draw_data;
     
-    tempx=zeros(length(draw_data.y),params.npoints);
-    tempy=zeros(length(draw_data.y),params.npoints);
+    tempx=nan(length(draw_data.y),params.npoints);
+    tempy=nan(length(draw_data.y),params.npoints);
     for k=1:length(draw_data.y) %then we smooth each trajectory independently
-        %[new_draw_data.y{k},new_draw_data.x{k}, ~] = turbotrend(draw_data.x{k}, draw_data.y{k}, params.lambda, 100);
-        [tempy(k,:),tempx(k,:), ~] = turbotrend(draw_data.x{k}, draw_data.y{k}, params.lambda, params.npoints);
+        if ~isempty(draw_data.y{k})
+            %[new_draw_data.y{k},new_draw_data.x{k}, ~] = turbotrend(draw_data.x{k}, draw_data.y{k}, params.lambda, 100);
+            [tempy(k,:),tempx(k,:), ~] = turbotrend(draw_data.x{k}, draw_data.y{k}, params.lambda, params.npoints);
+        end
     end
     hndl=plot(tempx',tempy','LineStyle',draw_data.line_style,'lineWidth',draw_data.line_size,'Color',draw_data.color);
     
@@ -80,8 +82,8 @@ else
     end
     
     if length(combx)>10
-        booty=bootstrp(200,@(ax,ay)turbotrend(ax,ay,params.lambda,params.npoints),combx,comby);
-        yci=prctile(booty,[2.5 97.5]);
+        booty=bootstrp(obj.stat_options.nboot,@(ax,ay)turbotrend(ax,ay,params.lambda,params.npoints),combx,comby);
+        yci=prctile(booty,100*[obj.stat_options.alpha/2 1-obj.stat_options.alpha/2]);
     else
         yci=nan(2,length(newx));
     end

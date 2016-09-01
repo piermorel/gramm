@@ -19,6 +19,9 @@ end
 
 function  hndl=my_jitter(obj,draw_data,params)
 
+draw_data.x=comb(draw_data.x);
+draw_data.y=comb(draw_data.y);
+
 draw_data.x=dodger(draw_data.x,draw_data,params.dodge);
 
 draw_data.x=draw_data.x+rand(size(draw_data.x))*params.width-params.width/2;

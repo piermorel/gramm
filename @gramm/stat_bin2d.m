@@ -57,14 +57,10 @@ switch params.geom
         [~,hndl]=contour(C{1},C{2},N',5,'Color',draw_data.color);
         
     case 'image'
-        %Set colormap
-        %colormap(pa_statcolor(256,'sequential','luminancechroma',[0 100 100 260]));
-        %colormap(pa_statcolor(256,'sequential','luminancechroma',[60 0 100 260]));
-        %cmap=pa_statcolor(256,'sequential','luminancechromahue',[80 0 100 80 240 240]);
-        %colormap(cmap);
         
-        %Useless because there is only one colormap per subplot
-        %cmap=pa_statcolor(256,'sequential','luminancechromahue',[70 0 100 80 draw_data.hue draw_data.hue])
+        if ~obj.continuous_color
+            set_continuous_color(obj);
+        end
         
         Nr=reshape(N',1,numel(N));
         sel=Nr>0;
@@ -124,11 +120,7 @@ switch params.geom
         obj.plot_lim.maxc(obj.current_row,obj.current_column)=max(Nr);
         obj.plot_lim.minc(obj.current_row,obj.current_column)=min(Nr);
         
-        obj.continuous_color=true;
         
-        %imagesc([C{1}(1)-(C{1}(2)-C{1}(1))/2 C{1}(end)+(C{1}(2)-C{1}(1))/2],...
-        %   [C{2}(1)-(C{2}(2)-C{2}(1))/2 C{2}(end)+(C{2}(2)-C{2}(1))/2],...
-        %   N);
     case 'point'
         [X,Y] = meshgrid(C{1},C{2});
         X=reshape(X,1,numel(X));
