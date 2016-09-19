@@ -178,7 +178,7 @@ With <code>set_order_options()</code>
 
 ### Superimposition of gramm objects on the same axes
 By making calling the update() method after a first draw, the same axes can be reused for another gramm plot.
-Here this allows to use plot the whole dataset in the background of each facet.
+Here this allows to plot the whole dataset in the background of each facet.
 
 <img src="/html/examples_22.png" alt="gramm superimposition" width="800">
 
