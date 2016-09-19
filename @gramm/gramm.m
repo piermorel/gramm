@@ -17,6 +17,7 @@ classdef gramm < matlab.mixin.Copyable
         aes_names=struct('x','x',...
             'y','y',...
             'z','z',...
+            'label','label',...
             'color','Color',...
             'marker','Marker',...
             'linestyle','Line Style',...
@@ -141,6 +142,7 @@ classdef gramm < matlab.mixin.Copyable
             %   - 'x' for the data to plot as abcissa, or the data that
             %      will be used to construct histograms/density estimates
             %   - 'y' for the data to plot as ordinate
+            %   - 'label' for the label text
             %   - 'color' for the data that determines color (hue)
             %   - 'lightness' for the data that determines lightness
             %   - 'linestyle' for the data that determines line style
@@ -167,6 +169,7 @@ classdef gramm < matlab.mixin.Copyable
             %     array of the same size (N*M). It can also be a 1D numerical
             %     array of size M, in which case the same abcissa will be
             %     used for every row of y.
+            %   - label should be a 1D cell array of strings of length N.
             
             obj.aes=parse_aes(varargin{:});
             obj.handle_graphics=~verLessThan('matlab','8.4.0');
@@ -217,6 +220,7 @@ classdef gramm < matlab.mixin.Copyable
         obj=geom_raster(obj,varargin)
         obj=geom_bar(obj,varargin)
         obj=geom_interval(obj,varargin)
+        obj=geom_label(obj,varargin)
         
         % stat methods
         obj=stat_smooth(obj,varargin)

@@ -148,7 +148,7 @@ else
     end
 end
 
-if ~isempty(legend_text_pos) && obj.with_legend
+if ~isempty(legend_text_pos) % && obj.with_legend
     %Here we correct by the width to get the coordinates in
     %normalized values
     [max_text_x,max_ind]=max(cellfun(@(p)legend_pos(1)+legend_pos(3)*(p(1)+p(3))/legend_axis_width,legend_text_pos));
@@ -252,8 +252,8 @@ max_facet_x_text=max(max_facet_x_text,max_facet_x);
 max_facet_y_text=max(max_facet_y_text,max_facet_y);
 
 %If we don't have legends on the right then we use the multi parameters
-temp_available_x=obj.multi.orig(2)+obj.multi.size(2);
-if ~isempty(legend_text_pos)  && obj.with_legend %Place relative to legend axis if we have one
+temp_available_x=obj.multi.orig(2)+obj.multi.size(2)-spacing_w;
+if ~isempty(legend_text_pos)%  && obj.with_legend %Place relative to legend axis if we have one
     tmp=get(obj.legend_axe_handle,'Position');
     temp_available_x=tmp(1);
 end

@@ -74,7 +74,9 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
   - confidence intervals (<code>geom_interval()</code>)
   - bars plots (<code>geom_bar()</code>)
   - raster plots (<code>geom_raster()</code>)
+  - labels (<code>geom_label()</code>)
   - point counts (<code>point_count()</code>)
+
 
 - Multiple ways of plotting statistics on the data:
   - y data summarized by x values (uniques or binned) with confidence intervals (<code>stat_summary()</code>)
@@ -155,26 +157,30 @@ Using <code>stat_bin()</code> it is possible to construct peristimulus time hist
 
 <img src="/html/examples_10.png" alt="facet_grid() options" width="800">
 
+### Text labels with geom_label() ###
+
+<img src="/html/examples_19.png" alt="geom_label()" width="800">
+
 ### Colormap customization ###
 With <code>set_color_options()</code>
 
-<img src="/html/examples_20.png" alt="Colormaps example" width="800">
+<img src="/html/examples_24.png" alt="Colormaps example" width="800">
 
 ### Continuous colors
 
-<img src="/html/examples_21.png" alt="Continuous colors" width="800">
+<img src="/html/examples_25.png" alt="Continuous colors" width="800">
 
 ###Reordering of categorical variables
 With <code>set_order_options()</code>
 
-<img src="/html/examples_22.png" alt="Reordering" width="800">
+<img src="/html/examples_26.png" alt="Reordering" width="800">
 
 
 ### Superimposition of gramm objects on the same axes
 By making calling the update() method after a first draw, the same axes can be reused for another gramm plot.
-Here this allows to use different groupings for the points and for the glm fit.
+Here this allows to use plot the whole dataset in the background of each facet.
 
-<img src="/html/examples_19.png" alt="gramm superimposition" width="600">
+<img src="/html/examples_22.png" alt="gramm superimposition" width="800">
 
 ## Acknowledgements
 gramm was inspired and/or used code from:

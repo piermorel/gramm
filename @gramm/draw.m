@@ -163,7 +163,7 @@ else
     
     %If we have too many numerical values for the color we
     %switch to continuous color
-    if length(uni_color)>15 && ~iscellstr(uni_color)
+    if length(uni_color)>15 && ~iscellstr(uni_color) && ~obj.continuous_color
         set_continuous_color(obj);
     end
 end
@@ -222,7 +222,7 @@ cmap=get_colormap(length(uni_color),length(uni_lightness),obj.color_options);
 n_groups=length(uni_row)*length(uni_column)*length(uni_marker)...
     *length(uni_size)*length(uni_linestyle)*length(uni_color)*length(unique(temp_aes.group));
 aes_names_fieldnames=fieldnames(obj.aes_names);
-for fn=4:length(aes_names_fieldnames) %Starting from 4 we ignore x y and z
+for fn=5:length(aes_names_fieldnames) %Starting from 4 we ignore x y z and label
     obj.results.(aes_names_fieldnames{fn})=cell(n_groups,1);
     obj.results.(['ind_' aes_names_fieldnames{fn}])=cell(n_groups,1);
 end
@@ -441,6 +441,11 @@ for ind_row=1:length(uni_row)
                                     else
                                         draw_data.z=[];
                                     end
+                                    if ~isempty(temp_aes.label)
+                                        draw_data.label=temp_aes.label(sel);
+                                    else
+                                        draw_data.label=[];
+                                    end
                                     draw_data.continuous_color=temp_aes.color(sel);
                                     draw_data.color=cmap((ind_color-1)*length(uni_lightness)+ind_lightness,:);
                                     draw_data.marker=obj.point_options.markers{1+mod(ind_marker-1,length(obj.point_options.markers))};
@@ -652,14 +657,20 @@ if obj.with_legend
         
         obj.legend_y=obj.legend_y-legend_y_step; %HACK here, we have to multiply by 2 ??
         
-        %                 image(ones(1,length(obj.continuous_color_colormap))+0.5,...
-        %                     linspace(obj.legend_y-2,obj.legend_y,length(obj.continuous_color_colormap)),...
-        %                     reshape(obj.continuous_color_colormap,length(obj.continuous_color_colormap),1,3));
-        
         tmp_N=100;
-        imagesc([1 1.5],[obj.legend_y-legend_y_step*2 obj.legend_y],linspace(min(min(obj.plot_lim.minc)),max(max(obj.plot_lim.maxc)),tmp_N)','Parent',obj.legend_axe_handle);
         
-        line([1.8 2.2 ; 1.8 2.2 ;1.8  2.2]',[obj.legend_y obj.legend_y;obj.legend_y-legend_y_step obj.legend_y-legend_y_step ;obj.legend_y-legend_y_step*2 obj.legend_y-legend_y_step*2 ]','Color','k','Parent',obj.legend_axe_handle)
+        gradient_height=4;
+        imagesc([1 1.5],[obj.legend_y-legend_y_step*gradient_height obj.legend_y],linspace(min(min(obj.plot_lim.minc)),max(max(obj.plot_lim.maxc)),tmp_N)','Parent',obj.legend_axe_handle);
+        
+        line([1.8  2;1.8  2;1.8  2 ; 1 1.2 ; 1 1.2 ; 1 1.2]',...
+            [obj.legend_y-legend_y_step*gradient_height/4 obj.legend_y-legend_y_step*gradient_height/4 ;...
+            obj.legend_y-legend_y_step*gradient_height/2 obj.legend_y-legend_y_step*gradient_height/2 ;...
+            obj.legend_y-legend_y_step*3*gradient_height/4 obj.legend_y-legend_y_step*3*gradient_height/4;...
+            obj.legend_y-legend_y_step*gradient_height/4 obj.legend_y-legend_y_step*gradient_height/4 ;...
+            obj.legend_y-legend_y_step*gradient_height/2 obj.legend_y-legend_y_step*gradient_height/2 ;...
+            obj.legend_y-legend_y_step*3*gradient_height/4 obj.legend_y-legend_y_step*3*gradient_height/4]',...
+            'Color','w','Parent',obj.legend_axe_handle)
+        
         
         colormap(obj.continuous_color_colormap)
         caxis([min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
@@ -671,18 +682,18 @@ if obj.with_legend
             'Parent',obj.legend_axe_handle)];
         
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(2.5,obj.legend_y-legend_y_step,num2str((max(max(obj.plot_lim.maxc))+min(min(obj.plot_lim.minc)))/2),...
+            text(2.5,obj.legend_y-legend_y_step*gradient_height/2,num2str((max(max(obj.plot_lim.maxc))+min(min(obj.plot_lim.minc)))/2),...
             'FontName',obj.text_options.font,...
             'FontSize',obj.text_options.base_size*obj.text_options.legend_scaling,...
             'Parent',obj.legend_axe_handle)];
         
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(2.5,obj.legend_y-legend_y_step*2,num2str(min(min(obj.plot_lim.minc))),...
+            text(2.5,obj.legend_y-legend_y_step*gradient_height,num2str(min(min(obj.plot_lim.minc))),...
             'FontName',obj.text_options.font,...
             'FontSize',obj.text_options.base_size*obj.text_options.legend_scaling,...
             'Parent',obj.legend_axe_handle)];
         
-        obj.legend_y=obj.legend_y-legend_y_step*3;
+        obj.legend_y=obj.legend_y-legend_y_step*(gradient_height+1);
     end
     
     %marker legend

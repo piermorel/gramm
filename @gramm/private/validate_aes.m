@@ -73,7 +73,7 @@ end
 
 %Missing fields are replaced with arrays of ones
 for k=1:length(fields)
-    if isempty(aes.(fields{k})) && sum(strcmp(fields{k},{'z' 'ymin' 'ymax'}))==0 %If z, ymin, ymax are empty we leave them empty
+    if isempty(aes.(fields{k})) && sum(strcmp(fields{k},{'z' 'ymin' 'ymax' 'label'}))==0 %If z, ymin, ymax are empty we leave them empty
         
         out.(fields{k})=ones(aes_length,1);
         if strcmp(fields{k},'subset') %Or array of true for 'subset'

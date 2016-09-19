@@ -71,6 +71,7 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2 %numel(combx)>2 &&
     
 else
     warning('Not enough points for linear fit')
+    obj.results.stat_glm{obj.result_ind,1}=[];
 end
 
 end

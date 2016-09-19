@@ -36,6 +36,7 @@ obj.geom={};
 
 obj.updater.updated=true;
 obj.updater.facet_updated=false;
+obj.with_legend=true;
 
 %Remove ablines
 obj.abline=[];

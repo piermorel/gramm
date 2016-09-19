@@ -762,7 +762,39 @@ g.set_title('Dodge and width options for stat_summary()');
 figure('Position',[100 100 800 1000]);
 g.draw();
 
-%% Using different groups for different stat_ and geom_ methods by superimposing gramm plots
+%% Plotting text or labeling with geom_label()
+
+%Convert structure to a table
+cars_table=struct2table(cars);
+
+%Create short version of model names by removing manufacturer
+cars_table.ModelShort=cellfun(@(ma,mo)mo(length(ma)+1:end),cars_table.Manufacturer,cars_table.Model,'UniformOutput',false);
+
+figure('Position',[100 100 800 500]);
+clear g
+%Provide 'label' as data
+g(1,1)=gramm('x',cars_table.Horsepower,'y',cars_table.Acceleration,...
+    'label',cars_table.ModelShort,'color',cars_table.Manufacturer,'subset',strcmp(cars_table.Origin_Region,'Japan'));
+%geom_label() takes the same arguments as text().
+%'BackgroundColor','EdgeColor' and 'Color' can be set to 'auto'
+g.geom_label('VerticalAlignment','middle','HorizontalAlignment','center','BackgroundColor','auto','Color','w');
+g.set_limit_extra([0.2 0.2],[0.1 0.1]);
+g.set_names('color','Manufacturer','x','Horsepower','y','Acceleration');
+g.draw();
+
+
+figure('Position',[100 100 800 500]);
+clear g
+%Compute number of models outside of gramm so that the output can be used
+%as label
+temp_table=rowfun(@numel,cars_table,'OutputVariableNames','N','GroupingVariables',{'Origin_Region','Model_Year'},'InputVariables','MPG');
+g=gramm('x',temp_table.Model_Year,'y',temp_table.N,'color',temp_table.Origin_Region,'label',temp_table.N);
+g.geom_bar('dodge',0.7,'width',0.6);
+g.geom_label('color','k','dodge',0.7,'VerticalAlignment','bottom','HorizontalAlignment','center');
+g.set_names('color','Origin','x','Year','y','Number of models');
+g.draw();
+
+%% Superimposing gramm plots with update(): Using different groups for different stat_ and geom_ methods
 % By using the method update() after a first draw() call of a gramm object,
 % it is possible to add or remove grouping variables.
 % Here in a first gramm plot we make a glm fit of cars Acceleration as a
@@ -775,8 +807,8 @@ g10=gramm('x',cars.Horsepower,'y',cars.Acceleration,'subset',cars.Cylinders~=3 &
 g10.set_names('color','# Cylinders','x','Horsepower','y','Acceleration','Column','Origin');
 g10.set_color_options('chroma',0,'lightness',30);
 g10.stat_glm('geom','area','disp_fit',false);
-g10.set_title('Update example') %Title must be provided before the first draw() call
-g10.draw()
+g10.set_title('Update example'); %Title must be provided before the first draw() call
+g10.draw();
 snapnow;
 
 %%
@@ -791,6 +823,70 @@ g10.set_color_options();
 g10.geom_point();
 g10.draw();
 
+
+%% Superimposing gramm plots with update(): Plotting all the data in the background of facets
+%Inspired by https://drsimonj.svbtle.com/plotting-background-data-for-groups-with-ggplot2
+
+load fisheriris.mat
+
+clear g
+figure('Position',[100 100 800 600]);
+%Create an histogram of all the data in the background (no facet_ is given yet)
+g(1,1)=gramm('x',meas(:,2));
+g(1,1).set_names('x','Sepal Width','column','');
+g(1,1).stat_bin('fill','all'); %histogram
+g(1,1).set_color_options('chroma',0,'lightness',75); %We make it light grey
+g(1,1).set_title('Overlaid histograms');
+
+%Create a scatter plot of all the data in the background (no facet_ is given yet)
+g(2,1)=gramm('x',meas(:,2),'y',meas(:,1));
+g(2,1).set_names('x','Sepal Width','column','','y','Sepal Length');
+g(2,1).geom_point(); %Scatter plot
+g(2,1).set_color_options('chroma',0,'lightness',75); %We make it light grey
+g(2,1).set_point_options('base_size',6);
+g(2,1).set_title('Overlaid scatter plots');
+
+g.draw(); %Draw the backgrounds
+
+g(1,1).update('color',species); %Add color with update()
+g(1,1).facet_grid([],species); %Provide facets
+g(1,1).stat_bin('dodge',0); %Histogram (we set dodge to zero as facet_grid makes it useless)
+g(1,1).set_color_options(); %Reset to default colors
+g(1,1).no_legend();
+g(1,1).axe_property('ylim',[-2 30]); %We have to set y scale manually, as the automatic scaling from the first plot was forgotten
+
+g(2,1).update('color',species); %Add color with update()
+g(2,1).facet_grid([],species); %Provide facets
+g(2,1).geom_point();
+g(2,1).set_color_options();
+g(2,1).no_legend();
+
+%Set global axe properties
+g.axe_property('TickDir','out','XGrid','on','Ygrid','on','GridColor',[0.5 0.5 0.5]);
+%Draw the news elements
+g.draw();
+
+%% Plot one variable against many others
+%Inspired by: https://drsimonj.svbtle.com/plot-some-variables-against-many-others
+
+%Convert structure to a table
+cars_table=struct2table(cars);
+
+%Use stack to transform the wide table to a long format
+T=stack(cars_table,{'Displacement'  'Weight' 'Acceleration'});
+
+%Use the variable resutling from the stacking as x
+g=gramm('x',T.Displacement_Weight_Acceleration,'y',T.MPG,'color',T.Horsepower,'marker',T.Cylinders,'subset',T.Cylinders~=3 & T.Cylinders~=5 & T.Model_Year<75);
+%Use the stacking indicator as facet variable
+g.facet_wrap(T.Displacement_Weight_Acceleration_Indicator,'scale','independent');
+g.set_point_options('base_size',7);
+g.set_continuous_color('LCH_colormap',[20 80 ; 40 30 ; 260 260 ]);
+g.set_names('y','MPG','x','Value','column','','color','HP','marker','# Cylinders');
+g.geom_point();
+
+g.axe_property('TickDir','out','XGrid','on','Ygrid','on','GridColor',[0.5 0.5 0.5]);
+figure('Position',[100 100 700 350]);
+g.draw();
 
 %% Customizing color maps with set_color_options()
 % With the method set_color_options(), automatic color generation for

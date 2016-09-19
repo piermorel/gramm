@@ -19,6 +19,7 @@ function hndl=my_count(obj,draw_data,params)
 
 if obj.continuous_color
     disp('geom_count() unsupported with continuous color')
+    hndl=[];
 else
     [x,y]=to_polar(obj,comb(draw_data.x),comb(draw_data.y));
     

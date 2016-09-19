@@ -8,6 +8,7 @@ my_addParameter(p,'y',[]);
 my_addParameter(p,'ymin',[]);
 my_addParameter(p,'ymax',[]);
 my_addParameter(p,'z',[]);
+my_addParameter(p,'label',[]);
 
 % Other aesthetics are string-value pairs
 my_addParameter(p,'color',[]);
