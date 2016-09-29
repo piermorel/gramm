@@ -281,6 +281,7 @@ g(1,1).set_names('color','grp');
 g(1,1).geom_point();
 %'patch_opts' can be used to provide more options to the patch() internal
 %call
+g(1,1).set_point_options('base_size',2);
 g(1,1).stat_ellipse('type','95percentile','geom','area','patch_opts',{'FaceAlpha',0.1,'LineWidth',2});
 g(1,1).set_title('stat_ellispe()');
 
@@ -308,12 +309,15 @@ g(2,1).stat_bin2d('nbins',[20 20],'geom','image');
 g(2,1).set_names('column','grp','color','count');
 g(2,1).set_title('stat_bin2d(''geom'',''image'')');
 
+g(2,2)=gramm('x',x,'y',y,'color',test);
+g(2,2).geom_point('alpha',0.05);
+g(2,2).set_point_options('base_size',6);
+g(2,2).set_title('geom_point(''alpha'',0.05)');
+
 g.set_title('Visualization of 2D densities');
 
 figure('Position',[100 100 800 600])
 g.draw();
-%We change the point size in the first graph a posteriori
-set([g(1,1).results.geom_point_handle],'MarkerSize',2);
 
 %% Methods for visualizing repeated trajectories
 % gramm supports 2D inputs for X and Y data (as 2D array or cell of
@@ -777,9 +781,10 @@ g(1,1)=gramm('x',cars_table.Horsepower,'y',cars_table.Acceleration,...
     'label',cars_table.ModelShort,'color',cars_table.Manufacturer,'subset',strcmp(cars_table.Origin_Region,'Japan'));
 %geom_label() takes the same arguments as text().
 %'BackgroundColor','EdgeColor' and 'Color' can be set to 'auto'
-g.geom_label('VerticalAlignment','middle','HorizontalAlignment','center','BackgroundColor','auto','Color','w');
+g.geom_label('VerticalAlignment','middle','HorizontalAlignment','center','BackgroundColor','auto','Color','k');
 g.set_limit_extra([0.2 0.2],[0.1 0.1]);
 g.set_names('color','Manufacturer','x','Horsepower','y','Acceleration');
+g.set_color_options('map','brewer2')
 g.draw();
 
 

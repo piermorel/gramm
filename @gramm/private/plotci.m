@@ -40,12 +40,19 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
             xci=[tmp_xci1;tmp_xci2];
             [x,y]=to_polar(obj,x,y);
             
-            %Use vertices and faces for patch object construction (has the
-            %advantage of properly handling NaN datapoints
-            vertices=nan(length(x)*2,2);
-            vertices(1:2:end,:)=[tmp_xci1' tmp_yci1'];
-            vertices(2:2:end,:)=[tmp_xci2' tmp_yci2'];
-            faces=[(1:length(x)*2-2)' (1:length(x)*2-2)'+1 (1:length(x)*2-2)'+2];
+            
+            if 1 %any(isnan(tmp_yci1)) || any(isnan(tmp_yci2))
+                %Use vertices and faces for patch object construction with triangles (has the
+                %advantage of properly handling NaN datapoints
+                vertices=nan(length(x)*2,2);
+                vertices(1:2:end,:)=[tmp_xci1' tmp_yci1'];
+                vertices(2:2:end,:)=[tmp_xci2' tmp_yci2'];
+                faces=[(1:length(x)*2-2)' (1:length(x)*2-2)'+1 (1:length(x)*2-2)'+2];
+            else
+                %We create patches as one single polygon (looks much better when exporting with plot2svg)
+                vertices=horzcat([tmp_xci1' ; flipud(tmp_xci2')],[tmp_yci1' ; flipud(tmp_yci2')]);
+                faces=1:2*length(x);
+            end
             
             %Line plot  doesn't display anything if we have NaNs around, so find
             %out which points are surrounded by NaNs and might not be

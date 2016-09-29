@@ -660,7 +660,9 @@ if obj.with_legend
         tmp_N=100;
         
         gradient_height=4;
-        imagesc([1 1.5],[obj.legend_y-legend_y_step*gradient_height obj.legend_y],linspace(min(min(obj.plot_lim.minc)),max(max(obj.plot_lim.maxc)),tmp_N)','Parent',obj.legend_axe_handle);
+        %imagesc coordinates correspond to centers of patches, hence the
+        %x=[1.5 1.5] to get [1 2] borders
+        imagesc([1.5 1.5],[obj.legend_y-legend_y_step*gradient_height obj.legend_y],linspace(min(min(obj.plot_lim.minc)),max(max(obj.plot_lim.maxc)),tmp_N)','Parent',obj.legend_axe_handle);
         
         line([1.8  2;1.8  2;1.8  2 ; 1 1.2 ; 1 1.2 ; 1 1.2]',...
             [obj.legend_y-legend_y_step*gradient_height/4 obj.legend_y-legend_y_step*gradient_height/4 ;...

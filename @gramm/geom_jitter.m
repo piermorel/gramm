@@ -8,8 +8,9 @@ function obj=geom_jitter(obj,varargin)
 
 p=inputParser;
 my_addParameter(p,'width',0.2);
-my_addParameter(p,'height',0.2);
+my_addParameter(p,'height',0);
 my_addParameter(p,'dodge',0);
+my_addParameter(p,'alpha',1);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dd)my_jitter(obj,dd,p.Results)});
@@ -43,6 +44,8 @@ end
 
 %hndl=my_point(obj,draw_data);
 hndl=line(draw_data.x,draw_data.y,'LineStyle','none','Marker',draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',draw_data.color);
+
+set_alpha(hndl,1,params.alpha);
 
 obj.results.geom_jitter_handle{obj.result_ind,1}=hndl;
 end

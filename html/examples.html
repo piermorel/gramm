@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>gramm examples</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-09-19"><meta name="DC.source" content="examples.m"><style type="text/css">
+      --><title>gramm examples</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-09-29"><meta name="DC.source" content="examples.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -288,6 +288,7 @@ g(1,1).set_names(<span class="string">'color'</span>,<span class="string">'grp'<
 g(1,1).geom_point();
 <span class="comment">%'patch_opts' can be used to provide more options to the patch() internal</span>
 <span class="comment">%call</span>
+g(1,1).set_point_options(<span class="string">'base_size'</span>,2)
 g(1,1).stat_ellipse(<span class="string">'type'</span>,<span class="string">'95percentile'</span>,<span class="string">'geom'</span>,<span class="string">'area'</span>,<span class="string">'patch_opts'</span>,{<span class="string">'FaceAlpha'</span>,0.1,<span class="string">'LineWidth'</span>,2});
 g(1,1).set_title(<span class="string">'stat_ellispe()'</span>);
 
@@ -315,12 +316,25 @@ g(2,1).stat_bin2d(<span class="string">'nbins'</span>,[20 20],<span class="strin
 g(2,1).set_names(<span class="string">'column'</span>,<span class="string">'grp'</span>,<span class="string">'color'</span>,<span class="string">'count'</span>);
 g(2,1).set_title(<span class="string">'stat_bin2d(''geom'',''image'')'</span>);
 
+g(2,2)=gramm(<span class="string">'x'</span>,x,<span class="string">'y'</span>,y,<span class="string">'color'</span>,test);
+g(2,2).geom_point(<span class="string">'alpha'</span>,0.05);
+g(2,2).set_point_options(<span class="string">'base_size'</span>,6);
+g(2,2).set_title(<span class="string">'geom_point(''alpha'',0.05)'</span>);
+
 g.set_title(<span class="string">'Visualization of 2D densities'</span>);
 
 figure(<span class="string">'Position'</span>,[100 100 800 600])
 g.draw();
-<span class="comment">%We change the point size in the first graph a posteriori</span>
-set([g(1,1).results.geom_point_handle],<span class="string">'MarkerSize'</span>,2);
+</pre><pre class="codeoutput">
+ans = 
+
+  gramm with properties:
+
+     legend_axe_handle: []
+      title_axe_handle: []
+    facet_axes_handles: []
+               results: [1x1 struct]
+
 </pre><img vspace="5" hspace="5" src="examples_07.png" alt=""> <h2>Methods for visualizing repeated trajectories<a name="15"></a></h2><p>gramm supports 2D inputs for X and Y data (as 2D array or cell of arrays), which is particularly useful for representing repeated trajectories. Here for example we generate 50 trajectories, each of length 40. The grouping data is then given per trajectory and not per data point. Here the color grouping variable is thus given as a 1x50 cellstr.</p><pre class="codeinput"><span class="comment">%We generate 50 trajectories of length 40, with 3 groups</span>
 N=50;
 nx=40;
@@ -688,9 +702,10 @@ g(1,1)=gramm(<span class="string">'x'</span>,cars_table.Horsepower,<span class="
     <span class="string">'label'</span>,cars_table.ModelShort,<span class="string">'color'</span>,cars_table.Manufacturer,<span class="string">'subset'</span>,strcmp(cars_table.Origin_Region,<span class="string">'Japan'</span>));
 <span class="comment">%geom_label() takes the same arguments as text().</span>
 <span class="comment">%'BackgroundColor','EdgeColor' and 'Color' can be set to 'auto'</span>
-g.geom_label(<span class="string">'VerticalAlignment'</span>,<span class="string">'middle'</span>,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'BackgroundColor'</span>,<span class="string">'auto'</span>,<span class="string">'Color'</span>,<span class="string">'w'</span>);
+g.geom_label(<span class="string">'VerticalAlignment'</span>,<span class="string">'middle'</span>,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'BackgroundColor'</span>,<span class="string">'auto'</span>,<span class="string">'Color'</span>,<span class="string">'k'</span>);
 g.set_limit_extra([0.2 0.2],[0.1 0.1]);
 g.set_names(<span class="string">'color'</span>,<span class="string">'Manufacturer'</span>,<span class="string">'x'</span>,<span class="string">'Horsepower'</span>,<span class="string">'y'</span>,<span class="string">'Acceleration'</span>);
+g.set_color_options(<span class="string">'map'</span>,<span class="string">'brewer2'</span>)
 g.draw();
 
 
@@ -704,6 +719,16 @@ g.geom_bar(<span class="string">'dodge'</span>,0.7,<span class="string">'width'<
 g.geom_label(<span class="string">'color'</span>,<span class="string">'k'</span>,<span class="string">'dodge'</span>,0.7,<span class="string">'VerticalAlignment'</span>,<span class="string">'bottom'</span>,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>);
 g.set_names(<span class="string">'color'</span>,<span class="string">'Origin'</span>,<span class="string">'x'</span>,<span class="string">'Year'</span>,<span class="string">'y'</span>,<span class="string">'Number of models'</span>);
 g.draw();
+</pre><pre class="codeoutput">
+ans = 
+
+  gramm with properties:
+
+     legend_axe_handle: []
+      title_axe_handle: []
+    facet_axes_handles: []
+               results: [1x1 struct]
+
 </pre><img vspace="5" hspace="5" src="examples_18.png" alt=""> <img vspace="5" hspace="5" src="examples_19.png" alt=""> <h2>Superimposing gramm plots with update(): Using different groups for different stat_ and geom_ methods<a name="26"></a></h2><p>By using the method update() after a first draw() call of a gramm object, it is possible to add or remove grouping variables. Here in a first gramm plot we make a glm fit of cars Acceleration as a function of Horsepower, across all countries and number of cylinders, and change the color options so that the fit appears in grey</p><pre class="codeinput">clear <span class="string">g10</span>
 figure(<span class="string">'Position'</span>,[100 100 600 450]);
 g10=gramm(<span class="string">'x'</span>,cars.Horsepower,<span class="string">'y'</span>,cars.Acceleration,<span class="string">'subset'</span>,cars.Cylinders~=3 &amp; cars.Cylinders~=5);
@@ -1313,6 +1338,7 @@ g(1,1).set_names('color','grp');
 g(1,1).geom_point();
 %'patch_opts' can be used to provide more options to the patch() internal
 %call
+g(1,1).set_point_options('base_size',2)
 g(1,1).stat_ellipse('type','95percentile','geom','area','patch_opts',{'FaceAlpha',0.1,'LineWidth',2});
 g(1,1).set_title('stat_ellispe()');
 
@@ -1340,12 +1366,15 @@ g(2,1).stat_bin2d('nbins',[20 20],'geom','image');
 g(2,1).set_names('column','grp','color','count');
 g(2,1).set_title('stat_bin2d(''geom'',''image'')');
 
+g(2,2)=gramm('x',x,'y',y,'color',test);
+g(2,2).geom_point('alpha',0.05);
+g(2,2).set_point_options('base_size',6);
+g(2,2).set_title('geom_point(''alpha'',0.05)');
+
 g.set_title('Visualization of 2D densities');
 
 figure('Position',[100 100 800 600])
 g.draw();
-%We change the point size in the first graph a posteriori
-set([g(1,1).results.geom_point_handle],'MarkerSize',2);
 
 %% Methods for visualizing repeated trajectories
 % gramm supports 2D inputs for X and Y data (as 2D array or cell of
@@ -1809,9 +1838,10 @@ g(1,1)=gramm('x',cars_table.Horsepower,'y',cars_table.Acceleration,...
     'label',cars_table.ModelShort,'color',cars_table.Manufacturer,'subset',strcmp(cars_table.Origin_Region,'Japan'));
 %geom_label() takes the same arguments as text().
 %'BackgroundColor','EdgeColor' and 'Color' can be set to 'auto'
-g.geom_label('VerticalAlignment','middle','HorizontalAlignment','center','BackgroundColor','auto','Color','w');
+g.geom_label('VerticalAlignment','middle','HorizontalAlignment','center','BackgroundColor','auto','Color','k');
 g.set_limit_extra([0.2 0.2],[0.1 0.1]);
 g.set_names('color','Manufacturer','x','Horsepower','y','Acceleration');
+g.set_color_options('map','brewer2')
 g.draw();
 
 

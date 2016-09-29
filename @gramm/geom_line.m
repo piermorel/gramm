@@ -6,6 +6,7 @@ function obj=geom_line(obj,varargin)
 
 p=inputParser;
 my_addParameter(p,'dodge',0);
+my_addParameter(p,'alpha',1);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dd)my_line(obj,dd,p.Results)});
@@ -55,5 +56,9 @@ else
         hndl=line(combnan(draw_data.x),combnan(draw_data.y),combnan(draw_data.z),'LineStyle',draw_data.line_style,'lineWidth',draw_data.line_size,'Color',draw_data.color);
     end
 end
+
+
+set_alpha(hndl,params.alpha,1);
+
 obj.results.geom_line_handle{obj.result_ind,1}=hndl;
 end
