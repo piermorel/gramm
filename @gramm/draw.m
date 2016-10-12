@@ -1002,6 +1002,7 @@ for ind_row=1:length(uni_row) %Loop over rows
                 has_ytick=obj.force_ticks || ... %Plot has xticks if forced
                     (obj.wrap_ncols==-1 && ind_column==1) || ... %Or if we're in facet grid mode and are in the first column
                     (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)==1) || ... %Or if we are in facet wrap mode and are in the first "column"
+                    (obj.wrap_ncols==1 && ind_column==1) || ... %Special case for single facet in facet_wrap mode
                     strcmp(temp_yscale,'per_plot'); %Or if we were in a per-plot scale mode
             end
             
