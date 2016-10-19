@@ -277,7 +277,12 @@ if ~strcmp(params.interp,'none')
     end
     
     if strcmp(params.interp,'polar')
-        uni_x=0:pi/50:2*pi-pi/50;
+        %Perform checks on uni_x
+        dx=unique_no_nan(diff([uni_x ; uni_x(1)+2*pi])); %compute step
+        if any(abs(diff(dx))>1e-12) %handle numerical precision problems (exact version would be length(dx)>1 )
+            disp('ERROR: ''polar'' interpolation requires periodic sampling, displayed results are incorrect');
+        end
+        uni_x=uni_x(1):pi/50:uni_x(1)+99*pi/50;
         ymean=interpft(ymean,100);
         tmp_yci1=interpft(yci(1,:),100);
         tmp_yci2=interpft(yci(2,:),100);
