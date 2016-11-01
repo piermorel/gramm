@@ -19,7 +19,7 @@ my_addParameter(p,'geom','area');
 my_addParameter(p,'npoints',100);
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_smooth(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_smooth(dobj,dd,p.Results)});
 obj.results.stat_smooth={};
 end
 
@@ -69,37 +69,43 @@ else
     combx(idnan)=[];
     comby(idnan)=[];
     
-    %Slow
-    %newy=smooth(combx,comby,0.2,'loess');
-    %plot(combx,newy,'Color',c,'LineWidth',2)
-    
-    %Super fast spline smoothing !!
-    if length(combx)>3
-        [newy,newx, yfit] = turbotrend(combx, comby, params.lambda, params.npoints);
+    if 1
+        %Super fast spline smoothing !!
+        if length(combx)>3
+            [newy,newx, yfit] = turbotrend(combx, comby, params.lambda, params.npoints);
+        else
+            newx=NaN;
+            newy=NaN;
+        end
+        if length(combx)>10
+            booty=bootstrp(obj.stat_options.nboot,@(ax,ay)turbotrend(ax,ay,params.lambda,params.npoints),combx,comby);
+            yci=prctile(booty,100*[obj.stat_options.alpha/2 1-obj.stat_options.alpha/2]);
+        else
+            yci=nan(2,length(newx));
+        end
     else
-        newx=NaN;
-        newy=NaN;
-    end
-    
-    if length(combx)>10
-        booty=bootstrp(obj.stat_options.nboot,@(ax,ay)turbotrend(ax,ay,params.lambda,params.npoints),combx,comby);
-        yci=prctile(booty,100*[obj.stat_options.alpha/2 1-obj.stat_options.alpha/2]);
-    else
-        yci=nan(2,length(newx));
+        fops=fitoptions('smoothingspline');
+        fops.SmoothingParam=params.lambda;
+        newx=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.npoints);
+        if length(combx)>3
+            ft=fit(combx,comby,'smoothingspline',fops);
+            newy=feval(ft,newx);
+        else
+            newx=NaN;
+            newy=NaN;
+        end
+        if length(combx)>10
+            booty=bootci(obj.stat_options.nboot,@(ax,ay)feval(fit(ax,ay,'smoothingspline',fops),newx),combx,comby);
+            yci=prctile(booty,100*[obj.stat_options.alpha/2 1-obj.stat_options.alpha/2]);
+       else
+            yci=nan(2,length(newx));
+        end
     end
     
     
     obj.results.stat_smooth{obj.result_ind,1}.x=newx;
     obj.results.stat_smooth{obj.result_ind,1}.y=newy;
     obj.results.stat_smooth{obj.result_ind,1}.yci=yci;
-    
-    %For some reason bootci is super slow there ! %zci=bootci(50,@(ax,ay)turbotrend(ax,ay,10,100),combx,comby);
-    
-    %Spline smoothing
-    %             newx=linspace(min(combx),max(combx),100);
-    %             curve = fit(combx,comby,'smoothingspline','SmoothingParam',smoothparam); %'smoothingspline','SmoothingParam',0.1
-    %             newy=feval(curve,newx);
-    %             yci=bootci(200,@(ax,ay)feval(fit(ax,ay,'smoothingspline','SmoothingParam',smoothparam),newx),combx,comby);
     
     
     %hndl=plotci(newx,newy,yci,c,lt,sz,geom);

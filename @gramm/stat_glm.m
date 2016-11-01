@@ -24,7 +24,7 @@ my_addParameter(p,'fullrange',false);
 my_addParameter(p,'disp_fit',false);
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_glm(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_glm(dobj,dd,p.Results)});
 obj.results.stat_glm={};
 end
 

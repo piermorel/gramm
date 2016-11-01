@@ -86,6 +86,33 @@ end
 
 obj.aes=validate_aes(obj.aes);
 
+%Handle multiple figures
+uni_fig=unique_and_sort(obj.aes.fig,1);
+if ~iscell(uni_fig)
+    uni_fig=num2cell(uni_fig);
+end
+if numel(uni_fig)>1 %if multiple figures
+    fig_pos=get(obj.parent,'Position'); %We'll create them wirth the same location and size as the current figure
+    %Convert to a cell
+    obj={obj};
+    for ind_fig=2:numel(uni_fig) %Make shallow copy of original object
+        obj{ind_fig}=copy(obj{1});
+    end
+    for ind_fig=1:numel(uni_fig) %Loop over objects
+        %disp(['Plotting Fig ' num2str(ind_fig)])
+        %We plot what we want by setlecting within aes on the basis of fig
+        obj{ind_fig}.aes=select_aes(obj{ind_fig}.aes,multi_sel(obj{ind_fig}.aes.fig,uni_fig{ind_fig}));
+        %Set title
+         obj{ind_fig}.set_title([obj{ind_fig}.aes_names.fig ': ' num2str(uni_fig{ind_fig})]);
+         %Create figure and do the drawing
+        if ind_fig>1
+            obj{ind_fig}.parent=figure('Position',fig_pos);
+        end
+        obj{ind_fig}.draw();
+    end
+    return;
+end
+
 %Apply subset
 temp_aes=select_aes(obj.aes,obj.aes.subset);
 
@@ -222,9 +249,11 @@ cmap=get_colormap(length(uni_color),length(uni_lightness),obj.color_options);
 n_groups=length(uni_row)*length(uni_column)*length(uni_marker)...
     *length(uni_size)*length(uni_linestyle)*length(uni_color)*length(unique(temp_aes.group));
 aes_names_fieldnames=fieldnames(obj.aes_names);
-for fn=5:length(aes_names_fieldnames) %Starting from 4 we ignore x y z and label
-    obj.results.(aes_names_fieldnames{fn})=cell(n_groups,1);
-    obj.results.(['ind_' aes_names_fieldnames{fn}])=cell(n_groups,1);
+for fn=1:length(aes_names_fieldnames) 
+    if ~any(strcmp(aes_names_fieldnames{fn},{'x' 'y' 'z' 'ymin' 'ymax' 'label' 'fig'})) %We ignore x y z and label
+        obj.results.(aes_names_fieldnames{fn})=cell(n_groups,1);
+        obj.results.(['ind_' aes_names_fieldnames{fn}])=cell(n_groups,1);
+    end
 end
 obj.results.draw_data=cell(n_groups,1);
 
@@ -468,7 +497,7 @@ for ind_row=1:length(uni_row)
                                     for geom_ind=1:length(obj.geom)
                                         
                                         %Call each geom !
-                                        obj.geom{geom_ind}(draw_data);
+                                        obj.geom{geom_ind}(obj,draw_data);
                                         
                                     end
                                     obj.firstrun(obj.current_row,obj.current_column)=0;

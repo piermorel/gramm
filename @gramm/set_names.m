@@ -10,6 +10,7 @@ p=inputParser;
 my_addParameter(p,'x','x');
 my_addParameter(p,'y','y');
 my_addParameter(p,'z','z');
+my_addParameter(p,'label','Label');
 my_addParameter(p,'color','Color');
 my_addParameter(p,'linestyle','Line Style');
 my_addParameter(p,'size','Size');
@@ -18,6 +19,7 @@ my_addParameter(p,'row','Row');
 my_addParameter(p,'column','Column');
 my_addParameter(p,'lightness','Lightness');
 my_addParameter(p,'group','Group');
+my_addParameter(p,'fig','Figure');
 
 parse(p,varargin{:});
 

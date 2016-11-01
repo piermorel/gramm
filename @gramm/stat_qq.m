@@ -11,7 +11,7 @@ p=inputParser;
 my_addParameter(p,'distribution',makedist('Normal',0,1));
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_qq(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_qq(dobj,dd,p.Results)});
 obj.results.stat_qq={};
 end
 

@@ -9,7 +9,7 @@ my_addParameter(p,'alpha',1);
 parse(p,varargin{:});
 
 
-obj.geom=vertcat(obj.geom,{@(dd)my_point(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_point(dobj,dd,p.Results)});
 obj.results.geom_point_handle={};
 end
 

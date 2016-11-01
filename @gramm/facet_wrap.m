@@ -4,7 +4,7 @@ function obj=facet_wrap(obj,col,varargin)
 % Example syntax (default arguments): gramm_object.facet_wrap(variable,'ncols',4,'scale','fixed')
 % This is similar to faced_grid except that only one variable
 % is given, and subplots are arranged by column, with a wrap
-% around to the tnext row after 'ncols' columns. There is no
+% around to the next row after 'ncols' columns. There is no
 % 'space' option.
 
 p=inputParser;

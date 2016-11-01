@@ -27,7 +27,7 @@ my_addParameter(p,'geom','area');
 my_addParameter(p,'fullrange',false);
 my_addParameter(p,'disp_fit',false);
 parse(p,varargin{:});
-obj.geom=vertcat(obj.geom,{@(dd)my_fit(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_fit(dobj,dd,p.Results)});
 obj.results.stat_fit={};
 end
 

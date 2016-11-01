@@ -19,7 +19,7 @@ my_addParameter(p,'npoints',100)
 my_addParameter(p,'extra_x',0.1)
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_density(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_density(dobj,dd,p.Results)});
 obj.results.stat_density={};
 end
 

@@ -67,6 +67,7 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 - Multiple ways of separating groups of data: 
   - Colors, lightness, point markers, line styles, and point/line size (<code>'color'</code>, <code>'lightness'</code>, <code>'marker'</code>, <code>'linestyle'</code>,  <code>'size'</code>)
   - Subplots by row and/or columns, or wrapping columns (<code>facet_grid()</code> and <code>facet_wrap()</code>). Multiple options for consistent axis limits across facets, rows, columns, etc. (using <code>'scale'</code> and <code>'space'</code>)
+  - Separate figures (<code>fig()</code>)
 
 - Multiple ways of directly plotting the data: 
   - scatter plots (<code>geom_point()</code>) and jittered scatter plot (<code>geom_jitter()</code>)

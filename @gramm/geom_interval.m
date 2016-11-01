@@ -6,7 +6,7 @@ my_addParameter(p,'dodge',[]);
 my_addParameter(p,'width',[]);
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_ci(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_ci(dobj,dd,p.Results)});
 obj.results.geom_interval={};
 
 end

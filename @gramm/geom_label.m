@@ -19,7 +19,7 @@ if mod(numel(varargin),2)~=0
 end
 
 
-obj.geom=vertcat(obj.geom,{@(dd)my_label(obj,dd,varargin)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_label(dobj,dd,varargin)});
 obj.results.geom_label_handle={};
 
 end

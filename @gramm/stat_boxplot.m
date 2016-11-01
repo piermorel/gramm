@@ -21,7 +21,7 @@ my_addParameter(p,'dodge',0.7);
 my_addParameter(p,'notch',false);
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_boxplot(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_boxplot(dobj,dd,p.Results)});
 obj.results.stat_boxplot={};
 
 end

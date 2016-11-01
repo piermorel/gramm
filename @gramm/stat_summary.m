@@ -105,7 +105,7 @@ my_addParameter(p,'interp_in',-1);
 my_addParameter(p,'bin_in',-1);
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_summary(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_summary(dobj,dd,p.Results)});
 obj.results.stat_summary={};
 end
 

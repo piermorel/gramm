@@ -7,7 +7,7 @@ p=inputParser;
 my_addParameter(p,'geom','line');
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_raster(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_raster(dobj,dd,p.Results)});
 obj.results.geom_raster_handle={};
 end
 

@@ -29,7 +29,7 @@ my_addParameter(p,'dodge',0.7)
 my_addParameter(p,'half',false)
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_violin(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_violin(dobj,dd,p.Results)});
 obj.results.stat_violin={};
 
 end

@@ -14,18 +14,7 @@ classdef gramm < matlab.mixin.Copyable
         aes %aesthetics (contains data set by the constructor and used to generate the plots)
         
         %Name of the aesthetics and column/rows for the legend
-        aes_names=struct('x','x',...
-            'y','y',...
-            'z','z',...
-            'label','label',...
-            'color','Color',...
-            'marker','Marker',...
-            'linestyle','Line Style',...
-            'size','Size',...
-            'row','Row',...
-            'column','Column',...
-            'lightness','Lightness',...
-            'group','Group') 
+        aes_names
         
         axe_properties={} %Contains the axes properties to be set to each subplot
         
@@ -176,6 +165,7 @@ classdef gramm < matlab.mixin.Copyable
             
             %Run the set_xx_options() functions without arguments to set
             %defaults
+            set_names(obj);
             set_order_options(obj);
             set_color_options(obj);
             set_text_options(obj);
@@ -188,6 +178,8 @@ classdef gramm < matlab.mixin.Copyable
         
         obj=facet_grid(obj,row,col,varargin)
         obj=facet_wrap(obj,col,varargin)
+        
+        obj=fig(obj,fig)
         
         obj=redraw(obj,spacing,display)
         obj=draw(obj,do_redraw)
@@ -241,9 +233,7 @@ classdef gramm < matlab.mixin.Copyable
         end
         
     end
-    
 
-    
 end
 
 

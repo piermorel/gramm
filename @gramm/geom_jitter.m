@@ -13,7 +13,7 @@ my_addParameter(p,'dodge',0);
 my_addParameter(p,'alpha',1);
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_jitter(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_jitter(dobj,dd,p.Results)});
 obj.results.geom_jitter_handle={};
 end
 

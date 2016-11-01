@@ -20,6 +20,7 @@ my_addParameter(p,'marker',[]);
 my_addParameter(p,'subset',[]);
 my_addParameter(p,'row',[]);
 my_addParameter(p,'column',[]);
+my_addParameter(p,'fig',[]);
 
 parse(p,varargin{:});
 

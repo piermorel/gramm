@@ -9,7 +9,7 @@ my_addParameter(p,'dodge',0);
 my_addParameter(p,'alpha',1);
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_line(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_line(dobj,dd,p.Results)});
 obj.results.geom_line_handle={};
 end
 

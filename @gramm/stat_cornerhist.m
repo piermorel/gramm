@@ -21,7 +21,7 @@ if strcmp('geom','stacked_bar')
     error('stacked_bar unsupported in stat_cornerhist()')
 end
     
-obj.geom=vertcat(obj.geom,{@(dd)my_cornerhist(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_cornerhist(dobj,dd,p.Results)});
 obj.results.stat_cornerhist={};
 end
 

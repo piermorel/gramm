@@ -19,7 +19,7 @@ my_addParameter(p,'geom','area'); %line
 my_addParameter(p,'patch_opts',{});
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_ellipse(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_ellipse(dobj,dd,p.Results)});
 obj.results.stat_ellipse={};
 end
 

@@ -24,7 +24,7 @@ my_addParameter(p,'width',[]);
 my_addParameter(p,'dodge',[]);
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_bin(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_bin(dobj,dd,p.Results)});
 obj.results.stat_bin={};
 end
 

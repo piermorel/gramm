@@ -13,7 +13,7 @@ my_addParameter(p,'stacked',false);
 my_addParameter(p,'dodge',0);
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dd)my_bar(obj,dd,p.Results)});
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_bar(dobj,dd,p.Results)});
 obj.results.geom_bar_handle={};
 end
 
