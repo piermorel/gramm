@@ -29,9 +29,9 @@ end
 switch p.Results.file_type
 	case 'pdf'
 		% Cropping paper to fit the figure
-		h_fig.Units = 'centimeters';
-		h_fig.PaperPosition = [0,0,p.Results.width, p.Results.height]; 
-		h_fig.PaperSize = [p.Results.width, p.Results.height];
+		set(h_fig, 'Units', 'centimeters');
+		set(h_fig, 'PaperPosition', [0,0,p.Results.width, p.Results.height]); 
+		set(h_fig, 'PaperSize', [p.Results.width, p.Results.height]);
 
 		print(h_fig, file_path, '-dpdf', '-painters');
 	
