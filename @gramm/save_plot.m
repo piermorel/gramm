@@ -19,35 +19,49 @@ my_addParameter(p,'target_dir', '');
 my_addParameter(p,'file_type', 'pdf');
 my_addParameter(p,'width', width_fig);
 my_addParameter(p,'height', height_fig);
+my_addParameter(p,'units', 'inches');
 parse(p,varargin{:});
 
 % Turn off warning due to a custom defined figure resize function called on save
 warning('off', 'MATLAB:print:CustomResizeFcnInPrint');
 
-% building full filename
+% Building variables from (default) input data
 file_path = fullfile(p.Results.target_dir, p.Results.file_name);
+width = p.Results.width;
+height = p.Results.height;
 
 % Verify that parent object is a figure object
 if ~isa(h_fig, 'matlab.ui.Figure')
 	error('Parent gramm object is not a matlab.ui.Figure.')
 end
 
+% In case of units are in centimeters rescaling defaults
+if strcmp(p.Results.units, 'centimeters')
+	if ~any(strcmp(p.UsingDefaults, 'width'))
+		width = p.Results.width / 2.54;
+	end
+
+	if ~any(strcmp(p.UsingDefaults, 'height'))
+		height = p.Results.height / 2.54;
+	end
+end
+
 % Cropping paper to fit the figure
 set(h_fig, 'Units', 'inches');
 set(h_fig, 'PaperUnits', 'inches');
-set(h_fig, 'PaperSize', [p.Results.width, p.Results.height]);
-set(h_fig, 'PaperPosition', [0, 0, p.Results.width, p.Results.height]);
+set(h_fig, 'PaperSize', [width, height]);
+set(h_fig, 'PaperPosition', [0, 0, width, height]);
 
 % Save figure in preferred file type
 switch p.Results.file_type
 	case 'pdf'
-		print(h_fig, file_path, '-dpdf', '-painters', '-r300');
+		print(h_fig, file_path, '-dpdf', '-painters');
 	
 	case 'eps'
 		print(h_fig, file_path, '-depsc', '-opengl', '-r300');
 
 	case 'svg'
-		print(h_fig, file_path, '-dsvg', '-painters', '-r300');
+		print(h_fig, file_path, '-dsvg', '-painters');
 		
 	case 'png'
 		print(h_fig, file_path, '-dpng', '-opengl', '-r300');
