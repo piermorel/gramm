@@ -87,7 +87,10 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                             'MarkerSize',draw_data.point_size,...
                             'MarkerFaceColor',draw_data.color);
                         
-                        hndl.lines_handle=plot(xci',yci','-','Color',draw_data.color+([1 1 1]-draw_data.color)*0.5);
+                        %hndl.lines_handle=plot(xci',yci','-','Color',draw_data.color+([1 1 1]-draw_data.color)*0.5);
+                        hndl.lines_handle=plot(xci',yci','LineStyle',draw_data.line_style,...
+                            'Color',draw_data.color,...
+                            'LineWidth',draw_data.line_size/3);
                         
                     case 'area'
                         %Transparent area (This does what we want but prevents a correct eps

@@ -76,6 +76,25 @@ if ischar(opts.map)
                 230	171	2
                 166	118	29
                 102	102	102]/255;
+        case 'pm'
+            cmap= [255 205 1
+                0 108 184
+                155 153 59
+                109 197 224 %3bis
+                187 75 156
+                246 143 75
+                119 198 150
+                245 159 179
+                197 164 205
+                206 201 43
+                224 176 59
+                144 96 48
+                0 139 90
+                135 211 223 %Close to 3bis
+                101 44 144
+                169 15 50
+                236 124 174
+                149 191 50]/255;
         otherwise
             % Generate colormap using low-level function found on https://code.google.com/p/p-and-a/
             if nl==1

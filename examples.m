@@ -218,7 +218,7 @@ g(2,3).geom_point();
 g(2,3).stat_cornerhist('edges',-4:0.2:4,'aspect',0.6);
 g(2,3).geom_abline();
 g(2,3).set_title('stat_cornerhist()');
-g(2,3).set_names('x','z(Horsepower)','y','-z(Acceleration)')
+g(2,3).set_names('x','z(Horsepower)','y','-z(Acceleration)');
 
 g.set_title('Visualization of Y~X relationship with both X and Y as continuous variables');
 figure('Position',[100 100 800 550]);
@@ -325,7 +325,7 @@ g.draw();
 % trajectories. Here for example we generate 50 trajectories, each of
 % length 40. The grouping data is then given per trajectory and not per
 % data point. Here the color grouping variable is thus given as a 1x50
-% cellstr.
+    % cellstr.
 
 %We generate 50 trajectories of length 40, with 3 groups
 N=50;
@@ -349,6 +349,7 @@ g(1,2).geom_line();
 g(1,2).set_title('geom_line()');
 
 g(2,1).stat_smooth();
+g(2,1).set_point_options('base_size',3);
 g(2,1).set_title('stat_smooth()');
 
 
@@ -784,7 +785,7 @@ g(1,1)=gramm('x',cars_table.Horsepower,'y',cars_table.Acceleration,...
 g.geom_label('VerticalAlignment','middle','HorizontalAlignment','center','BackgroundColor','auto','Color','k');
 g.set_limit_extra([0.2 0.2],[0.1 0.1]);
 g.set_names('color','Manufacturer','x','Horsepower','y','Acceleration');
-g.set_color_options('map','brewer2')
+g.set_color_options('map','brewer2');
 g.draw();
 
 
@@ -798,6 +799,48 @@ g.geom_bar('dodge',0.7,'width',0.6);
 g.geom_label('color','k','dodge',0.7,'VerticalAlignment','bottom','HorizontalAlignment','center');
 g.set_names('color','Origin','x','Year','y','Number of models');
 g.draw();
+
+%% Smooth continuous data with stat_smooth()
+
+x=0:0.02:9.8;
+y=sin(exp(x-5)/12);
+y(x<2)=y(x<2)+randn(1,sum(x<2))/2;
+y(x>=2)=y(x>=2)+randn(1,sum(x>=2))/8;
+
+figure('Position',[100 100 800 500]);
+clear g
+g=gramm('x',x,'y',y);
+g.geom_funline('fun',@(x)sin(exp(x-5)/12));
+g.geom_vline('xintercept',2)
+g.axe_property('XLim',[0 9.8]);
+g(1,2)=copy(g(1));
+g(1,3)=copy(g(1));
+g(2,1)=copy(g(1));
+g(2,2)=copy(g(1));
+g(2,3)=copy(g(1));
+g(1,1).geom_point();
+g(1,1).set_title('Raw input');
+
+g(1,2).stat_smooth();
+g(1,2).set_title('stat_smooth() default');
+
+g(1,3).stat_smooth('lambda','auto','npoints',500);
+g(1,3).set_title('default with ''lambda'',''auto''');
+
+g(2,1).stat_smooth('method','sgolay','lambda',[31 3]);
+g(2,1).set_title('''method'',''sgolay''');
+
+g(2,2).stat_smooth('method','moving','lambda',31);
+g(2,2).set_title('''method'',''moving''');
+
+
+g(2,3).stat_smooth('method','loess','lambda',0.1);
+g(2,3).set_title('''method'',''loess''');
+
+g.set_title('Options for stat_smooth()');
+g.draw();
+
+
 
 %% Superimposing gramm plots with update(): Using different groups for different stat_ and geom_ methods
 % By using the method update() after a first draw() call of a gramm object,
@@ -992,12 +1035,13 @@ g(2,1).set_title('x in input order');
 %directly providing the desired order.
 g(2,2)=gramm('x',x,'y',y,'lightness',x);
 g(2,2).stat_summary('geom','bar','dodge',0);
-g(2,2).set_order_options('x',0,'lightness',{'XS' 'S' 'M' 'L' 'XL' 'XXL'});
+%g(2,2).set_order_options('x',0,'lightness',{'XS' 'S' 'M' 'L' 'XL' 'XXL'});
 g(2,2).set_title({'x in input order' 'lightness in custom order'});
-%Examples below properly fail
-%g(2,2).set_order_options('x',0,'lightness',{'XXL' 'XL' 'L' 'M' 'S' 'B'})
+%Examples below do not fail but might truncate data 
+g(2,2).set_order_options('x',0,'lightness',{'XXL' 'XL' 'L' 'B' 'M' 'S' 'XS' }); %additional category is ignored
+%g(2,2).set_order_options('x',0,'lightness',{'XXL' 'XL' 'L' 'M' 'XS'}) %Missing category is truncated
+%Examples below fail due to type problems
 %g(2,2).set_order_options('x',0,'lightness',{'XXL' 'XL' 'L' 'M' 'S' 1})
-%g(2,2).set_order_options('x',0,'lightness',{'XXL' 'XL' 'L' 'M' 'S'})
 
 %It is also possible to set up a custom order (indices within the sorted
 %input), here used to inverse lightness map. This way is a bit more
@@ -1007,7 +1051,7 @@ g(2,3)=gramm('x',x,'y',y,'lightness',x);
 g(2,3).stat_summary('geom','bar','dodge',0);
 g(2,3).set_order_options('x',0,'lightness',[6 4 1 2 3 5]);
 g(2,3).set_title({'x in input order' 'lightness in custom order'});
-%Exampel below properly fail
+%Example below properly fail
 %g(2,3).set_order_options('x',0,'lightness',[6 4 1 2 3 3])
 
 g.set_names('x','US size','y','EU size','lightness','US size');

@@ -16,17 +16,18 @@ function obj=set_order_options(obj,varargin)
 % 'color',-1    Orders variable in descending order
 % (alphabetical or numerical)
 %
+% 'color',[10 34 20 5], or 'color',{'S' 'M' 'L' 'XL'} Allows to directly describe
+% the desired order by giving an array or a cell array.
+% The values in the array should correspond to the unique
+% values of the variable used for grouping. This case is robust to
+% missing unique values (data can be truncated when categories are missing)
+%
 % 'color',[4 3 5 1 2]   Uses a custom order provided with
-%indices provided as an array. The indices are indices
-%corresponding to unique values in sorted in ascending order
+% indices provided as an array. The indices are indices
+% corresponding to unique values in sorted in ascending order
 % The array length must be equal to the number of unique
 % values for the variable and must contain all the integers
 % between 1 and the number of unique values.
-%
-% 'color',[10 34 20 5], or 'color',{'S' 'M' 'L' 'XL'} Allows to directly describe
-% the desired order by givin an array or a cell array.
-% The values in the array should correspond to the unique
-% values of the variable used for grouping.
 
 p=inputParser;
 my_addParameter(p,'x',1);

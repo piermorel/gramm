@@ -4,6 +4,13 @@ function obj=update(obj,varargin)
 % Update takes the same arguments as the constructor gramm(). Only provide
 % the data you want to replace.
 
+%For iscategorical()
+persistent old_matlab
+if isempty(old_matlab)
+    old_matlab=verLessThan('matlab','8.2');
+end
+
+
 if numel(obj)>1
     error('update() can only be called on a single gramm object');
 end
@@ -29,6 +36,9 @@ else
     end
 end
 
+if ~isempty(new_aes.x) && (iscellstr(new_aes.x) || (~old_matlab && iscategorical(new_aes.x)))
+    warning('Updated X is categorical: plot will be valid only if the new X has exactly the same categories as the previous X (no more, no less)');
+end
 
 
 %Initialize geoms

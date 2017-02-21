@@ -1137,7 +1137,7 @@ for ind_row=1:length(uni_row) %Loop over rows
                             %hline
                             plot(xl,[obj.abline.yintercept(line_ind) obj.abline.yintercept(line_ind)],obj.abline.style{line_ind},'Parent',ca);
                         else
-                            temp_x=linspace(xl(1),xl(2),100);
+                            temp_x=linspace(xl(1),xl(2),500);
                             plot(temp_x,obj.abline.fun{line_ind}(temp_x),obj.abline.style{line_ind},'Parent',ca);
                         end
                     end
@@ -1196,6 +1196,9 @@ function out=allmax(in)
 %Return maximum of an array or of a cell of arrays
 if iscell(in)
     out=max(cellfun(@max,in(~cellfun(@isempty,in)))); %Cellfun on non empty cells
+    if isempty(out)
+        out=NaN;
+    end
 else
     out=max(in);
 end
@@ -1205,6 +1208,9 @@ function out=allmin(in)
 %Return minimum of an array or of a cell of arrays
 if iscell(in)
     out=min(cellfun(@min,in(~cellfun(@isempty,in))));  %Cellfun on non empty cells
+    if isempty(out)
+        out=NaN;
+    end
 else
     out=min(in);
 end

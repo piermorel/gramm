@@ -1,6 +1,13 @@
 function res=combnan(dat)
 %Combines data in single array with NaNs separating original arrays if originally in cells
-if iscell(dat) 
+if iscell(dat)
+    %Remove empty cells
+    dat = dat(~cellfun(@isempty,dat));
+    if isempty(dat)
+        res = NaN;
+        return;
+    end
+    
     if ~iscellstr(dat)
         if size(dat{1},1)==1
             dat=cellfun(@(c)[c NaN],dat,'uniformOutput',false);

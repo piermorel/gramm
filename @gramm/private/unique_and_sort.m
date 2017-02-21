@@ -38,38 +38,29 @@ if numel(sortopts)>1 %Custom ordering
     y=sort(y);%Sort first
     
     sortopts=shiftdim(sortopts);
-    %Do checks on sorting array
-    if length(sortopts)==length(y) %Correct length ?
-        if isnumeric(sortopts) && sum(sort(sortopts)==(1:length(y))')==numel(y) %If we have integers and all numbers from 1 to N are there we probably have indices
-            disp('ordering given as indices')
-            y=y(sortopts);
-        else
-            %warning('Improper order array indices: using default order');
-            %return
-            disp('ordering given as values')
-            try
-                [present,order]=ismember(sortopts,y);
-                if sum(present)==length(y)
-                    y=y(order);
-                else
-                    warning('Improper ordering values')
-                end
-            catch
-                warning('Improper ordering values')
-            end
-
-        end
+    %If correct lengt and we have integers and all numbers from 1 to N are there we probably have indices
+    if length(sortopts)==length(y) && isnumeric(sortopts) && sum(sort(sortopts)==(1:length(y))')==numel(y)
+        disp('ordering given as indices')
+        y=y(sortopts);
     else
-        warning('Improper order array size: using default order');
-        return;
+        disp('ordering given as values')
+        try
+            %This should work whatever the lengths of either array
+            [present,order]=ismember(sortopts,y);
+            y=y(order(present));
+        catch
+            warning('Improper ordering values')
+        end
     end
+    
 else %Other orderings
     switch sortopts
         case 1
-            y=sort(y);
+            y=sort(y); %default
         case -1
             y=flipud(sort(y)); %We use flipud instead of the 'descend' option because somehow it isn't supported for cellstr.
     end
+    %case 0 does nothing (keep original ordering)
 end
 
 end

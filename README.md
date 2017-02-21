@@ -51,8 +51,16 @@ g.draw()
 
 ### Installation
 Add the folder containing the @gramm class folder to your path
-### Compatibility
+
+### Figure export 
+
+To export figures in a vector-based format, use the SVG option rather than EPS. SVG can be read by all vector editing softwares and causes less problems than EPS both for export and import (transparency support, text without cuts, etc.). In some cases, an even better svg file can be obtained using the [plot2svg](https://www.mathworks.com/matlabcentral/fileexchange/7401) package for export rather than Matlab's built-in feature. The <code>'alpha'</code> option for <code>geom_line()</code> and <code>geom_point()</code> is not supported by Matlab for exports.
+
+### Compatibility ###
+
+
 Tested under Matlab 2014b+ versions. With pre-2014b versions, gramm forces <code>'painters'</code>, renderer to avoid some graphic bugs, which deactivates transparencies (use non-transparent geoms, for example <code>stat_summary('geom','lines')</code>). The statistics toolbox is required for some methods: <code>stat_glm()</code>, some <code>stat_summary()</code> methods, <code>stat_density()</code>. The curve fitting toolbox is required for <code>stat_fit()</code/>.
+	
 #### Documentation
 Look at the [gramm cheat sheet](https://github.com/piermorel/gramm/blob/master/gramm%20cheat%20sheet.pdf)
 
@@ -166,23 +174,23 @@ Using <code>stat_bin()</code> it is possible to construct peristimulus time hist
 ### Colormap customization ###
 With <code>set_color_options()</code>
 
-<img src="/html/examples_24.png" alt="Colormaps example" width="800">
+<img src="/html/examples_25.png" alt="Colormaps example" width="800">
 
 ### Continuous colors
 
-<img src="/html/examples_25.png" alt="Continuous colors" width="800">
+<img src="/html/examples_26.png" alt="Continuous colors" width="800">
 
 ###Reordering of categorical variables
 With <code>set_order_options()</code>
 
-<img src="/html/examples_26.png" alt="Reordering" width="800">
+<img src="/html/examples_27.png" alt="Reordering" width="800">
 
 
 ### Superimposition of gramm objects on the same axes
 By making calling the update() method after a first draw, the same axes can be reused for another gramm plot.
 Here this allows to plot the whole dataset in the background of each facet.
 
-<img src="/html/examples_22.png" alt="gramm superimposition" width="800">
+<img src="/html/examples_23.png" alt="gramm superimposition" width="800">
 
 ## Acknowledgements
 gramm was inspired and/or used code from:
