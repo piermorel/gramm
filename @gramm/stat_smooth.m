@@ -301,7 +301,11 @@ cv=NaN;
 end
 
 function [newx,newy,cv] = wrap_eilers(x,y,n,lambda)
+if nargout>2
     [newy, newx, cv]=scatsm(x,y,lambda,2,n);
+else
+    [newy, newx]=scatsm(x,y,lambda,2,n);
+end
 end
 
 % Algorithm modified from:
