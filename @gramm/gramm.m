@@ -2,6 +2,12 @@ classdef gramm < matlab.mixin.Copyable
     %GRAMM Implementation of the features from R's ggplot2 (GRAMmar of graphics plots) in Matlab
     % Pierre Morel 2015
     
+    % Edit 2017-Mar-07
+    % Added support for geom_polygon
+    % author: Nicholas J. Schaub, Ph.D.
+    % email: nicholas.j.schaub@gmail.com
+    
+    
     properties (Access=public)
         legend_axe_handle %Store the handle of the legend axis
         title_axe_handle %Store the handle of the title axis
@@ -69,6 +75,16 @@ classdef gramm < matlab.mixin.Copyable
             'style',[],...
             'fun',[])
         
+        %structure containing polygon parameters - Nicholas Schaub 2017-Mar-07
+        polygon = struct('on',false,...
+                         'x',{[]},...
+                         'y',{[]},...
+                         'color_options',{[]},...
+                         'style',[],...
+                         'color',{[]},...
+                         'fill',{[]},...
+                         'alpha',[]);
+        
         datetick_params={} %cell containng datetick parameters
         current_row %What is the currently drawn row of the subplot
         current_column %What is the currently drawn column of the subplot
@@ -77,7 +93,7 @@ classdef gramm < matlab.mixin.Copyable
         
         continuous_color_colormap=[];
         
-        color_options %Structure holding color options
+        color_options  %Structure holding color options
         
         order_options %Structure holding order options
         
@@ -206,6 +222,7 @@ classdef gramm < matlab.mixin.Copyable
         obj=geom_count(obj,varargin)
         obj=geom_jitter(obj,varargin)
         obj=geom_abline(obj,varargin)
+        obj=geom_polygon(obj,varargin)
         obj=geom_vline(obj,varargin)
         obj=geom_hline(obj,varargin)
         obj=geom_funline(obj,varargin)
