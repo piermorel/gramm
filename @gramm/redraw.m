@@ -329,29 +329,49 @@ else
     %Available space for axes
     avl_x=max_available_x-min_facet_x-spacing_w*(nc-1);
     avl_y=max_available_y-min_facet_y-spacing_h*(nr-1);
+    facet_width=ones(1,nc)*avl_x/nc;
+    facet_height=ones(1,nr)*avl_y/nr;
     if (strcmp(obj.facet_space,'free') || strcmp(obj.facet_space,'free_x')) && ~strcmp(obj.facet_scale,'independent')
-        %Get axes limits for spacing computation
-        xdataw=zeros(1,nc);
-        for c=1:nc
-            tmp_xlim=get(obj.facet_axes_handles(1,c),'XLim');
-            xdataw(c)=tmp_xlim(2)-tmp_xlim(1);
+        if obj.is_flipped %If flipped, x axes are along rows
+            %Get axes limits for spacing computation
+            xdataw=zeros(1,nr);
+            for r=1:nr
+                tmp_xlim=get(obj.facet_axes_handles(r,1),'XLim');
+                xdataw(r)=tmp_xlim(2)-tmp_xlim(1);
+            end
+            %Compute axis width depending on data width
+            x_scale_ratio=xdataw/sum(xdataw);
+            facet_height=avl_y*x_scale_ratio;
+        else %If non flipped, x axes are along columns
+            %Get axes limits for spacing computation
+            xdataw=zeros(1,nc);
+            for c=1:nc
+                tmp_xlim=get(obj.facet_axes_handles(1,c),'XLim');
+                xdataw(c)=tmp_xlim(2)-tmp_xlim(1);
+            end
+            %Compute axis width depending on data width
+            x_scale_ratio=xdataw/sum(xdataw);
+            facet_width=avl_x*x_scale_ratio;
         end
-        %Compute axis width depending on data width
-        x_scale_ratio=xdataw/sum(xdataw);
-        facet_width=avl_x*x_scale_ratio;
-    else
-        facet_width=ones(1,nc)*avl_x/nc;
     end
     if (strcmp(obj.facet_space,'free') || strcmp(obj.facet_space,'free_y')) && ~strcmp(obj.facet_scale,'independent')
-        ydataw=zeros(1,nr);
-        for r=1:nr
-            tmp_ylim=get(obj.facet_axes_handles(r,1),'YLim');
-            ydataw(r)=tmp_ylim(2)-tmp_ylim(1);
+        if obj.is_flipped %If flipped, y axes are along columns
+            ydataw=zeros(1,nc);
+            for c=1:nc
+                tmp_ylim=get(obj.facet_axes_handles(1,c),'YLim');
+                ydataw(c)=tmp_ylim(2)-tmp_ylim(1);
+            end
+            y_scale_ratio=ydataw/sum(ydataw);
+            facet_width=avl_x*y_scale_ratio;
+        else %If not flipped, y axes are along rows
+            ydataw=zeros(1,nr);
+            for r=1:nr
+                tmp_ylim=get(obj.facet_axes_handles(r,1),'YLim');
+                ydataw(r)=tmp_ylim(2)-tmp_ylim(1);
+            end
+            y_scale_ratio=ydataw/sum(ydataw);
+            facet_height=avl_y*y_scale_ratio;
         end
-        y_scale_ratio=ydataw/sum(ydataw);
-        facet_height=avl_y*y_scale_ratio;
-    else
-        facet_height=ones(1,nr)*avl_y/nr;
     end
     
     %safeguards

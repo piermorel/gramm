@@ -101,7 +101,9 @@ g.draw();
 %
 % Here we also use an array of gramm objects in order to have multiple gramm plots
 % on the same figure. The gramm objects use the same data, so  we copy them after construction using the
-% |copy()| method
+% |copy()| method. We also duplicate the whole array of gramm objects
+% before drawing in order to demonstrate the use of coord_flip() to
+% exchange X and Y axes
 
 clear g
 
@@ -135,8 +137,15 @@ g(2,2).set_title('stat_violin()');
 g.set_names('x','Origin','y','Horsepower','color','# Cyl');
 g.set_title('Visualization of Y~X relationships with X as categorical variable');
 
+gf = copy(g);
+
 figure('Position',[100 100 800 550]);
 g.draw();
+
+gf.set_title('Visualization of Y~X relationships with X as categorical variable and flipped coordinates');
+figure('Position',[100 100 800 550]);
+gf.coord_flip();
+gf.draw();
 
 
 %% Methods for visualizing X densities
@@ -471,11 +480,17 @@ g(3,2).set_title('facet_grid(''scale'',''independent'')');
 g.set_color_options('lightness_range',[40 80],'chroma_range',[80 40]);
 g.set_names('column','','row','');
 %g.axe_property('color',[0.9 0.9 0.9],'XGrid','on','YGrid','on','GridColor',[1 1 1],'GridAlpha',0.8,'TickLength',[0 0],'XColor',[0.3 0.3 0.3],'YColor',[0.3 0.3 0.3])
-g.set_title('facet_grid() options');
+
+gf = copy(g);
 
 figure('Position',[100 100 800 800]);
+g.set_title('facet_grid() options');
 g.draw();
 
+figure('Position',[100 100 800 800]);
+gf.set_title({'facet_grid() options' 'work together with coord_flip()'});
+gf.coord_flip();
+gf.draw();
 
 
 
