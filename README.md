@@ -59,7 +59,7 @@ To export figures in a vector-based format, use the SVG option rather than EPS. 
 ### Compatibility ###
 
 
-Tested under Matlab 2014b+ versions. With pre-2014b versions, gramm forces <code>'painters'</code>, renderer to avoid some graphic bugs, which deactivates transparencies (use non-transparent geoms, for example <code>stat_summary('geom','lines')</code>). The statistics toolbox is required for some methods: <code>stat_glm()</code>, some <code>stat_summary()</code> methods, <code>stat_density()</code>. The curve fitting toolbox is required for <code>stat_fit()</code/>.
+Tested under Matlab 2014b+ versions. With pre-2014b versions, gramm forces <code>'painters'</code>, renderer to avoid some graphic bugs, which deactivates transparencies (use non-transparent geoms, for example <code>stat_summary('geom','lines')</code>). The statistics toolbox is required for some methods: <code>stat_glm()</code>, some <code>stat_summary()</code> methods, <code>stat_density()</code>. The curve fitting toolbox is required for <code>stat_fit()</code>.
 	
 #### Documentation
 Look at the [gramm cheat sheet](https://github.com/piermorel/gramm/blob/master/gramm%20cheat%20sheet.pdf)
@@ -136,7 +136,7 @@ All the mappings presented below can be combined.
 
 <img src="/html/examples_03.png" alt="" width="800">
 
-All visualizations can be flipped using <code>coord_flip()<code>
+All visualizations can be flipped using <code>coord_flip()</code>
 	
 <img src="/html/examples_04.png" alt="" width="800">
 
