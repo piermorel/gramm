@@ -103,7 +103,7 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 - Subplots are created without too much empty space in between (and resize properly !)
 - Polar coordinates (<code>set_polar()</code>)
 - Color data can also be displayed as a continous variable, not as a grouping factor (<code>set_continuous_color()</code>)
-- X and Y axes can be flipped to get horizontal statistics visualizations (<code>coord_flip()<code>)
+- X and Y axes can be flipped to get horizontal statistics visualizations (<code>coord_flip()</code>)
 - Color generation can be customized in the LCH color space, or can use alternative colormaps (Matlab's default, [colorbrewer2](http://colorbrewer2.org)), or provide a custom colormap (<code>set_color_options()</code>)
 - Marker shapes and sizes can be customized with <code>set_point_options()</code>
 - Line styles and width can be customized with <code>set_line_options()</code>
