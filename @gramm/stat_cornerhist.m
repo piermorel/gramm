@@ -31,6 +31,9 @@ function hndl=my_cornerhist(obj,draw_data,params)
 %If this is the first call ever, we initialize an array of handles for the
 %child axes
 if isempty(obj.results.stat_cornerhist)
+    if obj.is_flipped
+        warning('coord_flip() breaks stat_cornerhist()');
+    end
     if obj.handle_graphics
          obj.extra.cornerhist_child_axe=gobjects(size(obj.facet_axes_handles,1),size(obj.facet_axes_handles,2));
     else
@@ -95,8 +98,14 @@ end
 obj.results.stat_cornerhist{obj.result_ind,1}=my_histplot(obj,draw_data,params,false);
 obj.results.stat_cornerhist{obj.result_ind,1}.child_axe_handle=obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column);
 
+%Compute limits of child axis
+temp_xlim=[min(params.edges) max(params.edges)];
+if temp_xlim(1)==temp_xlim(2) %Correct limit values when nothing is plotted
+    temp_xlim=[temp_xlim(1)-0.01 temp_xlim(2)+0.01];
+end
+
 %Set limits of child axis
-set(obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column),'XLim',[min(params.edges) max(params.edges)]);
+set(obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column),'XLim',temp_xlim);
 
 if new_child
     %Change limits of parent axis

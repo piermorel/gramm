@@ -103,12 +103,13 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 - Subplots are created without too much empty space in between (and resize properly !)
 - Polar coordinates (<code>set_polar()</code>)
 - Color data can also be displayed as a continous variable, not as a grouping factor (<code>set_continuous_color()</code>)
-- Possibility to customize color generations in the LCH color space, chose alternative colormaps (Matlab's default, [colorbrewer2](http://colorbrewer2.org)), or provide a custom colormap (<code>set_color_options()</code>)
-- Possibility to customize marker shapes and sizes with <code>set_point_options()</code>
-- Possibility to customize line styles and width with <code>set_line_options()</code>
-- Possibility to customize text elements with <code>set_text_options()</code>
-- Possibility to adjust parameters of <code>stat_</code> functions (alpha level, N bootstraps) with <code>set_stat_options()</code>
-- Possibility to change ordering of grouping variables between native, sorted, or custom (<code>set_order_options</code>)
+- X and Y axes can be flipped to get horizontal statistics visualizations (<code>coord_flip()<code>)
+- Color generation can be customized in the LCH color space, or can use alternative colormaps (Matlab's default, [colorbrewer2](http://colorbrewer2.org)), or provide a custom colormap (<code>set_color_options()</code>)
+- Marker shapes and sizes can be customized with <code>set_point_options()</code>
+- Line styles and width can be customized with <code>set_line_options()</code>
+- Text elements aspect can be customized with <code>set_text_options()</code>
+- Parameters of <code>stat_</code> functions (alpha level, N bootstraps) can be modified with <code>set_stat_options()</code>
+- The ordering of grouping variables can be changed between native, sorted, or custom (<code>set_order_options</code>)
 - Confidence intervals as shaded areas, error bars or thin lines
 - Set the width and dodging of graphical elements in <code>geom_</code> functions, <code>stat_bin()</code>, <code>stat_summary()</code>, and <code>stat_boxplot()</code>, with <code>'width'</code> and <code>'dodge'</code> arguments
 - The member structure <code>results</code> contains the results of computations from <code>stat_</code> plots as well as graphic handles for all plotted elements
@@ -135,62 +136,66 @@ All the mappings presented below can be combined.
 
 <img src="/html/examples_03.png" alt="" width="800">
 
+All visualizations can be flipped using <code>coord_flip()<code>
+	
+<img src="/html/examples_04.png" alt="" width="800">
+
 ###Distribution of a continuous variable
 Note that we by using Origin as a faceting variable, we visualize exactly the same quantities as in the figure above.
 
-<img src="/html/examples_04.png" alt="" width="800">
+<img src="/html/examples_05.png" alt="" width="800">
 
 ###Relationship between two continous variables
 
-<img src="/html/examples_05.png" alt="" width="800">
+<img src="/html/examples_06.png" alt="" width="800">
 
 ### 2D densities
 
-<img src="/html/examples_07.png" alt="2D density" width="800">
+<img src="/html/examples_08.png" alt="2D density" width="800">
 
 ###Repeated trajectories
 Here the variable given as Y is a Nx1 cell of 1D arrays containing the individual trajectories. Color is given as a Nx1 cellstr.
 
-<img src="/html/examples_08.png" alt="" width="800">
+<img src="/html/examples_09.png" alt="" width="800">
 
 ###Spike trains
 This example highlights the potential use of gramm for neuroscientific data. Here X is a Nx1 cell containing spike trains collected over N trials. Color is given as a Nx1 cellstr.
 Using <code>stat_bin()</code> it is possible to construct peristimulus time histograms.
 
-<img src="/html/examples_09.png" alt="" width="800">
+<img src="/html/examples_10.png" alt="" width="800">
 
 ### stat_bin() options ###
 
-<img src="/html/examples_11.png" alt="Histograms example" width="800">
+<img src="/html/examples_13.png" alt="Histograms example" width="800">
 
 ### facet_grid() options ###
 
-<img src="/html/examples_10.png" alt="facet_grid() options" width="800">
+<img src="/html/examples_11.png" alt="facet_grid() options" width="800">
 
 ### Text labels with geom_label() ###
 
-<img src="/html/examples_19.png" alt="geom_label()" width="800">
+<img src="/html/examples_21.png" alt="geom_label()" width="800">
 
 ### Colormap customization ###
 With <code>set_color_options()</code>
 
-<img src="/html/examples_25.png" alt="Colormaps example" width="800">
+<img src="/html/examples_27.png" alt="Colormaps example" width="800">
 
 ### Continuous colors
 
-<img src="/html/examples_26.png" alt="Continuous colors" width="800">
+<img src="/html/examples_28.png" alt="Continuous colors" width="800">
 
 ###Reordering of categorical variables
 With <code>set_order_options()</code>
 
-<img src="/html/examples_27.png" alt="Reordering" width="800">
+<img src="/html/examples_29.png" alt="Reordering" width="800">
 
 
 ### Superimposition of gramm objects on the same axes
 By making calling the update() method after a first draw, the same axes can be reused for another gramm plot.
 Here this allows to plot the whole dataset in the background of each facet.
 
-<img src="/html/examples_23.png" alt="gramm superimposition" width="800">
+<img src="/html/examples_25.png" alt="gramm superimposition" width="800">
 
 ## Acknowledgements
 gramm was inspired and/or used code from:

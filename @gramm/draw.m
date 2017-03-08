@@ -878,7 +878,7 @@ for ind_row=1:length(uni_row) %Loop over rows
             %Set axes limits logic according to facet_scale and
             %wrapping. Also set up corresponding axis linking, using tip from
             % http://undocumentedmatlab.com/blog/using-linkaxes-vs-linkprop#more-5928
-            if (obj.wrap_ncols>0)
+            if (obj.wrap_ncols>0) %in the facet_wrap case
                 switch obj.facet_scale
                     case 'fixed'
                         temp_xscale='global';
@@ -887,7 +887,7 @@ for ind_row=1:length(uni_row) %Loop over rows
                         
                         %Both XLims and YLims are linked across
                         %all plots
-                        if ind_row==1 && ind_column==1
+                        if ind_row==1 && ind_column==1 %We only do the linking once for all plots facets
                             obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
                             obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
                             obj.extra.ZLim_listeners=linkprop(obj.facet_axes_handles(:),'ZLim');
@@ -897,7 +897,7 @@ for ind_row=1:length(uni_row) %Loop over rows
                         temp_yscale='global';
                         temp_zscale='global';
                         
-                        %XLims are linked across all plots
+                        %YLims are linked across all plots
                         if ind_row==1 && ind_column==1
                             obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
                         end
@@ -906,7 +906,7 @@ for ind_row=1:length(uni_row) %Loop over rows
                         temp_yscale='per_plot';
                         temp_zscale='global';
                         
-                        %YLims are linked across all plots
+                        %XLims are linked across all plots
                         if ind_row==1 && ind_column==1
                             obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
                         end
@@ -919,7 +919,7 @@ for ind_row=1:length(uni_row) %Loop over rows
                         temp_yscale='per_plot';
                         temp_zscale='per_plot';
                 end
-            else
+            else %In the facet_grid case
                 switch obj.facet_scale
                     case 'fixed'
                         temp_xscale='global';
@@ -939,12 +939,20 @@ for ind_row=1:length(uni_row) %Loop over rows
                         temp_zscale='global';
                         
                         %YLims are linked across all plots,
-                        %XLims are linked within columns
                         if ind_row==1 && ind_column==1
                             obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
                         end
-                        if ind_row==1
-                            obj.extra.XLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(:,ind_column),'XLim');
+                        if obj.is_flipped
+                            %For flipped axes, we link XLims within rows
+                            if ind_column==1
+                                obj.extra.XLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'XLim');
+                            end
+                        else
+                            %XLims are linked within columns for
+                            %non-flipped axes
+                            if ind_row==1
+                                obj.extra.XLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(:,ind_column),'XLim');
+                            end
                         end
                     case 'free_y'
                         temp_xscale='global';
@@ -952,24 +960,45 @@ for ind_row=1:length(uni_row) %Loop over rows
                         temp_zscale='global';
                         
                         %XLims are linked across all plots,
-                        %YLims are linked within rows
                         if ind_row==1 && ind_column==1
                             obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
                         end
-                        if ind_column==1
-                            obj.extra.YLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'YLim');
+                        if obj.is_flipped
+                            %For flipped axes, we link YLims within columns
+                            if ind_row==1
+                                obj.extra.YLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(ind_column,:),'YLim');
+                            end
+                        else
+                            %YLims are linked within rows for non-flipped
+                            %axes
+                            if ind_column==1
+                                obj.extra.YLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'YLim');
+                            end
                         end
                     case 'free'
                         temp_xscale='per_column';
                         temp_yscale='per_row';
                         
-                        %XLims are linked within columns
-                        %YLims are linked within rows
-                        if ind_row==1
-                            obj.extra.XLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(:,ind_column),'XLim');
-                        end
-                        if ind_column==1
-                            obj.extra.YLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'YLim');
+                        if obj.is_flipped
+                            %Flipped case
+                            %XLims are linked within rows
+                            %YLims are linked within columns
+                            if ind_row==1
+                                obj.extra.YLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(:,ind_column),'YLim');
+                            end
+                            if ind_column==1
+                                obj.extra.XLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'XLim');
+                            end
+                        else
+                            %Non flipped case
+                            %XLims are linked within columns
+                            %YLims are linked within rows
+                            if ind_row==1
+                                obj.extra.XLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(:,ind_column),'XLim');
+                            end
+                            if ind_column==1
+                                obj.extra.YLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'YLim');
+                            end
                         end
                     case 'independent'
                         temp_xscale='per_plot';
@@ -986,7 +1015,11 @@ for ind_row=1:length(uni_row) %Loop over rows
                 case 'global'
                     temp_xlim=[min(min(obj.plot_lim.minx(:,:))) max(max(obj.plot_lim.maxx(:,:)))];
                 case 'per_column'
-                    temp_xlim=[min(obj.plot_lim.minx(:,ind_column)) max(obj.plot_lim.maxx(:,ind_column))];
+                    if obj.is_flipped
+                        temp_xlim=[min(obj.plot_lim.minx(ind_row,:)) max(obj.plot_lim.maxx(ind_row,:))];
+                    else
+                        temp_xlim=[min(obj.plot_lim.minx(:,ind_column)) max(obj.plot_lim.maxx(:,ind_column))];
+                    end
                 case 'per_plot'
                     temp_xlim=[obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)];
             end
@@ -998,13 +1031,26 @@ for ind_row=1:length(uni_row) %Loop over rows
                 case 'global'
                     temp_ylim=[min(min(obj.plot_lim.miny(:,:))) max(max(obj.plot_lim.maxy(:,:)))];
                 case 'per_row'
-                    temp_ylim=[min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))];
+                    if obj.is_flipped
+                        temp_ylim=[min(obj.plot_lim.miny(:,ind_column)) max(obj.plot_lim.maxy(:,ind_column))];
+                    else
+                        temp_ylim=[min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))];
+                    end
                 case 'per_plot'
                     temp_ylim=[obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)];
             end
             if sum(isnan(temp_ylim))==0
                 set(ca,'YLim',temp_ylim+[-diff(temp_ylim)*obj.ylim_extra(1) diff(temp_ylim)*obj.ylim_extra(2)]);
             end
+            
+            %Is the axis at interesting locations for ticks/labels?
+            on_left=(obj.wrap_ncols==-1 && ind_column==1) || ... %Or if we're in facet grid mode and are in the first column
+                    (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)==1) || ... %Or if we are in facet wrap mode and are in the first "column"
+                    (obj.wrap_ncols==1 && ind_column==1); %Special case for single facet in facet_wrap mode
+                    
+            on_bottom=(obj.wrap_ncols==-1 && ind_row==length(uni_row)) || ... %Or if we're in facet grid mode and we are in the last row
+                    (obj.wrap_ncols>0 && (length(uni_column)-ind_column)<obj.wrap_ncols); %Or if we are in facet wrap mode and we are in the last facet on the "column"
+                    
             
             if ~isempty(temp_aes.z) %Only do the Z limit stuff if we have z data
                 
@@ -1024,15 +1070,19 @@ for ind_row=1:length(uni_row) %Loop over rows
                 
                 %Set up logic of plot ticks presence
                 has_xtick=obj.force_ticks || ... %Plot has xticks if forced
-                    (obj.wrap_ncols==-1 && ind_row==length(uni_row)) || ... %Or if we're in facet grid mode and we are in the last row
-                    (obj.wrap_ncols>0 && (length(uni_column)-ind_column)<obj.wrap_ncols) ||... %Or if we are in facet wrap mode and we are in the last facet on the "column"
+                    on_bottom ||...
                     strcmp(temp_xscale,'per_plot'); %Or if we were in a per-plot scale mode
                 
                 has_ytick=obj.force_ticks || ... %Plot has xticks if forced
-                    (obj.wrap_ncols==-1 && ind_column==1) || ... %Or if we're in facet grid mode and are in the first column
-                    (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)==1) || ... %Or if we are in facet wrap mode and are in the first "column"
-                    (obj.wrap_ncols==1 && ind_column==1) || ... %Special case for single facet in facet_wrap mode
+                    on_left || ... %Special case for single facet in facet_wrap mode
                     strcmp(temp_yscale,'per_plot'); %Or if we were in a per-plot scale mode
+            end
+            
+            %flip tick presence if coordinates are flipped
+            if obj.is_flipped
+                tmp=has_ytick;
+                has_ytick=has_xtick;
+                has_xtick=tmp;
             end
             
             %Remove ticks if necessary
@@ -1059,13 +1109,15 @@ for ind_row=1:length(uni_row) %Loop over rows
             end
             
             %Add axes labels on right and botttom graphs only
-            if ind_column==1 || (obj.wrap_ncols>0 && mod(ind_column,obj.wrap_ncols)==1) || ~isempty(temp_aes.z)
+            if (~obj.is_flipped && on_left) || ~isempty(temp_aes.z) || ...
+               (obj.is_flipped && on_bottom)   %If coord flipped do it the other way around (y like x)
                 ylabel(ca,obj.aes_names.y,...
                     'Interpreter','none',...
                     'FontName',obj.text_options.font,...
                     'FontSize',obj.text_options.base_size*obj.text_options.label_scaling); %,'Units','normalized','position',[-0.2 0.5 1]
             end
-            if (ind_row==length(uni_row) && obj.wrap_ncols<=0) || (obj.wrap_ncols>0 && (length(uni_column)-ind_column)<obj.wrap_ncols) || ~isempty(temp_aes.z)
+            if (~obj.is_flipped && on_bottom) || ~isempty(temp_aes.z) ||...
+                (obj.is_flipped && on_left) %If coord flipped do it the other way around (x like y)
                 xlabel(ca,obj.aes_names.x,...
                     'Interpreter','none',...
                     'FontName',obj.text_options.font,...
