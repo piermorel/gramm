@@ -21,6 +21,7 @@ my_addParameter(p,'facet_scaling', 1.2 );
 my_addParameter(p,'title_scaling', 1.4 );
 my_addParameter(p,'big_title_scaling', 1.4 );
 my_addParameter(p,'font','Helvetica');
+my_addParameter(p,'interpreter','none');
 parse(p,varargin{:});
 
 for obj_ind=1:numel(obj)
