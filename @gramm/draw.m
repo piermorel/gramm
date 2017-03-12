@@ -373,12 +373,9 @@ for ind_row=1:length(uni_row)
         
         hold on
         
-                        %Draw polygons before plotting data, so data isn't covered up
+        %Draw polygons before plotting data, so data isn't covered up
         if obj.polygon.on
-
-            ca = gca;
-            draw_polygons(obj,ca);
-            
+            draw_polygons(obj);
         end
    
         

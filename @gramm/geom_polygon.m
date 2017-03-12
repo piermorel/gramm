@@ -37,6 +37,9 @@ function obj=geom_polygon(obj,varargin)
 % created: 2017-Mar-03
 % author: Nicholas J. Schaub, Ph.D.
 % email: nicholas.j.schaub@gmail.com
+%
+% modified: 2017-Mar-12, Pierre Morel
+
 
 %% Parse inputs and set defaults
 
@@ -44,11 +47,10 @@ p=inputParser;
 
 my_addParameter(p,'x',{});
 my_addParameter(p,'y',{});
-my_addParameter(p,'map',obj.color_options.map);
-my_addParameter(p,'alpha',0.2);
-my_addParameter(p,'color',[]);
-my_addParameter(p,'fill',[]);
-my_addParameter(p,'style',[]);
+my_addParameter(p,'alpha',0.1);
+my_addParameter(p,'color',[0 0 0]);
+my_addParameter(p,'line_color',[0 0 0]);
+my_addParameter(p,'line_style',{'none'});
 parse(p,varargin{:});
 
 %% Check inputs
@@ -72,23 +74,34 @@ if ~isequal(cellfun(@length,p.Results.x),cellfun(@length,p.Results.y))
     return
 end
 
+temp_results=p.Results;
+
+N=length(temp_results.x);
+
+%Expand the inputs for which single entries were given to the number of
+%polygons
+to_adjust={'alpha','color','line_color','line_style'};
+for k=1:length(to_adjust)
+    if size(temp_results.(to_adjust{k}),1)==1
+        temp_results.(to_adjust{k}) = repmat(temp_results.(to_adjust{k}),N,1);
+    end
+end
+    
 %% Add polygon settings to object, used when draw() is called
+to_fill=fieldnames(temp_results);
 for obj_ind=1:numel(obj)
+    
     obj(obj_ind).polygon.on = true;
-    obj(obj_ind).polygon.x{end+1}=p.Results.x;
-    obj(obj_ind).polygon.y{end+1}=p.Results.y;
-    obj(obj_ind).polygon.color_options{end+1}.map=p.Results.map;
-    obj(obj_ind).polygon.alpha(end+1)=p.Results.alpha(1);
-    obj(obj_ind).polygon.color{end+1}=p.Results.color;
-    obj(obj_ind).polygon.fill{end+1}=p.Results.fill;
-    obj(obj_ind).polygon.style{end+1}=p.Results.style;
+    for k=1:length(to_fill)
+        obj(obj_ind).polygon.(to_fill{k})=vertcat(obj(obj_ind).polygon.(to_fill{k}),temp_results.(to_fill{k})) ;
+    end
+
     
     % Include these options to be compatible with get_colormap
     %   * could be changed to give increased control of polygon coloring
-    obj(obj_ind).polygon.color_options{end}.lightness_range=obj.color_options.lightness_range;
-    obj(obj_ind).polygon.color_options{end}.chroma_range=obj.color_options.chroma_range;
-    obj(obj_ind).polygon.color_options{end}.hue_range=obj.color_options.hue_range;
-    obj(obj_ind).polygon.color_options{end}.lightness=obj.color_options.lightness;
-    obj(obj_ind).polygon.color_options{end}.chroma=obj.color_options.chroma;
+    color_opts=fieldnames(obj(obj_ind).color_options);
+    for k=1:length(color_opts)
+        obj(obj_ind).polygon.color_options.(color_opts{k})= obj(obj_ind).color_options.(color_opts{k});
+    end
 end
 end

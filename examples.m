@@ -657,6 +657,48 @@ g.draw();
 plot(g.results.stat_cornerhist(2).child_axe_handle,[-2 -2],[0 50],'k:','LineWidth',2)
 %set([g.results.stat_cornerhist.child_axe_handle],'XTick',[])
 
+%% Test polygon
+load example_data
+
+cmap = [1   0.5 0.5; % red (bad gas mileage)
+        1   1   0.5; % yellow (reasonable gas mileage)
+        0.5 1   0.5]; % green (good gas mileage)
+
+figure;
+clear g
+g=gramm('x',cars.Model_Year,'y',cars.MPG,'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
+g.facet_grid([],cars.Origin_Region);
+g.geom_point();
+g.stat_glm();
+g.set_names('column','Origin','x','Year of production','y','Fuel economy (MPG)','color','# Cylinders');
+g.set_title('Fuel economy of new cars between 1970 and 1982');
+
+g(1,2)=copy(g(1));
+g(2,1)=copy(g(1));
+g(2,2)=copy(g(1));
+
+    
+%X and Y must be column cells
+%X, Y and style must be cells
+
+%Easier defaults, just grey polygons
+g(1,1).geom_polygon('x',{[50;90;90;50] ; [50;90;90;50]},'y',{[5;5;20;20] ; [30;30;50;50]});
+
+%Possibility to manually set fill, color, style and alpha.
+g(1,2).geom_polygon('x',{[50;90;90;50] ; [50;90;90;50] ; [50;90;90;50]},'y',{[5;5;20;20];  [20;20;30;30];  [30;30;50;50]},'color',cmap,'alpha',0.3);
+
+%Possibility to set color and fill by indices (using a column vector of
+%integers. Colormap generated between 1 and max(vector))
+g(2,1).geom_polygon('x',{[50;90;90;50] ; [50;90;90;50] ; [50;90;90;50]},'y',{[5;5;20;20];  [20;20;30;30];  [30;30;50;50]},'color',[1 ; 2;  3]);
+
+%Pssibility to do multiple calls. single fill, alpha, color and styles are
+%automatically extended to all polygons in the call
+g(2,2).geom_polygon('x',{[50;90;90;50] ; [50;90;90;50]},'y',{[5;5;20;20] ; [30;30;50;50]},'color',[1 0 0],'line_style',{'--'},'line_color',[0 0 0.5]);
+g(2,2).geom_polygon('x',{[50;90;90;50] },'y',{ [20;20;30;30]});
+
+
+g.draw();
+
 
 %% Graphic and normalization options in stat_violin()
 
