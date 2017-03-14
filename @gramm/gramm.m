@@ -183,7 +183,7 @@ classdef gramm < matlab.mixin.Copyable
         
         obj=redraw(obj,spacing,display)
         obj=draw(obj,do_redraw)
-		obj=save_plot(obj,varargin)
+		obj=export(obj,varargin)
            
         % Customization methods
         obj=set_polar(obj,varargin)
