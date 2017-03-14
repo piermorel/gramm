@@ -13,26 +13,11 @@ function obj=geom_polygon(obj,varargin)
 %     point in a polygon.
 % 
 % Optional inputs (defaults):
-% map (obj.color_options.map) - Use this to override main color mapping
 % alpha (0.2) - set fill alpha
-% color ([]) - line color indexing, empty is black
-% fill ([]) - fill color indexing, empty is gray
-% style ([]) - line type, empty is no line. Options are identical to
-%              set_line_type('styles')
+% color ([0 0 0]) - fill color of the polygon
+% line_color ([0 0 0]) - line color of the polygon
+% line_style ({'none'}) - line style
 %
-% Example Usage:
-% figure;
-% g=gramm('x',Model_Year,'y',MPG,'color',Cylinders,'subset',Cylinders~=3 & Cylinders~=5);
-% g.facet_grid([],origin_region);
-% g.geom_point();
-% g.stat_glm();
-% cmap = [1   0.5 0.5; % red (bad gas mileage)
-%         1   1   0.5; % yellow (reasonable gas mileage)
-%         0.5 1   0.5]; % green (good gas mileage)
-% g.geom_polygon('x',{[50;90;90;50] [50;90;90;50] [50;90;90;50]},'y',{[5;5;20;20] [20;20;30;30] [30;30;50;50]},'alpha',.2,'fill',[1 2 3],'map',cmap);
-% g.set_names('column','Origin','x','Year of production','y','Fuel economy (MPG)','color','# Cylinders');
-% g.set_title('Fuel economy of new cars between 1970 and 1982');
-% g.draw();
 %
 % created: 2017-Mar-03
 % author: Nicholas J. Schaub, Ph.D.
@@ -47,40 +32,63 @@ p=inputParser;
 
 my_addParameter(p,'x',{});
 my_addParameter(p,'y',{});
-my_addParameter(p,'alpha',0.1);
+my_addParameter(p,'alpha',0.2);
 my_addParameter(p,'color',[0 0 0]);
 my_addParameter(p,'line_color',[0 0 0]);
 my_addParameter(p,'line_style',{'none'});
+my_addParameter(p,'extent',2);
 parse(p,varargin{:});
 
+temp_results=p.Results;
+
+
 %% Check inputs
-if isempty(p.Results.x) || isempty(p.Results.y)
-    warning('Either x or y is not provided. Will not draw polygons.')
+if isempty(temp_results.x) && isempty(temp_results.y)
+    warning('Both x and y are not provided. Will not draw polygons.')
     return
 end
 
-if ~iscell(p.Results.x) || ~iscell(p.Results.y)
+if ~iscell(temp_results.x) || ~iscell(temp_results.y)
     warning('Either x or y is not a cell. Will not draw polygons.')
     return
 end
 
-if length(p.Results.x) ~= length(p.Results.y)
+%If one of the xy input is omitted, we fill it with an cell full of empty
+%arrays
+if isempty(temp_results.x)
+    N=length(temp_results.y);
+    temp_results.x=repmat({[]},N,1);
+elseif isempty(temp_results.y)
+    N=length(temp_results.x);
+    temp_results.y=repmat({[]},N,1);
+else
+    N=length(temp_results.x);
+end
+
+
+if length(temp_results.x) ~= length(temp_results.y)
     warning('The number of elements in x does not match y. Will not draw polygons.')
     return
 end
 
-if ~isequal(cellfun(@length,p.Results.x),cellfun(@length,p.Results.y))
+%Check number of vertices
+nvx=cellfun(@length,temp_results.x);
+nvy=cellfun(@length,temp_results.y);
+
+%Which cases are allowed for omitted inputs
+to_complete = (nvx==2 & nvy==0) | (nvx==0 & nvy==2);
+
+if ~isequal(nvx(~to_complete),nvy(~to_complete))
     warning('The number of x-coords does not match the number of y-coords for each polygon. Will not draw polygons.')
     return
 end
 
-temp_results=p.Results;
 
-N=length(temp_results.x);
+
 
 %Expand the inputs for which single entries were given to the number of
 %polygons
-to_adjust={'alpha','color','line_color','line_style'};
+to_adjust={'alpha','color','line_color','line_style','extent'};
 for k=1:length(to_adjust)
     if size(temp_results.(to_adjust{k}),1)==1
         temp_results.(to_adjust{k}) = repmat(temp_results.(to_adjust{k}),N,1);

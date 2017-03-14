@@ -23,7 +23,26 @@ end
 
 for poly_ind = 1:length(obj.polygon.x)
 
-    p = patch(obj.polygon.x{poly_ind},obj.polygon.y{poly_ind},obj.polygon.color(poly_ind,:),...
+    tmp_x=obj.polygon.x{poly_ind};
+    tmp_y=obj.polygon.y{poly_ind};
+    
+    %Handle cases of omitted x or y values
+    if isempty(tmp_x)
+        tmp_xl=[obj.var_lim.minx obj.var_lim.maxx];
+        tmp_extent=(tmp_xl(2)-tmp_xl(1))*obj.polygon.extent(poly_ind)/2;
+        xl=[mean(tmp_xl)-tmp_extent mean(tmp_xl)+tmp_extent];
+        tmp_y=[tmp_y(1) tmp_y(2) tmp_y(2) tmp_y(1)];
+        tmp_x=[xl(1) xl(1) xl(2) xl(2)];
+    end
+    if isempty(tmp_y)
+        tmp_yl=[obj.var_lim.miny obj.var_lim.maxy];
+        tmp_extent=(tmp_yl(2)-tmp_yl(1))*obj.polygon.extent(poly_ind)/2;
+        yl=[mean(tmp_yl)-tmp_extent mean(tmp_yl)+tmp_extent];
+        tmp_x=[tmp_x(1) tmp_x(2) tmp_x(2) tmp_x(1)];
+        tmp_y=[yl(1) yl(1) yl(2) yl(2)];
+    end
+    
+    p = patch(tmp_x,tmp_y,obj.polygon.color(poly_ind,:),...
             'Parent',obj.facet_axes_handles(obj.current_row,obj.current_column),...
             'FaceColor',obj.polygon.color(poly_ind,:),...
             'FaceAlpha',obj.polygon.alpha(poly_ind),...

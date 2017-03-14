@@ -674,18 +674,26 @@ g.set_names('column','Origin','x','Year of production','y','Fuel economy (MPG)',
 g.set_title('Fuel economy of new cars between 1970 and 1982');
 
 g(1,2)=copy(g(1));
+g(1,3)=copy(g(1));
 g(2,1)=copy(g(1));
 g(2,2)=copy(g(1));
+
 
     
 %X and Y must be column cells
 %X, Y and style must be cells
 
 %Easier defaults, just grey polygons
-g(1,1).geom_polygon('x',{[50;90;90;50] ; [50;90;90;50]},'y',{[5;5;20;20] ; [30;30;50;50]});
+g(1,1).geom_polygon('x',{[50 90 90 50] ; [50 90 90 50]},'y',{[5 5 20 20] ; [30 30 50 50]});
 
 %Possibility to manually set fill, color, style and alpha.
 g(1,2).geom_polygon('x',{[50;90;90;50] ; [50;90;90;50] ; [50;90;90;50]},'y',{[5;5;20;20];  [20;20;30;30];  [30;30;50;50]},'color',cmap,'alpha',0.3);
+
+
+%Possibility to generate polygons more easily by omitting 'x' or 'y' values
+%and giving only two coordinates for the non-omitted ones
+g(1,3).geom_polygon('y',{[5 20];  [20 30];  [30 50]},'color',cmap);
+g(1,3).geom_polygon('x',{[80 85]},'alpha',0.1);
 
 %Possibility to set color and fill by indices (using a column vector of
 %integers. Colormap generated between 1 and max(vector))
@@ -695,6 +703,8 @@ g(2,1).geom_polygon('x',{[50;90;90;50] ; [50;90;90;50] ; [50;90;90;50]},'y',{[5;
 %automatically extended to all polygons in the call
 g(2,2).geom_polygon('x',{[50;90;90;50] ; [50;90;90;50]},'y',{[5;5;20;20] ; [30;30;50;50]},'color',[1 0 0],'line_style',{'--'},'line_color',[0 0 0.5]);
 g(2,2).geom_polygon('x',{[50;90;90;50] },'y',{ [20;20;30;30]});
+
+
 
 
 g.draw();

@@ -13,11 +13,6 @@ function obj=draw(obj,do_redraw)
 % call for the redraw() function, i.e. deactivates the fancy
 % axis placement.
 
-% Edit 2017-Mar-07
-% Added support for geom_polygon
-% author: Nicholas J. Schaub, Ph.D.
-% email: nicholas.j.schaub@gmail.com
-
 %We set redraw() as resize callback by default
 if nargin<2
     do_redraw=true;
