@@ -1,14 +1,14 @@
 function obj = geom_label(obj,varargin)
 % geom_label Display data as labels
 %
-% Example syntax: gramm_object.geom_jitter('Color','auto','dodge',0.6)
+% Example syntax: gramm_object.geom_label('Color','auto','dodge',0.6)
 % Geom label displays text (provided as 'label' in the constructor call
 % gramm()). At the X and Y locations provided in the constructor call.
 % Appearance of the text can be customized with any text property given as
 % 'name',value pair in the arguments. The color-related arguments
 % ('Color','EdgeColor','BackgroundColor') can also be set to 'auto' in
 % order for the corresponding element to be colored according the the
-% colro groups provided in the constructor. geom_label() also accepts a
+% color groups provided in the constructor. geom_label() also accepts a
 % 'dodge' argument.
 
 

@@ -25,6 +25,20 @@ if isempty(obj(1).parent)
     end
 end
 
+%There are bugs with the hardware openGL renderer in pre 2014b version,
+%on Mac OS and Win the x and y axes become invisible and on
+%Windows the patch objects behave strangely.
+if ~obj(1).handle_graphics
+    if ismac
+        warning('Mac Pre-2014b version detected, forcing to ''Painters'' renderer to show axes lines. Use set(gcf,''Renderer'',''OpenGL'') to restore transparency')
+        if isprop(obj(1).parent,'Renderer')
+            set(obj(1).parent,'Renderer','Painters');
+        end
+    else
+        warning('Windows Pre-2014b version detected, forcing to software openGL which is less buggy')
+        opengl software
+    end
+end
 
 %Handle call of draw() on array of gramm objects by dividing the figure
 %up and launching the individual draw functions of each object
@@ -1174,15 +1188,25 @@ for ind_row=1:length(uni_row) %Loop over rows
         %Set ablines, hlines and vlines (after axe properties in case the limits
         %are changed there
         if obj.abline.on
-            xl=get(ca,'xlim');
+            %xl=get(ca,'xlim');
             for line_ind=1:length(obj.abline.intercept)
+                tmp_xl=[obj.var_lim.minx obj.var_lim.maxx];
+                tmp_extent=(tmp_xl(2)-tmp_xl(1))*obj.abline.extent(line_ind)/2;
+                xl=[mean(tmp_xl)-tmp_extent mean(tmp_xl)+tmp_extent];
                 if ~isnan(obj.abline.intercept(line_ind))
                     %abline
                     plot(xl,xl*obj.abline.slope(line_ind)+obj.abline.intercept(line_ind),obj.abline.style{line_ind},'Parent',ca);
                 else
                     if ~isnan(obj.abline.xintercept(line_ind))
                         %vline
-                        yl=get(ca,'ylim');
+                        %yl=get(ca,'ylim');
+                        if obj.var_lim.miny == obj.var_lim.maxy %We are probably in a case where y wasn't provided (histogram or raster)
+                            tmp_yl=[0 numel(temp_aes.x)]; %We scale y according to number of x elements
+                        else
+                            tmp_yl=[obj.var_lim.miny obj.var_lim.maxy];
+                        end
+                        tmp_extent=(tmp_yl(2)-tmp_yl(1))*obj.abline.extent(line_ind)/2;
+                        yl=[mean(tmp_yl)-tmp_extent mean(tmp_yl)+tmp_extent];
                         plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,obj.abline.style{line_ind},'Parent',ca);
                     else
                         if ~isnan(obj.abline.yintercept(line_ind))
@@ -1232,14 +1256,6 @@ else
     obj.results=[];
 end
 
-%There are bugs with the openGL renderer in pre 2014b version,
-%on Mac OS and Win the x and y axes become invisible and on
-%Windows the patch objects behave strangely. So we switch to
-%painters renderer
-if verLessThan('matlab','8.4')
-    warning('Pre-2014b version detected, forcing to ''Painters'' renderer which is less buggy. Use set(gcf,''Renderer'',''OpenGL'') to restore transparency')
-    set(gcf,'Renderer','Painters')
-end
 
 obj.updater.first_draw=false;
 end

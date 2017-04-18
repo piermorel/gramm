@@ -118,8 +118,10 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         m=nanmean(r);
         cv=nancov(r);
         
-        obj.results.ellipse{obj.result_ind,1}.mean=m;
-        obj.results.ellipse{obj.result_ind,1}.cv=cv;
+        obj.results.stat_ellipse{obj.result_ind,1}.mean=m;
+        obj.results.stat_ellipse{obj.result_ind,1}.cv=cv;
+        obj.results.stat_ellipse{obj.result_ind,1}.major_axis=[];
+        obj.results.stat_ellipse{obj.result_ind,1}.minor_axis=[];
         
         conf_sphpoints=sphpoints;
         conf_sphpoints.vertices=bsxfun(@plus,sqrtm(cv)*conf_sphpoints.vertices'*k(obj.stat_options.alpha),m')';
@@ -131,5 +133,12 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
     obj.results.stat_ellipse{obj.result_ind,1}.center_handle=center_hndl;
 else
     warning('Not enough points for ellipse')
+    
+    obj.results.stat_ellipse{obj.result_ind,1}.mean=NaN;
+    obj.results.stat_ellipse{obj.result_ind,1}.cv=NaN;
+    obj.results.stat_ellipse{obj.result_ind,1}.major_axis=[];
+    obj.results.stat_ellipse{obj.result_ind,1}.minor_axis=[];
+    obj.results.stat_ellipse{obj.result_ind,1}.ellipse_handle=[];
+    obj.results.stat_ellipse{obj.result_ind,1}.center_handle=[];
 end
 end

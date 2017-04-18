@@ -3,6 +3,7 @@ function obj = set_text_options( obj , varargin )
 %
 % 'name',value pairs:
 % 'base_size': Base text size, corresponds to axis ticks text size (default is 10)
+% 'interpreter': 'none'(default), 'tex' or 'latex'
 % 'label_scaling': Scaling of axis label sizes relative to base (default is 1)
 % 'legend_scaling': Scaling of legend label sizes relative to base (default is 1)
 % 'legend_title_scaling': Scaling of legend title sizes relative to base (default is 1.2)

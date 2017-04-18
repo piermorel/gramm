@@ -6,6 +6,7 @@ ab.slope(end+1:end+l)=shiftdim(varargin{1});
 ab.intercept(end+1:end+l)=shiftdim(varargin{2});
 ab.xintercept(end+1:end+l)=shiftdim(varargin{3});
 ab.yintercept(end+1:end+l)=shiftdim(varargin{4});
+ab.extent(end+1:end+l)=shiftdim(varargin{7});
 
 %Because of the constructor these are initialized as empty
 %arrays
