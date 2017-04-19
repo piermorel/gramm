@@ -382,6 +382,11 @@ for ind_row=1:length(uni_row)
         
         hold on
         
+        %Draw polygons before plotting data, so data isn't covered up
+        if obj.polygon.on
+            draw_polygons(obj);
+        end
+   
         
         %Store all the X used for the current facet (useful for
         %correct spacing of dodged bars and boxplots when
@@ -886,7 +891,7 @@ for ind_row=1:length(uni_row) %Loop over rows
         obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)=obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)+0.01;
         obj.plot_lim.maxz(obj.plot_lim.minz==obj.plot_lim.maxz)=obj.plot_lim.maxz(obj.plot_lim.minz==obj.plot_lim.maxz)+0.01;
         
-        
+       
         if ~obj.polar.is_polar % XY Limits are only useful for non-polar plots
             
             %Set axes limits logic according to facet_scale and
@@ -1221,7 +1226,6 @@ for ind_row=1:length(uni_row) %Loop over rows
             end
             
         end
-        
         
     end
 end

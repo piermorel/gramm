@@ -72,6 +72,17 @@ classdef gramm < matlab.mixin.Copyable
             'fun',[],...
             'extent',[])
         
+        %structure containing polygon parameters - Nicholas Schaub 2017-Mar-07
+        polygon = struct('on',false,...
+                         'x',{[]},...
+                         'y',{[]},...
+                         'color_options',{[]},...
+                         'line_style',{[]},...
+                         'color',[],...
+                         'line_color',[],...
+                         'alpha',[],...
+                         'extent',[]);
+        
         datetick_params={} %cell containng datetick parameters
         current_row %What is the currently drawn row of the subplot
         current_column %What is the currently drawn column of the subplot
@@ -80,7 +91,7 @@ classdef gramm < matlab.mixin.Copyable
         
         continuous_color_colormap=[];
         
-        color_options %Structure holding color options
+        color_options  %Structure holding color options
         
         order_options %Structure holding order options
         
@@ -210,6 +221,7 @@ classdef gramm < matlab.mixin.Copyable
         obj=geom_count(obj,varargin)
         obj=geom_jitter(obj,varargin)
         obj=geom_abline(obj,varargin)
+        obj=geom_polygon(obj,varargin)
         obj=geom_vline(obj,varargin)
         obj=geom_hline(obj,varargin)
         obj=geom_funline(obj,varargin)
