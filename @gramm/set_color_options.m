@@ -20,6 +20,8 @@ function obj=set_color_options(obj,varargin)
 % chroma values (0-100) used when generating plots with
 % lightness variations (chroma is the intensity of the color).
 % Default is [30 90] (weak color to deeper color)
+% By default there is a low chroma for light colors in order to stay in a
+% displayable color range (sRGB).
 %
 % 'hue_range': 2-element vector indicating the range of
 % hue values (0-360) used when generating color plots. Default is

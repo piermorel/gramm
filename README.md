@@ -119,6 +119,7 @@ Type <code>doc gramm</code> to find links to the documentation of each method.
 - Matlabs axes properties are acessible through the method <code>axe_property()</code>
 - Custom legend labels with <code>set_names()</code>
 - Plot reference line on the plots with <code>geom_abline()</code>, <code>geom_vline()</code>,<code>geom_hline()</code>
+- Plot reference polygons on the plots with <code>geom_polygon()</code>
 - Date ticks with set_datetick()
 - Gramm works best with table-like data: separate variables / structure fields / table columns for the variables of interest, with each variable having as many elements as observations.
 
