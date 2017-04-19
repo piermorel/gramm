@@ -133,7 +133,7 @@ All the mappings presented below can be combined.
 
 <img src="/html/examples_02.png" alt="" width="800">
 
-###Relationship between categorical and continuous variables
+### Relationship between categorical and continuous variables
 
 <img src="/html/examples_03.png" alt="" width="800">
 
@@ -141,12 +141,12 @@ All visualizations can be flipped using <code>coord_flip()</code>
 	
 <img src="/html/examples_04.png" alt="" width="800">
 
-###Distribution of a continuous variable
+### Distribution of a continuous variable
 Note that we by using Origin as a faceting variable, we visualize exactly the same quantities as in the figure above.
 
 <img src="/html/examples_05.png" alt="" width="800">
 
-###Relationship between two continous variables
+### Relationship between two continous variables
 
 <img src="/html/examples_06.png" alt="" width="800">
 
@@ -154,12 +154,12 @@ Note that we by using Origin as a faceting variable, we visualize exactly the sa
 
 <img src="/html/examples_08.png" alt="2D density" width="800">
 
-###Repeated trajectories
+### Repeated trajectories
 Here the variable given as Y is a Nx1 cell of 1D arrays containing the individual trajectories. Color is given as a Nx1 cellstr.
 
 <img src="/html/examples_09.png" alt="" width="800">
 
-###Spike trains
+### Spike trains
 This example highlights the potential use of gramm for neuroscientific data. Here X is a Nx1 cell containing spike trains collected over N trials. Color is given as a Nx1 cellstr.
 Using <code>stat_bin()</code> it is possible to construct peristimulus time histograms.
 
@@ -186,7 +186,7 @@ With <code>set_color_options()</code>
 
 <img src="/html/examples_28.png" alt="Continuous colors" width="800">
 
-###Reordering of categorical variables
+### Reordering of categorical variables
 With <code>set_order_options()</code>
 
 <img src="/html/examples_29.png" alt="Reordering" width="800">
