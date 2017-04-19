@@ -3,7 +3,7 @@ function draw_polygons(obj)
 %
 % Handles the actual drawing of polygons when the draw() function is
 % called.
-%
+
 % created: 2017-Mar-03
 % author: Nicholas J. Schaub, Ph.D.
 % email: nicholas.j.schaub@gmail.com

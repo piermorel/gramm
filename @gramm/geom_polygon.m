@@ -1,32 +1,45 @@
 function obj=geom_polygon(obj,varargin)
-% geom_rect Create a polygon or polygons
+% geom_polygon Create reference polygons in each facet
 %
-% This function allows arbitrary polygons to be drawn. Polygons are drawn
-% before any points are plotted so that data is not covered up.
+% This function allows to draw polygons in the background of each facet.
+% Inputs are given as 'name',value pairs:
 %
-% Required inputs:
-% x - Cell array of vectors containing x values for each point in a
-%     polygon. Each cell should contain a vector of x-coordinates for each
-%     point in a polygon.
-% y - Cell array of vectors containing x values for each point in a
-%     polygon. Each cell should contain a vector of x-coordinates for each
-%     point in a polygon.
+% 'x'   Cell array of vectors containing x coordinates
+% 'y'   Cell array of vectors containing y coordinates
+%
+% When both 'x' and 'y' are provided, the lenght of each cell array should
+% correspond to the number of desired polygons n_polygons. The i_th cell of each cell array 
+% should contain equally-sized vectors which correspond to the coordinates of
+% the vertices of the i_th polygon.
+%
+% When only 'x' (or only 'y') is given, geom_polygon() draws vertical (or
+% horizontal) rectangles that span the whole plot. In that case, 'x' (or 'y') should be a cell array which
+% length corresponds to the number of desired polygons n_polygons. Each cell of the
+% cell array should contain a vector of length 2 with the horizontal (or
+% vertical) start and end coordinates of the polygons.
+%
+% Optional inputs (defaults) can be specified for all polygons in the call 
+% at once or specifically for each polygon:
+%
+% 'alpha' (0.2)             fill alpha (length 1  or n_polygons)
+% 'color' ([0 0 0])         RGB fill color of the polygon ( 1 x 3 or
+%                           n_polygons x 3 ). Or color index  with automatic colors (1 x
+%                           1 or n_polygons x 1 integers)
+% 'line_color' ([0 0 0])    RGB line color of the polygon ( 1 x 3 or 
+%                           n_polygons x 3 ). Or color index  with automatic colors (1 x
+%                           1 or n_polygons x 1 integers)
+% 'line_style' ({'none'})   line style of the polygon (length 1 or n_polygons) 
 % 
-% Optional inputs (defaults):
-% alpha (0.2) - set fill alpha
-% color ([0 0 0]) - fill color of the polygon
-% line_color ([0 0 0]) - line color of the polygon
-% line_style ({'none'}) - line style
-%
-%
+
+
 % created: 2017-Mar-03
 % author: Nicholas J. Schaub, Ph.D.
 % email: nicholas.j.schaub@gmail.com
 %
-% modified: 2017-Mar-12, Pierre Morel
+% modified: 2017-Mar-12, 2017-Apr-18, Pierre Morel
 
 
-%% Parse inputs and set defaults
+% Parse inputs and set defaults
 
 p=inputParser;
 
@@ -42,7 +55,7 @@ parse(p,varargin{:});
 temp_results=p.Results;
 
 
-%% Check inputs
+% Check inputs
 if isempty(temp_results.x) && isempty(temp_results.y)
     warning('Both x and y are not provided. Will not draw polygons.')
     return
@@ -95,7 +108,7 @@ for k=1:length(to_adjust)
     end
 end
     
-%% Add polygon settings to object, used when draw() is called
+% Add polygon settings to object, used when draw() is called
 to_fill=fieldnames(temp_results);
 for obj_ind=1:numel(obj)
     
