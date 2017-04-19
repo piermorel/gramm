@@ -2,12 +2,6 @@ classdef gramm < matlab.mixin.Copyable
     %GRAMM Implementation of the features from R's ggplot2 (GRAMmar of graphics plots) in Matlab
     % Pierre Morel 2015
     
-    % Edit 2017-Mar-07
-    % Added support for geom_polygon
-    % author: Nicholas J. Schaub, Ph.D.
-    % email: nicholas.j.schaub@gmail.com
-    
-    
     properties (Access=public)
         legend_axe_handle %Store the handle of the legend axis
         title_axe_handle %Store the handle of the title axis
