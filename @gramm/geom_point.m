@@ -15,7 +15,7 @@ end
 
 function hndl=my_point(obj,draw_data,params)
 
-if obj.continuous_color
+if obj.continuous_color_options.active
     if iscell(draw_data.x)
         [x,y]=to_polar(obj,draw_data.x,draw_data.y);
         if iscell(draw_data.continuous_color)

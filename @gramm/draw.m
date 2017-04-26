@@ -198,17 +198,17 @@ uni_size=unique_and_sort(temp_aes.size,obj.order_options.size);
 %If the color is in a cell array of doubles, we set it as
 %continuous color
 if iscell(temp_aes.color) && ~iscellstr(temp_aes.color)
-    set_continuous_color(obj);
+    obj.continuous_color_options.active = true;
 else
     uni_color=unique_and_sort(temp_aes.color,obj.order_options.color);
     
     %If we have too many numerical values for the color we
     %switch to continuous color
-    if length(uni_color)>15 && ~iscellstr(uni_color) && ~obj.continuous_color
-        set_continuous_color(obj);
+    if length(uni_color)>15 && ~iscellstr(uni_color) && ~obj.continuous_color_options.active
+        obj.continuous_color_options.active = true;
     end
 end
-if obj.continuous_color
+if obj.continuous_color_options.active
     uni_color={1};
 end
 
@@ -414,7 +414,7 @@ for ind_row=1:length(uni_row)
                     %Loop over colors
                     for ind_color=1:length(uni_color)
                         
-                        if obj.continuous_color
+                        if obj.continuous_color_options.active
                             sel_color=sel_size;
                         else
                             sel_color=sel_size & multi_sel(temp_aes.color,uni_color{ind_color});
@@ -433,7 +433,7 @@ for ind_row=1:length(uni_row)
                             
                             %Select dodging parameters for current color
                             %and lightness
-                            if obj.continuous_color
+                            if obj.continuous_color_options.active
                                 sel_dodge=true(size(dodge_data.color));
                             else
                                 sel_dodge=multi_sel(dodge_data.color,uni_color{ind_color}) & multi_sel(dodge_data.lightness,uni_lightness{ind_lightness});
@@ -537,8 +537,8 @@ for ind_row=1:length(uni_row)
         end
         
         %Set colormap of subplot if needed
-        if obj.continuous_color
-            colormap(obj.continuous_color_colormap);
+        if obj.continuous_color_options.active
+            colormap(obj.continuous_color_options.colormap);
         end
         
         
@@ -613,6 +613,22 @@ if ~isempty(obj.title)
     end
 else
     obj.title_axe_handle=[];
+end
+
+%% Compute continuous colormap limits
+
+if obj.continuous_color_options.active
+    if isempty(obj.continuous_color_options.CLim)
+        obj.continuous_color_options.CLim = [min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))];
+    end
+    if obj.continuous_color_options.CLim(1) == obj.continuous_color_options.CLim(2)
+        if obj.continuous_color_options.CLim(1) == 0
+            obj.continuous_color_options.CLim = [-1 1];
+        else
+            obj.continuous_color_options.CLim(1) = obj.continuous_color_options.CLim(1) - abs(obj.continuous_color_options.CLim(1))/2;
+            obj.continuous_color_options.CLim(2) = obj.continuous_color_options.CLim(2) + abs(obj.continuous_color_options.CLim(2))/2;
+        end
+    end
 end
 
 %% draw() legends
@@ -692,7 +708,7 @@ if obj.with_legend
     end
     
     %Continuous color legend
-    if obj.continuous_color
+    if obj.continuous_color_options.active
         obj.legend_y=obj.legend_y-legend_y_additional_step;
         
         obj.legend_text_handles=[obj.legend_text_handles...
@@ -710,7 +726,10 @@ if obj.with_legend
         gradient_height=4;
         %imagesc coordinates correspond to centers of patches, hence the
         %x=[1.5 1.5] to get [1 2] borders
-        imagesc([1.5 1.5],[obj.legend_y-legend_y_step*gradient_height obj.legend_y],linspace(min(min(obj.plot_lim.minc)),max(max(obj.plot_lim.maxc)),tmp_N)','Parent',obj.legend_axe_handle);
+        imagesc([1.5 1.5],...
+            [obj.legend_y-legend_y_step*gradient_height obj.legend_y],...
+            linspace(obj.continuous_color_options.CLim(1),obj.continuous_color_options.CLim(2),tmp_N)',...
+            'Parent',obj.legend_axe_handle);
         
         line([1.8  2;1.8  2;1.8  2 ; 1 1.2 ; 1 1.2 ; 1 1.2]',...
             [obj.legend_y-legend_y_step*gradient_height/4 obj.legend_y-legend_y_step*gradient_height/4 ;...
@@ -722,23 +741,23 @@ if obj.with_legend
             'Color','w','Parent',obj.legend_axe_handle)
         
         
-        colormap(obj.continuous_color_colormap)
-        caxis([min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
+        colormap(obj.continuous_color_options.colormap)
+        caxis(obj.continuous_color_options.CLim);
         
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(2.5,obj.legend_y,num2str(max(max(obj.plot_lim.maxc))),...
+            text(2.5,obj.legend_y,num2str(obj.continuous_color_options.CLim(2)),...
             'FontName',obj.text_options.font,...
             'FontSize',obj.text_options.base_size*obj.text_options.legend_scaling,...
             'Parent',obj.legend_axe_handle)];
         
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(2.5,obj.legend_y-legend_y_step*gradient_height/2,num2str((max(max(obj.plot_lim.maxc))+min(min(obj.plot_lim.minc)))/2),...
+            text(2.5,obj.legend_y-legend_y_step*gradient_height/2,num2str(mean(obj.continuous_color_options.CLim)),...
             'FontName',obj.text_options.font,...
             'FontSize',obj.text_options.base_size*obj.text_options.legend_scaling,...
             'Parent',obj.legend_axe_handle)];
         
         obj.legend_text_handles=[obj.legend_text_handles...
-            text(2.5,obj.legend_y-legend_y_step*gradient_height,num2str(min(min(obj.plot_lim.minc))),...
+            text(2.5,obj.legend_y-legend_y_step*gradient_height,num2str(obj.continuous_color_options.CLim(1)),...
             'FontName',obj.text_options.font,...
             'FontSize',obj.text_options.base_size*obj.text_options.legend_scaling,...
             'Parent',obj.legend_axe_handle)];
@@ -880,9 +899,9 @@ for ind_row=1:length(uni_row) %Loop over rows
             'FontSize',obj.text_options.base_size)
 
         
-        if obj.continuous_color
+        if obj.continuous_color_options.active
             %Set color limits the same way on each plot
-            set(ca,'CLimMode','manual','CLim',[min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))]);
+            set(ca,'CLimMode','manual','CLim',obj.continuous_color_options.CLim);
         end
         
         

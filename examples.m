@@ -238,7 +238,8 @@ g.draw();
 % With |geom_interval()| it is possible to plot custom confidence intervals
 % by provinding |'ymin'| and |'ymax'| values to |gramm()|. All options to
 % display confidence intervals in |stat_summary()| are available, including
-% dodging.
+% dodging. |'ymin'| and |'ymax'| are absolute, and not given relative to
+% |'y'|
 
 cars_table=struct2table(cars);
 cars_summary=rowfun(@(hp)deal(nanmean(hp),bootci(200,@(x)nanmean(x),hp)'),cars_table(cars.Cylinders~=3 & cars.Cylinders~=5,:),...

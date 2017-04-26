@@ -58,8 +58,8 @@ switch params.geom
         
     case 'image'
         
-        if ~obj.continuous_color
-            set_continuous_color(obj);
+        if ~obj.continuous_color_options.active
+            obj.continuous_color_options.active = true;
         end
         
         Nr=reshape(N',1,numel(N));

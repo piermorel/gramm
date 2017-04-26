@@ -18,7 +18,7 @@ function hndl=my_line(obj,draw_data,params)
 
 
 
-if obj.continuous_color
+if obj.continuous_color_options.active
     
     [x,y]=to_polar(obj,draw_data.x,draw_data.y);
     

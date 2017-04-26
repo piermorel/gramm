@@ -12,8 +12,8 @@ function obj=facet_grid(obj,row,col,varargin)
 % pair.
 % - 'scale' can be set to either 'fixed', 'free_x',
 %   'free_y', 'free', or 'independent' so that the scale of the subplots is respectively
-%    the same over all subplots, x adjusted per columns of subplots ,
-%    y adjusted per rows of subplots, x adjusted per rows and y per columns,
+%    the same over all subplots, only x adjusted per columns of subplots ,
+%    only y adjusted per rows of subplots, x adjusted per columns and y per rows,
 %    or x and y adjusted independently per subplot
 % - 'space' can be set to either 'fixed' (default), 'free_x','free_y' or 'free'.
 %   'free_x' makes the width of the facets proportional to the

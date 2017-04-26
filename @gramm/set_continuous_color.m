@@ -3,23 +3,29 @@ function obj=set_continuous_color(obj,varargin)
 %scheme
 %
 % Parameters as name,value pairs:
-% 'colormap' set continuous colormap by
-% name: 'hot,'cool', or 'parula'
-% 'LCH_colormap' set colormap by Lightness-Chroma-Hue values
-% using a matrix organized this way:
-% [L_start L_end; C_start C_end ; H_start H_end]
-
-obj.continuous_color=true;
+% 'colormap'        set continuous colormap by
+%                   name: 'hot,'cool', or any built-in colormap by name
+% 'LCH_colormap'    set colormap by Lightness-Chroma-Hue values
+%                   using a matrix organized this way:
+%                   [L_start L_end; C_start C_end ; H_start H_end]
+% 'CLim'            Force color limits for all facets (sets CLim axe
+%                   property) and generates correct legend. Automatic
+%                   color limits by default.
 
 p=inputParser;
 my_addParameter(p,'colormap','viridis');
+my_addParameter(p,'active',true);
 my_addParameter(p,'LCH_colormap',[]);
+my_addParameter(p,'CLim',[]);
 parse(p,varargin{:});
+
+obj.continuous_color_options.active = p.Results.active;
+obj.continuous_color_options.CLim = p.Results.CLim;
 
 switch p.Results.colormap
     case 'viridis'
         %Values from: https://bids.github.io/colormap/
-        obj.continuous_color_colormap=[
+        temp_colormap=[
             0.26700401  0.00487433  0.32941519
             0.26851048  0.00960483  0.33542652
             0.26994384  0.01462494  0.34137895
@@ -277,26 +283,31 @@ switch p.Results.colormap
             0.98386829  0.90486726  0.13689671
             0.99324789  0.90615657  0.1439362];
     case 'hot'
-        obj.continuous_color_colormap=pa_LCH2RGB([linspace(0,100,256)'...
+        temp_colormap=pa_LCH2RGB([linspace(0,100,256)'...
             repmat(100,256,1)...
             linspace(30,90,256)']);
-    case 'parula'
-        obj.continuous_color_colormap=colormap('parula');
     case 'cool'
-        obj.continuous_color_colormap=pa_LCH2RGB([linspace(0,80,256)'...
+        temp_colormap=pa_LCH2RGB([linspace(0,80,256)'...
             repmat(100,256,1)...
             linspace(200,260,256)']);
-    otherwise
-        obj.continuous_color_colormap=pa_LCH2RGB([linspace(0,100,256)'...
-            repmat(100,256,1)...
-            linspace(30,90,256)']);
+    otherwise %Use a Matlab built-in colormap
+        % If we do this it creates a figure window!
+        % temp_colormap=colormap(p.Results.colormap);
+        
+        % This is dirty but doesn't create a window
+        try
+            temp_colormap=eval([p.Results.colormap '(256)']);
+        catch
+            error('Unknown colormap');
+        end
 end
 
 if ~isempty(p.Results.LCH_colormap)
-    obj.continuous_color_colormap=pa_LCH2RGB([linspace(p.Results.LCH_colormap(1,1),p.Results.LCH_colormap(1,2),256)'...
+    temp_colormap=pa_LCH2RGB([linspace(p.Results.LCH_colormap(1,1),p.Results.LCH_colormap(1,2),256)'...
         linspace(p.Results.LCH_colormap(2,1),p.Results.LCH_colormap(2,2),256)'...
         linspace(p.Results.LCH_colormap(3,1),p.Results.LCH_colormap(3,2),256)']);
 end
 
+obj.continuous_color_options.colormap = temp_colormap;
 
 end

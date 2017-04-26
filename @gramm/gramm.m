@@ -87,9 +87,7 @@ classdef gramm < matlab.mixin.Copyable
         current_row %What is the currently drawn row of the subplot
         current_column %What is the currently drawn column of the subplot
         
-        continuous_color=false %Do we use continuous colors (rather than discrete)
-        
-        continuous_color_colormap=[];
+        continuous_color_options; %Structure holding continuous color options
         
         color_options  %Structure holding color options
         
@@ -180,6 +178,7 @@ classdef gramm < matlab.mixin.Copyable
             %Run the set_xx_options() functions without arguments to set
             %defaults
             set_names(obj);
+            set_continuous_color(obj,'active',false);
             set_order_options(obj);
             set_color_options(obj);
             set_text_options(obj);
