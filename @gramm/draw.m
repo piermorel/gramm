@@ -633,7 +633,7 @@ legend_y_additional_step=0.5;
 
 if obj.with_legend
     %Color legend
-    if length(uni_color)>1
+    if length(uni_color)>1 && ~all(strcmp(uni_color, uni_marker)) && ~all(strcmp(uni_color, uni_linestyle)) && ~all(strcmp(uni_color, uni_size))
         %Make a colormap with only the colors and no lightness
         color_legend_map=get_colormap(length(uni_color),1,obj.color_options);
         
@@ -683,7 +683,7 @@ if obj.with_legend
             obj.legend_text_handles=[obj.legend_text_handles...
                 text(2.5,obj.legend_y,num2str(uni_lightness{ind_lightness}),...
                 'FontName',obj.text_options.font,...
-                'FontSize',obj.text_options.base_size*obj.text_options.legend_scaling,...
+             	'FontSize',obj.text_options.base_size*obj.text_options.legend_scaling,...
                 'Interpreter',obj.text_options.interpreter,...
                 'Parent',obj.legend_axe_handle)];
             
@@ -749,6 +749,12 @@ if obj.with_legend
     %marker legend
     if length(uni_marker)>1
         obj.legend_y=obj.legend_y-legend_y_additional_step;
+
+	if(all(strcmp(uni_marker, uni_color)))
+		color_legend_map = get_colormap(length(uni_marker), 1, obj.color_options);
+	else
+		color_legend_map = zeros(length(uni_marker), 3);
+	end
         
         obj.legend_text_handles=[obj.legend_text_handles...
             text(1,obj.legend_y,obj.aes_names.marker,...
@@ -760,7 +766,7 @@ if obj.with_legend
         
         obj.legend_y=obj.legend_y-legend_y_step;
         for ind_marker=1:length(uni_marker)
-            plot(1.5,obj.legend_y,obj.point_options.markers{ind_marker},'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0],'Parent',obj.legend_axe_handle)
+            plot(1.5,obj.legend_y,obj.point_options.markers{ind_marker},'MarkerEdgeColor',color_legend_map(ind_marker, :),'MarkerFaceColor', color_legend_map(ind_marker, :), 'Parent',obj.legend_axe_handle)
             
             obj.legend_text_handles=[obj.legend_text_handles...
                 text(2.5,obj.legend_y,num2str(uni_marker{ind_marker}),...
@@ -776,7 +782,13 @@ if obj.with_legend
     %linestyle legend
     if length(uni_linestyle)>1
         obj.legend_y=obj.legend_y-legend_y_additional_step;
-        
+
+        if all(strcmp(uni_linestyle, uni_color))
+            color_legend_map = get_colormap(length(uni_linestyle), 1, obj.color_options);
+        else
+            color_legend_map = zeros(length(uni_linestyle), 3);
+        end
+ 
         obj.legend_text_handles=[obj.legend_text_handles...
             text(1,obj.legend_y,obj.aes_names.linestyle,...
             'FontWeight','bold',...
@@ -787,7 +799,7 @@ if obj.with_legend
         
         obj.legend_y=obj.legend_y-legend_y_step;
         for ind_linestyle=1:length(uni_linestyle)
-            plot([1 2],[obj.legend_y obj.legend_y],obj.line_options.styles{ind_linestyle},'Color',[0 0 0],'Parent',obj.legend_axe_handle)
+            plot([1 2],[obj.legend_y obj.legend_y],obj.line_options.styles{ind_linestyle}, 'Color', color_legend_map(ind_linestyle, :) ,'Parent',obj.legend_axe_handle)
             
             obj.legend_text_handles=[obj.legend_text_handles...
                 text(2.5,obj.legend_y,num2str(uni_linestyle{ind_linestyle}),...
@@ -804,6 +816,13 @@ if obj.with_legend
     if length(uni_size)>1
         obj.legend_y=obj.legend_y-legend_y_additional_step;
         
+        if all(strcmp(uni_size, uni_color))
+            color_legend_map = get_colormap(length(uni_size), 1, obj.color_options);
+        else
+            color_legend_map = zeros(length(uni_size), 3);
+        end
+
+
         obj.legend_text_handles=[obj.legend_text_handles...
             text(1,obj.legend_y,obj.aes_names.size,...
             'FontWeight','bold',...
@@ -822,7 +841,7 @@ if obj.with_legend
             end
             
             plot([1 2],[obj.legend_y obj.legend_y],'lineWidth',temp_lw,...
-                'Color',[0 0 0],'Parent',obj.legend_axe_handle)
+                'Color',color_legend_map(ind_size,:),'Parent',obj.legend_axe_handle)
             
             if obj.point_options.use_input
                 temp_ps=obj.point_options.input_fun(uni_size{ind_size});
@@ -830,7 +849,7 @@ if obj.with_legend
                 temp_ps=obj.point_options.base_size+(ind_size-1)*obj.point_options.step_size;
             end
             plot(1,obj.legend_y,'o','markerSize',temp_ps,...
-                'MarkerEdgeColor','none','MarkerFaceColor',[0 0 0],'Parent',obj.legend_axe_handle)
+                'MarkerEdgeColor','none','MarkerFaceColor',color_legend_map(ind_size,:),'Parent',obj.legend_axe_handle)
             
             obj.legend_text_handles=[obj.legend_text_handles...
                 text(2.5,obj.legend_y,num2str(uni_size{ind_size}),...
