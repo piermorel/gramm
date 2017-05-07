@@ -48,8 +48,11 @@ obj.updater.updated=true;
 obj.updater.facet_updated=false;
 obj.with_legend=true;
 
-%Remove ablines
-obj.abline=[];
+%Remove ablines by emptying fields
+temp_fields = fieldnames(obj.abline);
+for k = 1:length(temp_fields)
+    obj.abline.(temp_fields{k})=[];
+end
 obj.abline.on=false;
 
 %Remove cache
