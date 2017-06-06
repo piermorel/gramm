@@ -55,6 +55,13 @@ for k = 1:length(temp_fields)
 end
 obj.abline.on=false;
 
+%Remove polygons by emptying fields
+temp_fields = fieldnames(obj.polygon);
+for k = 1:length(temp_fields)
+    obj.polygon.(temp_fields{k})=[];
+end
+obj.polygon.on=false;
+
 %Remove cache
 obj.redraw_cache=[];
 
