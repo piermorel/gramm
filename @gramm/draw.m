@@ -659,7 +659,10 @@ if obj.with_legend
     % If the color groups are the same as marker, linestyle or size groups
     % then there will be a common legend (handled by the marker, linestyle
     % or size legend).
-    if length(str_uni_color)>1 && ~all(strcmp(str_uni_color, str_uni_marker)) && ~all(strcmp(str_uni_color, str_uni_linestyle)) && ~all(strcmp(str_uni_color, str_uni_size))
+    if length(str_uni_color)>1 && ...
+                    ~(length(str_uni_color)==length(str_uni_marker) && all(strcmp(str_uni_color, str_uni_marker))) && ...
+                    ~(length(str_uni_color)==length(str_uni_linestyle) && all(strcmp(str_uni_color, str_uni_linestyle))) && ...
+                    ~(length(str_uni_color)==length(str_uni_size) && all(strcmp(str_uni_color, str_uni_size)))
         %Make a colormap with only the colors and no lightness
         color_legend_map=get_colormap(length(str_uni_color),1,obj.color_options);
         
@@ -781,7 +784,7 @@ if obj.with_legend
         
         % If marker groups are the same as color groups we combine the
         % legends by drawing each marker legend the corresponding color
-        if(all(strcmp(str_uni_marker, str_uni_color)))
+        if length(str_uni_color)==length(str_uni_marker) && all(strcmp(str_uni_color, str_uni_marker))
             color_legend_map = get_colormap(length(str_uni_marker), 1, obj.color_options);
         else
             color_legend_map = zeros(length(str_uni_marker), 3); %Otherwise in black
@@ -816,7 +819,7 @@ if obj.with_legend
 
         % If linestyle groups are the same as color groups we combine the
         % legends by drawing each linestyle legend the corresponding color
-        if all(strcmp(str_uni_linestyle, str_uni_color))
+        if length(str_uni_color)==length(str_uni_linestyle) && all(strcmp(str_uni_color, str_uni_linestyle))
             color_legend_map = get_colormap(length(str_uni_linestyle), 1, obj.color_options);
         else
             color_legend_map = zeros(length(str_uni_linestyle), 3); %Otherwise in black
@@ -851,7 +854,7 @@ if obj.with_legend
         
         % If size groups are the same as color groups we combine the
         % legends by drawing each size legend the corresponding color
-        if all(strcmp(str_uni_size, str_uni_color))
+        if length(str_uni_color)==length(str_uni_size) && all(strcmp(str_uni_color, str_uni_size))
             color_legend_map = get_colormap(length(str_uni_size), 1, obj.color_options);
         else
             color_legend_map = zeros(length(str_uni_size), 3); %Otherwise in black
