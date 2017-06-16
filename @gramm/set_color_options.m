@@ -34,12 +34,14 @@ function obj=set_color_options(obj,varargin)
 % variations. Default is 70
 
 p=inputParser;
-my_addParameter(p,'map','lch'); %matlab, brewer1,brewer2,brewer3,brewer_pastel,brewer_dark
+% matlab, brewer1,brewer2,brewer3,brewer_pastel,brewer_dark, brewer_paired, d3_10, d3_20, d3_20b, d3_20c
+my_addParameter(p,'map','lch'); 
 my_addParameter(p,'lightness_range',[85 15]);
 my_addParameter(p,'chroma_range',[30 90]);
 my_addParameter(p,'hue_range',[25 385]);
 my_addParameter(p,'lightness',65);
 my_addParameter(p,'chroma',75);
+my_addParameter(p,'legend','separate'); % 'combined' , 'grid'
 parse(p,varargin{:});
 
 for obj_ind=1:numel(obj)
