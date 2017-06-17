@@ -178,7 +178,7 @@ classdef gramm < matlab.mixin.Copyable
             %Run the set_xx_options() functions without arguments to set
             %defaults
             set_names(obj);
-            set_continuous_color(obj,'active',false);
+            set_continuous_color(obj,'active',NaN);
             set_order_options(obj);
             set_color_options(obj);
             set_text_options(obj);

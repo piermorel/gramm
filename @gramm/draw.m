@@ -204,8 +204,10 @@ else
     
     %If we have too many numerical values for the color we
     %switch to continuous color
-    if length(uni_color)>15 && ~iscellstr(uni_color) && ~obj.continuous_color_options.active
+    if length(uni_color)>15 && ~iscellstr(uni_color) && (isnan(obj.continuous_color_options.active) || obj.continuous_color_options.active)
         obj.continuous_color_options.active = true;
+    else
+        obj.continuous_color_options.active = false;
     end
 end
 if obj.continuous_color_options.active
