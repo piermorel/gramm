@@ -31,7 +31,7 @@ function obj=stat_summary(obj,varargin)
 %       custom_statfun = @(y)([trimmean(y,2.5);bootci(500,{@(ty)trimmean(ty,2.5),y},'alpha',0.05)]); 
 %       gramm_object.stat_summary('type', custom_statfun)
 %
-% - 'geom':
+% - 'geom' (possibility to combine them using a cellstr, e.g. 'geom',{'bar','black_errorbar'} ):
 %       - 'line': displays a line that connects the central locations
 %       (mean,median)
 %       - 'lines': displays a line that connects the central locations
@@ -40,12 +40,15 @@ function obj=stat_summary(obj,varargin)
 %       and a transparent area for the variabilities. WARNING:
 %       this changes the renderer to opengl and disables proper
 %       vector output on older matlab versions
+%       - 'area_only': displays the variabilities only, using a transparent area
 %       - 'solid_area': displays a line that connects the locations
 %       and a solid area for the variabilities. Use this for
 %       export to vector output.
 %       - 'errorbar': displays error bars for variabilities.
 %       - 'black_errorbar': displays black error bars for variabilities.
 %       - 'bar': displays the locations as bars
+%       - 'edge_bar': displays the locations as bars with black edge
+%       - 'point': displays the locations as points
 % - 'setylim': set to true if you want the y axis limits to be
 % set by the summarized data instead of the underlying data
 % points.
