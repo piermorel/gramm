@@ -676,10 +676,10 @@ if obj.with_legend
     % If the color groups are the same as marker, linestyle or size groups
     % then there will be a common legend (handled by the marker, linestyle
     % or size legend).
-    if length(str_uni_color)>1 && ...
-            ~(length(str_uni_color)==length(str_uni_marker) && all(strcmp(str_uni_color, str_uni_marker))) && ...
-            ~(length(str_uni_color)==length(str_uni_linestyle) && all(strcmp(str_uni_color, str_uni_linestyle))) && ...
-            ~(length(str_uni_color)==length(str_uni_size) && all(strcmp(str_uni_color, str_uni_size)))
+    if length(str_uni_color)>1 && strcmp(obj.color_options.legend,'separate')% && ...
+            %~(length(str_uni_color)==length(str_uni_marker) && all(strcmp(str_uni_color, str_uni_marker))) && ...
+            %~(length(str_uni_color)==length(str_uni_linestyle) && all(strcmp(str_uni_color, str_uni_linestyle))) && ...
+            %~(length(str_uni_color)==length(str_uni_size) && all(strcmp(str_uni_color, str_uni_size)))
         
         %Make a colormap with only the colors and no lightness
         color_legend_map=get_colormap(length(str_uni_color),1,obj.color_options);
@@ -692,7 +692,7 @@ if obj.with_legend
     end
     
     %Lightness legend
-    if length(uni_lightness)>1
+    if length(uni_lightness)>1 && strcmp(obj.color_options.legend,'separate')
         
         lightness_legend_map=pa_LCH2RGB([linspace(obj.color_options.lightness_range(1),obj.color_options.lightness_range(2),length(uni_lightness))' ...
             zeros(length(uni_lightness),1)...
@@ -702,6 +702,22 @@ if obj.with_legend
             str_uni_lightness,...
             'line',...
             lightness_legend_map,...
+            'o','-',3,0);
+    end
+    
+    if strcmp(obj.color_options.legend,'expand')
+        expanded_legend_map = get_colormap(length(str_uni_color),length(str_uni_lightness),obj.color_options);
+        expanded_legend_labels = cell(length(str_uni_color)*length(str_uni_lightness),1);
+        for uc = 1:length(str_uni_color)
+            for ul = 1:length(str_uni_lightness)
+                expanded_legend_labels{ (uc-1) * length(str_uni_lightness) + ul } = [str_uni_color{uc} ' / ' str_uni_lightness{ul} ];
+            end
+        end
+        
+        fill_legend(obj, [obj.aes_names.color ' / ' obj.aes_names.lightness],...
+            expanded_legend_labels,...
+            'line',...
+            expanded_legend_map,...
             'o','-',3,0);
     end
     
@@ -720,7 +736,7 @@ if obj.with_legend
 
         % If marker groups are the same as color groups we combine the
         % legends by drawing each marker legend the corresponding color
-        if length(str_uni_color)==length(str_uni_marker) && all(strcmp(str_uni_color, str_uni_marker))
+        if strcmp(obj.color_options.legend,'merge') && length(str_uni_color)==length(str_uni_marker) && all(strcmp(str_uni_color, str_uni_marker))
             color_legend_map = get_colormap(length(str_uni_marker), 1, obj.color_options);
         else
             color_legend_map = [0 0 0]; %zeros(length(str_uni_marker), 3); %Otherwise in black
@@ -739,7 +755,7 @@ if obj.with_legend
 
         % If linestyle groups are the same as color groups we combine the
         % legends by drawing each linestyle legend the corresponding color
-        if length(str_uni_color)==length(str_uni_linestyle) && all(strcmp(str_uni_color, str_uni_linestyle))
+        if strcmp(obj.color_options.legend,'merge') && length(str_uni_color)==length(str_uni_linestyle) && all(strcmp(str_uni_color, str_uni_linestyle))
             color_legend_map = get_colormap(length(str_uni_linestyle), 1, obj.color_options);
         else
             color_legend_map = [0 0 0]; %Otherwise in black
@@ -758,13 +774,14 @@ if obj.with_legend
 
         % If size groups are the same as color groups we combine the
         % legends by drawing each size legend the corresponding color
-        if length(str_uni_color)==length(str_uni_size) && all(strcmp(str_uni_color, str_uni_size))
+        if strcmp(obj.color_options.legend,'merge') && length(str_uni_color)==length(str_uni_size) && all(strcmp(str_uni_color, str_uni_size))
             color_legend_map = get_colormap(length(str_uni_size), 1, obj.color_options);
         else
             color_legend_map = [0 0 0]; %Otherwise in black
         end
         
-        
+        % Handle cases where sizes are defined by the input calues instead
+        % of discrete categories ('use_input' in set_line_options() and set_point_options() ) 
         if obj.line_options.use_input
             temp_lw=obj.line_options.input_fun([uni_size{:}]);
         else

@@ -2,11 +2,16 @@ function obj=set_color_options(obj,varargin)
 % set_color_options() Set options used to generate colormaps
 %
 % Parameters:
-% 'map': Set custom colormap. Available colormaps are 'lch'
-% (default, supports lightness), 'matlab' (post-2014b default
-% colormap), 'brewer1', 'brewer2', 'brewer3', 'brewer_pastel',
-%'brewer_dark' for the corresponding brewer colormaps from
-% colorbrewer2.org. It is also possible to provide a custom
+% 'map': Set custom colormap. Available colormaps are:
+%     - 'lch' : default, supports lightness
+%     - 'matlab' : post-2014b default colormap (no lightness support)
+%     - 'brewer1', 'brewer2', 'brewer3', 'brewer_pastel', 'brewer_dark' :
+%          brewer colormaps from colorbrewer2.org (no ligthness support)
+%     - 'brewer_paired' : brewer colormap that supports two lightness levels
+%     - 'd3_10' : standard d3.js categorical colormap (no lightness support)
+%     - 'd3_20' : d3.js categorical colormap with two lightness levels
+%     - 'd3_20b', 'd3_20c' : d3.js categorical colormap with four lightness levels
+% It is also possible to provide a custom
 % colormap by providing a N-by-3 matrix (columns are R,G,B).
 %
 % The other options allow to sepecify color generation
@@ -41,7 +46,7 @@ my_addParameter(p,'chroma_range',[30 90]);
 my_addParameter(p,'hue_range',[25 385]);
 my_addParameter(p,'lightness',65);
 my_addParameter(p,'chroma',75);
-my_addParameter(p,'legend','separate'); % 'combined' , 'grid'
+my_addParameter(p,'legend','separate'); % 'merge' , 'expand' 'grid'
 parse(p,varargin{:});
 
 for obj_ind=1:numel(obj)
