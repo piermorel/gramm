@@ -11,19 +11,10 @@ if mod(numel(varargin),2)~=0
     error('Improper number of ''name'',value argument pairs')
 end
 
-% Alternative input parsing (not using Matlab's inputParser),
-% to allow the final varargin to be non-empty
-% params=struct();
-% [params.width,varargin] = get_name_value_pair(varargin{:},'width',0.8);
-% [params.stacked,varargin] = get_name_value_pair(varargin{:},'stacked',false);
-% [params.dodge,varargin] = get_name_value_pair(varargin{:},'dodge',0);
-% [params.FaceColor,varargin] = get_name_value_pair(varargin{:},'FaceColor','auto');
-% [params.EdgeColor,varargin] = get_name_value_pair(varargin{:},'EdgeColor','k');
-% [params.LineWidth,varargin] = get_name_value_pair(varargin{:},'LineWidth',[]);
 
 p=inputParser;
 p.KeepUnmatched=true;
-my_addParameter(p,'width',0.80);
+my_addParameter(p,'width',0.6);
 my_addParameter(p,'stacked',false);
 my_addParameter(p,'dodge',0);
 my_addParameter(p,'FaceColor','auto');
@@ -67,16 +58,13 @@ if strcmp(params.EdgeColor,'auto')
 else
     EdgeColor=params.EdgeColor;
 end
+
 if isempty(params.LineWidth)
-    LineWidth=0.5;
-    % Note: default is 0.5, but taking it from draw_data seems
-    % nice, then users can set it via set_line_options.
-    %LineWidth=draw_data.line_size;
+    LineWidth=draw_data.line_size;
 else
-    %overloaded LineWidth via input arguments
+    % overloaded LineWidth via input arguments
     LineWidth=params.LineWidth;
 end
-
 
 if params.stacked
     
