@@ -202,11 +202,15 @@ if iscell(temp_aes.color) && ~iscellstr(temp_aes.color)
 else
     uni_color=unique_and_sort(temp_aes.color,obj.order_options.color);
     
-    %If we have too many numerical values for the color we
-    %switch to continuous color
-    if length(uni_color)>15 && ~iscellstr(uni_color) && (isnan(obj.continuous_color_options.active) || obj.continuous_color_options.active)
-        obj.continuous_color_options.active = true;
-    else
+    % If continous_color is not set and we have too many numerical values 
+    % for the color we switch to continuous color
+    if isnan(obj.continuous_color_options.active)
+        if length(uni_color)>15 && ~iscellstr(uni_color)
+            obj.continuous_color_options.active = true;
+        else
+            obj.continuous_color_options.active = false;
+        end
+    elseif iscellstr(uni_color) %We can't have continuous color for cellstr input
         obj.continuous_color_options.active = false;
     end
 end
