@@ -106,7 +106,7 @@ if ~iscell(uni_fig)
     uni_fig=num2cell(uni_fig);
 end
 if numel(uni_fig)>1 %if multiple figures
-    fig_pos=get(obj.parent,'Position'); %We'll create them wirth the same location and size as the current figure
+    fig_pos=get(obj.parent,'Position'); %We'll create them with the same location and size as the current figure
     %Convert to a cell
     obj={obj};
     for ind_fig=2:numel(uni_fig) %Make shallow copy of original object
@@ -116,14 +116,22 @@ if numel(uni_fig)>1 %if multiple figures
         %disp(['Plotting Fig ' num2str(ind_fig)])
         %We plot what we want by setlecting within aes on the basis of fig
         obj{ind_fig}.aes=select_aes(obj{ind_fig}.aes,multi_sel(obj{ind_fig}.aes.fig,uni_fig{ind_fig}));
-        %Set title
-         obj{ind_fig}.set_title([obj{ind_fig}.aes_names.fig ': ' num2str(uni_fig{ind_fig})]);
-         %Create figure and do the drawing
-        if ind_fig>1
-            obj{ind_fig}.parent=figure('Position',fig_pos);
+        % Skip if there is no data
+        if any(obj{ind_fig}.aes.subset)
+            %Set title
+            obj{ind_fig}.set_title([obj{ind_fig}.aes_names.fig ': ' num2str(uni_fig{ind_fig})]);
+            %Create figure and do the drawing
+            if ind_fig>1
+                obj{ind_fig}.parent=figure('Position',fig_pos);
+            end
+            obj{ind_fig}.draw();
         end
-        obj{ind_fig}.draw();
     end
+    return;
+end
+
+if ~any(obj.aes.subset)
+    disp('Empty subset, nothing to draw');
     return;
 end
 
@@ -550,7 +558,7 @@ for ind_row=1:length(uni_row)
         
         %Show facet values in titles
         if obj.updater.first_draw || obj.updater.facet_updated
-            if length(uni_column)>1
+            if length(uni_column)>1 && obj.column_labels
                 if ~isempty(obj.aes_names.column)
                     column_string=[obj.aes_names.column ': ' num2str(uni_column{ind_column})];
                 else
@@ -571,7 +579,7 @@ for ind_row=1:length(uni_row)
                         'Parent',obj.facet_axes_handles(ind_row,ind_column))];
                 end
             end
-            if length(uni_row)>1
+            if length(uni_row)>1  && obj.row_labels
                 if ~isempty(obj.aes_names.row)
                     row_string=[obj.aes_names.row ': ' num2str(uni_row{ind_row})];
                 else

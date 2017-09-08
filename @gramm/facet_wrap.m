@@ -11,9 +11,11 @@ p=inputParser;
 my_addParameter(p,'ncols',4);
 my_addParameter(p,'scale','fixed'); %options 'free' 'free_x' 'free_y'
 my_addParameter(p,'force_ticks',false);
+my_addParameter(p,'column_labels',true);
 parse(p,varargin{:});
 
 obj.facet_scale=p.Results.scale;
+obj.column_labels=p.Results.column_labels;
 
 if strcmp(obj.facet_scale,'independent') || strcmp(obj.facet_scale,'free') %Force ticks by default in these case
     obj.force_ticks=true;

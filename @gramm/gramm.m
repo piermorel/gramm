@@ -61,6 +61,8 @@ classdef gramm < matlab.mixin.Copyable
         facet_scale='fixed' %Do we have independent scales between facets ?
         facet_space='fixed' %Do scale axes between facets ?
         force_ticks=false %Do we force ticks on all facets
+        row_labels=true;
+        column_labels=true;
         
         %structure containing the abline parameters
         abline=struct('on',0,...
