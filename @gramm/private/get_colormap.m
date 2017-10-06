@@ -207,17 +207,28 @@ if ischar(opts.map)
             cmap_nc = nc + 1;
             cmap_nl = nl;
     end
-    if nc > cmap_nc
-        error('Too many color categories for this colormap');
-    end
-    if nl > cmap_nl
-        error('Too many lightness categories for this colormap');
-    end
-    
-    cmap_ind = sub2ind([cmap_nl cmap_nc],lightness_ind,color_ind);
-    
-    cmap = cmap(cmap_ind , :);
 else
+    %For custom colormaps
+    if isempty(opts.n_color) || isempty(opts.n_lightness)
+        disp('Custom colormap without n_color and n_lightness specified, defaults to n_lightness=1')
+        cmap_nc = size(opts.map,1);
+        cmap_nl = 1;
+    else
+        cmap_nc = opts.n_color;
+        cmap_nl = opts.n_lightness;
+    end
     cmap=opts.map;
 end
+
+if nc > cmap_nc
+    error('Too many color categories for this colormap');
+end
+if nl > cmap_nl
+    error('Too many lightness categories for this colormap');
+end
+
+cmap_ind = sub2ind([cmap_nl cmap_nc],lightness_ind,color_ind);
+
+cmap = cmap(cmap_ind , :);
+
 end
