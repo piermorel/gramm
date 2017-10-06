@@ -333,9 +333,14 @@ obj.results.stat_summary{obj.result_ind,1}.yci=yci;
 hndl=plotci(obj,uni_x,ymean,yci,draw_data,params.geom,params.dodge,params.width);
 
 %Copy handles
-hnames=fieldnames(hndl);
-for k=1:length(hnames)
-    obj.results.stat_summary{obj.result_ind,1}.(hnames{k})=hndl.(hnames{k});
+if isstruct(hndl)
+    hnames=fieldnames(hndl);
+    for k=1:length(hnames)
+        obj.results.stat_summary{obj.result_ind,1}.(hnames{k})=hndl.(hnames{k});
+    end
+else
+    hndl
+    disp('Nothing plotted... Error in summary computation?')
 end
 end
 
