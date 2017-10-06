@@ -339,7 +339,6 @@ if isstruct(hndl)
         obj.results.stat_summary{obj.result_ind,1}.(hnames{k})=hndl.(hnames{k});
     end
 else
-    hndl
     disp('Nothing plotted... Error in summary computation?')
 end
 end
