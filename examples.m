@@ -1009,7 +1009,7 @@ clear g
 
 g(1,1)=gramm('x',cars.Origin_Region,'y',cars.Horsepower,'color',cars.Origin_Region,'lightness',cars.Cylinders,...
     'subset',cars.Cylinders==4 | cars.Cylinders==6);
-g(1,1).stat_summary('geom',{'bar'},'dodge',1.3,'width',1.2)
+g(1,1).stat_summary('geom',{'bar'},'dodge',1.3,'width',1.2);
 g(1,2) = copy( g(1,1) );
 g(1,3) = copy( g(1,1) );
 g(2,1) = copy( g(1,1) );
@@ -1037,13 +1037,13 @@ g(2,1).set_title('D3.js colormap, ''expand'' legend option','FontSize',12);
 
 g(2,2)=gramm('x',cars.Origin,'y',cars.Horsepower,'color',cars.Origin,...
     'marker',cars.Origin,'subset',cars.Cylinders==4 | cars.Cylinders==6);
-g(2,2).stat_summary('geom',{'bar'},'dodge',0,'width',0.15)
-g(2,2).stat_summary('geom',{'point'},'dodge',0,'width',1)
-g(2,2).set_point_options('base_size',12)
+g(2,2).stat_summary('geom',{'bar'},'dodge',0,'width',0.15);
+g(2,2).stat_summary('geom',{'point'},'dodge',0,'width',1);
+g(2,2).set_point_options('base_size',10);
 g(2,3)=copy(g(2,2));
 
 g(2,2).set_title('D3.js colormap','FontSize',12);
-g(2,2).set_color_options('map','d3_10')
+g(2,2).set_color_options('map','d3_10');
 
 % With the 'merge' legend option, plots that use the same categories for
 % color and marker/linestyle/size will be combined
@@ -1055,8 +1055,8 @@ g.axe_property('XTickLabelRotation',60); %Should work for recent Matlab versions
 g.set_names('x','Origin','y','Horsepower','color','Origin','marker','Origin','lightness','# Cyl');
 g.set_title('Color/Lightness maps and legend customizations examples');
 
-figure('Position',[100 100 800 600])
-g.draw()
+figure('Position',[100 100 800 600]);
+g.draw();
 
 %% Using a continuous color scale
 % When the variable provided as 'color' contains too many different values

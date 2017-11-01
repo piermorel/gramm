@@ -89,7 +89,7 @@ switch p.Results.file_type
 		print(h_fig, file_path, '-dpdf', '-painters');
 	
 	case 'eps'
-		print(h_fig, file_path, '-depsc', '-opengl', '-r300');
+		print(h_fig, file_path, '-depsc', '-painters', '-r300');
 
 	case 'svg'
 		print(h_fig, file_path, '-dsvg', '-painters');
