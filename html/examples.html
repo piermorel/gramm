@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>gramm examples</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-04-19"><meta name="DC.source" content="examples.m"><style type="text/css">
+      --><title>gramm examples</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-11-01"><meta name="DC.source" content="examples.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>gramm examples</h1><!--introduction--><p>Examples and how-tos for gramm</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Example from the readme</a></li><li><a href="#9">Grouping options in gramm</a></li><li><a href="#10">Methods for visualizing Y~X relationships with X as categorical variable</a></li><li><a href="#11">Methods for visualizing X densities</a></li><li><a href="#12">Methods for visualizing Y~X relationship with both X and Y as continuous variables</a></li><li><a href="#13">Methods for visualizing custom confidence intervals</a></li><li><a href="#14">Methods for visualizing 2D densities</a></li><li><a href="#15">Methods for visualizing repeated trajectories</a></li><li><a href="#16">Methods for visualizing repeated densities (e.g. spike densities)</a></li><li><a href="#17">Options for separating groups across subplots with facet_grid()</a></li><li><a href="#18">Options for creating histograms with stat_bin()</a></li><li><a href="#21">Visualize x-y difference with inset histogram using stat_cornerhist()</a></li><li><a href="#22">Graphic and normalization options in stat_violin()</a></li><li><a href="#23">Options for dodging and spacing graphic elements in <tt>stat_summary()</tt> and <tt>stat_boxplot()</tt></a></li><li><a href="#25">Plotting text or labeling with geom_label()</a></li><li><a href="#26">Smooth continuous data with stat_smooth()</a></li><li><a href="#27">Superimposing gramm plots with update(): Using different groups for different stat_ and geom_ methods</a></li><li><a href="#29">Superimposing gramm plots with update(): Plotting all the data in the background of facets</a></li><li><a href="#30">Plot one variable against many others</a></li><li><a href="#31">Customizing color maps with set_color_options()</a></li><li><a href="#32">Using a continuous color scale</a></li><li><a href="#33">Changing the order of elements with set_order_options()</a></li><li><a href="#34">Customize the size and style of graphic elements with set_line_options() and set_point_options()</a></li><li><a href="#35">Decorate plot backgrounds with geom_polygon()</a></li><li><a href="#36">Advanced customization of gramm figures</a></li><li><a href="#37">Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)</a></li></ul></div><h2>Example from the readme<a name="1"></a></h2><p>Here we plot the evolution of fuel economy of new cars bewteen 1970 and 1980 (carbig dataset). Gramm is used to easily separate groups on the basis of the number of cylinders of the cars (color), and on the basis of the region of origin of the cars (subplot columns). Both the raw data (points) and a glm fit with 95% confidence interval (line+shaded area) are plotted.</p><p>We stat by loading the sample data (structure created from the carbig dataset)</p><pre class="codeinput">load <span class="string">example_data</span>;
+  </style></head><body><div class="content"><h1>gramm examples</h1><!--introduction--><p>Examples and how-tos for gramm</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Example from the readme</a></li><li><a href="#9">Grouping options in gramm</a></li><li><a href="#10">Methods for visualizing Y~X relationships with X as categorical variable</a></li><li><a href="#11">Methods for visualizing X densities</a></li><li><a href="#12">Methods for visualizing Y~X relationship with both X and Y as continuous variables</a></li><li><a href="#13">Methods for visualizing custom confidence intervals</a></li><li><a href="#14">Methods for visualizing 2D densities</a></li><li><a href="#15">Methods for visualizing repeated trajectories</a></li><li><a href="#16">Methods for visualizing repeated densities (e.g. spike densities)</a></li><li><a href="#17">Options for separating groups across subplots with facet_grid()</a></li><li><a href="#18">Options for creating histograms with stat_bin()</a></li><li><a href="#21">Visualize x-y difference with inset histogram using stat_cornerhist()</a></li><li><a href="#22">Graphic and normalization options in stat_violin()</a></li><li><a href="#23">Options for dodging and spacing graphic elements in <tt>stat_summary()</tt> and <tt>stat_boxplot()</tt></a></li><li><a href="#25">Plotting text or labeling with geom_label()</a></li><li><a href="#26">Smooth continuous data with stat_smooth()</a></li><li><a href="#27">Superimposing gramm plots with update(): Using different groups for different stat_ and geom_ methods</a></li><li><a href="#29">Superimposing gramm plots with update(): Plotting all the data in the background of facets</a></li><li><a href="#30">Plot one variable against many others</a></li><li><a href="#31">Customizing color maps with set_color_options()</a></li><li><a href="#32">Customizing color/lightness maps  and legends with set_color_options()</a></li><li><a href="#33">Using a continuous color scale</a></li><li><a href="#34">Changing the order of elements with set_order_options()</a></li><li><a href="#35">Customize the size and style of graphic elements with set_line_options() and set_point_options()</a></li><li><a href="#36">Decorate plot backgrounds with geom_polygon()</a></li><li><a href="#37">Advanced customization of gramm figures</a></li><li><a href="#38">Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)</a></li></ul></div><h2>Example from the readme<a name="1"></a></h2><p>Here we plot the evolution of fuel economy of new cars bewteen 1970 and 1980 (carbig dataset). Gramm is used to easily separate groups on the basis of the number of cylinders of the cars (color), and on the basis of the region of origin of the cars (subplot columns). Both the raw data (points) and a glm fit with 95% confidence interval (line+shaded area) are plotted.</p><p>We stat by loading the sample data (structure created from the carbig dataset)</p><pre class="codeinput">load <span class="string">example_data</span>;
 </pre><p>Create a gramm object, provide x (year of production) and y (fuel economy) data, color grouping data (number of cylinders) and select a subset of the data</p><pre class="codeinput">g=gramm(<span class="string">'x'</span>,cars.Model_Year,<span class="string">'y'</span>,cars.MPG,<span class="string">'color'</span>,cars.Cylinders,<span class="string">'subset'</span>,cars.Cylinders~=3 &amp; cars.Cylinders~=5);
 </pre><p>Subdivide the data in subplots horizontally by region of origin using facet_grid()</p><pre class="codeinput">g.facet_grid([],cars.Origin_Region);
 </pre><p>Plot raw data as points</p><pre class="codeinput">g.geom_point();
@@ -241,7 +241,7 @@ Warning: Start point not provided, choosing random start point.
 Warning: Start point not provided, choosing random start point. 
 Less than 2 samples for CI computation...Skipping
 Less than 2 samples for CI computation...Skipping
-</pre><img vspace="5" hspace="5" src="examples_06.png" alt=""> <h2>Methods for visualizing custom confidence intervals<a name="13"></a></h2><p>With <tt>geom_interval()</tt> it is possible to plot custom confidence intervals by provinding <tt>'ymin'</tt> and <tt>'ymax'</tt> values to <tt>gramm()</tt>. All options to display confidence intervals in <tt>stat_summary()</tt> are available, including dodging.</p><pre class="codeinput">cars_table=struct2table(cars);
+</pre><img vspace="5" hspace="5" src="examples_06.png" alt=""> <h2>Methods for visualizing custom confidence intervals<a name="13"></a></h2><p>With <tt>geom_interval()</tt> it is possible to plot custom confidence intervals by provinding <tt>'ymin'</tt> and <tt>'ymax'</tt> values to <tt>gramm()</tt>. All options to display confidence intervals in <tt>stat_summary()</tt> are available, including dodging. <tt>'ymin'</tt> and <tt>'ymax'</tt> are absolute, and not given relative to <tt>'y'</tt></p><pre class="codeinput">cars_table=struct2table(cars);
 cars_summary=rowfun(@(hp)deal(nanmean(hp),bootci(200,@(x)nanmean(x),hp)'),cars_table(cars.Cylinders~=3 &amp; cars.Cylinders~=5,:),<span class="keyword">...</span>
     <span class="string">'InputVariables'</span>,{<span class="string">'Horsepower'</span>},<span class="keyword">...</span>
     <span class="string">'GroupingVariables'</span>,{<span class="string">'Origin_Region'</span> <span class="string">'Cylinders'</span>},<span class="keyword">...</span>
@@ -838,6 +838,7 @@ g.draw();
 </pre><img vspace="5" hspace="5" src="examples_26.png" alt=""> <h2>Customizing color maps with set_color_options()<a name="31"></a></h2><p>With the method set_color_options(), automatic color generation for color and lightness groups can be tweaked</p><pre class="codeinput"><span class="comment">%Default: LCH-based colormap with hue variation</span>
 clear <span class="string">g</span>
 g(1,1)=gramm(<span class="string">'x'</span>,cars.Origin,<span class="string">'y'</span>,cars.Horsepower,<span class="string">'color'</span>,cars.Origin);
+g(1,1).stat_summary(<span class="string">'geom'</span>,{<span class="string">'bar'</span>},<span class="string">'dodge'</span>,0);
 g(1,2)=copy(g(1));
 g(1,3)=gramm(<span class="string">'x'</span>,cars.Origin,<span class="string">'y'</span>,cars.Horsepower,<span class="string">'lightness'</span>,cars.Origin);
 g(2,1)=copy(g(1));
@@ -845,12 +846,11 @@ g(2,2)=copy(g(1));
 g(2,3)=copy(g(1));
 
 
-g(1,1).stat_summary(<span class="string">'geom'</span>,{<span class="string">'bar'</span>},<span class="string">'dodge'</span>,0);
+
 g(1,1).set_title(<span class="string">'Default LCH (''color'' groups)'</span>,<span class="string">'FontSize'</span>,12);
 
 <span class="comment">%Possibility to change the hue range as well as lightness and chroma of</span>
 <span class="comment">%the LCH-based colormap</span>
-g(1,2).stat_summary(<span class="string">'geom'</span>,{<span class="string">'bar'</span>},<span class="string">'dodge'</span>,0);
 g(1,2).set_color_options(<span class="string">'hue_range'</span>,[-60 60],<span class="string">'chroma'</span>,40,<span class="string">'lightness'</span>,90);
 g(1,2).set_title(<span class="string">'Modified LCH (''color'' groups)'</span>,<span class="string">'FontSize'</span>,12);
 
@@ -861,17 +861,14 @@ g(1,3).set_color_options(<span class="string">'lightness_range'</span>,[0 95],<s
 g(1,3).set_title(<span class="string">'Modified LCH (''lightness'' groups)'</span>,<span class="string">'FontSize'</span>,12);
 
 <span class="comment">%Go back to Matlab's defauls colormap</span>
-g(2,1).stat_summary(<span class="string">'geom'</span>,{<span class="string">'bar'</span>},<span class="string">'dodge'</span>,0);
 g(2,1).set_color_options(<span class="string">'map'</span>,<span class="string">'matlab'</span>);
 g(2,1).set_title(<span class="string">'Matlab 2014B+ '</span>,<span class="string">'FontSize'</span>,12);
 
 <span class="comment">%Brewer colormap 1</span>
-g(2,2).stat_summary(<span class="string">'geom'</span>,{<span class="string">'bar'</span>},<span class="string">'dodge'</span>,0);
 g(2,2).set_color_options(<span class="string">'map'</span>,<span class="string">'brewer1'</span>);
 g(2,2).set_title(<span class="string">'Color Brewer 1'</span>,<span class="string">'FontSize'</span>,12);
 
 <span class="comment">%Brewer colormap 2</span>
-g(2,3).stat_summary(<span class="string">'geom'</span>,{<span class="string">'bar'</span>},<span class="string">'dodge'</span>,0);
 g(2,3).set_color_options(<span class="string">'map'</span>,<span class="string">'brewer2'</span>);
 g(2,3).set_title(<span class="string">'Color Brewer 2'</span>,<span class="string">'FontSize'</span>,12);
 
@@ -889,7 +886,63 @@ Less than 2 samples for CI computation...Skipping
 Less than 2 samples for CI computation...Skipping
 Less than 2 samples for CI computation...Skipping
 Less than 2 samples for CI computation...Skipping
-</pre><img vspace="5" hspace="5" src="examples_27.png" alt=""> <h2>Using a continuous color scale<a name="32"></a></h2><p>When the variable provided as 'color' contains too many different values (&gt;15), or when set_continuous_color is used, gramm switches from a categorical color scale to a gradient-based continuous color scale.</p><pre class="codeinput">load <span class="string">spectra.mat</span>
+</pre><img vspace="5" hspace="5" src="examples_27.png" alt=""> <h2>Customizing color/lightness maps  and legends with set_color_options()<a name="32"></a></h2><p>With the method set_color_options(), automatic color generation for color and lightness groups can be tweaked</p><pre class="codeinput">clear <span class="string">g</span>
+
+g(1,1)=gramm(<span class="string">'x'</span>,cars.Origin_Region,<span class="string">'y'</span>,cars.Horsepower,<span class="string">'color'</span>,cars.Origin_Region,<span class="string">'lightness'</span>,cars.Cylinders,<span class="keyword">...</span>
+    <span class="string">'subset'</span>,cars.Cylinders==4 | cars.Cylinders==6);
+g(1,1).stat_summary(<span class="string">'geom'</span>,{<span class="string">'bar'</span>},<span class="string">'dodge'</span>,1.3,<span class="string">'width'</span>,1.2);
+g(1,2) = copy( g(1,1) );
+g(1,3) = copy( g(1,1) );
+g(2,1) = copy( g(1,1) );
+g(2,2) = copy( g(1,1) );
+
+<span class="comment">% Default lightness/chroma is beter suited for more lightness categories</span>
+g(1,1).set_title(<span class="string">'Default LCH, default legend'</span>,<span class="string">'FontSize'</span>,12);
+
+<span class="comment">% It is possible to restrict the lightness/chroma changes across the</span>
+<span class="comment">% lightness categories. Forcing the legend to 'separate' here makes the</span>
+<span class="comment">% lightness legends use the first color instead of gray levels</span>
+g(1,2).set_color_options(<span class="string">'lightness_range'</span>,[70 40],<span class="string">'chroma_range'</span>,[60 70],<span class="string">'legend'</span>,<span class="string">'separate'</span>);
+g(1,2).set_title(<span class="string">'Modified LCH, lightness legend with color'</span>,<span class="string">'FontSize'</span>,12);
+
+<span class="comment">% Pre-defined color/lightness maps can yeild better results than default</span>
+<span class="comment">% parametric LCH colormaps</span>
+g(1,3).set_color_options(<span class="string">'map'</span>,<span class="string">'brewer_paired'</span>);
+g(1,3).set_title(<span class="string">'Brewer colormap'</span>,<span class="string">'FontSize'</span>,12);
+
+<span class="comment">% Witht the 'expand' legend option, all ligthness/color combinations are</span>
+<span class="comment">% presented in the legend</span>
+g(2,1).set_color_options(<span class="string">'map'</span>,<span class="string">'d3_20'</span>,<span class="string">'legend'</span>,<span class="string">'expand'</span>);
+g(2,1).set_title(<span class="string">'D3.js colormap, ''expand'' legend option'</span>,<span class="string">'FontSize'</span>,12);
+
+
+g(2,2)=gramm(<span class="string">'x'</span>,cars.Origin,<span class="string">'y'</span>,cars.Horsepower,<span class="string">'color'</span>,cars.Origin,<span class="keyword">...</span>
+    <span class="string">'marker'</span>,cars.Origin,<span class="string">'subset'</span>,cars.Cylinders==4 | cars.Cylinders==6);
+g(2,2).stat_summary(<span class="string">'geom'</span>,{<span class="string">'bar'</span>},<span class="string">'dodge'</span>,0,<span class="string">'width'</span>,0.15);
+g(2,2).stat_summary(<span class="string">'geom'</span>,{<span class="string">'point'</span>},<span class="string">'dodge'</span>,0,<span class="string">'width'</span>,1);
+g(2,2).set_point_options(<span class="string">'base_size'</span>,10);
+g(2,3)=copy(g(2,2));
+
+g(2,2).set_title(<span class="string">'D3.js colormap'</span>,<span class="string">'FontSize'</span>,12);
+g(2,2).set_color_options(<span class="string">'map'</span>,<span class="string">'d3_10'</span>);
+
+<span class="comment">% With the 'merge' legend option, plots that use the same categories for</span>
+<span class="comment">% color and marker/linestyle/size will be combined</span>
+g(2,3).set_color_options(<span class="string">'map'</span>,<span class="string">'d3_10'</span>,<span class="string">'legend'</span>,<span class="string">'merge'</span>);
+g(2,3).set_title(<span class="string">'D3.js colormap, ''merge'' legend option'</span>,<span class="string">'FontSize'</span>,12);
+
+g.axe_property(<span class="string">'YLim'</span>,[0 160]);
+g.axe_property(<span class="string">'XTickLabelRotation'</span>,60); <span class="comment">%Should work for recent Matlab versions</span>
+g.set_names(<span class="string">'x'</span>,<span class="string">'Origin'</span>,<span class="string">'y'</span>,<span class="string">'Horsepower'</span>,<span class="string">'color'</span>,<span class="string">'Origin'</span>,<span class="string">'marker'</span>,<span class="string">'Origin'</span>,<span class="string">'lightness'</span>,<span class="string">'# Cyl'</span>);
+g.set_title(<span class="string">'Color/Lightness maps and legend customizations examples'</span>);
+
+figure(<span class="string">'Position'</span>,[100 100 800 600]);
+g.draw();
+</pre><pre class="codeoutput">Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+Less than 2 samples for CI computation...Skipping
+</pre><img vspace="5" hspace="5" src="examples_28.png" alt=""> <h2>Using a continuous color scale<a name="33"></a></h2><p>When the variable provided as 'color' contains too many different values (&gt;15), or when set_continuous_color is used, gramm switches from a categorical color scale to a gradient-based continuous color scale.</p><pre class="codeinput">load <span class="string">spectra.mat</span>
 
 <span class="comment">%Here we create x as a 1xN array (see example above), and use a MxN matrix</span>
 <span class="comment">%for y. Color applies to the M rows of y.</span>
@@ -899,7 +952,7 @@ g18.set_continuous_color(<span class="string">'colormap'</span>,<span class="str
 g18.geom_line;
 figure(<span class="string">'Position'</span>,[100 100 800 450]);
 g18.draw();
-</pre><img vspace="5" hspace="5" src="examples_28.png" alt=""> <h2>Changing the order of elements with set_order_options()<a name="33"></a></h2><p>By default, gramm uses grouping data in increasing order of the group value (alphabetical for cellstr, numerical for arrays). Using set_order_options(), it is possible to fine tweak the orders of color, lightness, facet rows and columns, as well as categorical X</p><pre class="codeinput">y=[36 38 40 42 44 46];
+</pre><img vspace="5" hspace="5" src="examples_29.png" alt=""> <h2>Changing the order of elements with set_order_options()<a name="34"></a></h2><p>By default, gramm uses grouping data in increasing order of the group value (alphabetical for cellstr, numerical for arrays). Using set_order_options(), it is possible to fine tweak the orders of color, lightness, facet rows and columns, as well as categorical X</p><pre class="codeinput">y=[36 38 40 42 44 46];
 x={<span class="string">'XS'</span> <span class="string">'S'</span> <span class="string">'M'</span> <span class="string">'L'</span> <span class="string">'XL'</span> <span class="string">'XXL'</span>};
 
 
@@ -973,7 +1026,7 @@ Less than 2 samples for CI computation...Skipping
 Less than 2 samples for CI computation...Skipping
 Less than 2 samples for CI computation...Skipping
 Less than 2 samples for CI computation...Skipping
-</pre><img vspace="5" hspace="5" src="examples_29.png" alt=""> <h2>Customize the size and style of graphic elements with set_line_options() and set_point_options()<a name="34"></a></h2><pre class="codeinput">clear <span class="string">g</span>
+</pre><img vspace="5" hspace="5" src="examples_30.png" alt=""> <h2>Customize the size and style of graphic elements with set_line_options() and set_point_options()<a name="35"></a></h2><pre class="codeinput">clear <span class="string">g</span>
 x=repmat(1:10,1,5);
 y=reshape(bsxfun(@times,1:5,(1:10)'),1,50);
 sz=reshape(repmat(1:5,10,1),1,50);
@@ -1006,7 +1059,7 @@ g.set_title(<span class="string">'Customization of line and point options'</span
 
 figure(<span class="string">'Position'</span>,[100 100 800 600]);
 g.draw();
-</pre><img vspace="5" hspace="5" src="examples_30.png" alt=""> <h2>Decorate plot backgrounds with geom_polygon()<a name="35"></a></h2><pre class="codeinput">clear <span class="string">g</span>
+</pre><img vspace="5" hspace="5" src="examples_31.png" alt=""> <h2>Decorate plot backgrounds with geom_polygon()<a name="36"></a></h2><pre class="codeinput">clear <span class="string">g</span>
 g=gramm(<span class="string">'x'</span>,cars.Model_Year,<span class="string">'y'</span>,cars.MPG,<span class="string">'color'</span>,cars.Cylinders,<span class="string">'subset'</span>,cars.Cylinders~=3 &amp; cars.Cylinders~=5);
 g.facet_grid([],cars.Origin_Region);
 g.geom_point();
@@ -1042,7 +1095,7 @@ g.set_title(<span class="string">'Decorate plot backgrounds with geom_polygon()'
 
 figure(<span class="string">'Position'</span>,[100 100 800 600]);
 g.draw();
-</pre><img vspace="5" hspace="5" src="examples_31.png" alt=""> <h2>Advanced customization of gramm figures<a name="36"></a></h2><p>The options for the geom_ and stat_ methods, as well as the <tt>axe_property()</tt> method allow for high-level customization of gramm figures. Since the gramm object allows access to all handles for graphical objects, it's also possible to do more precise customizations and modifications of a gramm figure once it's drawn. In this figure:</p><div><ul><li>Text sizes and fonts are changed with <tt>set_text_options()</tt></li><li>Y grid is turned on on all facets with <tt>axe_property('YGrid','on')</tt></li><li>A vertical line and text is added to only one of the facets by using the <tt>facet_axes_handles</tt> public property of gramm objects</li><li>All points are made smaller by using their handles <tt>results.grom_point_handle</tt> in the <tt>set()</tt> function</li><li>Similarly, all confidence areas are made grey <tt>g.results.stat_glm.area_handle</tt></li><li>A subset of the glm lines are made thicker by calling <tt>set()</tt> on a subset teir handles |g.results.stat_glm(g.results.color==4).line_handle]</li></ul></div><p>It is also possible to set where the gramm axes are drawn by using the <tt>set_parent(parent_handle)</tt> function, which receives the handle of a figure/uipanel/uitab object to use as parent as argument.</p><pre class="codeinput">f=figure(<span class="string">'Position'</span>,[100 100 800 500]);
+</pre><img vspace="5" hspace="5" src="examples_32.png" alt=""> <h2>Advanced customization of gramm figures<a name="37"></a></h2><p>The options for the geom_ and stat_ methods, as well as the <tt>axe_property()</tt> method allow for high-level customization of gramm figures. Since the gramm object allows access to all handles for graphical objects, it's also possible to do more precise customizations and modifications of a gramm figure once it's drawn. In this figure:</p><div><ul><li>Text sizes and fonts are changed with <tt>set_text_options()</tt></li><li>Y grid is turned on on all facets with <tt>axe_property('YGrid','on')</tt></li><li>A vertical line and text is added to only one of the facets by using the <tt>facet_axes_handles</tt> public property of gramm objects</li><li>All points are made smaller by using their handles <tt>results.grom_point_handle</tt> in the <tt>set()</tt> function</li><li>Similarly, all confidence areas are made grey <tt>g.results.stat_glm.area_handle</tt></li><li>A subset of the glm lines are made thicker by calling <tt>set()</tt> on a subset teir handles |g.results.stat_glm(g.results.color==4).line_handle]</li></ul></div><p>It is also possible to set where the gramm axes are drawn by using the <tt>set_parent(parent_handle)</tt> function, which receives the handle of a figure/uipanel/uitab object to use as parent as argument.</p><pre class="codeinput">f=figure(<span class="string">'Position'</span>,[100 100 800 500]);
 <span class="comment">%Create fake button</span>
 c=uicontrol(<span class="string">'Style'</span>,<span class="string">'pushbutton'</span>,<span class="string">'String'</span>,<span class="string">'Dummy'</span>,<span class="string">'Units'</span>,<span class="string">'normalized'</span>,<span class="string">'Position'</span>,[0.8 0.45 0.15 0.1]);
 <span class="comment">%Create uipanel to put our gramm plots</span>
@@ -1079,31 +1132,31 @@ set([g.results.geom_point_handle],<span class="string">'MarkerSize'</span>,5);
 set([g.results.stat_glm.area_handle],<span class="string">'FaceColor'</span>,[0.4 0.4 0.4]);
 <span class="comment">%Or on a subset of them (here only for the lines of glms of 4-cylinder cars)</span>
 set([g.results.stat_glm(g.results.color==4).line_handle],<span class="string">'LineWidth'</span>,3);
-</pre><img vspace="5" hspace="5" src="examples_32.png" alt=""> <h2>Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)<a name="37"></a></h2><p>Standard ggplot-like input (arrays for everything) Note the continuous line connecting all blue data points, gramm can't know when to start a new line in this case</p><pre class="codeinput">Y=[1 2 3 4 5 2 3 4 5 6 3 4 5 6 7];
+</pre><img vspace="5" hspace="5" src="examples_33.png" alt=""> <h2>Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)<a name="38"></a></h2><p>Standard ggplot-like input (arrays for everything) Note the continuous line connecting all blue data points, gramm can't know when to start a new line in this case</p><pre class="codeinput">Y=[1 2 3 4 5 2 3 4 5 6 3 4 5 6 7];
 X=[1 2 3 4 5 0 1 2 3 4 -1 0 1 2 3];
 C=[1 1 1 1 1 2 2 2 2 2 2 2 2 2 2];
 figure
 g11=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g11.geom_line();
 g11.draw();
-</pre><img vspace="5" hspace="5" src="examples_33.png" alt=""> <p>Adding a group variable solves the problem in a ggplot-like way</p><pre class="codeinput">G=[1 1 1 1 1 2 2 2 2 2 3 3 3 3 3];
+</pre><img vspace="5" hspace="5" src="examples_34.png" alt=""> <p>Adding a group variable solves the problem in a ggplot-like way</p><pre class="codeinput">G=[1 1 1 1 1 2 2 2 2 2 3 3 3 3 3];
 figure
 g12=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C,<span class="string">'group'</span>,G);
 g12.geom_line();
 g12.draw();
-</pre><img vspace="5" hspace="5" src="examples_34.png" alt=""> <p>For a more matlab-like solution, Y and X can be 2D arrays, rows will automatically be considered as groups. as a consequence grouping data (color, etc...) are provided for the rows !</p><pre class="codeinput">Y=[1 2 3 4 5;2 3 4 5 6; 3 4 5 6 7];
+</pre><img vspace="5" hspace="5" src="examples_35.png" alt=""> <p>For a more matlab-like solution, Y and X can be 2D arrays, rows will automatically be considered as groups. as a consequence grouping data (color, etc...) are provided for the rows !</p><pre class="codeinput">Y=[1 2 3 4 5;2 3 4 5 6; 3 4 5 6 7];
 X=[1 2 3 4 5; 0 1 2 3 4; -1 0 1 2 3];
 C=[1 2 2];
 figure
 g13=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g13.geom_line();
 g13.draw();
-</pre><img vspace="5" hspace="5" src="examples_35.png" alt=""> <p>If all X values are the same, it's possible to provide X as a single row</p><pre class="codeinput">X=[1 2 3 4 5];
+</pre><img vspace="5" hspace="5" src="examples_36.png" alt=""> <p>If all X values are the same, it's possible to provide X as a single row</p><pre class="codeinput">X=[1 2 3 4 5];
 figure
 g14=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g14.geom_line();
 g14.draw();
-</pre><img vspace="5" hspace="5" src="examples_36.png" alt=""> <p>Similar results can be obtained with cells of arrays</p><pre class="codeinput">Y={[1 2 3 4 5] [2 3 4 5 6] [3 4 5 6 7]};
+</pre><img vspace="5" hspace="5" src="examples_37.png" alt=""> <p>Similar results can be obtained with cells of arrays</p><pre class="codeinput">Y={[1 2 3 4 5] [2 3 4 5 6] [3 4 5 6 7]};
 X={[1 2 3 4 5] [0 1 2 3 4] [-1 0 1 2 3]};
 figure
 g15=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
@@ -1116,13 +1169,13 @@ figure
 g16=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g16.geom_line();
 g16.draw();
-</pre><img vspace="5" hspace="5" src="examples_37.png" alt=""> <img vspace="5" hspace="5" src="examples_38.png" alt=""> <p>With cells of arrays, there is the opportunity to have different lengths for different groups</p><pre class="codeinput">Y={[1 2 3 4 5] [3 4 5] [3 4 5 6 7]};
+</pre><img vspace="5" hspace="5" src="examples_38.png" alt=""> <img vspace="5" hspace="5" src="examples_39.png" alt=""> <p>With cells of arrays, there is the opportunity to have different lengths for different groups</p><pre class="codeinput">Y={[1 2 3 4 5] [3 4 5] [3 4 5 6 7]};
 X={[1 2 3 4 5] [1 2 3] [-1 0 1 2 3]};
 figure
 g17=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g17.geom_line();
 g17.draw();
-</pre><img vspace="5" hspace="5" src="examples_39.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="examples_40.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% gramm examples
 % Examples and how-tos for gramm
@@ -1364,7 +1417,8 @@ g.draw();
 % With |geom_interval()| it is possible to plot custom confidence intervals
 % by provinding |'ymin'| and |'ymax'| values to |gramm()|. All options to
 % display confidence intervals in |stat_summary()| are available, including
-% dodging.
+% dodging. |'ymin'| and |'ymax'| are absolute, and not given relative to
+% |'y'|
 
 cars_table=struct2table(cars);
 cars_summary=rowfun(@(hp)deal(nanmean(hp),bootci(200,@(x)nanmean(x),hp)'),cars_table(cars.Cylinders~=3 & cars.Cylinders~=5,:),...
@@ -2083,6 +2137,7 @@ g.draw();
 %Default: LCH-based colormap with hue variation
 clear g
 g(1,1)=gramm('x',cars.Origin,'y',cars.Horsepower,'color',cars.Origin);
+g(1,1).stat_summary('geom',{'bar'},'dodge',0);
 g(1,2)=copy(g(1));
 g(1,3)=gramm('x',cars.Origin,'y',cars.Horsepower,'lightness',cars.Origin);
 g(2,1)=copy(g(1));
@@ -2090,12 +2145,11 @@ g(2,2)=copy(g(1));
 g(2,3)=copy(g(1));
 
 
-g(1,1).stat_summary('geom',{'bar'},'dodge',0);
+
 g(1,1).set_title('Default LCH (''color'' groups)','FontSize',12);
 
 %Possibility to change the hue range as well as lightness and chroma of
 %the LCH-based colormap
-g(1,2).stat_summary('geom',{'bar'},'dodge',0);
 g(1,2).set_color_options('hue_range',[-60 60],'chroma',40,'lightness',90);
 g(1,2).set_title('Modified LCH (''color'' groups)','FontSize',12);
 
@@ -2106,17 +2160,14 @@ g(1,3).set_color_options('lightness_range',[0 95],'chroma_range',[0 0]);
 g(1,3).set_title('Modified LCH (''lightness'' groups)','FontSize',12);
 
 %Go back to Matlab's defauls colormap
-g(2,1).stat_summary('geom',{'bar'},'dodge',0);
 g(2,1).set_color_options('map','matlab');
 g(2,1).set_title('Matlab 2014B+ ','FontSize',12);
 
 %Brewer colormap 1
-g(2,2).stat_summary('geom',{'bar'},'dodge',0);
 g(2,2).set_color_options('map','brewer1');
 g(2,2).set_title('Color Brewer 1','FontSize',12);
 
 %Brewer colormap 2
-g(2,3).stat_summary('geom',{'bar'},'dodge',0);
 g(2,3).set_color_options('map','brewer2');
 g(2,3).set_title('Color Brewer 2','FontSize',12);
 
@@ -2127,6 +2178,63 @@ g.set_names('x','Origin','y','Horsepower','color','Origin','lightness','Origin')
 g.set_title('Colormap customizations examples');
 
 figure('Position',[100 100 800 600])
+g.draw();
+
+%% Customizing color/lightness maps  and legends with set_color_options()
+% With the method set_color_options(), automatic color generation for
+% color and lightness groups can be tweaked
+
+clear g
+
+g(1,1)=gramm('x',cars.Origin_Region,'y',cars.Horsepower,'color',cars.Origin_Region,'lightness',cars.Cylinders,...
+    'subset',cars.Cylinders==4 | cars.Cylinders==6);
+g(1,1).stat_summary('geom',{'bar'},'dodge',1.3,'width',1.2);
+g(1,2) = copy( g(1,1) );
+g(1,3) = copy( g(1,1) );
+g(2,1) = copy( g(1,1) );
+g(2,2) = copy( g(1,1) );
+
+% Default lightness/chroma is beter suited for more lightness categories
+g(1,1).set_title('Default LCH, default legend','FontSize',12);
+
+% It is possible to restrict the lightness/chroma changes across the
+% lightness categories. Forcing the legend to 'separate' here makes the
+% lightness legends use the first color instead of gray levels
+g(1,2).set_color_options('lightness_range',[70 40],'chroma_range',[60 70],'legend','separate');
+g(1,2).set_title('Modified LCH, lightness legend with color','FontSize',12);
+
+% Pre-defined color/lightness maps can yeild better results than default
+% parametric LCH colormaps
+g(1,3).set_color_options('map','brewer_paired');
+g(1,3).set_title('Brewer colormap','FontSize',12);
+
+% Witht the 'expand' legend option, all ligthness/color combinations are
+% presented in the legend
+g(2,1).set_color_options('map','d3_20','legend','expand');
+g(2,1).set_title('D3.js colormap, ''expand'' legend option','FontSize',12);
+
+
+g(2,2)=gramm('x',cars.Origin,'y',cars.Horsepower,'color',cars.Origin,...
+    'marker',cars.Origin,'subset',cars.Cylinders==4 | cars.Cylinders==6);
+g(2,2).stat_summary('geom',{'bar'},'dodge',0,'width',0.15);
+g(2,2).stat_summary('geom',{'point'},'dodge',0,'width',1);
+g(2,2).set_point_options('base_size',10);
+g(2,3)=copy(g(2,2));
+
+g(2,2).set_title('D3.js colormap','FontSize',12);
+g(2,2).set_color_options('map','d3_10');
+
+% With the 'merge' legend option, plots that use the same categories for
+% color and marker/linestyle/size will be combined
+g(2,3).set_color_options('map','d3_10','legend','merge');
+g(2,3).set_title('D3.js colormap, ''merge'' legend option','FontSize',12);
+
+g.axe_property('YLim',[0 160]);
+g.axe_property('XTickLabelRotation',60); %Should work for recent Matlab versions
+g.set_names('x','Origin','y','Horsepower','color','Origin','marker','Origin','lightness','# Cyl');
+g.set_title('Color/Lightness maps and legend customizations examples');
+
+figure('Position',[100 100 800 600]);
 g.draw();
 
 %% Using a continuous color scale

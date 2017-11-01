@@ -1,0 +1,56 @@
+function [] = fill_gradient_legend(obj, title_text, legend_values, legend_ticks, gradient_height)
+
+legend_y_step = 1;
+legend_y_additional_step = 0.5;
+
+obj.legend_text_handles = [obj.legend_text_handles ...
+    text(1, obj.legend_y, title_text, ...
+    'FontWeight', 'bold', ...
+    'Interpreter', obj.text_options.interpreter, ...
+    'FontName', obj.text_options.font, ...
+    'FontSize', obj.text_options.base_size * obj.text_options.legend_title_scaling, ...
+    'Parent', obj.legend_axe_handle)];
+
+obj.legend_y = obj.legend_y - legend_y_step;
+
+tmp_N = 100;
+
+%imagesc coordinates correspond to centers of patches, hence the
+%x=[1.5 1.5] to get [1 2] borders
+imagesc([1.5 1.5], ...
+    [obj.legend_y - gradient_height obj.legend_y], ...
+    linspace(obj.continuous_color_options.CLim(1), obj.continuous_color_options.CLim(2), tmp_N)', ...
+    'Parent', obj.legend_axe_handle);
+
+
+obj.legend_y = obj.legend_y - gradient_height;
+
+for k = 1:length(legend_ticks)
+    line([1.8 2; 1 1.2]', ...
+        [1 1] * (obj.legend_y + val2y(legend_ticks(k), gradient_height, obj.continuous_color_options.CLim)), ...
+        'Color', 'w', 'Parent', obj.legend_axe_handle)
+end
+
+%We need to fill from the top so that lowest text is last in the handle
+%array
+legend_values = sort(legend_values,'descend');
+for k = 1:length(legend_values)
+    obj.legend_text_handles = [obj.legend_text_handles ...
+        text(2.5, ...
+        obj.legend_y + val2y(legend_values(k), gradient_height, obj.continuous_color_options.CLim), ...
+        num2str(legend_values(k)), ...
+        'FontName', obj.text_options.font, ...
+        'FontSize', obj.text_options.base_size * obj.text_options.legend_scaling, ...
+        'Parent', obj.legend_axe_handle)];
+end
+
+colormap(obj.continuous_color_options.colormap)
+caxis(obj.continuous_color_options.CLim);
+
+obj.legend_y = obj.legend_y - legend_y_step - legend_y_additional_step;
+
+end
+
+function res = val2y(val, height, clim)
+res = height * (val - clim(1)) / (clim(2) - clim(1));
+end
