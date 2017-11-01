@@ -152,7 +152,10 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
         uni_x=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.interp_in);
         [x,y]=cellfun(@(x,y)deal(uni_x,interp1(x,y,uni_x,'linear')),draw_data.x,draw_data.y,'UniformOutput',false,'ErrorHandler',@(st,a,b)deal([],[]));
         y=padded_cell2mat(y);
-        
+        if isempty(y) %likely because we had only single points
+            y = nan(size(uni_x));
+            disp('Error in summary input interpolation... nothing plotted')
+        end
     else
         %If not we just make a padded matrix for fast
         %computations (we'll assume that X are roughly at the
