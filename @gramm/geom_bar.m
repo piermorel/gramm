@@ -71,25 +71,31 @@ if params.stacked
     %Problem with stacked bar when different x values are used
     if obj.firstrun(obj.current_row,obj.current_column)
         %Store heights at the level of dodge x
-        obj.extra.stacked_bar_height=zeros(1,length(draw_data.dodge_x));
-        obj.plot_lim.minx(obj.current_row,obj.current_column)=min(x)-width;
-        obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(x)+width;
-        %obj.firstrun(obj.current_row,obj.current_column)=0;
+        obj.extra.stacked_bar_height=zeros(1,length(draw_data.facet_x));
+        %obj.plot_lim.minx(obj.current_row,obj.current_column)=min(x)-width;
+        %obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(x)+width;
     end
     
     % Stack index is used to keep track of the stacks
-    x_stack_ind=arrayfun(@(xin)find(abs(draw_data.dodge_x-xin)<1e-10,1),x);
+    x_stack_ind=arrayfun(@(xin)find(abs(draw_data.facet_x-xin)<1e-10,1),x);
     
-    % Calculate bar patch coordinates
+    % Calculate bar patch left/right coordinates
     barleft=x-width/2;
     barright=x+width/2;
-    barbottom=obj.extra.stacked_bar_height(x_stack_ind);
-    bartop=obj.extra.stacked_bar_height(x_stack_ind)+y;
+    
+    % Calculate bar patch top/bottom coordinates
+    barbottom=zeros(size(x));
+    bartop=zeros(size(x));
+    for k=1:length(x) %Loop in order to make stacked bar height cumulative even when plotted at the same x/color
+        barbottom(k)=obj.extra.stacked_bar_height(x_stack_ind(k));
+        bartop(k)=obj.extra.stacked_bar_height(x_stack_ind(k))+y(k);
+        obj.extra.stacked_bar_height(x_stack_ind(k))=obj.extra.stacked_bar_height(x_stack_ind(k))+y(k);
+    end
+
     xpatch=[barleft ; barright ; barright ; barleft];
     ypatch=[barbottom ; barbottom ; bartop ; bartop];
     [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
-    
-    obj.extra.stacked_bar_height(x_stack_ind)=obj.extra.stacked_bar_height(x_stack_ind)+y;
+     
     if obj.plot_lim.maxy(obj.current_row,obj.current_column)<max(obj.extra.stacked_bar_height)
         obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(obj.extra.stacked_bar_height);
     end
