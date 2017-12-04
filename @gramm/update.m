@@ -46,7 +46,7 @@ obj.geom={};
 
 obj.updater.updated=true;
 obj.updater.facet_updated=false;
-obj.with_legend=true;
+obj.layout_options.legend=true;
 
 %Remove ablines by emptying fields
 temp_fields = fieldnames(obj.abline);

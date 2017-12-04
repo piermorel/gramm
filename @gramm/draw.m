@@ -15,7 +15,7 @@ function obj=draw(obj,do_redraw)
 
 %We set redraw() as resize callback by default
 if nargin<2
-    do_redraw=true;
+    do_redraw=obj(1).layout_options.redraw;
 end
 
 %If no parent was given we use the current figure
@@ -62,14 +62,20 @@ if numel(obj)>1
         end
     end
     
+    
     nl=size(obj,1);
     nc=size(obj,2);
     for l=1:nl
         for c=1:nc
-            obj(l,c).multi.orig=[(nl-l)*maxh/nl (c-1)/nc];
-            obj(l,c).multi.size=[maxh/nl 1/nc];
+            if strcmp(obj(l,c).layout_options.position,'auto')
+                obj(l,c).multi.orig=[(nl-l)*maxh/nl (c-1)/nc];
+                obj(l,c).multi.size=[maxh/nl 1/nc];
+            else
+                obj(l,c).multi.orig=[obj(l,c).layout_options.position(2)*maxh obj(l,c).layout_options.position(1)];
+                obj(l,c).multi.size=[obj(l,c).layout_options.position(4)*maxh obj(l,c).layout_options.position(3)];
+            end
+            obj(l,c).layout_options.redraw_gap=obj(l,c).layout_options.redraw_gap/max(nl,nc);
             obj(l,c).multi.active=true;
-            obj(l,c).redraw_spacing=obj(l,c).redraw_spacing/max(nl,nc);
             draw(obj(l,c));
         end
     end
@@ -181,19 +187,28 @@ end
 %that it restricts the drawing (using margins) to a portion of
 %the figure
 mysubtightplot=@(m,n,p,gap,marg_h,marg_w)my_tightplot(m,n,p,...
-    [gap(1)*obj.multi.size(1) gap(2)*obj.multi.size(2)],...
+    [gap(2)*obj.multi.size(1) gap(1)*obj.multi.size(2)],...
     [obj.multi.orig(1)+obj.multi.size(1)*marg_h(1) 1-obj.multi.orig(1)-obj.multi.size(1)*(1-marg_h(2))],...
     [obj.multi.orig(2)+obj.multi.size(2)*marg_w(1) 1-obj.multi.orig(2)-obj.multi.size(2)*(1-marg_w(2))],'Parent',obj.parent);
 
 %Set subplot generation parameters and functions
-if obj.force_ticks  %Independent scales require more space between subplots for ticks
-    mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.06 0.06],[0.1 0.2],[0.1 0.2]);
+if strcmp(obj.layout_options.gap,'auto')
+    if obj.force_ticks  %Independent scales require more space between subplots for ticks
+        mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.06 0.06],obj.layout_options.margin_height,obj.layout_options.margin_width);  
+    else
+        mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.02 0.02],obj.layout_options.margin_height,obj.layout_options.margin_width);
+    end
 else
-    mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.02 0.02],[0.1 0.2],[0.1 0.2]);
+    mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,obj.layout_options.gap,obj.layout_options.margin_height,obj.layout_options.margin_width);
 end
+
 %Subplots for wraps leave more space above axes for column
 %legend
-mysubplot_wrap=@(ncol,col)mysubtightplot(ceil(ncol/obj.wrap_ncols),obj.wrap_ncols,col,[0.09 0.03],[0.1 0.2],[0.1 0.2]);
+if strcmp(obj.layout_options.gap,'auto')
+    mysubplot_wrap=@(ncol,col)mysubtightplot(ceil(ncol/obj.wrap_ncols),obj.wrap_ncols,col,[0.03 0.09],obj.layout_options.margin_height,obj.layout_options.margin_width);
+else
+    mysubplot_wrap=@(ncol,col)mysubtightplot(ceil(ncol/obj.wrap_ncols),obj.wrap_ncols,col,obj.layout_options.gap,obj.layout_options.margin_height,obj.layout_options.margin_width);
+end
 
 %Find uniques in aesthetics and sort according to options
 uni_row=unique_and_sort(temp_aes.row,obj.order_options.row);
@@ -657,9 +672,20 @@ str_uni_marker = cellfun(@num2str,uni_marker,'UniformOutput',false);
 
 %Create axes for legends
 if obj.updater.first_draw
-    obj.legend_axe_handle=axes('Position',[obj.multi.orig(2)+0.85*obj.multi.size(2)...
-        obj.multi.orig(1)+0.1*obj.multi.size(1) 0.15*obj.multi.size(2) 0.8*obj.multi.size(1)],...
-        'Parent',obj.parent);
+    if strcmp(obj.layout_options.legend_position,'auto')
+        if strcmp(obj.layout_options.legend_width,'auto')
+            obj.legend_axe_handle=axes('Position',[obj.multi.orig(2)+0.85*obj.multi.size(2)...
+                obj.multi.orig(1)+0.1*obj.multi.size(1) 0.15*obj.multi.size(2) 0.8*obj.multi.size(1)],...
+                'Parent',obj.parent);
+        else
+            obj.legend_axe_handle=axes('Position',[obj.multi.orig(2)+(1-obj.layout_options.legend_width)*obj.multi.size(2)...
+                obj.multi.orig(1)+0.1*obj.multi.size(1) 0.15*obj.multi.size(2) 0.8*obj.multi.size(1)],...
+                'Parent',obj.parent);
+        end
+    else
+        obj.legend_axe_handle=axes('Position',obj.layout_options.legend_position,...
+                'Parent',obj.parent);
+    end
     hold on
     set(obj.legend_axe_handle,'Visible','off','NextPlot','add');
     %set(obj.legend_axe_handle,'PlotBoxAspectRatio',[1 1 1]);
@@ -670,7 +696,7 @@ end
 legend_y_step=1;
 legend_y_additional_step=0.5;
 
-if obj.with_legend
+if obj.layout_options.legend
     
     % Color legend
     % If the color groups are the same as marker, linestyle or size groups
