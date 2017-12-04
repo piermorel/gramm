@@ -103,7 +103,7 @@ classdef gramm < matlab.mixin.Copyable
         
         stat_options %Structure holding statistics options
         
-        with_legend=true %Do we have a side legend for colors etc. ?
+        layout_options  %Structure holding layout options
         
         legend_y=0 %Current y position of the legend text
         
@@ -120,7 +120,6 @@ classdef gramm < matlab.mixin.Copyable
         
         redraw_cache=[] %Cache store for faster redraw() calls
         redraw_fun={}
-        redraw_spacing=0.04
         
         parent=[]
         
@@ -187,6 +186,7 @@ classdef gramm < matlab.mixin.Copyable
             set_line_options(obj);
             set_point_options(obj);
             set_stat_options(obj);
+            set_layout_options(obj);
         end
         
         obj=update(obj,varargin)
