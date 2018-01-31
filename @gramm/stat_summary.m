@@ -21,6 +21,7 @@ function obj=stat_summary(obj,varargin)
 %       percentiles
 %       - 'fitnormalci'
 %       - 'fitpoissonci'
+%       - 'fitbinomialci'
 %       - 'fit95percentile'
 %       - @function : provide a the handle to a custom function that takes 
 %       y values (as an n_repetitions x n_data_points matrix) and returns 
