@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>gramm examples</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-12-04"><meta name="DC.source" content="examples.m"><style type="text/css">
+      --><title>gramm examples and how-tos</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-02-13"><meta name="DC.source" content="examples.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>gramm examples</h1><!--introduction--><p>Examples and how-tos for gramm</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Example from the readme</a></li><li><a href="#9">Grouping options in gramm</a></li><li><a href="#10">Methods for visualizing Y~X relationships with X as categorical variable</a></li><li><a href="#11">Methods for visualizing X densities</a></li><li><a href="#12">Methods for visualizing Y~X relationship with both X and Y as continuous variables</a></li><li><a href="#13">Methods for visualizing custom confidence intervals</a></li><li><a href="#14">Methods for visualizing 2D densities</a></li><li><a href="#15">Methods for visualizing repeated trajectories</a></li><li><a href="#16">Methods for visualizing repeated densities (e.g. spike densities)</a></li><li><a href="#17">Options for separating groups across subplots with facet_grid()</a></li><li><a href="#18">Options for creating histograms with stat_bin()</a></li><li><a href="#21">Visualize x-y difference with inset histogram using stat_cornerhist()</a></li><li><a href="#22">Graphic and normalization options in stat_violin()</a></li><li><a href="#23">Options for dodging and spacing graphic elements in <tt>stat_summary()</tt> and <tt>stat_boxplot()</tt></a></li><li><a href="#25">Plotting text or labeling with geom_label()</a></li><li><a href="#26">Smooth continuous data with stat_smooth()</a></li><li><a href="#27">Superimposing gramm plots with update(): Using different groups for different stat_ and geom_ methods</a></li><li><a href="#29">Superimposing gramm plots with update(): Plotting all the data in the background of facets</a></li><li><a href="#30">Use custom layouts in gramm, marginal histogram example</a></li><li><a href="#31">Plot one variable against many others</a></li><li><a href="#32">Customizing color maps with set_color_options()</a></li><li><a href="#33">Customizing color/lightness maps  and legends with set_color_options()</a></li><li><a href="#34">Using a continuous color scale</a></li><li><a href="#35">Changing the order of elements with set_order_options()</a></li><li><a href="#36">Customize the size and style of graphic elements with set_line_options() and set_point_options()</a></li><li><a href="#37">Decorate plot backgrounds with geom_polygon()</a></li><li><a href="#38">Advanced customization of gramm figures</a></li><li><a href="#39">Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)</a></li></ul></div><h2>Example from the readme<a name="1"></a></h2><p>Here we plot the evolution of fuel economy of new cars bewteen 1970 and 1980 (carbig dataset). Gramm is used to easily separate groups on the basis of the number of cylinders of the cars (color), and on the basis of the region of origin of the cars (subplot columns). Both the raw data (points) and a glm fit with 95% confidence interval (line+shaded area) are plotted.</p><p>We stat by loading the sample data (structure created from the carbig dataset)</p><pre class="codeinput">load <span class="string">example_data</span>;
+  </style></head><body><div class="content"><h1>gramm examples and how-tos</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Example from the readme</a></li><li><a href="#9">Grouping options in gramm</a></li><li><a href="#10">Methods for visualizing Y~X relationships with X as categorical variable</a></li><li><a href="#11">Methods for visualizing X densities</a></li><li><a href="#12">Methods for visualizing Y~X relationship with both X and Y as continuous variables</a></li><li><a href="#13">Methods for visualizing custom confidence intervals</a></li><li><a href="#14">Methods for visualizing 2D densities</a></li><li><a href="#15">Methods for visualizing repeated trajectories</a></li><li><a href="#16">Methods for visualizing repeated densities (e.g. spike densities)</a></li><li><a href="#17">Options for separating groups across subplots with facet_grid()</a></li><li><a href="#18">Options for creating histograms with stat_bin()</a></li><li><a href="#21">Visualize x-y difference with inset histogram using stat_cornerhist()</a></li><li><a href="#22">Graphic and normalization options in stat_violin()</a></li><li><a href="#23">Options for dodging and spacing graphic elements in <tt>stat_summary()</tt> and <tt>stat_boxplot()</tt></a></li><li><a href="#25">Plotting text or labeling with geom_label()</a></li><li><a href="#26">Smooth continuous data with stat_smooth()</a></li><li><a href="#27">Superimposing gramm plots with update(): Using different groups for different stat_ and geom_ methods</a></li><li><a href="#29">Superimposing gramm plots with update(): Plotting all the data in the background of facets</a></li><li><a href="#30">Use custom layouts in gramm, marginal histogram example</a></li><li><a href="#31">Plot one variable against many others</a></li><li><a href="#32">Customizing color maps with set_color_options()</a></li><li><a href="#33">Customizing color/lightness maps  and legends with set_color_options()</a></li><li><a href="#34">Using a continuous color scale</a></li><li><a href="#35">Changing the order of elements with set_order_options()</a></li><li><a href="#36">Customize the size and style of graphic elements with set_line_options() and set_point_options()</a></li><li><a href="#37">Decorate plot backgrounds with geom_polygon()</a></li><li><a href="#38">Advanced customization of gramm figures</a></li><li><a href="#39">Using different input formats for x and y (1D arrays, cells of arrays, 2D arrays)</a></li><li><a href="#45">Raw matlab code equivalent to the first figure (in paper.md)</a></li></ul></div><h2>Example from the readme<a name="1"></a></h2><p>Here we plot the evolution of fuel economy of new cars bewteen 1970 and 1980 (carbig dataset). Gramm is used to easily separate groups on the basis of the number of cylinders of the cars (color), and on the basis of the region of origin of the cars (subplot columns). Both the raw data (points) and a glm fit with 95% confidence interval (line+shaded area) are plotted.</p><p>We stat by loading the sample data (structure created from the carbig dataset)</p><pre class="codeinput">load <span class="string">example_data</span>;
 </pre><p>Create a gramm object, provide x (year of production) and y (fuel economy) data, color grouping data (number of cylinders) and select a subset of the data</p><pre class="codeinput">g=gramm(<span class="string">'x'</span>,cars.Model_Year,<span class="string">'y'</span>,cars.MPG,<span class="string">'color'</span>,cars.Cylinders,<span class="string">'subset'</span>,cars.Cylinders~=3 &amp; cars.Cylinders~=5);
 </pre><p>Subdivide the data in subplots horizontally by region of origin using facet_grid()</p><pre class="codeinput">g.facet_grid([],cars.Origin_Region);
 </pre><p>Plot raw data as points</p><pre class="codeinput">g.geom_point();
@@ -1220,10 +1220,52 @@ figure
 g17=gramm(<span class="string">'x'</span>,X,<span class="string">'y'</span>,Y,<span class="string">'color'</span>,C);
 g17.geom_line();
 g17.draw();
-</pre><img vspace="5" hspace="5" src="examples_41.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="examples_41.png" alt=""> <h2>Raw matlab code equivalent to the first figure (in paper.md)<a name="45"></a></h2><pre class="codeinput">figure(<span class="string">'Position'</span>,[100 100 800 400],<span class="string">'Color'</span>,[1 1 1]);
+
+<span class="comment">% Define groups</span>
+cyl = [4 6 8]; <span class="comment">% Manually</span>
+orig = unique(cars.Origin_Region); <span class="comment">% Based on data</span>
+
+<span class="comment">% Loop over groups</span>
+<span class="keyword">for</span> oi = 1:length(orig) <span class="comment">% External loop on the axes</span>
+
+    <span class="comment">% Axes creation</span>
+    ax = subplot(1,length(orig),oi);
+    hold <span class="string">on</span>
+
+    <span class="keyword">for</span> ci = 1:length(cyl) <span class="comment">%Internal loop on the colors</span>
+
+        <span class="comment">% Data selection</span>
+        sel = strcmp(cars.Origin_Region,orig{oi}) &amp; <span class="keyword">...</span>
+            cars.Cylinders==cyl(ci) &amp; <span class="keyword">...</span>
+            ~isnan(cars.Model_Year) &amp; ~isnan(cars.MPG);
+
+        <span class="comment">% Plotting of raw data</span>
+        plot(cars.Model_Year(sel),cars.MPG(sel),<span class="string">'.'</span>, <span class="keyword">...</span>
+            <span class="string">'MarkerSize'</span>,15);
+
+        <span class="comment">% Keep the same color for the statistics</span>
+        ax.ColorOrderIndex = ax.ColorOrderIndex - 1;
+
+        <span class="comment">% Statistics (linear fit and plotting)</span>
+        b = [ones(sum(sel),1) cars.Model_Year(sel)] \ <span class="keyword">...</span>
+			cars.MPG(sel);
+        x_fit = [min(cars.Model_Year(sel)) <span class="keyword">...</span>
+			max(cars.Model_Year(sel))];
+        plot(x_fit, x_fit * b(2) + b(1),<span class="string">'LineWidth'</span>,1.5);
+    <span class="keyword">end</span>
+
+    <span class="comment">% Axes legends</span>
+    title([<span class="string">'Origin: '</span> orig{oi}]);
+    xlabel(<span class="string">'Year'</span>);
+    ylabel(<span class="string">'Fuel Economy (MPG)'</span>);
+<span class="keyword">end</span>
+<span class="comment">% Ugly color legend</span>
+l = legend(<span class="string">'4'</span>,<span class="string">''</span>,<span class="string">'6'</span>,<span class="string">''</span>,<span class="string">'8'</span>,<span class="string">''</span>,<span class="string">'Location'</span>,<span class="string">'southeast'</span>);
+title(l,<span class="string">'#Cyl'</span>);
+</pre><img vspace="5" hspace="5" src="examples_42.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-%% gramm examples
-% Examples and how-tos for gramm
+%% gramm examples and how-tos
 %% Example from the readme
 % Here we plot the evolution of fuel economy of new cars bewteen 1970 and 1980 (carbig
 % dataset). Gramm is used to easily separate groups on the basis of the number of
@@ -2606,6 +2648,51 @@ g17.geom_line();
 g17.draw();
 
 
+%% Raw matlab code equivalent to the first figure (in paper.md)
+
+figure('Position',[100 100 800 400],'Color',[1 1 1]);
+
+% Define groups
+cyl = [4 6 8]; % Manually
+orig = unique(cars.Origin_Region); % Based on data
+
+% Loop over groups
+for oi = 1:length(orig) % External loop on the axes
+
+    % Axes creation
+    ax = subplot(1,length(orig),oi);
+    hold on
+
+    for ci = 1:length(cyl) %Internal loop on the colors
+
+        % Data selection
+        sel = strcmp(cars.Origin_Region,orig{oi}) & ...
+            cars.Cylinders==cyl(ci) & ...
+            ~isnan(cars.Model_Year) & ~isnan(cars.MPG);
+
+        % Plotting of raw data
+        plot(cars.Model_Year(sel),cars.MPG(sel),'.', ...
+            'MarkerSize',15);
+
+        % Keep the same color for the statistics
+        ax.ColorOrderIndex = ax.ColorOrderIndex - 1;
+
+        % Statistics (linear fit and plotting)
+        b = [ones(sum(sel),1) cars.Model_Year(sel)] \ ...
+			cars.MPG(sel);
+        x_fit = [min(cars.Model_Year(sel)) ...
+			max(cars.Model_Year(sel))];
+        plot(x_fit, x_fit * b(2) + b(1),'LineWidth',1.5);
+    end
+
+    % Axes legends
+    title(['Origin: ' orig{oi}]);
+    xlabel('Year');
+    ylabel('Fuel Economy (MPG)');
+end
+% Ugly color legend
+l = legend('4','','6','','8','','Location','southeast');
+title(l,'#Cyl');
 
 
 

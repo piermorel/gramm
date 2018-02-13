@@ -4,10 +4,19 @@ Gramm is a powerful plotting toolbox which allows to quickly create complex, pub
 
 
 ## Table of contents ##
+
+- [Why gramm?](#why-gramm)
 - [Citing gramm](#citing-gramm)
 - [Using gramm](#using-gramm)
 - [Features](#features)
 - [Use cases and examples (screenshots)](#use-cases-and-examples)
+
+## Why gramm ##
+
+Gramm is a data visualization toolbox for Matlab that allows to produce publication-quality plots from grouped data easily and flexibly. Matlab can be used for complex data analysis using a high-level interface: it supports mixed-type tabular data via tables, provides statistical functions that accept these tables as arguments, and allows users to adopt a split-apply-combine approach ([Wickham 2011](https://www.jstatsoft.org/article/view/v040i01)) with ```rowfun()```. However, the standard plotting functionality in Matlab is mostly low-level, allowing to create axes in figure windows and draw geometric primitives (lines, points, patches) or simple statistical visualizations (histograms, boxplots) from numerical array data. Producing complex plots from grouped data thus requires iterating over the various groups in order to make successive statistical computations and low-level draw calls, all the while handling axis and color generation in order to visually separate data by groups. The corresponding code is often long, not easily reusable, and makes exploring alternative plot designs tedious. 
+
+Inspired by ggplot2 ([Wickham 2009](http://ggplot2.org)), the R implementation of "grammar of graphics" principles ([Wilkinson 1999](http://www.springer.com/de/book/9781475731002)), gramm improves Matlab's plotting functionality, allowing to generate complex figures using high-level object-oriented code.
+Gramm has been used in several publications in the field of neuroscience, from human psychophysics ([Morel et al. 2017](https://doi.org/10.1371/journal.pbio.2001323)), to electrophysiology ([Morel et al. 2016](https://doi.org/10.1088/1741-2560/13/1/016002); [Ferrea et al. 2017](https://doi.org/10.1152/jn.00504.2017)), human functional imaging  ([Wan et al. 2017](https://doi.org/10.1002/hbm.23932)) and animal training ([Berger et al. 2017](https://doi.org/10.1152/jn.00614.2017)).
 
 ## Citing gramm ##
 
@@ -49,8 +58,9 @@ g.set_title('Fuel economy of new cars between 1970 and 1982')
 g.draw()
 ```
 
-### Installation
-Add the folder containing the @gramm class folder to your path
+### Installation ###
+
+Download the gramm toolbox from GitHub ("Clone or download" button>download ZIP) or [clone it](https://help.github.com/articles/cloning-a-repository/), and add the folder containing the @gramm class folder to your Matlab path (using the [GUI](https://mathworks.com/help/matlab/matlab_env/add-remove-or-reorder-folders-on-the-search-path.html) or [```addpath()```](https://mathworks.com/help/matlab/ref/addpath.html))
 
 ### Figure export 
 
@@ -64,7 +74,7 @@ Tested under Matlab 2014b+ versions. With pre-2014b versions, gramm forces <code
 ### Documentation ###
 
 - [gramm cheat sheet](https://github.com/piermorel/gramm/blob/master/gramm%20cheat%20sheet.pdf)
-- Numerous examples in <code>html/examples.html</code> and the corresponding code in examples.m
+- Numerous coding examples and test cases in ```examples.m```, exported for preview in  [html/examples.html](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/master/html/examples.html)
 -  <code>doc gramm</code> to find links to the documentation of each method.
 
 
@@ -121,13 +131,13 @@ Tested under Matlab 2014b+ versions. With pre-2014b versions, gramm forces <code
 - Custom legend labels with <code>set_names()</code>
 - Plot reference line on the plots with <code>geom_abline()</code>, <code>geom_vline()</code>,<code>geom_hline()</code>
 - Plot reference polygons on the plots with <code>geom_polygon()</code>
-- Date ticks with set_datetick()
+- Date ticks with <code>set_datetick()</code>
 - Gramm works best with table-like data: separate variables / structure fields / table columns for the variables of interest, with each variable having as many elements as observations.
 
 
 ## Use cases and examples
 
-The code for the following figures and numerous others is in <code>examples.m</code>.
+The code for the following figures and many others is in <code>examples.m</code>.
 
 ### Mapping groups of data to different visual properties
 All the mappings presented below can be combined.

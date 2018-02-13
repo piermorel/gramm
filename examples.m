@@ -1,5 +1,4 @@
-%% gramm examples
-% Examples and how-tos for gramm
+%% gramm examples and how-tos
 %% Example from the readme
 % Here we plot the evolution of fuel economy of new cars bewteen 1970 and 1980 (carbig
 % dataset). Gramm is used to easily separate groups on the basis of the number of
