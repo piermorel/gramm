@@ -40,7 +40,7 @@ Download the gramm toolbox from GitHub ("Clone or download" button>download ZIP)
 
 - [gramm cheat sheet](https://github.com/piermorel/gramm/blob/master/gramm%20cheat%20sheet.pdf)
 - Numerous coding examples and test cases in ```examples.m```, exported for preview in  [html/examples.html](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/master/html/examples.html)
--  <code>doc gramm</code> to find links to the documentation of each method.
+- From MATLAB: <code>doc gramm</code> to find links to the documentation of each method.
 
 
 ## Using gramm ##
