@@ -21,9 +21,11 @@ Gramm has been used in several publications in the field of neuroscience, from h
 
 ## Citing gramm ##
 
-If you use gramm plots in a publication you can cite it using the following DOI:
+Gramm has been published in the Journal of Open Source Software. If you use gramm plots in a publication you can thus cite it using the following:
 
-[![DOI](https://zenodo.org/badge/20144/piermorel/gramm.svg)](https://zenodo.org/badge/latestdoi/20144/piermorel/gramm)
+[![DOI](http://joss.theoj.org/papers/10.21105/joss.00568/status.svg)](https://doi.org/10.21105/joss.00568)
+
+Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open Source Software, 3(23), 568, https://doi.org/10.21105/joss.00568
 
 ## About gramm ##
 
