@@ -112,12 +112,12 @@ for ind_x=1:length(uni_x)
         
         
         if params.half %If in half mode
-            if mod(draw_data.color_index,2) %We draw left half if even index
+            if ~mod(draw_data.color_index,2) %We draw right half if even index
                 xpatch=[boxmid(ind_x)-dens{ind_x}(1:end-1) ; ...
                     boxmid(ind_x)+zeros(1,length(dens{ind_x})-1) ; ...
                     boxmid(ind_x)+zeros(1,length(dens{ind_x})-1);  ...
                     boxmid(ind_x)-dens{ind_x}(2:end)];
-            else %right half if odd
+            else %left half if odd
                 xpatch=[boxmid(ind_x)+zeros(1,length(dens{ind_x})-1) ; ...
                     boxmid(ind_x)+dens{ind_x}(1:end-1) ; ...
                     boxmid(ind_x)+dens{ind_x}(2:end) ; ...
@@ -142,11 +142,11 @@ for ind_x=1:length(uni_x)
         
         %Draw lines
         if params.half %If in half mode
-            if mod(draw_data.color_index,2) %We draw left half if even index
+            if ~mod(draw_data.color_index,2) %We draw right half if even index
                 lines(ind_x)=line(boxmid(ind_x)-[0 dens{ind_x} 0 0] , ...
                     [dens_pos{ind_x}(1) dens_pos{ind_x} dens_pos{ind_x}(end) dens_pos{ind_x}(1)],temp_line_params{:});
                 
-            else %right half if odd
+            else %left half if odd
                 lines(ind_x)=line(boxmid(ind_x)+[0 dens{ind_x} 0 0] , ...
                     [dens_pos{ind_x}(1) dens_pos{ind_x} dens_pos{ind_x}(end) dens_pos{ind_x}(1)],temp_line_params{:});
             end
