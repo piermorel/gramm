@@ -1176,7 +1176,8 @@ for ind_row=1:length(uni_row) %Loop over rows
         %Do the datetick
         if ~isempty(obj.datetick_params)
             for dtk=1:length(obj.datetick_params)
-                datetick(ca,obj.datetick_params{dtk}{:},'keepticks');
+                %Previously used 'keepticks' by default  which could cause a truncation of the axes
+                datetick(ca,obj.datetick_params{dtk}{:});
             end
         end
         
