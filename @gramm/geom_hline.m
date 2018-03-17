@@ -7,9 +7,10 @@ function obj=geom_hline(obj,varargin)
 p=inputParser;
 my_addParameter(p,'yintercept',0);
 my_addParameter(p,'style','k--');
+my_addParameter(p,'extent',2);
 parse(p,varargin{:});
 
 for obj_ind=1:numel(obj)
-    obj(obj_ind).abline=fill_abline(obj(obj_ind).abline,NaN,NaN,NaN,p.Results.yintercept,@(x)x,p.Results.style);
+    obj(obj_ind).abline=fill_abline(obj(obj_ind).abline,NaN,NaN,NaN,p.Results.yintercept,@(x)x,p.Results.style,p.Results.extent);
 end
 end

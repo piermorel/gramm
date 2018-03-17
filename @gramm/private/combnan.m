@@ -9,14 +9,14 @@ if iscell(dat)
     end
     
     if ~iscellstr(dat)
-        if size(dat{1},1)==1
+        if max(cellfun('size',dat,1))==1  %size(dat{1},1)==1
             dat=cellfun(@(c)[c NaN],dat,'uniformOutput',false);
         else
             dat=cellfun(@(c)[c;NaN],dat,'uniformOutput',false);
         end
     end
     
-    if size(dat{1},1)==1
+    if max(cellfun('size',dat,1))==1 % size(dat{1},1)==1
         res=horzcat(dat{:});
     else
         res=vertcat(dat{:})';

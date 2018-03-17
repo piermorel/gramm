@@ -19,10 +19,20 @@ function obj=stat_summary(obj,varargin)
 %       percentiles
 %       - '95percentile': display the median and 2.5 and 97.5
 %       percentiles
-%        - 'fitnormalci'
+%       - 'fitnormalci'
 %       - 'fitpoissonci'
-%        - 'fit95percentile'
-% - 'geom':
+%       - 'fitbinomialci'
+%       - 'fit95percentile'
+%       - @function : provide a the handle to a custom function that takes 
+%       y values (as an n_repetitions x n_data_points matrix) and returns 
+%       both the central value and the CI with a matrix [y_central ; yc_CI_low ; y_CI_high]
+%       (with y_central, and y_CIs being 1 x n_data_points arrays).
+%       Example that uses the trimmed mean instead of regular mean:
+%
+%       custom_statfun = @(y)([trimmean(y,2.5);bootci(500,{@(ty)trimmean(ty,2.5),y},'alpha',0.05)]); 
+%       gramm_object.stat_summary('type', custom_statfun)
+%
+% - 'geom' (possibility to combine them using a cellstr, e.g. 'geom',{'bar','black_errorbar'} ):
 %       - 'line': displays a line that connects the central locations
 %       (mean,median)
 %       - 'lines': displays a line that connects the central locations
@@ -31,12 +41,15 @@ function obj=stat_summary(obj,varargin)
 %       and a transparent area for the variabilities. WARNING:
 %       this changes the renderer to opengl and disables proper
 %       vector output on older matlab versions
+%       - 'area_only': displays the variabilities only, using a transparent area
 %       - 'solid_area': displays a line that connects the locations
 %       and a solid area for the variabilities. Use this for
 %       export to vector output.
 %       - 'errorbar': displays error bars for variabilities.
 %       - 'black_errorbar': displays black error bars for variabilities.
 %       - 'bar': displays the locations as bars
+%       - 'edge_bar': displays the locations as bars with black edge
+%       - 'point': displays the locations as points
 % - 'setylim': set to true if you want the y axis limits to be
 % set by the summarized data instead of the underlying data
 % points.
@@ -140,7 +153,10 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
         uni_x=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.interp_in);
         [x,y]=cellfun(@(x,y)deal(uni_x,interp1(x,y,uni_x,'linear')),draw_data.x,draw_data.y,'UniformOutput',false,'ErrorHandler',@(st,a,b)deal([],[]));
         y=padded_cell2mat(y);
-        
+        if isempty(y) %likely because we had only single points
+            y = nan(size(uni_x));
+            disp('Error in summary input interpolation... nothing plotted')
+        end
     else
         %If not we just make a padded matrix for fast
         %computations (we'll assume that X are roughly at the
@@ -321,9 +337,13 @@ obj.results.stat_summary{obj.result_ind,1}.yci=yci;
 hndl=plotci(obj,uni_x,ymean,yci,draw_data,params.geom,params.dodge,params.width);
 
 %Copy handles
-hnames=fieldnames(hndl);
-for k=1:length(hnames)
-    obj.results.stat_summary{obj.result_ind,1}.(hnames{k})=hndl.(hnames{k});
+if isstruct(hndl)
+    hnames=fieldnames(hndl);
+    for k=1:length(hnames)
+        obj.results.stat_summary{obj.result_ind,1}.(hnames{k})=hndl.(hnames{k});
+    end
+else
+    disp('Nothing plotted... Error in summary computation?')
 end
 end
 

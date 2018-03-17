@@ -42,10 +42,18 @@ if iscell(out.y) && iscell(out.x) && ~iscellstr(out.x)
     if ~all(equal_lengths)
         error('Cells in X and Y have different lengths');
     end
-    if iscell(out.z)
-        equal_lengths=cellfun(@(y,z)length(y)==length(z),out.y,out.z);
-        if ~all(equal_lengths)
-            error('Cells in Z and X/Y have different lengths');
+    
+    %Process facultative data that can be in cells
+    to_process = {'z' , 'ymin', 'ymax'};
+    for k = 1:length(to_process)
+        if iscell(out.(to_process{k}))
+            % Check lengths
+            equal_lengths=cellfun(@(y,z)length(y)==length(z),out.y,out.(to_process{k}));
+            if ~all(equal_lengths)
+                error(['Cells in ' to_process{k} ' and X/Y have different lengths']);
+            end
+            % Shiftdim cell contents
+            out.(to_process{k})=cellfun(@(c)shiftdim(c),out.(to_process{k}),'uniformOutput',false);
         end
     end
 end

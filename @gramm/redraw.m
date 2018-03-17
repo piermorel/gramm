@@ -12,14 +12,14 @@ function obj=redraw(obj,spacing,display)
 
 
 if nargin<2
-    spacing=obj(1).redraw_spacing;
+    spacing=obj(1).layout_options.redraw_gap;
 else
     nl=size(obj,1);
     nc=size(obj,2);
     spacing=spacing/max(nl,nc);
     for l=1:nl
         for c=1:nc
-            obj(l,c).redraw_spacing=spacing;
+            obj(l,c).layout_options.redraw_gap=spacing;
         end
     end
 end
@@ -36,11 +36,12 @@ if numel(obj)>1
         for c=1:nc
             %Make multiple calls to redraw with smaller spacing
             %other parameters should be fine
-            redraw(obj(l,c),spacing,display);
+            redraw(obj(l,c),obj(l,c).layout_options.redraw_gap,display);
         end
     end
     return;
 end
+
 
 %Cool way to prevent reentrant callbacks !
 %             persistent inCallback
@@ -48,9 +49,8 @@ end
 %                 return;
 %             end
 %             inCallback = true;
-
 %If x is empty the object probably is so we skip (happens for multiple graphs)
-if isempty(obj.aes.x)
+if isempty(obj.aes.x) || ~obj.layout_options.redraw
     return
 end
 
@@ -102,7 +102,6 @@ if isempty(obj.redraw_cache) %Takes a long time so we only do it once
     first_redraw=true;
 else
     first_redraw=false;
-    
 end
 
 if display
@@ -136,8 +135,9 @@ if display
     set(obj.legend_text_handles,'Unit','data');
 end
 
-%Move legend to the right
-%Get rightmost text
+%% Move legend
+
+%Get the position of the longest text element
 if first_redraw || ~isfield(obj.redraw_cache,'max_legend_ind')
     legend_text_pos=get(obj.legend_text_handles,'Extent'); %On first redraw we get all extents
 else
@@ -148,25 +148,51 @@ else
     end
 end
 
-if ~isempty(legend_text_pos) % && obj.with_legend
-    %Here we correct by the width to get the coordinates in
-    %normalized values
-    [max_text_x,max_ind]=max(cellfun(@(p)legend_pos(1)+legend_pos(3)*(p(1)+p(3))/legend_axis_width,legend_text_pos));
-    if first_redraw
-        obj.redraw_cache.max_legend_ind=max_ind; %Cache the index of which text object is the rightmost
+%Move legend
+if strcmp(obj.layout_options.legend_position,'auto')
+    if strcmp(obj.layout_options.legend_width,'auto') % If we do not have a custom legend width
+        if ~isempty(legend_text_pos)
+            %Here we correct by the width to get the coordinates in
+            %normalized values
+            [max_text_x,max_ind]=max(cellfun(@(p)legend_pos(1)+legend_pos(3)*(p(1)+p(3))/legend_axis_width,legend_text_pos));
+            if first_redraw
+                obj.redraw_cache.max_legend_ind=max_ind; %Cache the index of which text object is the rightmost
+            end
+            %Move accordingly (here the max available x position takes
+            %in account the multiple plots
+            legend_pos = legend_pos+[obj.multi.orig(2)+obj.multi.size(2)-spacing_w-max_text_x 0 0 0];
+        else
+            legend_pos = [obj.multi.orig(2)+obj.multi.size(2) legend_pos(2) legend_pos(3) legend_pos(4)];
+        end
+    else
+        %Set legend position according to custom legend width
+        legend_pos = [obj.multi.orig(2)+(1-obj.layout_options.legend_width)*obj.multi.size(2) legend_pos(2) legend_pos(3) legend_pos(4)];
     end
-    %Move accordingly (here the max available x position takes
-    %in account the multiple plots
-    set(obj.legend_axe_handle,'Position',legend_pos+[obj.multi.orig(2)+obj.multi.size(2)-spacing_w-max_text_x 0 0 0]);
+    set(obj.legend_axe_handle,'Position',legend_pos);
+else
+    % We need something in legend_pos but don't actually move the legend
+    legend_pos = [obj.multi.orig(2)+obj.multi.size(2) 0 0 0];
 end
 
-%Move title to the top
+%% Move title
+
+%Move title to the top and center it according to axes
 if ~isempty(obj.title_axe_handle)
     title_text_pos=get(obj.title_text_handle,'Extent');
     title_pos=get(obj.title_axe_handle,'Position');
     max_text_y=title_pos(2)+title_pos(4)*title_text_pos(2)+title_pos(4)*title_text_pos(4);
-    set(obj.title_axe_handle,'Position',title_pos+[0 obj.multi.orig(1)+obj.multi.size(1)-spacing_h-max_text_y 0 0]);
+    switch obj.layout_options.title_centering
+        case 'axes'
+            %title_pos = [obj.multi.orig(2) title_pos(2)+obj.multi.orig(1)+obj.multi.size(1)-spacing_h-max_text_y legend_pos(1)-obj.multi.orig(2) title_pos(4)];
+            tmp = vertcat(facet_pos{:});
+            title_pos = [min(tmp(:,1)) title_pos(2)+obj.multi.orig(1)+obj.multi.size(1)-spacing_h-max_text_y legend_pos(1)-min(tmp(:,1))-spacing_w title_pos(4)];
+        case 'plot'
+            title_pos = title_pos+[0 obj.multi.orig(1)+obj.multi.size(1)-spacing_h-max_text_y 0 0];
+    end
+    set(obj.title_axe_handle,'Position',title_pos);
 end
+
+%% Move facets
 
 %Move facets to the right
 %Get the leftmost facet part (should be y legend)
@@ -253,9 +279,15 @@ max_facet_y_text=max(max_facet_y_text,max_facet_y);
 
 %If we don't have legends on the right then we use the multi parameters
 temp_available_x=obj.multi.orig(2)+obj.multi.size(2)-spacing_w;
-if ~isempty(legend_text_pos)%  && obj.with_legend %Place relative to legend axis if we have one
-    tmp=get(obj.legend_axe_handle,'Position');
-    temp_available_x=tmp(1);
+if strcmp(obj.layout_options.legend_position,'auto')
+    if strcmp(obj.layout_options.legend_width,'auto')
+        if ~isempty(legend_text_pos)%  && obj.with_legend %Place relative to legend axis if we have one
+            tmp=get(obj.legend_axe_handle,'Position');
+            temp_available_x=tmp(1);
+        end
+    else
+        temp_available_x=obj.multi.orig(2)+(1-obj.layout_options.legend_width)*obj.multi.size(2)-spacing_w;
+    end
 end
 max_available_x=temp_available_x-spacing_w-(max_facet_x_text-max_facet_x);
 
@@ -274,13 +306,16 @@ end
 max_available_y=temp_available_y-spacing_h-(max_facet_y_text-max_facet_y);
 
 
+facet_spacing_w = spacing_w;
+facet_spacing_h = spacing_h;
+
 %Compute additional spacing for x y axis labels if idependent
 %(or if free with wrapping)
 if obj.force_ticks || (obj.wrap_ncols>0)% && ~isempty(strfind(obj.facet_scale,'free')))
     %use top left inset as reference
     top_right_inset=get(obj.facet_axes_handles(1,end),'TightInset');
-    spacing_w=top_right_inset(1)+spacing_w;
-    spacing_h=top_right_inset(2)+spacing_h;
+    facet_spacing_w=top_right_inset(1)+facet_spacing_w;
+    facet_spacing_h=top_right_inset(2)+facet_spacing_h;
     %             else
     %                 %Compute additional spacing for titles if column wrap (this
     %                 %is in the else to prevent too large increase of spacing in
@@ -288,7 +323,7 @@ if obj.force_ticks || (obj.wrap_ncols>0)% && ~isempty(strfind(obj.facet_scale,'f
     %                 if obj.wrap_ncols>0
     %                     outerpos=get(obj.facet_axes_handles(1,1),'OuterPosition');
     %                     innerpos=get(obj.facet_axes_handles(1,1),'Position');
-    %                     spacing_h=spacing_h+(outerpos(4)-innerpos(4)-(innerpos(2)-outerpos(2)))*1.5;
+    %                     facet_spacing_h=facet_spacing_h+(outerpos(4)-innerpos(4)-(innerpos(2)-outerpos(2)))*1.5;
     %                 end
 end
 
@@ -299,14 +334,14 @@ end
 if obj.wrap_ncols>0
     nr=ceil(length(obj.facet_axes_handles)/obj.wrap_ncols);
     nc=obj.wrap_ncols;
-    neww=abs(max_available_x-min_facet_x-spacing_w*(nc-1))/nc;
-    newh=abs(max_available_y-min_facet_y-spacing_h*(nr-1))/nr;
+    neww=abs(max_available_x-min_facet_x-facet_spacing_w*(nc-1))/nc;
+    newh=abs(max_available_y-min_facet_y-facet_spacing_h*(nr-1))/nr;
     ind=1;
     for r=1:nr
         for c=1:nc
             if ind<=length(obj.facet_axes_handles)
                 %axpos=get(obj.facet_axes_handles(ind),'Position');
-                set(obj.facet_axes_handles(ind),'Position',[min_facet_x+(neww+spacing_w)*(c-1) min_facet_y+(newh+spacing_h)*(nr-r) neww newh]);
+                set(obj.facet_axes_handles(ind),'Position',[min_facet_x+(neww+facet_spacing_w)*(c-1) min_facet_y+(newh+facet_spacing_h)*(nr-r) neww newh]);
             end
             ind=ind+1;
         end
@@ -316,19 +351,19 @@ else
     nc=size(obj.facet_axes_handles,2);
     %OLD
     %                 %We don't let those go below a small value (spacing)
-    %                 neww=max((max_available_x-min_facet_x-spacing_w*(nc-1))/nc,spacing_w);
-    %                 newh=max((max_available_y-min_facet_y-spacing_h*(nr-1))/nr,spacing_h);
+    %                 neww=max((max_available_x-min_facet_x-facet_spacing_w*(nc-1))/nc,facet_spacing_w);
+    %                 newh=max((max_available_y-min_facet_y-facet_spacing_h*(nr-1))/nr,facet_spacing_h);
     %                 for r=1:nr
     %                     for c=1:nc
     %                         %axpos=get(obj.facet_axes_handles(r,c),'Position');
-    %                         set(obj.facet_axes_handles(r,c),'Position',[min_facet_x+(neww+spacing_w)*(c-1) min_facet_y+(newh+spacing_h)*(nr-r) neww newh]);
+    %                         set(obj.facet_axes_handles(r,c),'Position',[min_facet_x+(neww+facet_spacing_w)*(c-1) min_facet_y+(newh+facet_spacing_h)*(nr-r) neww newh]);
     %                     end
     %                 end
     
     %NEW
     %Available space for axes
-    avl_x=max_available_x-min_facet_x-spacing_w*(nc-1);
-    avl_y=max_available_y-min_facet_y-spacing_h*(nr-1);
+    avl_x=max_available_x-min_facet_x-facet_spacing_w*(nc-1);
+    avl_y=max_available_y-min_facet_y-facet_spacing_h*(nr-1);
     facet_width=ones(1,nc)*avl_x/nc;
     facet_height=ones(1,nr)*avl_y/nr;
     if (strcmp(obj.facet_space,'free') || strcmp(obj.facet_space,'free_x')) && ~strcmp(obj.facet_scale,'independent')
@@ -382,7 +417,7 @@ else
         for c=1:nc
             %Compute facet x offset
             if c>1
-                x_offset=min_facet_x+sum(facet_width(1:c-1))+spacing_w*(c-1);
+                x_offset=min_facet_x+sum(facet_width(1:c-1))+facet_spacing_w*(c-1);
             else
                 x_offset=min_facet_x;
             end
@@ -390,7 +425,7 @@ else
             if r==nr
                 y_offset=min_facet_y;
             else
-                y_offset=min_facet_y+sum(facet_height(r+1:nr))+spacing_h*(nr-r);
+                y_offset=min_facet_y+sum(facet_height(r+1:nr))+facet_spacing_h*(nr-r);
             end
             %Place facet
             set(obj.facet_axes_handles(r,c),'Position',[x_offset y_offset facet_width(c) facet_height(r)]);
@@ -398,6 +433,33 @@ else
     end
 end
 
+%% Move title again
+
+%Get updated position
+facet_pos=get(obj.facet_axes_handles,'Position');
+%Handle case of single facet
+if length(obj.facet_axes_handles)==1
+    facet_pos={facet_pos};
+end
+
+%Move title to the top and center it according to axes
+if ~isempty(obj.title_axe_handle)
+    title_text_pos=get(obj.title_text_handle,'Extent');
+    title_pos=get(obj.title_axe_handle,'Position');
+    max_text_y=title_pos(2)+title_pos(4)*title_text_pos(2)+title_pos(4)*title_text_pos(4);
+    switch obj.layout_options.title_centering
+        case 'axes'
+            tmp = vertcat(facet_pos{:});
+            %title_pos = [min(tmp(:,1)) title_pos(2)+obj.multi.orig(1)+obj.multi.size(1)-spacing_h-max_text_y legend_pos(1)-min(tmp(:,1))-spacing_w title_pos(4)];
+            title_pos = [tmp(1,1) title_pos(2)+obj.multi.orig(1)+obj.multi.size(1)-spacing_h-max_text_y tmp(end,1)+tmp(end,3)-tmp(1,1) title_pos(4)];
+        case 'plot'
+            title_pos = title_pos+[0 obj.multi.orig(1)+obj.multi.size(1)-spacing_h-max_text_y 0 0];
+    end
+    set(obj.title_axe_handle,'Position',title_pos);
+end
+
+
+%% Resize legend
 %Resize legend y axis in order to get constant spacing between
 %legend entries
 L=length(obj.legend_text_handles);

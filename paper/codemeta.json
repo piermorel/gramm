@@ -1,0 +1,23 @@
+{
+  "@context": "https://raw.githubusercontent.com/codemeta/codemeta/master/codemeta.jsonld",
+  "@type": "Code",
+  "author": [
+    {
+      "@id": "https://orcid.org/0000-0003-0984-7016",
+      "@type": "Person",
+      "email": "pier.morel@gmail.com",
+      "name": "Pierre Morel",
+      "affiliation": "German Primate Center"
+    }
+  ],
+  "identifier": "https://doi.org/10.5281/zenodo.594625",
+  "codeRepository": "https://github.com/piermorel/gramm",
+  "datePublished": "2018-01-31",
+  "dateModified": "2018-01-31",
+  "dateCreated": "2018-01-31",
+  "description": "Gramm is a complete data visualization toolbox for Matlab. It provides an easy to use and high-level interface to produce publication-quality plots of complex data with varied statistical visualizations. Gramm is inspired by R's ggplot2 library.",
+  "keywords": "data visualization, grouped data, visual analytics, plotting, matlab, statistical graphics",
+  "license": "MIT",
+  "title": "gramm",
+  "version": "v2.23"
+}

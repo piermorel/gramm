@@ -12,8 +12,8 @@ function obj=facet_grid(obj,row,col,varargin)
 % pair.
 % - 'scale' can be set to either 'fixed', 'free_x',
 %   'free_y', 'free', or 'independent' so that the scale of the subplots is respectively
-%    the same over all subplots, x adjusted per columns of subplots ,
-%    y adjusted per rows of subplots, x adjusted per rows and y per columns,
+%    the same over all subplots, only x adjusted per columns of subplots ,
+%    only y adjusted per rows of subplots, x adjusted per columns and y per rows,
 %    or x and y adjusted independently per subplot
 % - 'space' can be set to either 'fixed' (default), 'free_x','free_y' or 'free'.
 %   'free_x' makes the width of the facets proportional to the
@@ -26,10 +26,14 @@ p=inputParser;
 my_addParameter(p,'scale','fixed'); %options 'free' 'free_x' 'free_y' 'independent'
 my_addParameter(p,'space','fixed'); %'free_x','free_y','free'
 my_addParameter(p,'force_ticks',false);
+my_addParameter(p,'column_labels',true);
+my_addParameter(p,'row_labels',true);
 parse(p,varargin{:});
 
 obj.facet_scale=p.Results.scale;
 obj.facet_space=p.Results.space;
+obj.column_labels=p.Results.column_labels;
+obj.row_labels=p.Results.row_labels;
 
 if strcmp(obj.facet_scale,'independent') %Force ticks by default in that case
     obj.force_ticks=true;

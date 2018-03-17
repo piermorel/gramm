@@ -100,7 +100,9 @@ if setylim
         end
         
         %obj.firstrun(obj.current_row,obj.current_column)=0;
-        obj.aes_names.y=params.normalization;
+        if strcmp(obj.aes_names.y,'y')
+            obj.aes_names.y=params.normalization;
+        end
         %Initialize stacked bar
         obj.extra.stacked_bar_height=zeros(size(bincenters));
     else

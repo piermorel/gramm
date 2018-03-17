@@ -4,5 +4,6 @@ function obj=no_legend(obj)
 % Useful when plotting multiple gramm objects with the same
 % legend
 
-obj.with_legend=false;
+obj.layout_options.legend=false;
+
 end

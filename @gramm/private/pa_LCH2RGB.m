@@ -22,14 +22,14 @@ function RGB = pa_LCH2RGB(LCH,adobeRGB)
 % modified by Pierre Morel 2016
 
 if nargin<1
-ncol	= 64;
-l		= linspace(0,1,ncol);
-H		= repmat(300,1,ncol);
-C		= zeros(1,ncol);
-L		= 90-l*30;
-LCH		= [L;C;H]';
-LCH = LCH(1:15,:);
-close all
+    ncol	= 64;
+    l		= linspace(0,1,ncol);
+    H		= repmat(300,1,ncol);
+    C		= zeros(1,ncol);
+    L		= 90-l*30;
+    LCH		= [L;C;H]';
+    LCH = LCH(1:15,:);
+    close all
 end
 if nargin <2
     adobeRGB=false; %We use sRGB by default

@@ -18,26 +18,61 @@ function hndl=my_line(obj,draw_data,params)
 
 
 
-if obj.continuous_color
-    
-    [x,y]=to_polar(obj,draw_data.x,draw_data.y);
+if obj.continuous_color_options.active
     
     obj.plot_lim.maxc(obj.current_row,obj.current_column)=max(obj.plot_lim.maxc(obj.current_row,obj.current_column),max(comb(draw_data.continuous_color)));
     obj.plot_lim.minc(obj.current_row,obj.current_column)=min(obj.plot_lim.minc(obj.current_row,obj.current_column),min(comb(draw_data.continuous_color)));
     
-    %We fake continuous colors lines by creating patch objects
-    %without fill. Since they need to be closed we draw the
-    %line twice
-    if iscell(x)
-        for k=1:length(x)
-            if iscell(draw_data.continuous_color) %Within-line continuous color given
-                hndl=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],[shiftdim(y{k}) ; flipud(shiftdim(y{k}))],[shiftdim(draw_data.continuous_color{k}) ; flipud(shiftdim(draw_data.continuous_color{k}))],'faceColor','none','EdgeColor','interp','lineWidth',draw_data.line_size,'LineStyle',draw_data.line_style);
-            else %Per-line continuous color given
-                hndl=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],[shiftdim(y{k}) ; flipud(shiftdim(y{k}))],repmat(draw_data.continuous_color(k),length(x{k})*2,1),'faceColor','none','EdgeColor','interp','lineWidth',draw_data.line_size,'LineStyle',draw_data.line_style);
+    if isempty(draw_data.z)
+        [x,y]=to_polar(obj,draw_data.x,draw_data.y);
+
+        %We fake continuous colors lines by creating patch objects
+        %without fill. Since they need to be closed we draw the
+        %line twice
+        if iscell(x)
+            for k=1:length(x)
+                if iscell(draw_data.continuous_color) %Within-line continuous color given
+                    hndl=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],...
+                        [shiftdim(y{k}) ; flipud(shiftdim(y{k}))],...
+                        [shiftdim(draw_data.continuous_color{k}) ; flipud(shiftdim(draw_data.continuous_color{k}))],...
+                        'faceColor','none','EdgeColor','interp','lineWidth',draw_data.line_size,'LineStyle',draw_data.line_style);
+                else %Per-line continuous color given
+                    hndl=patch([shiftdim(x{k}) ; flipud(shiftdim(x{k}))],...
+                        [shiftdim(y{k}) ; flipud(shiftdim(y{k}))],...
+                        repmat(draw_data.continuous_color(k),length(x{k})*2,1),...
+                        'faceColor','none','EdgeColor','interp','lineWidth',draw_data.line_size,'LineStyle',draw_data.line_style);
+                end
             end
+        else
+            hndl=patch([shiftdim(x) ; flipud(shiftdim(x))],...
+                [shiftdim(y) ; flipud(shiftdim(y))],...
+                [shiftdim(draw_data.continuous_color) ; flipud(shiftdim(draw_data.continuous_color))],...
+                'faceColor','none','EdgeColor','interp','lineWidth',draw_data.line_size,'LineStyle',draw_data.line_style);
         end
     else
-        hndl=patch([shiftdim(x) ; flipud(shiftdim(x))],[shiftdim(y) ; flipud(shiftdim(y))],[shiftdim(draw_data.continuous_color) ; flipud(shiftdim(draw_data.continuous_color))],'faceColor','none','EdgeColor','interp','lineWidth',draw_data.line_size,'LineStyle',draw_data.line_style);
+        if iscell(draw_data.x)
+            for k=1:length(draw_data.x)
+                if iscell(draw_data.continuous_color) %Within-line continuous color given
+                    hndl=patch([shiftdim(draw_data.x{k}) ; flipud(shiftdim(draw_data.x{k}))],...
+                        [shiftdim(draw_data.y{k}) ; flipud(shiftdim(draw_data.y{k}))],...
+                        [shiftdim(draw_data.z{k}) ; flipud(shiftdim(draw_data.z{k}))],...
+                        [shiftdim(draw_data.continuous_color{k}) ; flipud(shiftdim(draw_data.continuous_color{k}))],...
+                        'faceColor','none','EdgeColor','interp','lineWidth',draw_data.line_size,'LineStyle',draw_data.line_style);
+                else %Per-line continuous color given
+                    hndl=patch([shiftdim(draw_data.x{k}) ; flipud(shiftdim(draw_data.x{k}))],...
+                        [shiftdim(draw_data.y{k}) ; flipud(shiftdim(draw_data.y{k}))],...
+                        [shiftdim(draw_data.z{k}) ; flipud(shiftdim(draw_data.z{k}))],...
+                        repmat(draw_data.continuous_color(k),length(draw_data.x{k})*2,1),...
+                        'faceColor','none','EdgeColor','interp','lineWidth',draw_data.line_size,'LineStyle',draw_data.line_style);
+                end
+            end
+        else
+            hndl=patch([shiftdim(draw_data.x) ; flipud(shiftdim(draw_data.x))],...
+                [shiftdim(draw_data.y) ; flipud(shiftdim(draw_data.y))],...
+                [shiftdim(draw_data.z) ; flipud(shiftdim(draw_data.z))],...
+                [shiftdim(draw_data.continuous_color) ; flipud(shiftdim(draw_data.continuous_color))],...
+                'faceColor','none','EdgeColor','interp','lineWidth',draw_data.line_size,'LineStyle',draw_data.line_style);
+        end
     end
     
     
