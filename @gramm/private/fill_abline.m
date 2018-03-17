@@ -7,6 +7,7 @@ ab.intercept(end+1:end+l)=shiftdim(varargin{2});
 ab.xintercept(end+1:end+l)=shiftdim(varargin{3});
 ab.yintercept(end+1:end+l)=shiftdim(varargin{4});
 ab.extent(end+1:end+l)=shiftdim(varargin{7});
+ab.linewidth(end+1:end+l)=shiftdim(varargin{8});
 
 %Because of the constructor these are initialized as empty
 %arrays
