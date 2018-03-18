@@ -18,6 +18,8 @@ my_addParameter(p, 'base_size', 5 );
 my_addParameter(p, 'step_size', 2 );
 my_addParameter(p, 'use_input', false );
 my_addParameter(p, 'input_fun', @(v)v );
+my_addParameter(p, 'border_width', 0);
+my_addParameter(p, 'border_color', 'k');
 my_addParameter(p, 'markers', {'o' 's' 'd' '^' 'v' '>' '<' 'p' 'h' '*' '+' 'x'} );
 parse(p,varargin{:});
             
