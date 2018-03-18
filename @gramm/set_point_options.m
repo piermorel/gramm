@@ -22,6 +22,10 @@ my_addParameter(p, 'border_width', 0);
 my_addParameter(p, 'border_color', 'k');
 my_addParameter(p, 'markers', {'o' 's' 'd' '^' 'v' '>' '<' 'p' 'h' '*' '+' 'x'} );
 parse(p,varargin{:});
+
+if p.Results.border_width==0 || strcmp(p.Results.border_color,'none')
+    parse(p,'border_width',1,'border_color','none');
+end
             
 for obj_ind=1:numel(obj)
     obj(obj_ind).point_options=p.Results;
