@@ -1188,6 +1188,9 @@ for ind_row=1:length(uni_row) %Loop over rows
             for line_ind=1:length(obj.abline.intercept)
                 tmp_xl=[obj.var_lim.minx obj.var_lim.maxx];
                 tmp_extent=(tmp_xl(2)-tmp_xl(1))*obj.abline.extent(line_ind)/2;
+                if strcmp(ca.XScale,'log') && xl(1)<0
+                    xl(1)=1;
+                end
                 xl=[mean(tmp_xl)-tmp_extent mean(tmp_xl)+tmp_extent];
                 if ~isnan(obj.abline.intercept(line_ind))
                     %abline
