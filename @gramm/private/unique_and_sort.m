@@ -25,7 +25,7 @@ end
 
 %Clean up uniques
 if ~iscell(x)
-    if ~old_matlab_2013 && ~iscategorical(y)
+    if ~old_matlab_2013 && ~iscategorical(y) && ~isstring(y) 
         y(isnan(y)) = []; % remove all nans
     end
 else
