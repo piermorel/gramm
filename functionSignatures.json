@@ -135,7 +135,8 @@
             {"name":"lambda","kind":"namevalue","type":"numeric"},
             {"name":"npoints","kind":"namevalue","type":"numeric"},
             {"name":"width","kind":"namevalue","type":"numeric"}, 
-            {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only'}"}
+            {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only'}"},
+			{"name":"setylim","kind":"namevalue","type":"choices={1,0}"}
 		]
 },
 "gramm.stat_glm":
