@@ -56,7 +56,7 @@ else
     lines=zeros(1,length(uni_x));
 end
 
-obj.redraw_fun=vertcat(obj.redraw_fun,{@()beeswarm_redraw(obj)});
+obj.redraw_fun=vertcat(obj.redraw_fun,{@()beeswarm_redraw(obj,params.alpha)});
 
 for ind_x=1:length(uni_x)
     %And here we have a loose selection also because of
@@ -84,11 +84,12 @@ for ind_x=1:length(uni_x)
                             bee_x_pos{ind_x},...
                             'LineStyle','none',...
                             'Marker',draw_data.marker,...
-                            'MarkerEdgeColor','none',...
+                            'MarkerEdgeColor','None',...
                             'MarkerSize',ptsize,...
                             'MarkerFaceColor',draw_data.color);
 
-        disp(params.alpha)
+        
+
         set_alpha(lines(ind_x),1,params.alpha);
     end
 
@@ -104,12 +105,15 @@ obj.results.stat_beeswarm{obj.result_ind,1}.line_handle=lines;
 
 end
 
-function beeswarm_redraw(obj)
+function beeswarm_redraw(obj,alpha)
     pos = get(gcf, 'Position');
     factor = max([pos(3);pos(2)])/560;
-    
+
     for i=1:length(obj.results.stat_beeswarm)
-        set(obj.results.stat_beeswarm(i).line_handle,'MarkerSize',factor*3.25)
+        set(obj.results.stat_beeswarm(i).line_handle,'MarkerSize',factor*3.25);
+        for j=1:length(obj.results.stat_beeswarm(i).line_handle)
+            set_alpha(obj.results.stat_beeswarm(i).line_handle(j),1,alpha);
+        end
     end
 end
 
