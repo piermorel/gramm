@@ -23,7 +23,7 @@ g.draw();
 %}
 g(1,1)=gramm('x',cars.Origin_Region,'y',cars.MPG,'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5 & cars.Cylinders~=8);
 g(1,2)=gramm('x',cars.Origin_Region,'y',cars.MPG,'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5 & cars.Cylinders~=8);
-g(1,1).stat_beeswarm('alpha',0.75);
-g(1,2).geom_point('alpha',0.75)%.stat_violin('fill','transparent');
+g(1,1).stat_beeswarm('method','square');
+g(1,2).stat_violin('fill','transparent');
 
 g.draw();

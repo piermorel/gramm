@@ -7,6 +7,7 @@ function obj = stat_beeswarm(obj,varargin)
 % - 'half': If set to true, only half violins are drawn, and the color
 % index determines if the left half or right hald is drawn. Useful for
 % comparing distributions across two colors.
+% - 'method': options: ['swarm', 'center', 'hex', 'square']
 % - 'fill' see stat_bin()
 % - 'alpha' see geom_point()
 % - 'width' and 'dodge' see stat_summary()
@@ -15,6 +16,8 @@ function obj = stat_beeswarm(obj,varargin)
 % See also stat_summary(), stat_bin(), stat_density()
 
 p=inputParser;
+my_addParameter(p,'method','swarm')
+my_addParameter(p,'dist','smiley')
 my_addParameter(p,'alpha',1)
 my_addParameter(p,'width',0.6)
 my_addParameter(p,'dodge',0.7)
@@ -29,6 +32,22 @@ end
 function hndl=my_beeswarm(obj,draw_data,params)
 
 ptsize = draw_data.point_size;
+
+switch params.method
+    case 'center'
+        bee_lam_x = @(a,i)-a/2+0.5:1:a/2-0.5;
+        bee_lam_y = @(b)zeros(1,b);
+    case 'hex'
+        bee_lam_x = @(a,i)(-a/2+0.5:1:a/2-0.5)*(mod(i,2)==0)+(-a/2+1.5:1:a/2+0.5)*(mod(i,2)==1);
+        bee_lam_y = @(b)zeros(1,b);
+    case 'square'
+        bee_lam_x = @(a,i)(-a/2+0.5:1:a/2-0.5)*(mod(a,2)==0) + (-a/2:1:a/2-1)*(mod(a,2)==1);
+        bee_lam_y = @(b)zeros(1,b);
+    otherwise %swarm
+        bee_lam_x = @(a,i)-a/2+0.5:1:a/2-0.5;
+        bee_lam_y = @(b)y_dodge(b, params.dist);
+
+end
 
 x=comb(draw_data.x);
 y=comb(draw_data.y);
@@ -63,16 +82,17 @@ for ind_x=1:length(uni_x)
     %potential numerical errors
     ysel=y(abs(x-uni_x(ind_x))<1e-10);
 
-    [uni_y,~,idx]=unique(ysel);
-    uni_y(diff(uni_y)<1e-10)=[];
+    [~,~,idx]=unique(ysel);
     
     freq = accumarray(idx(:),1);
+    freq_indices = 1:length(freq);
     
-    bee_x{ind_x} = arrayfun(@(a)-a/2+0.5:1:a/2-0.5,freq,'UniformOutput',false);
+    
+    bee_x{ind_x} = arrayfun(bee_lam_x,freq,transpose(freq_indices),'UniformOutput',false);
     bee_x{ind_x} = horzcat(bee_x{ind_x}{:});
     bee_x{ind_x} = bee_x{ind_x}*params.cex/(4*ptsize);
    
-    y_adjust = arrayfun(@(b)y_dodge(b),freq,'UniformOutput',false);
+    y_adjust = arrayfun(bee_lam_y,freq,'UniformOutput',false);
     y_adjust = transpose(horzcat(y_adjust{:}));
     bee_x_pos{ind_x} = sort(ysel) + y_adjust;
 
@@ -106,24 +126,31 @@ obj.results.stat_beeswarm{obj.result_ind,1}.line_handle=lines;
 end
 
 function beeswarm_redraw(obj,alpha)
-    pos = get(gcf, 'Position');
-    factor = max([pos(3);pos(2)])/560;
+    obj.facet_axes_handles.Units = 'points';
+    w = obj.facet_axes_handles.Position(3);
+    h = obj.facet_axes_handles.Position(4);
+    factor = w/50;
+    obj.facet_axes_handles.Units = 'normalized';
 
     for i=1:length(obj.results.stat_beeswarm)
-        set(obj.results.stat_beeswarm(i).line_handle,'MarkerSize',factor*3.25);
+        set(obj.results.stat_beeswarm(i).line_handle,'MarkerSize',factor);
         for j=1:length(obj.results.stat_beeswarm(i).line_handle)
             set_alpha(obj.results.stat_beeswarm(i).line_handle(j),1,alpha);
         end
     end
 end
 
-function yd=y_dodge(fr)
+function yd=y_dodge(fr, inv)
     if mod(fr,2) == 0
         left = fliplr(0:1:fr/2-1);
         right = 0:1:fr/2-1;
     else
         left = fliplr(0:1:fr/2-0.5);
         right = 1:1:fr/2-0.5;
+    end
+    if inv ~= "smiley"
+        left = fliplr(left);
+        right = fliplr(right);
     end
     yd = cat(2,left,right);
     yd = yd*0.1;
