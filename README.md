@@ -109,6 +109,7 @@ To export figures in a vector-based format, use the SVG or PDF option rather tha
   - histograms and density plots of x values (<code>stat_bin()</code> and <code>stat_density()</code>)
   - box and whisker plots (<code>stat_boxplot()</code>)
   - violin plots (<code>stat_violin()</code>)
+  - beeswarm plots (<code>stat_beeswarm()</code>)
   - quantile-quantile plots (<code>stat_qq()</code>) of x data distribution against theoretical distribution or y data distribution.
   - spline-smoothed y data with optional confidence interval (<code>stat_smooth()</code>)
   - 2D binning (<code>stat_bin2d()</code>)

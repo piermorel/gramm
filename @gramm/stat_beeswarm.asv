@@ -76,8 +76,6 @@ else
     lines=zeros(1,length(uni_x));
 end
 
-% set redraw function to beeswarm_redraw
-% when the window is resized, beeswarm will be redrawn
 obj.redraw_fun=vertcat(obj.redraw_fun,{@()beeswarm_redraw(obj,params.alpha)});
 
 for ind_x=1:length(uni_x)
@@ -120,7 +118,6 @@ for ind_x=1:length(uni_x)
 
 end
 
-% store visualization data
 obj.results.stat_beeswarm{obj.result_ind,1}.swarm_x=bee_x;
 obj.results.stat_beeswarm{obj.result_ind,1}.swarm_y=bee_x_pos;
 obj.results.stat_beeswarm{obj.result_ind,1}.unique_x=uni_x;
@@ -129,7 +126,6 @@ obj.results.stat_beeswarm{obj.result_ind,1}.line_handle=lines;
 
 end
 
-% redraw the beeswarm
 function beeswarm_redraw(obj,alpha)
     obj.facet_axes_handles.Units = 'points';
     w = obj.facet_axes_handles.Position(3);
@@ -145,7 +141,7 @@ function beeswarm_redraw(obj,alpha)
     end
 end
 
-% stagger the y values for beeswarms with method=swarm
+% fo
 function yd=y_dodge(fr, inv)
     if mod(fr,2) == 0
         left = fliplr(0:1:fr/2-1);
@@ -154,7 +150,6 @@ function yd=y_dodge(fr, inv)
         left = fliplr(0:1:fr/2-0.5);
         right = 1:1:fr/2-0.5;
     end
-    % invert the left and right side to make the swarm concave if dist~=smiley
     if inv ~= "smiley"
         left = fliplr(left);
         right = fliplr(right);
