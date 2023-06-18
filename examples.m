@@ -112,6 +112,7 @@ g(1,2)=copy(g(1));
 g(1,3)=copy(g(1));
 g(2,1)=copy(g(1));
 g(2,2)=copy(g(1));
+g(2,3)=copy(g(1));
 
 %Raw data as scatter plot
 g(1,1).geom_point();
@@ -132,6 +133,10 @@ g(2,1).set_title('stat_boxplot()');
 %Violin plots
 g(2,2).stat_violin('fill','transparent');
 g(2,2).set_title('stat_violin()');
+
+%Beeswarm plots
+g(2,3).stat_beeswarm('method','swarm');
+g(2,3).set_title('stat_beeswarm()');
 
 %These functions can be called on arrays of gramm objects
 g.set_names('x','Origin','y','Horsepower','color','# Cyl');
@@ -696,6 +701,36 @@ g.set_title('Options for stat_violin()');
 figure('Position',[100 100 800 600]);
 g.draw();
 
+%% Graphic options in stat_beeswarm()
+
+clear g
+g(1,1)=gramm('x',cars.Origin_Region,'y',cars.Horsepower,'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5 & cars.Cylinders~=8);
+g(1,1).set_names('x','Origin','y','Horsepower','color','# Cyl');
+g(1,2)=copy(g(1,1));
+g(1,3)=copy(g(1,1));
+g(2,1)=copy(g(1,1));
+g(2,2)=copy(g(1,1));
+
+%Jittered scatter plot
+g(1,1).stat_beeswarm('method','swarm','dist','smiley');
+g(1,1).set_title('smiley beeswarm');
+
+
+g(1,2).stat_beeswarm('method','swarm','dist','frowny');
+g(1,2).set_title('frowny beeswarm');
+
+g(1,3).stat_beeswarm('method','center');
+g(1,3).set_title('center-aligned beeswarm');
+
+g(2,1).stat_beeswarm('method','hex');
+g(2,1).set_title('hex-aligned beeswarm');
+
+g(2,2).stat_beeswarm('method','square');
+g(2,2).set_title('square-aligned beeswarm');
+
+g.set_title('Options for stat_beeswarm()');
+figure('Position',[100 100 800 600]);
+g.draw();
 
 
 %% Options for dodging and spacing graphic elements in |stat_summary()| and |stat_boxplot()|

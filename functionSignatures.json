@@ -247,6 +247,18 @@
             {"name":"dodge","kind":"namevalue","type":"numeric"}
 		]
 },
+"gramm.stat_beeswarm":
+{
+		"inputs":[
+			{"name":"obj","kind":"required","type":"gramm"},
+            {"name":"method","kind":"namevalue","type":"choices={'swarm','center','hex','square'}"},
+            {"name":"dist","kind":"namevalue","type":"choices={'smiley','frowny'}"},
+            {"name":"alpha","kind":"namevalue","type":"numeric"},
+            {"name":"width","kind":"namevalue","type":"numeric"},
+            {"name":"dodge","kind":"namevalue","type":"numeric"},
+            {"name":"cex","kind":"namevalue","type":"numeric"}
+		]
+},
 "gramm.geom_abline":
 {
 		"inputs":[
