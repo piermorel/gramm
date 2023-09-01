@@ -256,7 +256,7 @@
             {"name":"alpha","kind":"namevalue","type":"numeric"},
             {"name":"width","kind":"namevalue","type":"numeric"},
             {"name":"dodge","kind":"namevalue","type":"numeric"},
-            {"name":"cex","kind":"namevalue","type":"numeric"}
+            {"name":"spread","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_abline":

@@ -7,10 +7,7 @@ function obj = stat_beeswarm(obj,varargin)
 % - 'method': 'swarm' (default) all beeswarms will be drawn with points centered 
 % and either concave or convex depending on the setting of the 'dist' option. With 'center',
 % all rows of the beeswarm will be drawn as straight lines with points centered. 
-% With 'hex', all beeswarms will be drawn with alternating, offset, straight-line rows like a 
-% hexagonal grid with points centered. With 'square', all beeswarms will be
-% drawn with straight-line rows with points aligned in straight lines on
-% both the x and y axes.
+% With 'hex', all beeswarms will be drawn with alternating offset rows like a hexagonal grid.options: [, 'center', 'hex', 'square']
 % - 'dist': 'smiley' (default) all beeswarms
 % will be drawn with concave points. With 'frowny', all beeswarms will be
 % drawn with convex points. Note: this option will only have an effect if
