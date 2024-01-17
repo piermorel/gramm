@@ -86,14 +86,15 @@ else
         x=dodger(x,draw_data,params.dodge);
         [x,y]=to_polar(obj,x,y);
         
-        hndl=line(combnan(x),combnan(y),'LineStyle',draw_data.line_style,'lineWidth',draw_data.line_size,'Color',draw_data.color);
+        hndl=patch('XData',combnan(x),'YData',combnan(y),...
+            'LineStyle',draw_data.line_style,'LineWidth',draw_data.line_size,'EdgeColor',draw_data.color);
     else
-        hndl=line(combnan(draw_data.x),combnan(draw_data.y),combnan(draw_data.z),'LineStyle',draw_data.line_style,'lineWidth',draw_data.line_size,'Color',draw_data.color);
+        hndl=patch('XData',combnan(draw_data.x),'YData',combnan(draw_data.y),'ZData',combnan(draw_data.z),...
+            'LineStyle',draw_data.line_style,'LineWidth',draw_data.line_size,'EdgeColor',draw_data.color);
     end
 end
 
-
-set_alpha(hndl,params.alpha,1);
+hndl.EdgeAlpha = params.alpha;
 
 obj.results.geom_line_handle{obj.result_ind,1}=hndl;
 end

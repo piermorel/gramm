@@ -301,7 +301,7 @@ g(1,2).stat_bin2d('nbins',[10 10],'geom','contour');
 g(1,2).set_names('color','grp');
 g(1,2).set_title('stat_bin2d(''geom'',''contour'')');
 
-% %Plot density as point size (looks good only when axes have the same
+    % %Plot density as point size (looks good only when axes have the same
 % %scale, hence the 'DataAspectRatio' option, equivalent to axis equal)
 % g(2,1)=gramm('x',x,'y',y,'color',test);
 % g(2,1).stat_bin2d('nbins',{-10:0.4:10 ; -10:0.4:10},'geom','point');
@@ -1020,12 +1020,12 @@ g(1,1).geom_point();
 g(1,1).set_title('Without broken axis');
 
 
-g(2,1)=gramm('x',x,'y',y)
-g(2,1).facet_grid([],x>20,"scale","free_x","space","free_x","column_labels",false)
-g(2,1).geom_point()
+g(2,1)=gramm('x',x,'y',y);
+g(2,1).facet_grid([],x>20,"scale","free_x","space","free_x","column_labels",false);
+g(2,1).geom_point();
 g(2,1).set_title('With broken axis');
-
-g.draw()
+figure('Position',[100 100 800 600]);
+g.draw();
 g(2,1).facet_axes_handles(2).YAxis.Visible='off';
 g(2,1).facet_axes_handles(1).XLim=[-5 6];
 g(2,1).facet_axes_handles(1).XTick=-5:5:5;
@@ -1340,7 +1340,7 @@ text(75.3,47,{'Important' 'event'},'Parent',g.facet_axes_handles(1),'FontName','
 
 %It's also possible to change properties of graphical elements
 %Either all at once
-set([g.results.geom_point_handle],'MarkerSize',5);
+set([g.results.geom_point_handle],'SizeData',25);
 set([g.results.stat_glm.area_handle],'FaceColor',[0.4 0.4 0.4]);
 %Or on a subset of them (here only for the lines of glms of 4-cylinder cars)
 set([g.results.stat_glm(g.results.color==4).line_handle],'LineWidth',3);
