@@ -793,13 +793,23 @@ cars_table.ModelShort=cellfun(@(ma,mo)mo(length(ma)+1:end),cars_table.Manufactur
 figure('Position',[100 100 800 500]);
 clear g
 %Provide 'label' as data
-g(1,1)=gramm('x',cars_table.Horsepower,'y',cars_table.Acceleration,...
+g=gramm('x',cars_table.Horsepower,'y',cars_table.Acceleration,...
     'label',cars_table.ModelShort,'color',cars_table.Manufacturer,'subset',strcmp(cars_table.Origin_Region,'Japan'));
 %geom_label() takes the same arguments as text().
 %'BackgroundColor','EdgeColor' and 'Color' can be set to 'auto'
 g.geom_label('VerticalAlignment','middle','HorizontalAlignment','center','BackgroundColor','auto','Color','k');
 g.set_limit_extra([0.2 0.2],[0.1 0.1]);
 g.set_names('color','Manufacturer','x','Horsepower','y','Acceleration');
+g.set_color_options('map','brewer2');
+g.draw();
+
+% geom_label works when 3D data is provided
+figure('Position',[100 100 800 500]);
+g=gramm('x',cars_table.Horsepower,'y',cars_table.Acceleration,'z',cars_table.MPG,...
+    'label',cars_table.ModelShort,'color',cars_table.Manufacturer,'subset',strcmp(cars_table.Origin_Region,'Japan'));
+g.geom_label('VerticalAlignment','middle','HorizontalAlignment','center','BackgroundColor','auto','Color','k');
+g.set_limit_extra([0.2 0.2],[0.1 0.1]);
+g.set_names('color','Manufacturer','x','Horsepower','y','Acceleration','z','MPG');
 g.set_color_options('map','brewer2');
 g.draw();
 
