@@ -406,8 +406,9 @@ for ind_row=1:length(uni_row)
         end
         
         %Make axes current
-        axes(obj.facet_axes_handles(ind_row,ind_column));
-        
+        %Was making figure visible even when visibility was set to off
+        %axes(obj.facet_axes_handles(ind_row,ind_column)); 
+        groot.CurrentFigure.CurrentAxes=obj.facet_axes_handles(ind_row,ind_column);
         
         hold on
         
