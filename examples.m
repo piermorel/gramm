@@ -221,7 +221,8 @@ g(2,2).set_title('stat_summary(''bin_in'',10)');
 
 g.set_names('x','Horsepower','y','Acceleration','color','# Cylinders');
 
-%Corner histogram
+%Corner histogram 
+% TODO : BROKEN CORNER HISTOGRAMS
 g(2,3)=gramm('x',(cars.Horsepower-nanmean(cars.Horsepower))/nanstd(cars.Horsepower),'y',-(cars.Acceleration-nanmean(cars.Acceleration))/nanstd(cars.Acceleration),'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
 g(2,3).geom_point();
 g(2,3).stat_cornerhist('edges',-4:0.2:4,'aspect',0.6);
@@ -488,10 +489,11 @@ figure('Position',[100 100 800 800]);
 g.set_title('facet_grid() options');
 g.draw();
 
-figure('Position',[100 100 800 800]);
-gf.set_title({'facet_grid() options' 'work together with coord_flip()'});
-gf.coord_flip();
-gf.draw();
+%TODO : BROKEN COORD FLIP
+% figure('Position',[100 100 800 800]);
+% gf.set_title({'facet_grid() options' 'work together with coord_flip()'});
+% gf.coord_flip();
+% gf.draw();
 
 
 
@@ -873,6 +875,8 @@ g.draw();
 % Here in a first gramm plot we make a glm fit of cars Acceleration as a
 % function of Horsepower, across all countries and number of cylinders, and
 % change the color options so that the fit appears in grey
+
+% TODO : BROKEN LAYOUT CHANGES
 
 clear g10
 figure('Position',[100 100 600 450]);
@@ -1306,6 +1310,8 @@ g.draw();
 % It is also possible to set where the gramm
 % axes are drawn by using the |set_parent(parent_handle)| function, which receives the
 % handle of a figure/uipanel/uitab object to use as parent as argument.
+
+%TODO : BROKEN WITH TILEDLAYOUT
 
 f=figure('Position',[100 100 800 500]);
 %Create fake button

@@ -7,7 +7,7 @@ classdef gramm < matlab.mixin.Copyable
         title_axe_handle %Store the handle of the title axis
         facet_axes_handles %Stores the handles of the facet axes
         results %Stores the results of the draw functions and statistics computations
-        
+        layout
     end
     
     properties (Access=protected,Hidden=true)
@@ -124,8 +124,8 @@ classdef gramm < matlab.mixin.Copyable
         
         parent=[]
         
-        handle_graphics
         data_size
+
         
         extra %Store extra geom-specific info
        
@@ -175,7 +175,6 @@ classdef gramm < matlab.mixin.Copyable
             %   - label should be a 1D cell array of strings of length N.
             
             obj.aes=parse_aes(varargin{:});
-            obj.handle_graphics=~verLessThan('matlab','8.4.0');
             
             %Run the set_xx_options() functions without arguments to set
             %defaults

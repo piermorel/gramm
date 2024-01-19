@@ -8,7 +8,7 @@ function obj=redraw(obj,spacing,display)
 % When display is set to true (default is false), the bounding boxes of all
 % elements are drawn in a separate figure
 
-
+return;
 
 
 if nargin<2

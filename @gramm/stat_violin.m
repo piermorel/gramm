@@ -63,13 +63,9 @@ temp_line_params={'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth
 %Maximum area
 max_area=draw_data.dodge_avl_w*(obj.var_lim.maxy-obj.var_lim.miny);
 
-if obj.handle_graphics
-    lines=gobjects(1,length(uni_x));
-    patches=gobjects(1,length(uni_x));
-else
-    lines=zeros(1,length(uni_x));
-    patches=zeros(1,length(uni_x));
-end
+
+lines=gobjects(1,length(uni_x));
+patches=gobjects(1,length(uni_x));
 
 
 for ind_x=1:length(uni_x)

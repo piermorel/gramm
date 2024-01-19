@@ -73,12 +73,12 @@ if iscell(draw_data.x) %If data was provided as Cell/Matrix
     %the counts
     bincounts=zeros(1,length(binranges)-1);
     for k=1:length(draw_data.x)
-        bincounts=bincounts+my_histcounts(draw_data.x{k},binranges,params.normalization);
+        bincounts=bincounts+histcounts(draw_data.x{k},binranges,'Normalization',params.normalization);
     end
     bincounts=bincounts/length(draw_data.x);
 else
     %If data was provided as vector we just count
-    bincounts = my_histcounts(comb(draw_data.x),binranges,params.normalization);
+    bincounts = histcounts(comb(draw_data.x),binranges,'Normalization',params.normalization);
 end
 
 bincounts=shiftdim(bincounts);

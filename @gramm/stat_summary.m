@@ -202,7 +202,7 @@ else %If input was provided as 1D array
         %If X binning was requested we do it
         binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.bin_in+1);
         bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
-        [~,binind]=my_histcounts(x,binranges,'count');
+        [~,~,binind]=histcounts(x,binranges,'Normalization','count');
         uni_x=bincenters;
         sel=binind~=0; %histcounts can return zero as bin index if NaN data we remove them here
         x=bincenters(binind(sel));

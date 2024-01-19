@@ -29,11 +29,8 @@ width_fig = fig_pos(3)/resolution;
 height_fig = fig_pos(4)/resolution;
 
 %SVG is unsupported on older Matlab versions
-if obj(1).handle_graphics
-    default_file_type='svg';
-else
-    default_file_type='pdf';
-end
+default_file_type='svg';
+
 
 % parse arguments and set defaults
 p=inputParser;
@@ -60,11 +57,10 @@ height = p.Results.height;
 
 
 % Verify that parent object is a figure object
-if obj(1).handle_graphics
-    if ~isa(h_fig, 'matlab.ui.Figure')
-        error('Parent gramm object is not a matlab.ui.Figure.');
-    end
+if ~isa(h_fig, 'matlab.ui.Figure')
+    error('Parent gramm object is not a matlab.ui.Figure.');
 end
+
 
 % In case units are inches, we rescale to cm
 if strcmp(p.Results.units, 'inches')

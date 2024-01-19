@@ -34,11 +34,7 @@ if isempty(obj.results.stat_cornerhist)
     if obj.is_flipped
         warning('coord_flip() breaks stat_cornerhist()');
     end
-    if obj.handle_graphics
-         obj.extra.cornerhist_child_axe=gobjects(size(obj.facet_axes_handles,1),size(obj.facet_axes_handles,2));
-    else
-         obj.extra.cornerhist_child_axe=zeros(size(obj.facet_axes_handles,1),size(obj.facet_axes_handles,2));
-    end
+    obj.extra.cornerhist_child_axe=gobjects(size(obj.facet_axes_handles,1),size(obj.facet_axes_handles,2));
 end
 
 %Get parent axis
@@ -53,8 +49,7 @@ end
 
 new_child=false;
 %Create child axis if necessary
-if (obj.handle_graphics &&...
-        isa(obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column),'matlab.graphics.GraphicsPlaceholder'))...
+if (isa(obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column),'matlab.graphics.GraphicsPlaceholder'))...
     || (obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column)==0)
 
 
@@ -72,12 +67,8 @@ if (obj.handle_graphics &&...
     
     %Set properties
     set(cha,'color','none','Units','Pixels');
-    if obj.handle_graphics
-        set(cha,'Ycolor','none','Box','off');
-    else
-        %No 'none' value possible for older matlabs
-        set(cha,'Ycolor',[1 1 1],'Box','off');
-    end
+    set(cha,'Ycolor','none','Box','off');
+
     
    new_child=true;
 else

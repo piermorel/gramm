@@ -25,57 +25,33 @@ if isempty(obj(1).parent)
     end
 end
 
-%There are bugs with the hardware openGL renderer in pre 2014b version,
-%on Mac OS and Win the x and y axes become invisible and on
-%Windows the patch objects behave strangely.
-if ~obj(1).handle_graphics
-    if ismac
-        warning('Mac Pre-2014b version detected, forcing to ''Painters'' renderer to show axes lines. Use set(gcf,''Renderer'',''OpenGL'') to restore transparency')
-        if isprop(obj(1).parent,'Renderer')
-            set(obj(1).parent,'Renderer','Painters');
-        end
-    else
-        warning('Windows Pre-2014b version detected, forcing to software openGL which is less buggy')
-        opengl software
-    end
-end
+
 
 %Handle call of draw() on array of gramm objects by dividing the figure
 %up and launching the individual draw functions of each object
 if numel(obj)>1
-    %Take care of the big title
-    if isempty(obj(1).bigtitle)
-        maxh=1;
-    else
-        maxh=0.94;
-        tmp=axes('Position',[0.1 0.965 0.8 0.01],'Parent',obj(1).parent);
-        set(tmp,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
-        tmp=text(0,0,obj(1).bigtitle,...
-            'FontWeight','bold',...
-            'Interpreter',obj(1).text_options.interpreter,...
-            'FontName',obj(1).text_options.font,...
-            'FontSize',obj(1).text_options.base_size*obj(1).text_options.big_title_scaling,...
-            'HorizontalAlignment','center');
-        
-        if ~isempty(obj(1).bigtitle_options)
-            set(tmp,obj(1).bigtitle_options{:});
-        end
-    end
-    
-    
+
     nl=size(obj,1);
     nc=size(obj,2);
+
+    bigtile = tiledlayout(nl,nc,'Padding','compact','TileSpacing','compact');
+    bigtile.OuterPosition(3)=0.95;
+
+    bigtile.Title.String = obj(1).bigtitle;
+    bigtile.Title.FontWeight='bold';
+    bigtile.Title.FontSize= obj(1).text_options.base_size*obj(1).text_options.big_title_scaling;
+    bigtile.Title.Interpreter=obj(1).text_options.interpreter;
+    if ~isempty(obj(1).bigtitle_options)         
+        set(bigtile.Title,obj(1).bigtitle_options{:});
+    end
+
+    tmp=1;
     for l=1:nl
         for c=1:nc
-            if strcmp(obj(l,c).layout_options.position,'auto')
-                obj(l,c).multi.orig=[(nl-l)*maxh/nl (c-1)/nc];
-                obj(l,c).multi.size=[maxh/nl 1/nc];
-            else
-                obj(l,c).multi.orig=[obj(l,c).layout_options.position(2)*maxh obj(l,c).layout_options.position(1)];
-                obj(l,c).multi.size=[obj(l,c).layout_options.position(4)*maxh obj(l,c).layout_options.position(3)];
-            end
-            obj(l,c).layout_options.redraw_gap=obj(l,c).layout_options.redraw_gap/max(nl,nc);
             obj(l,c).multi.active=true;
+            obj(l,c).multi.tile_object = bigtile;
+            obj(l,c).multi.tile_num = tmp;
+            tmp=tmp+1;
             draw(obj(l,c));
         end
     end
@@ -83,11 +59,7 @@ if numel(obj)>1
     %Set up tight redrawing for multiple plots
     if do_redraw
         redraw(obj);
-        if verLessThan('matlab','8.4')
-            set(gcf,'ResizeFcn',@(a,b)redraw(obj));
-        else
-            set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
-        end
+        set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
     end
     return;
 end
@@ -182,33 +154,6 @@ if ~isempty(temp_aes.z)
    obj.var_lim.minz=allmin(temp_aes.z);
 end
 
-
-%Handles the multiple gramm case: we set up subtightplot so
-%that it restricts the drawing (using margins) to a portion of
-%the figure
-mysubtightplot=@(m,n,p,gap,marg_h,marg_w)my_tightplot(m,n,p,...
-    [gap(2)*obj.multi.size(1) gap(1)*obj.multi.size(2)],...
-    [obj.multi.orig(1)+obj.multi.size(1)*marg_h(1) 1-obj.multi.orig(1)-obj.multi.size(1)*(1-marg_h(2))],...
-    [obj.multi.orig(2)+obj.multi.size(2)*marg_w(1) 1-obj.multi.orig(2)-obj.multi.size(2)*(1-marg_w(2))],'Parent',obj.parent);
-
-%Set subplot generation parameters and functions
-if strcmp(obj.layout_options.gap,'auto')
-    if obj.force_ticks  %Independent scales require more space between subplots for ticks
-        mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.06 0.06],obj.layout_options.margin_height,obj.layout_options.margin_width);  
-    else
-        mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.02 0.02],obj.layout_options.margin_height,obj.layout_options.margin_width);
-    end
-else
-    mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,obj.layout_options.gap,obj.layout_options.margin_height,obj.layout_options.margin_width);
-end
-
-%Subplots for wraps leave more space above axes for column
-%legend
-if strcmp(obj.layout_options.gap,'auto')
-    mysubplot_wrap=@(ncol,col)mysubtightplot(ceil(ncol/obj.wrap_ncols),obj.wrap_ncols,col,[0.03 0.09],obj.layout_options.margin_height,obj.layout_options.margin_width);
-else
-    mysubplot_wrap=@(ncol,col)mysubtightplot(ceil(ncol/obj.wrap_ncols),obj.wrap_ncols,col,obj.layout_options.gap,obj.layout_options.margin_height,obj.layout_options.margin_width);
-end
 
 %Find uniques in aesthetics and sort according to options
 uni_row=unique_and_sort(temp_aes.row,obj.order_options.row);
@@ -307,11 +252,7 @@ obj.result_ind=1;
 
 %Initialize facet axes handles
 if obj.updater.first_draw
-    if obj.handle_graphics %Post 2014b we return objects
-        obj.facet_axes_handles=gobjects(length(uni_row),length(uni_column));
-    else
-        obj.facet_axes_handles=zeros(length(uni_row),length(uni_column));
-    end
+    obj.facet_axes_handles=gobjects(length(uni_row),length(uni_column));
 end
 
 %Set the dodge width across all facets
@@ -319,6 +260,25 @@ draw_data.dodge_avl_w=min(diff(unique(comb(temp_aes.x))));
 if isempty(draw_data.dodge_avl_w) || draw_data.dodge_avl_w==0
     draw_data.dodge_avl_w=1;
 end
+
+%Initialize tiled layout object
+if obj.multi.active
+   if obj.wrap_ncols>0
+        obj.layout = tiledlayout(obj.multi.tile_object,ceil(length(uni_column)/obj.wrap_ncols),obj.wrap_ncols);
+    else
+        obj.layout = tiledlayout(obj.multi.tile_object,length(uni_row),length(uni_column));
+   end
+   obj.layout.Layout.Tile=obj.multi.tile_num;
+else
+    if obj.wrap_ncols>0
+        obj.layout = tiledlayout(ceil(length(uni_column)/obj.wrap_ncols),obj.wrap_ncols);
+    else
+        obj.layout = tiledlayout(length(uni_row),length(uni_column));
+    end
+    obj.layout.OuterPosition(3)=0.95;
+end
+obj.layout.TileSpacing = "compact";
+obj.layout.Padding = "compact";
 
 obj.data_size=numel(temp_aes.x);
 
@@ -368,9 +328,9 @@ for ind_row=1:length(uni_row)
         %long time in Matlab)
         if obj.updater.first_draw %If we are in the normal case (first draw() call)
             if obj.wrap_ncols>0
-                obj.facet_axes_handles(ind_row,ind_column)=mysubplot_wrap(length(uni_column),ind_column);
+                obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,ind_column);
             else
-                obj.facet_axes_handles(ind_row,ind_column)=mysubplot(length(uni_row),length(uni_column),ind_row,ind_column);
+                obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,(ind_row-1)*length(uni_column)+ind_column);
             end            
         else %If we are in a draw() call after an update() call
             if obj.updater.facet_updated==1 %If faceting was updated from one to multiple facets
@@ -382,9 +342,9 @@ for ind_row=1:length(uni_row)
                 else
                     %We need to create the next facets because they don't exist
                     if obj.wrap_ncols>0
-                        obj.facet_axes_handles(ind_row,ind_column)=mysubplot_wrap(length(uni_column),ind_column);
+                       obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,ind_column);
                     else
-                        obj.facet_axes_handles(ind_row,ind_column)=mysubplot(length(uni_row),length(uni_column),ind_row,ind_column);
+                       obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,(ind_row-1)*length(uni_column)+ind_column);
                     end
                     %And we copy the contents of the first facet in the new ones
                     copyobj(first_axes_children,obj.facet_axes_handles(ind_row,ind_column));
@@ -582,17 +542,18 @@ for ind_row=1:length(uni_row)
                 end
                 
                 if ind_row==1
-                    obj.facet_text_handles=[obj.facet_text_handles ...
-                        text('Interpreter',obj.text_options.interpreter,'String',column_string,'Rotation',0,...
-                        'Units','normalized',...
-                        'Position',[0.5 1.05 2],...
-                        'BackgroundColor','none',...
-                        'HorizontalAlignment','Center',...
-                        'VerticalAlignment','bottom',...
-                        'FontWeight','bold',...
-                        'FontName',obj.text_options.font,...
-                        'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
-                        'Parent',obj.facet_axes_handles(ind_row,ind_column))];
+%                     obj.facet_text_handles=[obj.facet_text_handles ...
+%                         text('Interpreter',obj.text_options.interpreter,'String',column_string,'Rotation',0,...
+%                         'Units','normalized',...
+%                         'Position',[0.5 1.05 2],...
+%                         'BackgroundColor','none',...
+%                         'HorizontalAlignment','Center',...
+%                         'VerticalAlignment','bottom',...
+%                         'FontWeight','bold',...
+%                         'FontName',obj.text_options.font,...
+%                         'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
+%                         'Parent',obj.facet_axes_handles(ind_row,ind_column))];
+                    obj.facet_axes_handles(ind_row,ind_column).Title.String = column_string;
                 end
             end
             if length(uni_row)>1  && obj.row_labels
@@ -603,17 +564,25 @@ for ind_row=1:length(uni_row)
                 end
                 
                 if ind_column==length(uni_column)
-                    obj.facet_text_handles=[obj.facet_text_handles ...
-                        text('Interpreter',obj.text_options.interpreter,'String',row_string,'Rotation',-90,...
-                        'Units','normalized',...
-                        'Position',[1.05 0.5 2],...
-                        'BackgroundColor','none',...
-                        'HorizontalAlignment','Center',...
-                        'VerticalAlignment','bottom',...
-                        'FontWeight','bold',...
-                        'FontName',obj.text_options.font,...
-                        'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
-                        'Parent',obj.facet_axes_handles(ind_row,ind_column))];
+%                     obj.facet_text_handles=[obj.facet_text_handles ...
+%                         text('Interpreter',obj.text_options.interpreter,'String',row_string,'Rotation',-90,...
+%                         'Units','normalized',...
+%                         'Position',[1.05 0.5 2],...
+%                         'BackgroundColor','none',...
+%                         'HorizontalAlignment','Center',...
+%                         'VerticalAlignment','bottom',...
+%                         'FontWeight','bold',...
+%                         'FontName',obj.text_options.font,...
+%                         'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
+%                         'Parent',obj.facet_axes_handles(ind_row,ind_column))];
+                    
+                    %Now we use right yyaxis for row titles
+                    yyaxis(obj.facet_axes_handles(ind_row,ind_column),"right")
+                    ylabel(row_string,'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
+                        'FontWeight','bold','color','black','rotation',-90)%,'VerticalAlignment','Bottom');
+                    obj.facet_axes_handles(ind_row,ind_column).YAxis(2).Color="none";
+                    obj.facet_axes_handles(ind_row,ind_column).YAxis(2).Label.Color="Black";
+                    yyaxis(obj.facet_axes_handles(ind_row,ind_column),"left")
                 end
             end
         end
@@ -625,18 +594,13 @@ end
 %% draw() Title
 if ~isempty(obj.title)
     if obj.updater.first_draw
-        obj.title_axe_handle=axes('Position',[obj.multi.orig(2)+0.1*obj.multi.size(2)...
-            obj.multi.orig(1)+0.90*obj.multi.size(1) 0.8*obj.multi.size(2) 0.05*obj.multi.size(1)],...
-            'Parent',obj.parent);
+
+        obj.layout.Title.String = obj.title;
+        obj.layout.Title.FontWeight='bold';
+        obj.layout.Title.FontSize=obj.text_options.base_size*obj.text_options.title_scaling;
+        obj.layout.Title.Interpreter=obj.text_options.interpreter;
+        obj.title_text_handle = obj.layout.Title;
         
-        set(obj.title_axe_handle,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
-        obj.title_text_handle=text(0,0,obj.title,...
-            'FontWeight','bold',...
-            'Interpreter',obj.text_options.interpreter,...
-            'FontName',obj.text_options.font,...
-            'FontSize',obj.text_options.base_size*obj.text_options.title_scaling,...
-            'HorizontalAlignment','center',...
-            'Parent',obj.title_axe_handle);
         if ~isempty(obj.title_options)
             set(obj.title_text_handle,obj.title_options{:});
         end
@@ -674,15 +638,12 @@ str_uni_marker = cellfun(@num2str,uni_marker,'UniformOutput',false);
 %Create axes for legends
 if obj.updater.first_draw
     if strcmp(obj.layout_options.legend_position,'auto')
-        if strcmp(obj.layout_options.legend_width,'auto')
-            obj.legend_axe_handle=axes('Position',[obj.multi.orig(2)+0.85*obj.multi.size(2)...
-                obj.multi.orig(1)+0.1*obj.multi.size(1) 0.15*obj.multi.size(2) 0.8*obj.multi.size(1)],...
-                'Parent',obj.parent);
-        else
-            obj.legend_axe_handle=axes('Position',[obj.multi.orig(2)+(1-obj.layout_options.legend_width)*obj.multi.size(2)...
-                obj.multi.orig(1)+0.1*obj.multi.size(1) 0.15*obj.multi.size(2) 0.8*obj.multi.size(1)],...
-                'Parent',obj.parent);
-        end
+        obj.legend_axe_handle=axes(obj.layout);
+        obj.legend_axe_handle.Layout.Tile='east';
+        %hold on
+        %obj.legend_axe_handle.Interruptible='off';
+        %drawnow nocallbacks
+        %set(obj.legend_axe_handle,'PlotBoxAspectRatio',[1 1 1]);
     else
         obj.legend_axe_handle=axes('Position',obj.layout_options.legend_position,...
                 'Parent',obj.parent);
@@ -858,6 +819,25 @@ if obj.updater.facet_updated==-1
 end
 
 %% draw() axes modifications
+
+if obj.is_flipped
+    obj.layout.XLabel.String =obj.aes_names.y;
+    obj.layout.YLabel.String =obj.aes_names.x;
+else
+    obj.layout.XLabel.String =obj.aes_names.x;
+    obj.layout.YLabel.String =obj.aes_names.y;
+end
+obj.layout.YLabel.Interpreter=obj.text_options.interpreter;
+obj.layout.YLabel.FontName=obj.text_options.font;
+obj.layout.YLabel.FontSize=obj.text_options.base_size*obj.text_options.label_scaling;
+
+
+obj.layout.XLabel.Interpreter=obj.text_options.interpreter;
+obj.layout.XLabel.FontName=obj.text_options.font;
+obj.layout.XLabel.FontSize=obj.text_options.base_size*obj.text_options.label_scaling;
+
+
+
 
 %Set various properties on each of the subplots
 for ind_row=1:length(uni_row) %Loop over rows
@@ -1118,21 +1098,21 @@ for ind_row=1:length(uni_row) %Loop over rows
                 end
             end
             
-            %Add axes labels on right and botttom graphs only
-            if (~obj.is_flipped && on_left) || ~isempty(temp_aes.z) || ...
-               (obj.is_flipped && on_bottom)   %If coord flipped do it the other way around (y like x)
-                ylabel(ca,obj.aes_names.y,...
-                    'Interpreter',obj.text_options.interpreter,...
-                    'FontName',obj.text_options.font,...
-                    'FontSize',obj.text_options.base_size*obj.text_options.label_scaling); %,'Units','normalized','position',[-0.2 0.5 1]
-            end
-            if (~obj.is_flipped && on_bottom) || ~isempty(temp_aes.z) ||...
-                (obj.is_flipped && on_left) %If coord flipped do it the other way around (x like y)
-                xlabel(ca,obj.aes_names.x,...
-                    'Interpreter',obj.text_options.interpreter,...
-                    'FontName',obj.text_options.font,...
-                    'FontSize',obj.text_options.base_size*obj.text_options.label_scaling)
-            end
+%             %Add axes labels on right and botttom graphs only
+%             if (~obj.is_flipped && on_left) || ~isempty(temp_aes.z) || ...
+%                (obj.is_flipped && on_bottom)   %If coord flipped do it the other way around (y like x)
+%                 ylabel(ca,obj.aes_names.y,...
+%                     'Interpreter',obj.text_options.interpreter,...
+%                     'FontName',obj.text_options.font,...
+%                     'FontSize',obj.text_options.base_size*obj.text_options.label_scaling); %,'Units','normalized','position',[-0.2 0.5 1]
+%             end
+%             if (~obj.is_flipped && on_bottom) || ~isempty(temp_aes.z) ||...
+%                 (obj.is_flipped && on_left) %If coord flipped do it the other way around (x like y)
+%                 xlabel(ca,obj.aes_names.x,...
+%                     'Interpreter',obj.text_options.interpreter,...
+%                     'FontName',obj.text_options.font,...
+%                     'FontSize',obj.text_options.base_size*obj.text_options.label_scaling)
+%             end
             %If we have z data
             if ~isempty(temp_aes.z)
                 zlabel(ca,obj.aes_names.z,...
@@ -1236,11 +1216,7 @@ set(gcf,'color','w','PaperPositionMode','auto');
 % Make everything tight and set the resize function so that it stays so
 if do_redraw  && ~obj.multi.active %Redrawing for multiple plots is handled at the beginning of draw()
     redraw(obj);
-    if verLessThan('matlab','8.4')
-        set(gcf,'ResizeFcn',@(a,b)redraw(obj));
-    else
-        set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
-    end
+    set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
 end
 
 
