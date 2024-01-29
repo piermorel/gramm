@@ -859,8 +859,8 @@ g(2,2).stat_smooth('method','moving','lambda',31);
 g(2,2).set_title('''method'',''moving''');
 
 
-g(2,3).stat_smooth('method','loess','lambda',0.1);
-g(2,3).set_title('''method'',''loess''');
+g(2,3).stat_smooth('method','loess','lambda',0.1,'setylim',true);
+g(2,3).set_title('''method'',''loess'',''setylim'',''true''');
 
 g.set_title('Options for stat_smooth()');
 g.draw();
