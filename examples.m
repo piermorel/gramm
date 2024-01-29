@@ -876,8 +876,6 @@ g.draw();
 % function of Horsepower, across all countries and number of cylinders, and
 % change the color options so that the fit appears in grey
 
-% TODO : BROKEN LAYOUT CHANGES
-
 clear g10
 figure('Position',[100 100 600 450]);
 g10=gramm('x',cars.Horsepower,'y',cars.Acceleration,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
@@ -929,14 +927,14 @@ g(1,1).update('color',species); %Add color with update()
 g(1,1).facet_grid([],species); %Provide facets
 g(1,1).stat_bin('dodge',0); %Histogram (we set dodge to zero as facet_grid makes it useless)
 g(1,1).set_color_options(); %Reset to default colors
-g(1,1).no_legend();
+%g(1,1).no_legend();
 g(1,1).axe_property('ylim',[-2 30]); %We have to set y scale manually, as the automatic scaling from the first plot was forgotten
 
 g(2,1).update('color',species); %Add color with update()
 g(2,1).facet_grid([],species); %Provide facets
 g(2,1).geom_point();
 g(2,1).set_color_options();
-g(2,1).no_legend();
+%g(2,1).no_legend();
 
 %Set global axe properties
 g.axe_property('TickDir','out','XGrid','on','Ygrid','on','GridColor',[0.5 0.5 0.5]);

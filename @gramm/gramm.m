@@ -8,6 +8,7 @@ classdef gramm < matlab.mixin.Copyable
         facet_axes_handles %Stores the handles of the facet axes
         results %Stores the results of the draw functions and statistics computations
         layout
+        legend_transform
     end
     
     properties (Access=protected,Hidden=true)

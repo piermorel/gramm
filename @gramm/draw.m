@@ -33,33 +33,42 @@ if numel(obj)>1
 
     nl=size(obj,1);
     nc=size(obj,2);
+    
+    if obj(1).updater.first_draw
+        bigtile = tiledlayout(nl,nc,'Padding','compact','TileSpacing','compact');
+        bigtile.OuterPosition(3)=0.98;
 
-    bigtile = tiledlayout(nl,nc,'Padding','compact','TileSpacing','compact');
-    bigtile.OuterPosition(3)=0.95;
-
-    bigtile.Title.String = obj(1).bigtitle;
-    bigtile.Title.FontWeight='bold';
-    bigtile.Title.FontSize= obj(1).text_options.base_size*obj(1).text_options.big_title_scaling;
-    bigtile.Title.Interpreter=obj(1).text_options.interpreter;
-    if ~isempty(obj(1).bigtitle_options)         
-        set(bigtile.Title,obj(1).bigtitle_options{:});
+        bigtile.Title.String = obj(1).bigtitle;
+        bigtile.Title.FontWeight='bold';
+        bigtile.Title.FontSize= obj(1).text_options.base_size*obj(1).text_options.big_title_scaling;
+        bigtile.Title.Interpreter=obj(1).text_options.interpreter;
+        if ~isempty(obj(1).bigtitle_options)
+            set(bigtile.Title,obj(1).bigtitle_options{:});
+        end
     end
 
     tmp=1;
     for l=1:nl
         for c=1:nc
-            obj(l,c).multi.active=true;
-            obj(l,c).multi.tile_object = bigtile;
-            obj(l,c).multi.tile_num = tmp;
-            tmp=tmp+1;
+            if obj(l,c).updater.first_draw
+                obj(l,c).multi.active=true;
+                obj(l,c).multi.layout = bigtile;
+                obj(l,c).multi.tile_num = tmp;
+                tmp=tmp+1;
+            end
             draw(obj(l,c));
         end
     end
     
     %Set up tight redrawing for multiple plots
     if do_redraw
-        redraw(obj);
-        set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
+
+        set(gcf,'SizeChangedFcn',@obj.redraw);
+
+        %Workaround for Matlab bug
+        drawnow;
+        obj(1).parent.Position=obj(1).parent.Position+[0 0 0 1];
+        obj(1).parent.Position=obj(1).parent.Position+[0 0 0 -1];
     end
     return;
 end
@@ -262,11 +271,19 @@ if isempty(draw_data.dodge_avl_w) || draw_data.dodge_avl_w==0
 end
 
 %Initialize tiled layout object
+if obj.updater.facet_updated==1
+    orig_f = gcf;
+    tmp_f=figure('Visible',false);
+    tmp_axes = axes(tmp_f);
+    first_axes_children = copyobj(allchild(obj.facet_axes_handles(1,1)),tmp_axes);
+    delete(obj.layout);
+    figure(orig_f);
+end
 if obj.multi.active
    if obj.wrap_ncols>0
-        obj.layout = tiledlayout(obj.multi.tile_object,ceil(length(uni_column)/obj.wrap_ncols),obj.wrap_ncols);
+        obj.layout = tiledlayout(obj.multi.layout,ceil(length(uni_column)/obj.wrap_ncols),obj.wrap_ncols);
     else
-        obj.layout = tiledlayout(obj.multi.tile_object,length(uni_row),length(uni_column));
+        obj.layout = tiledlayout(obj.multi.layout,length(uni_row),length(uni_column));
    end
    obj.layout.Layout.Tile=obj.multi.tile_num;
 else
@@ -275,7 +292,7 @@ else
     else
         obj.layout = tiledlayout(length(uni_row),length(uni_column));
     end
-    obj.layout.OuterPosition(3)=0.95;
+    obj.layout.OuterPosition(3)=0.98;
 end
 obj.layout.TileSpacing = "compact";
 obj.layout.Padding = "compact";
@@ -334,12 +351,12 @@ for ind_row=1:length(uni_row)
             end            
         else %If we are in a draw() call after an update() call
             if obj.updater.facet_updated==1 %If faceting was updated from one to multiple facets
-                if ind_column==1 && ind_row==1 %If we are in the first facet
-                    %We don't need to create it again, it exists
-                    %axes(obj.facet_axes_handles(ind_row,ind_column));
-                    %Store content of first facet for copying it on the other facets !
-                    first_axes_children=allchild(obj.facet_axes_handles(ind_row,ind_column));
-                else
+%                 if ind_column==1 && ind_row==1 %If we are in the first facet
+%                     %We don't need to create it again, it exists
+%                     %axes(obj.facet_axes_handles(ind_row,ind_column));
+%                     %Store content of first facet for copying it on the other facets !
+%                     first_axes_children=allchild(obj.facet_axes_handles(ind_row,ind_column));
+%                 else
                     %We need to create the next facets because they don't exist
                     if obj.wrap_ncols>0
                        obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,ind_column);
@@ -348,7 +365,7 @@ for ind_row=1:length(uni_row)
                     end
                     %And we copy the contents of the first facet in the new ones
                     copyobj(first_axes_children,obj.facet_axes_handles(ind_row,ind_column));
-                end
+                %end
             %else
                 %In other cases (same facets or multiple to
                 %one facet), the facets already exist
@@ -590,6 +607,9 @@ for ind_row=1:length(uni_row)
     end
     
 end
+if obj.updater.facet_updated==1
+    close(tmp_f);
+end
 
 %% draw() Title
 if ~isempty(obj.title)
@@ -636,7 +656,7 @@ str_uni_marker = cellfun(@num2str,uni_marker,'UniformOutput',false);
 
 
 %Create axes for legends
-if obj.updater.first_draw
+%if obj.updater.first_draw
     if strcmp(obj.layout_options.legend_position,'auto')
         obj.legend_axe_handle=axes(obj.layout);
         obj.legend_axe_handle.Layout.Tile='east';
@@ -651,9 +671,9 @@ if obj.updater.first_draw
     hold on
     set(obj.legend_axe_handle,'Visible','off','NextPlot','add');
     %set(obj.legend_axe_handle,'PlotBoxAspectRatio',[1 1 1]);
-else
-    axes(obj.legend_axe_handle)
-end
+% else
+%     axes(obj.legend_axe_handle)
+% end
 
 legend_y_step=1;
 legend_y_additional_step=0.5;
@@ -795,14 +815,24 @@ if obj.layout_options.legend
     end
 end
 
+%Group legend objects
+tmp = obj.legend_axe_handle.Children;
+obj.legend_transform = hgtransform('Parent',obj.legend_axe_handle);
+set(tmp,'Parent',obj.legend_transform);
+
 %Set size of legend axes
 set(obj.legend_axe_handle,'XLim',[1 8]);
 %xlim([1 8])
 if obj.legend_y<0
-    set(obj.legend_axe_handle,'YLim',[obj.legend_y 1]);
+    set(obj.legend_axe_handle,'YLim',[obj.legend_y -obj.legend_y]/2);
     %ylim([obj.legend_y 1])
 end
 %set(obj.legend_axe_handle,'DataAspectRatio',[1 1 1]);
+
+legend_scale = 25/(obj.legend_axe_handle.Position(4)*obj.parent.Position(4)/diff(obj.legend_axe_handle.YLim));
+obj.legend_transform.Matrix=makehgtform("scale",[1 legend_scale 1],"translate",[0 -(obj.legend_y+legend_y_additional_step+legend_y_step)/2 0]);
+
+
 
 %If we go from many to one facet, the new content is drawn only
 %on the first facet so needs to be copied in the other one
@@ -1215,8 +1245,8 @@ set(gcf,'color','w','PaperPositionMode','auto');
 
 % Make everything tight and set the resize function so that it stays so
 if do_redraw  && ~obj.multi.active %Redrawing for multiple plots is handled at the beginning of draw()
-    redraw(obj);
-    set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
+%    redraw(obj);
+    set(gcf,'SizeChangedFcn',@obj.redraw);
 end
 
 
