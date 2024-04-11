@@ -248,6 +248,18 @@
             {"name":"dodge","kind":"namevalue","type":"numeric"}
 		]
 },
+"gramm.geom_swarm":
+{
+		"inputs":[
+			{"name":"obj","kind":"required","type":"gramm"},
+            {"name":"method","kind":"namevalue","type":"choices={'up','down','fan','square','hex'}"},
+            {"name":"corral","kind":"namevalue","type":"choices={'none','gutter','wrap','omit','random'}"},
+            {"name":"point_size","kind":"namevalue","type":"numeric"},
+            {"name":"dodge","kind":"namevalue","type":"numeric"},
+            {"name":"width","kind":"namevalue","type":"numeric"},
+            {"name":"alpha","kind":"namevalue","type":"numeric"}
+		]
+},
 "gramm.geom_abline":
 {
 		"inputs":[
