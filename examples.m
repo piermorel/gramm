@@ -1144,7 +1144,7 @@ g.draw();
 % (>15), or when set_continuous_color is used, gramm switches from a
 % categorical color scale to a gradient-based continuous color scale.
 
-load spectra.mat
+load example_spectra.mat
 
 %Here we create x as a 1xN array (see example above), and use a MxN matrix
 %for y. Color applies to the M rows of y.

@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration file="/home/bpancras/gitRepo/gramm/gramm.prj" location="/home/bpancras/gitRepo/gramm" name="gramm" target="target.toolbox" target-name="Package Toolbox">
+  <configuration file="/Users/pierre/Library/CloudStorage/OneDrive-univ-littoral.fr/Work/Lille/grammtmp/gramm.prj" location="/Users/pierre/Library/CloudStorage/OneDrive-univ-littoral.fr/Work/Lille/grammtmp" name="gramm" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>gramm</param.appname>
     <param.authnamewatermark>Pierre Morel</param.authnamewatermark>
     <param.email />
@@ -7,7 +7,7 @@
     <param.summary />
     <param.description>Gramm is a powerful plotting toolbox which allows to quickly create complex, publication-quality figures in Matlab, and is inspired by R's ggplot2 library. As a reference to this inspiration, gramm stands for GRAMmar of graphics for Matlab.</param.description>
     <param.screenshot />
-    <param.version>2.2.3</param.version>
+    <param.version>2.27</param.version>
     <param.output>${PROJECT_ROOT}/gramm.mltbx</param.output>
     <param.products.name />
     <param.products.id />
@@ -40,7 +40,7 @@ createMLTBX.m</param.exclude.filters>
     <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
     <param.examples>&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;examples&gt;
-   &lt;exampleCategory name="gramm"&gt;
+   &lt;exampleCategory name="grammtmp"&gt;
       &lt;example name="examples" type="html"&gt;
          &lt;file type="source"&gt;/html/examples.html&lt;/file&gt;
          &lt;file type="main"&gt;/examples.m&lt;/file&gt;
@@ -86,6 +86,9 @@ createMLTBX.m</param.exclude.filters>
          &lt;file type="image"&gt;/html/examples_39.png&lt;/file&gt;
          &lt;file type="image"&gt;/html/examples_40.png&lt;/file&gt;
          &lt;file type="image"&gt;/html/examples_41.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_42.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_43.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_44.png&lt;/file&gt;
       &lt;/example&gt;
    &lt;/exampleCategory&gt;
 &lt;/examples&gt;</param.examples>
@@ -93,15 +96,15 @@ createMLTBX.m</param.exclude.filters>
     <param.apps />
     <param.registered.apps />
     <param.docs />
-    <param.getting.started.guide />
+    <param.getting.started.guide>${PROJECT_ROOT}/doc/GettingStarted.mlx</param.getting.started.guide>
     <param.matlabpath.excludes />
     <param.javaclasspath.excludes />
     <param.exported.on.package>false</param.exported.on.package>
     <param.required.addons />
     <param.matlab.project.id />
     <param.matlab.project.name />
-    <param.release.start />
-    <param.release.end />
+    <param.release.start>R2018a</param.release.start>
+    <param.release.end>latest</param.release.end>
     <param.release.current.only>false</param.release.current.only>
     <param.compatiblity.windows>true</param.compatiblity.windows>
     <param.compatiblity.macos>true</param.compatiblity.macos>
@@ -128,15 +131,12 @@ createMLTBX.m</param.exclude.filters>
       <param.apps />
       <param.registered.apps />
       <param.docs />
-      <param.getting.started.guide />
       <param.matlabpath.excludes />
       <param.javaclasspath.excludes />
       <param.exported.on.package />
       <param.required.addons />
       <param.matlab.project.id />
       <param.matlab.project.name />
-      <param.release.start />
-      <param.release.end />
       <param.release.current.only />
       <param.compatiblity.windows />
       <param.compatiblity.macos />
@@ -158,7 +158,9 @@ createMLTBX.m</param.exclude.filters>
       <file>${PROJECT_ROOT}/LICENSE</file>
       <file>${PROJECT_ROOT}/README.md</file>
       <file>${PROJECT_ROOT}/demos.xml</file>
+      <file>${PROJECT_ROOT}/doc</file>
       <file>${PROJECT_ROOT}/example_data.mat</file>
+      <file>${PROJECT_ROOT}/example_spectra.mat</file>
       <file>${PROJECT_ROOT}/examples.m</file>
       <file>${PROJECT_ROOT}/functionSignatures.json</file>
       <file>${PROJECT_ROOT}/gramm cheat sheet.pdf</file>
@@ -168,33 +170,33 @@ createMLTBX.m</param.exclude.filters>
     <fileset.depfun.excluded />
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}" name="gramm.mltbx" optional="false">/home/bpancras/gitRepo/gramm/gramm.mltbx</file>
+      <file location="${PROJECT_ROOT}" name="gramm.mltbx" optional="false">/Users/pierre/Library/CloudStorage/OneDrive-univ-littoral.fr/Work/Lille/grammtmp/gramm.mltbx</file>
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>/home/bpancras/MATLAB/R2023b</root>
+      <root>/Applications/MATLAB_R2023b.app</root>
       <toolboxes>
-        <toolbox name="matlabcoder" />
+        <toolbox name="neuralnetwork" />
       </toolboxes>
       <toolbox>
-        <matlabcoder>
+        <neuralnetwork>
           <enabled>true</enabled>
-        </matlabcoder>
+        </neuralnetwork>
       </toolbox>
     </matlab>
     <platform>
       <unix>true</unix>
-      <mac>false</mac>
+      <mac>true</mac>
       <windows>false</windows>
       <win2k>false</win2k>
       <winxp>false</winxp>
       <vista>false</vista>
-      <linux>true</linux>
+      <linux>false</linux>
       <solaris>false</solaris>
-      <osver>5.10.0-26-amd64</osver>
-      <os32>false</os32>
-      <os64>true</os64>
-      <arch>glnxa64</arch>
+      <osver>13.4.1</osver>
+      <os32>true</os32>
+      <os64>false</os64>
+      <arch>maci64</arch>
       <matlab>true</matlab>
     </platform>
   </configuration>
