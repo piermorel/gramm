@@ -725,7 +725,7 @@ g(2,2) = copy(g(1,1));
 g(2,3) = copy(g(1,1));
 
 g(1,1).geom_swarm('point_size',2);
-g(1,1).stat_summary('geom','point','dodge',0.7,'width',0.9)
+g(1,1).stat_summary('geom','point','dodge',0.7,'width',0.9);
 g(1,1).set_title('default method ''up''');
 
 g(1,2).geom_swarm('point_size',2,'method','fan');
@@ -747,9 +747,9 @@ g.set_title('Options for geom_swarm()');
 g.draw();
 
 %Make the points marking the group averages more visible
-set([g(1,1).results.stat_summary.point_handle],'MarkerFaceColor',[0 0 0])
-set([g(1,1).results.stat_summary.point_handle],'Marker','s')
-set([g(1,1).results.stat_summary.point_handle],'MarkerSize',8)
+set([g(1,1).results.stat_summary.point_handle],'MarkerFaceColor',[0 0 0]);
+set([g(1,1).results.stat_summary.point_handle],'Marker','s');
+set([g(1,1).results.stat_summary.point_handle],'MarkerSize',8);
 
 
 %% Options for dodging and spacing graphic elements in |stat_summary()| and |stat_boxplot()|
