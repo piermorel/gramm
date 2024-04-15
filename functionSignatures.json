@@ -375,6 +375,8 @@
 			{"name":"base_size","kind":"namevalue","type":"numeric"},
             {"name":"step_size","kind":"namevalue","type":"numeric"},
             {"name":"use_input","kind":"namevalue","type":"choices={1,0}"},
+            {"name":"border_width","kind":"namevalue","type":"numeric"},
+            {"name":"border_color","kind":"namevalue","type":["char", "choices={'none','auto'}","numeric"]},
             {"name":"input_fun","kind":"namevalue","type":"numeric"}
 		]
 },
