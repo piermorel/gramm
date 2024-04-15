@@ -112,6 +112,7 @@ g(1,2)=copy(g(1));
 g(1,3)=copy(g(1));
 g(2,1)=copy(g(1));
 g(2,2)=copy(g(1));
+g(2,3)=copy(g(1));
 
 %Raw data as scatter plot
 g(1,1).geom_point();
@@ -132,6 +133,10 @@ g(2,1).set_title('stat_boxplot()');
 %Violin plots
 g(2,2).stat_violin('fill','transparent');
 g(2,2).set_title('stat_violin()');
+
+%beeswarm / swarm plots
+g(2,3).geom_swarm('point_size',2);
+g(2,3).set_title('geom_swarm()');
 
 %These functions can be called on arrays of gramm objects
 g.set_names('x','Origin','y','Horsepower','color','# Cyl');
@@ -699,6 +704,53 @@ figure('Position',[100 100 800 600]);
 g.draw();
 
 
+%% Options for geom_swarm()
+
+N=700;
+x = floor(rand(N,1)*2);
+y = randn(N,1);
+y(x==1)=y(x==1)+1;
+c = round(rand(N,1)*2);
+c=categorical(c);
+x=categorical(x);
+c(x=="0" & c=="0") = "2";
+
+figure('Position',[100 100 1800 800]);
+clear g
+g(1,1)=gramm('x',x,'y',y,'color',c);
+g(1,2) = copy(g(1,1));
+g(1,3) = copy(g(1,1));
+g(2,1) = copy(g(1,1));
+g(2,2) = copy(g(1,1));
+g(2,3) = copy(g(1,1));
+
+g(1,1).geom_swarm('point_size',2);
+g(1,1).stat_summary('geom','point','dodge',0.7,'width',0.9)
+g(1,1).set_title('default method ''up''');
+
+g(1,2).geom_swarm('point_size',2,'method','fan');
+g(1,2).set_title('method ''fan''');
+
+g(1,3).geom_swarm('point_size',2,'method','hex');
+g(1,3).set_title('method ''hex''');
+
+g(2,1).geom_swarm('point_size',2,'method','square');
+g(2,1).set_title('method ''square''');
+
+g(2,2).geom_swarm('point_size',2,'corral','gutter','alpha',0.5,'dodge',0.8,'width',0.7);
+g(2,2).set_title('corral ''gutter'' and alpha 0.3');
+
+g(2,3).geom_swarm('point_size',2,'corral','omit','alpha',0.5,'dodge',0.8,'width',0.7);
+g(2,3).set_title('corral ''omit'' and alpha 0.3');
+
+g.set_title('Options for geom_swarm()');
+g.draw();
+
+%Make the points marking the group averages more visible
+set([g(1,1).results.stat_summary.point_handle],'MarkerFaceColor',[0 0 0])
+set([g(1,1).results.stat_summary.point_handle],'Marker','s')
+set([g(1,1).results.stat_summary.point_handle],'MarkerSize',8)
+
 
 %% Options for dodging and spacing graphic elements in |stat_summary()| and |stat_boxplot()|
 % |stat_summary()| and |stat_boxplot()|, as well as |stat_bin()|, use a pair of options for
@@ -861,8 +913,8 @@ g(2,2).stat_smooth('method','moving','lambda',31);
 g(2,2).set_title('''method'',''moving''');
 
 
-g(2,3).stat_smooth('method','loess','lambda',0.1);
-g(2,3).set_title('''method'',''loess''');
+g(2,3).stat_smooth('method','loess','lambda',0.1,'setylim',true);
+g(2,3).set_title('''method'',''loess'',''setylim'',''true''');
 
 g.set_title('Options for stat_smooth()');
 g.draw();
@@ -1146,7 +1198,7 @@ g.draw();
 % (>15), or when set_continuous_color is used, gramm switches from a
 % categorical color scale to a gradient-based continuous color scale.
 
-load spectra.mat
+load example_spectra.mat
 
 %Here we create x as a 1xN array (see example above), and use a MxN matrix
 %for y. Color applies to the M rows of y.

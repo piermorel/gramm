@@ -231,6 +231,7 @@ classdef gramm < matlab.mixin.Copyable
         obj=geom_bar(obj,varargin)
         obj=geom_interval(obj,varargin)
         obj=geom_label(obj,varargin)
+        obj=geom_swarm(obj,varargin)
         
         % stat methods
         obj=stat_smooth(obj,varargin)
@@ -245,7 +246,7 @@ classdef gramm < matlab.mixin.Copyable
         obj=stat_qq(obj,varargin)
         obj=stat_cornerhist(obj,varargin)
         obj=stat_violin(obj,varargin)
-        
+           
         function obj=set_parent(obj,parent)
             obj.parent=parent;
         end

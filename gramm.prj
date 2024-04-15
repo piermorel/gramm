@@ -1,0 +1,203 @@
+<deployment-project plugin="plugin.toolbox" plugin-version="1.0">
+  <configuration file="/Users/pierre/Library/CloudStorage/OneDrive-univ-littoral.fr/Work/Lille/grammtmp/gramm.prj" location="/Users/pierre/Library/CloudStorage/OneDrive-univ-littoral.fr/Work/Lille/grammtmp" name="gramm" target="target.toolbox" target-name="Package Toolbox">
+    <param.appname>gramm</param.appname>
+    <param.authnamewatermark>Pierre Morel</param.authnamewatermark>
+    <param.email />
+    <param.company />
+    <param.summary />
+    <param.description>Gramm is a powerful plotting toolbox which allows to quickly create complex, publication-quality figures in Matlab, and is inspired by R's ggplot2 library. As a reference to this inspiration, gramm stands for GRAMmar of graphics for Matlab.</param.description>
+    <param.screenshot />
+    <param.version>2.27</param.version>
+    <param.output>${PROJECT_ROOT}/gramm.mltbx</param.output>
+    <param.products.name />
+    <param.products.id />
+    <param.products.version />
+    <param.platforms />
+    <param.guid>70a0cf59-249f-4dd6-993e-8c867a616963</param.guid>
+    <param.exclude.filters>% List files contained in your toolbox folder that you would like to exclude
+% from packaging.  Excludes should be listed relative to the toolbox folder.
+% Some examples of how to specify excludes are provided below:
+%
+% A single file in the toolbox folder:
+% .svn
+%
+% A single file in a subfolder of the toolbox folder:
+% example/.svn
+%
+% All files in a subfolder of the toolbox folder:
+% example/*
+%
+% All files of a certain name in all subfolders of the toolbox folder:
+% **/.svn
+%
+% All files matching a pattern in all subfolders of the toolbox folder:
+% **/*.bak
+%
+.git
+paper
+.gitignore
+createMLTBX.m</param.exclude.filters>
+    <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
+    <param.examples>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;examples&gt;
+   &lt;exampleCategory name="grammtmp"&gt;
+      &lt;example name="examples" type="html"&gt;
+         &lt;file type="source"&gt;/html/examples.html&lt;/file&gt;
+         &lt;file type="main"&gt;/examples.m&lt;/file&gt;
+         &lt;file type="thumbnail"&gt;/html/examples.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_01.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_02.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_03.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_04.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_05.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_06.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_07.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_08.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_09.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_10.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_11.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_12.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_13.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_14.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_15.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_16.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_17.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_18.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_19.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_20.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_21.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_22.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_23.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_24.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_25.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_26.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_27.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_28.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_29.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_30.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_31.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_32.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_33.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_34.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_35.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_36.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_37.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_38.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_39.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_40.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_41.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_42.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_43.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_44.png&lt;/file&gt;
+      &lt;/example&gt;
+   &lt;/exampleCategory&gt;
+&lt;/examples&gt;</param.examples>
+    <param.demosxml />
+    <param.apps />
+    <param.registered.apps />
+    <param.docs />
+    <param.getting.started.guide>${PROJECT_ROOT}/doc/GettingStarted.mlx</param.getting.started.guide>
+    <param.matlabpath.excludes />
+    <param.javaclasspath.excludes />
+    <param.exported.on.package>false</param.exported.on.package>
+    <param.required.addons />
+    <param.matlab.project.id />
+    <param.matlab.project.name />
+    <param.release.start>R2018a</param.release.start>
+    <param.release.end>latest</param.release.end>
+    <param.release.current.only>false</param.release.current.only>
+    <param.compatiblity.windows>true</param.compatiblity.windows>
+    <param.compatiblity.macos>true</param.compatiblity.macos>
+    <param.compatiblity.linux>true</param.compatiblity.linux>
+    <param.compatiblity.matlabonline>true</param.compatiblity.matlabonline>
+    <param.installation.map />
+    <param.additional.sw.names />
+    <param.additional.sw.licenses />
+    <param.additional.sw.win.url />
+    <param.additional.sw.mac.url />
+    <param.additional.sw.linux.url />
+    <unset>
+      <param.email />
+      <param.company />
+      <param.summary />
+      <param.screenshot />
+      <param.output />
+      <param.products.name />
+      <param.products.id />
+      <param.products.version />
+      <param.platforms />
+      <param.exclude.pcodedmfiles />
+      <param.demosxml />
+      <param.apps />
+      <param.registered.apps />
+      <param.docs />
+      <param.matlabpath.excludes />
+      <param.javaclasspath.excludes />
+      <param.exported.on.package />
+      <param.required.addons />
+      <param.matlab.project.id />
+      <param.matlab.project.name />
+      <param.release.current.only />
+      <param.compatiblity.windows />
+      <param.compatiblity.macos />
+      <param.compatiblity.linux />
+      <param.compatiblity.matlabonline />
+      <param.installation.map />
+      <param.additional.sw.names />
+      <param.additional.sw.licenses />
+      <param.additional.sw.win.url />
+      <param.additional.sw.mac.url />
+      <param.additional.sw.linux.url />
+    </unset>
+    <fileset.rootdir>
+      <file>${PROJECT_ROOT}</file>
+    </fileset.rootdir>
+    <fileset.rootfiles>
+      <file>${PROJECT_ROOT}/@gramm</file>
+      <file>${PROJECT_ROOT}/CONTRIBUTING.md</file>
+      <file>${PROJECT_ROOT}/LICENSE</file>
+      <file>${PROJECT_ROOT}/README.md</file>
+      <file>${PROJECT_ROOT}/demos.xml</file>
+      <file>${PROJECT_ROOT}/doc</file>
+      <file>${PROJECT_ROOT}/example_data.mat</file>
+      <file>${PROJECT_ROOT}/example_spectra.mat</file>
+      <file>${PROJECT_ROOT}/examples.m</file>
+      <file>${PROJECT_ROOT}/functionSignatures.json</file>
+      <file>${PROJECT_ROOT}/gramm cheat sheet.pdf</file>
+      <file>${PROJECT_ROOT}/html</file>
+    </fileset.rootfiles>
+    <fileset.depfun.included />
+    <fileset.depfun.excluded />
+    <fileset.package />
+    <build-deliverables>
+      <file location="${PROJECT_ROOT}" name="gramm.mltbx" optional="false">/Users/pierre/Library/CloudStorage/OneDrive-univ-littoral.fr/Work/Lille/grammtmp/gramm.mltbx</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>/Applications/MATLAB_R2023b.app</root>
+      <toolboxes>
+        <toolbox name="neuralnetwork" />
+      </toolboxes>
+      <toolbox>
+        <neuralnetwork>
+          <enabled>true</enabled>
+        </neuralnetwork>
+      </toolbox>
+    </matlab>
+    <platform>
+      <unix>true</unix>
+      <mac>true</mac>
+      <windows>false</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>13.4.1</osver>
+      <os32>true</os32>
+      <os64>false</os64>
+      <arch>maci64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>
