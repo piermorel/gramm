@@ -38,8 +38,12 @@ else
     
     if isempty(params)
         [x,y]=to_polar(obj,draw_data.x,draw_data.y);
-        
-        hndl=text(x,y,draw_data.label,'Color',draw_data.color);
+        if isempty(draw_data.z)
+            hndl=text(x,y,draw_data.label,'Color',draw_data.color);
+        else
+            hndl=text(x,y,draw_data.z,draw_data.label,'Color',draw_data.color);
+        end
+
     else
         
         %If one of the colors is 'auto' we replace with the data-driven
@@ -60,10 +64,11 @@ else
         end
         x=dodger(draw_data.x,draw_data,dodge);
         [x,y]=to_polar(obj,x,draw_data.y);
-        
-    
-        
-        hndl=text(x,y,draw_data.label,'Color',draw_data.color,params{:});
+        if isempty(draw_data.z)
+            hndl=text(x,y,draw_data.label,'Color',draw_data.color,params{:});
+        else
+            hndl=text(x,y,draw_data.z,draw_data.label,'Color',draw_data.color,params{:});
+        end
     end
         
 end

@@ -34,6 +34,7 @@ my_addParameter(p,'lambda',[]);
 my_addParameter(p,'geom','area');
 my_addParameter(p,'method','eilers');
 my_addParameter(p,'npoints',200);
+my_addParameter(p,'setylim',false);
 parse(p,varargin{:});
 
 %Set default lambdas
@@ -262,6 +263,23 @@ else
     obj.results.stat_smooth{obj.result_ind,1}.y=newy;
     obj.results.stat_smooth{obj.result_ind,1}.yci=yci;
     
+    %Do we set the y limits according to the smoothed curves or to
+    %the original data ?
+    if params.setylim
+        if sum(sum(isnan(yci)))~=numel(yci) %We only do this if yci is not weird
+            if obj.firstrun(obj.current_row,obj.current_column) %Initialize for the first run in the subplot
+                obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(max(yci));
+                obj.plot_lim.miny(obj.current_row,obj.current_column)=min(min(yci));
+            else %Update for subsequent runs in the subplot
+                if max(max(yci))>obj.plot_lim.maxy(obj.current_row,obj.current_column)
+                    obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(max(yci));
+                end
+                if min(min(yci))<obj.plot_lim.miny(obj.current_row,obj.current_column)
+                    obj.plot_lim.miny(obj.current_row,obj.current_column)=min(min(yci));
+                end
+            end
+        end
+    end
     
     hndl=plotci(obj,newx,newy,yci,draw_data,params.geom);
     

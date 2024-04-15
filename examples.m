@@ -112,6 +112,7 @@ g(1,2)=copy(g(1));
 g(1,3)=copy(g(1));
 g(2,1)=copy(g(1));
 g(2,2)=copy(g(1));
+g(2,3)=copy(g(1));
 
 %Raw data as scatter plot
 g(1,1).geom_point();
@@ -132,6 +133,10 @@ g(2,1).set_title('stat_boxplot()');
 %Violin plots
 g(2,2).stat_violin('fill','transparent');
 g(2,2).set_title('stat_violin()');
+
+%beeswarm / swarm plots
+g(2,3).geom_swarm('point_size',2);
+g(2,3).set_title('geom_swarm()');
 
 %These functions can be called on arrays of gramm objects
 g.set_names('x','Origin','y','Horsepower','color','# Cyl');
@@ -301,7 +306,7 @@ g(1,2).stat_bin2d('nbins',[10 10],'geom','contour');
 g(1,2).set_names('color','grp');
 g(1,2).set_title('stat_bin2d(''geom'',''contour'')');
 
-% %Plot density as point size (looks good only when axes have the same
+    % %Plot density as point size (looks good only when axes have the same
 % %scale, hence the 'DataAspectRatio' option, equivalent to axis equal)
 % g(2,1)=gramm('x',x,'y',y,'color',test);
 % g(2,1).stat_bin2d('nbins',{-10:0.4:10 ; -10:0.4:10},'geom','point');
@@ -697,6 +702,53 @@ figure('Position',[100 100 800 600]);
 g.draw();
 
 
+%% Options for geom_swarm()
+
+N=700;
+x = floor(rand(N,1)*2);
+y = randn(N,1);
+y(x==1)=y(x==1)+1;
+c = round(rand(N,1)*2);
+c=categorical(c);
+x=categorical(x);
+c(x=="0" & c=="0") = "2";
+
+figure('Position',[100 100 1800 800]);
+clear g
+g(1,1)=gramm('x',x,'y',y,'color',c);
+g(1,2) = copy(g(1,1));
+g(1,3) = copy(g(1,1));
+g(2,1) = copy(g(1,1));
+g(2,2) = copy(g(1,1));
+g(2,3) = copy(g(1,1));
+
+g(1,1).geom_swarm('point_size',2);
+g(1,1).stat_summary('geom','point','dodge',0.7,'width',0.9)
+g(1,1).set_title('default method ''up''');
+
+g(1,2).geom_swarm('point_size',2,'method','fan');
+g(1,2).set_title('method ''fan''');
+
+g(1,3).geom_swarm('point_size',2,'method','hex');
+g(1,3).set_title('method ''hex''');
+
+g(2,1).geom_swarm('point_size',2,'method','square');
+g(2,1).set_title('method ''square''');
+
+g(2,2).geom_swarm('point_size',2,'corral','gutter','alpha',0.5,'dodge',0.8,'width',0.7);
+g(2,2).set_title('corral ''gutter'' and alpha 0.3');
+
+g(2,3).geom_swarm('point_size',2,'corral','omit','alpha',0.5,'dodge',0.8,'width',0.7);
+g(2,3).set_title('corral ''omit'' and alpha 0.3');
+
+g.set_title('Options for geom_swarm()');
+g.draw();
+
+%Make the points marking the group averages more visible
+set([g(1,1).results.stat_summary.point_handle],'MarkerFaceColor',[0 0 0])
+set([g(1,1).results.stat_summary.point_handle],'Marker','s')
+set([g(1,1).results.stat_summary.point_handle],'MarkerSize',8)
+
 
 %% Options for dodging and spacing graphic elements in |stat_summary()| and |stat_boxplot()|
 % |stat_summary()| and |stat_boxplot()|, as well as |stat_bin()|, use a pair of options for
@@ -793,13 +845,23 @@ cars_table.ModelShort=cellfun(@(ma,mo)mo(length(ma)+1:end),cars_table.Manufactur
 figure('Position',[100 100 800 500]);
 clear g
 %Provide 'label' as data
-g(1,1)=gramm('x',cars_table.Horsepower,'y',cars_table.Acceleration,...
+g=gramm('x',cars_table.Horsepower,'y',cars_table.Acceleration,...
     'label',cars_table.ModelShort,'color',cars_table.Manufacturer,'subset',strcmp(cars_table.Origin_Region,'Japan'));
 %geom_label() takes the same arguments as text().
 %'BackgroundColor','EdgeColor' and 'Color' can be set to 'auto'
 g.geom_label('VerticalAlignment','middle','HorizontalAlignment','center','BackgroundColor','auto','Color','k');
 g.set_limit_extra([0.2 0.2],[0.1 0.1]);
 g.set_names('color','Manufacturer','x','Horsepower','y','Acceleration');
+g.set_color_options('map','brewer2');
+g.draw();
+
+% geom_label works when 3D data is provided
+figure('Position',[100 100 800 500]);
+g=gramm('x',cars_table.Horsepower,'y',cars_table.Acceleration,'z',cars_table.MPG,...
+    'label',cars_table.ModelShort,'color',cars_table.Manufacturer,'subset',strcmp(cars_table.Origin_Region,'Japan'));
+g.geom_label('VerticalAlignment','middle','HorizontalAlignment','center','BackgroundColor','auto','Color','k');
+g.set_limit_extra([0.2 0.2],[0.1 0.1]);
+g.set_names('color','Manufacturer','x','Horsepower','y','Acceleration','z','MPG');
 g.set_color_options('map','brewer2');
 g.draw();
 
@@ -849,8 +911,8 @@ g(2,2).stat_smooth('method','moving','lambda',31);
 g(2,2).set_title('''method'',''moving''');
 
 
-g(2,3).stat_smooth('method','loess','lambda',0.1);
-g(2,3).set_title('''method'',''loess''');
+g(2,3).stat_smooth('method','loess','lambda',0.1,'setylim',true);
+g(2,3).set_title('''method'',''loess'',''setylim'',''true''');
 
 g.set_title('Options for stat_smooth()');
 g.draw();
@@ -1001,6 +1063,27 @@ g.axe_property('TickDir','out','XGrid','on','Ygrid','on','GridColor',[0.5 0.5 0.
 figure('Position',[100 100 700 350]);
 g.draw();
 
+%% Create a broken axis
+
+x=[randn(1,50)*2 randn(1,50)*8+70];
+y=-x;
+g(1,1)=gramm('x',x,'y',y);
+g(1,1).geom_point();
+g(1,1).set_title('Without broken axis');
+
+
+g(2,1)=gramm('x',x,'y',y);
+g(2,1).facet_grid([],x>20,"scale","free_x","space","free_x","column_labels",false);
+g(2,1).geom_point();
+g(2,1).set_title('With broken axis');
+figure('Position',[100 100 800 600]);
+g.draw();
+g(2,1).facet_axes_handles(2).YAxis.Visible='off';
+g(2,1).facet_axes_handles(1).XLim=[-5 6];
+g(2,1).facet_axes_handles(1).XTick=-5:5:5;
+g(2,1).facet_axes_handles(2).XLim=[50 90];
+g(2,1).facet_axes_handles(2).XTick=50:5:90;
+
 %% Customizing color maps with set_color_options()
 % With the method set_color_options(), automatic color generation for
 % color and lightness groups can be tweaked
@@ -1113,7 +1196,7 @@ g.draw();
 % (>15), or when set_continuous_color is used, gramm switches from a
 % categorical color scale to a gradient-based continuous color scale.
 
-load spectra.mat
+load example_spectra.mat
 
 %Here we create x as a 1xN array (see example above), and use a MxN matrix
 %for y. Color applies to the M rows of y.
@@ -1309,7 +1392,7 @@ text(75.3,47,{'Important' 'event'},'Parent',g.facet_axes_handles(1),'FontName','
 
 %It's also possible to change properties of graphical elements
 %Either all at once
-set([g.results.geom_point_handle],'MarkerSize',5);
+set([g.results.geom_point_handle],'SizeData',25);
 set([g.results.stat_glm.area_handle],'FaceColor',[0.4 0.4 0.4]);
 %Or on a subset of them (here only for the lines of glms of 4-cylinder cars)
 set([g.results.stat_glm(g.results.color==4).line_handle],'LineWidth',3);

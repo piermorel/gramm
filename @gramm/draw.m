@@ -406,8 +406,9 @@ for ind_row=1:length(uni_row)
         end
         
         %Make axes current
-        axes(obj.facet_axes_handles(ind_row,ind_column));
-        
+        %Was making figure visible even when visibility was set to off
+        %axes(obj.facet_axes_handles(ind_row,ind_column)); 
+        groot.CurrentFigure.CurrentAxes=obj.facet_axes_handles(ind_row,ind_column);
         
         hold on
         
@@ -1191,9 +1192,16 @@ for ind_row=1:length(uni_row) %Loop over rows
                 tmp_xl=[obj.var_lim.minx obj.var_lim.maxx];
                 tmp_extent=(tmp_xl(2)-tmp_xl(1))*obj.abline.extent(line_ind)/2;
                 xl=[mean(tmp_xl)-tmp_extent mean(tmp_xl)+tmp_extent];
+                if strcmp(ca.XScale,'log') && xl(1)<0 %Correct negative values if log axes
+                    xl(1)=1;
+                end
                 if ~isnan(obj.abline.intercept(line_ind))
+                    %draw it properly (curved) if log axes
+                    if strcmp(ca.XScale,'log') || strcmp(ca.YScale,'log')
+                        xl=xl(1):(xl(2)-xl(1))/50:xl(2);
+                    end
                     %abline
-                    plot(xl,xl*obj.abline.slope(line_ind)+obj.abline.intercept(line_ind),obj.abline.style{line_ind},'Parent',ca);
+                    plot(xl,xl*obj.abline.slope(line_ind)+obj.abline.intercept(line_ind),obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca);
                 else
                     if ~isnan(obj.abline.xintercept(line_ind))
                         %vline
@@ -1205,14 +1213,14 @@ for ind_row=1:length(uni_row) %Loop over rows
                         end
                         tmp_extent=(tmp_yl(2)-tmp_yl(1))*obj.abline.extent(line_ind)/2;
                         yl=[mean(tmp_yl)-tmp_extent mean(tmp_yl)+tmp_extent];
-                        plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,obj.abline.style{line_ind},'Parent',ca);
+                        plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca);
                     else
                         if ~isnan(obj.abline.yintercept(line_ind))
                             %hline
-                            plot(xl,[obj.abline.yintercept(line_ind) obj.abline.yintercept(line_ind)],obj.abline.style{line_ind},'Parent',ca);
+                            plot(xl,[obj.abline.yintercept(line_ind) obj.abline.yintercept(line_ind)],obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca);
                         else
                             temp_x=linspace(xl(1),xl(2),500);
-                            plot(temp_x,obj.abline.fun{line_ind}(temp_x),obj.abline.style{line_ind},'Parent',ca);
+                            plot(temp_x,obj.abline.fun{line_ind}(temp_x),obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca);
                         end
                     end
                 end

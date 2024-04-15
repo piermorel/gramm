@@ -1,42 +1,36 @@
 # gramm
 
-Gramm is a powerful plotting toolbox which allows to quickly create complex, publication-quality figures in Matlab, and is inspired by R's [ggplot2](http://ggplot2.org) library by [Hadley Wickham](http://had.co.nz). As a reference to this inspiration, gramm stands for **GRAM**mar of graphics for **M**atlab.
+[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&project=gramm.prj&file=doc/GettingStarted.mlx)
+
+Gramm is a powerful plotting toolbox which allows to quickly create complex, publication-quality figures in MATLAB, and is inspired by R's [ggplot2](http://ggplot2.org) library by [Hadley Wickham](http://had.co.nz). As a reference to this inspiration, gramm stands for **GRAM**mar of graphics for **M**ATLAB.
 
 
 ## Table of contents ##
 
 - [Why gramm?](#why-gramm)
-- [Citing gramm](#citing-gramm)
 - [About gramm](#about-gramm)
+  - [Installation](#Installation)
+  - [Documentation](#Documentation)
+  - [Citing gramm](#citing-gramm)
 - [Using gramm](#using-gramm)
 - [Features](#features)
 - [Use cases and examples (screenshots)](#use-cases-and-examples)
 
 ## Why gramm ##
 
-Gramm is a data visualization toolbox for Matlab that allows to produce publication-quality plots from grouped data easily and flexibly. Matlab can be used for complex data analysis using a high-level interface: it supports mixed-type tabular data via tables, provides statistical functions that accept these tables as arguments, and allows users to adopt a split-apply-combine approach ([Wickham 2011](https://www.jstatsoft.org/article/view/v040i01)) with ```rowfun()```. However, the standard plotting functionality in Matlab is mostly low-level, allowing to create axes in figure windows and draw geometric primitives (lines, points, patches) or simple statistical visualizations (histograms, boxplots) from numerical array data. Producing complex plots from grouped data thus requires iterating over the various groups in order to make successive statistical computations and low-level draw calls, all the while handling axis and color generation in order to visually separate data by groups. The corresponding code is often long, not easily reusable, and makes exploring alternative plot designs tedious.
+Gramm is a data visualization toolbox for MATLAB that allows to produce publication-quality plots from grouped data easily and flexibly. MATLAB can be used for complex data analysis using a high-level interface: it supports mixed-type tabular data via tables, provides statistical functions that accept these tables as arguments, and allows users to adopt a split-apply-combine approach ([Wickham 2011](https://www.jstatsoft.org/article/view/v040i01)) with ```rowfun()```. However, the standard plotting functionality in MATLAB is mostly low-level, allowing to create axes in figure windows and draw geometric primitives (lines, points, patches) or simple statistical visualizations (histograms, boxplots) from numerical array data. Producing complex plots from grouped data thus requires iterating over the various groups in order to make successive statistical computations and low-level draw calls, all the while handling axis and color generation in order to visually separate data by groups. The corresponding code is often long, not easily reusable, and makes exploring alternative plot designs tedious.
 
-Inspired by ggplot2 ([Wickham 2009](http://ggplot2.org)), the R implementation of "grammar of graphics" principles ([Wilkinson 1999](http://www.springer.com/de/book/9781475731002)), gramm improves Matlab's plotting functionality, allowing to generate complex figures using high-level object-oriented code.
+Inspired by ggplot2 ([Wickham 2009](http://ggplot2.org)), the R implementation of "grammar of graphics" principles ([Wilkinson 1999](http://www.springer.com/de/book/9781475731002)), gramm improves MATLAB's plotting functionality, allowing to generate complex figures using high-level object-oriented code.
 Gramm has been used in several publications in the field of neuroscience, from human psychophysics ([Morel et al. 2017](https://doi.org/10.1371/journal.pbio.2001323)), to electrophysiology ([Morel et al. 2016](https://doi.org/10.1088/1741-2560/13/1/016002); [Ferrea et al. 2017](https://doi.org/10.1152/jn.00504.2017)), human functional imaging  ([Wan et al. 2017](https://doi.org/10.1002/hbm.23932)) and animal training ([Berger et al. 2017](https://doi.org/10.1152/jn.00614.2017)).
 
-## Citing gramm ##
-
-Gramm has been published in the Journal of Open Source Software. If you use gramm plots in a publication you can thus cite it using the following:
-
-[![DOI](http://joss.theoj.org/papers/10.21105/joss.00568/status.svg)](https://doi.org/10.21105/joss.00568)
-
-Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open Source Software, 3(23), 568, https://doi.org/10.21105/joss.00568
 
 ## About gramm ##
 
-### Compatibility ###
-
-
-Tested under Matlab 2014b+ versions. With pre-2014b versions, gramm forces <code>'painters'</code>, renderer to avoid some graphic bugs, which deactivates transparencies (use non-transparent geoms, for example <code>stat_summary('geom','lines')</code>). The statistics toolbox is required for some methods: <code>stat_glm()</code>, some <code>stat_summary()</code> methods, <code>stat_density()</code>. The curve fitting toolbox is required for <code>stat_fit()</code>.
-
 ### Installation ###
 
-Download the gramm toolbox from GitHub ("Clone or download" button>download ZIP) or [clone it](https://help.github.com/articles/cloning-a-repository/), and add the folder containing the @gramm class folder to your Matlab path (using the [GUI](https://mathworks.com/help/matlab/matlab_env/add-remove-or-reorder-folders-on-the-search-path.html) or [```addpath()```](https://mathworks.com/help/matlab/ref/addpath.html))
+- Automatically within MATLAB : Open the Add-ons explorer, search for "gramm" and click Add !
+- Or by townloading the toolbox package : download the latest .mltbx file from the [GitHub Releases](https://github.com/piermorel/gramm/releases) and double-click the downloaded file to install.
+- Or manually : download the gramm toolbox from the [MATLAB File exchange](https://mathworks.com/matlabcentral/fileexchange/54465-gramm-data-visualization-toolbox) or GitHub ("Clone or download" button>download ZIP) or [clone it](https://help.github.com/articles/cloning-a-repository/), and add the folder containing the @gramm class folder to your MATLAB path (using the [GUI](https://mathworks.com/help/matlab/matlab_env/add-remove-or-reorder-folders-on-the-search-path.html) or [```addpath()```](https://mathworks.com/help/matlab/ref/addpath.html))
 
 ### Documentation ###
 
@@ -44,6 +38,17 @@ Download the gramm toolbox from GitHub ("Clone or download" button>download ZIP)
 - Numerous coding examples and test cases in ```examples.m```, exported for preview in  [html/examples.html](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/master/html/examples.html)
 - From MATLAB: <code>doc gramm</code> to find links to the documentation of each method.
 
+### Citing gramm ###
+
+Gramm has been published in the Journal of Open Source Software. If you use gramm plots in a publication you can thus cite it using the following:
+
+[![DOI](http://joss.theoj.org/papers/10.21105/joss.00568/status.svg)](https://doi.org/10.21105/joss.00568)
+
+Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open Source Software, 3(23), 568, https://doi.org/10.21105/joss.00568
+
+### Compatibility ###
+
+Tested under MATLAB 2014b+ versions. With pre-2014b versions, gramm forces <code>'painters'</code>, renderer to avoid some graphic bugs, which deactivates transparencies (use non-transparent geoms, for example <code>stat_summary('geom','lines')</code>). The statistics toolbox is required for some methods: <code>stat_glm()</code>, some <code>stat_summary()</code> methods, <code>stat_density()</code>. The curve fitting toolbox is required for <code>stat_fit()</code>.
 
 ## Using gramm ##
 
@@ -81,8 +86,7 @@ g.draw()
 
 ### Figure export
 
-To export figures in a vector-based format, use the SVG or PDF option rather than EPS. SVG can be read by all vector editing softwares and causes less problems than EPS both for export and import (transparency support, text without cuts, etc.). gramm has a convenient <code>export()</code> method that can be called after <code>draw()</code> and maintains correct dimensions/aspect ratio. The <code>'alpha'</code> option for <code>geom_line()</code> and <code>geom_point()</code> is not supported by Matlab for exports.
-
+To export figures in a vector-based format, use the SVG or PDF option rather than EPS. SVG can be read by all vector editing softwares and causes less problems than EPS both for export and import (transparency support, text without cuts, etc.). gramm has a convenient <code>export()</code> method that can be called after <code>draw()</code> and maintains correct dimensions/aspect ratio. 
 
 ## Features
 - Accepts X Y and Z data as arrays, matrices or cells of arrays
@@ -97,11 +101,12 @@ To export figures in a vector-based format, use the SVG or PDF option rather tha
 - Multiple ways of directly plotting the data:
   - scatter plots (<code>geom_point()</code>) and jittered scatter plot (<code>geom_jitter()</code>)
   - lines (<code>geom_line()</code>)
-  - confidence intervals (<code>geom_interval()</code>)
+  - pre-computed confidence intervals (<code>geom_interval()</code>)
   - bars plots (<code>geom_bar()</code>)
   - raster plots (<code>geom_raster()</code>)
   - labels (<code>geom_label()</code>)
-  - point counts (<code>point_count()</code>)
+  - point counts (<code>geom_count()</code>)
+  - swarm / beeswarm plots (<code>geom_swarm()</code>)
 
 
 - Multiple ways of plotting statistics on the data:
@@ -116,12 +121,12 @@ To export figures in a vector-based format, use the SVG or PDF option rather tha
   - Custom fits with user-provided anonymous function (<code>stat_fit()</code>)
   - Ellipses of confidence (<code>stat_ellipse()</code>)
 
-- When Z data is provided in the call to <code>gramm()</code>, <code>geom_point()</code> and <code>geom_line()</code> generate 3D plots
+- When Z data is provided in the call to <code>gramm()</code>, <code>geom_point()</code>, <code>geom_line()</code> and <code>geom_label()</code> generate 3D plots
 - Subplots are created without too much empty space in between (and resize properly !)
 - Polar coordinates (<code>set_polar()</code>)
 - Color data can also be displayed as a continous variable, not as a grouping factor (<code>set_continuous_color()</code>)
 - X and Y axes can be flipped to get horizontal statistics visualizations (<code>coord_flip()</code>)
-- Color generation can be customized in the LCH color space, or can use alternative colormaps (Matlab's default, [colorbrewer2](http://colorbrewer2.org)), or provide a custom colormap (<code>set_color_options()</code>)
+- Color generation can be customized in the LCH color space, or can use alternative colormaps (MATLAB's default, [colorbrewer2](http://colorbrewer2.org)), or provide a custom colormap (<code>set_color_options()</code>)
 - Marker shapes and sizes can be customized with <code>set_point_options()</code>
 - Line styles and width can be customized with <code>set_line_options()</code>
 - Text elements aspect can be customized with <code>set_text_options()</code>
@@ -133,7 +138,7 @@ To export figures in a vector-based format, use the SVG or PDF option rather tha
 - Figure title (<code>set_title()</code>)
 - Multiple gramm plots can be combined in the same figure by creating a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix. An overarching title can be added by calling <code>set_title()</code> on the whole matrix.
 - Different groupings can be used for different <code>stat_</code> and <code>geom_</code> layers with the <code>update()</code> method
-- Matlabs axes properties are acessible through the method <code>axe_property()</code>
+- MATLABs axes properties are acessible through the method <code>axe_property()</code>
 - Custom legend labels with <code>set_names()</code>
 - Plot reference line on the plots with <code>geom_abline()</code>, <code>geom_vline()</code>,<code>geom_hline()</code>
 - Plot reference polygons on the plots with <code>geom_polygon()</code>
@@ -188,7 +193,7 @@ Using <code>stat_bin()</code> it is possible to construct peristimulus time hist
 
 ### Custom layouts ###
 
-<img src="/html/examples_26.png" alt="Custom layouts" width="550">
+<img src="/html/examples_28.png" alt="Custom layouts" width="550">
 
 ### Text labels with geom_label() ###
 
@@ -197,23 +202,23 @@ Using <code>stat_bin()</code> it is possible to construct peristimulus time hist
 ### Colormap customization ###
 With <code>set_color_options()</code>
 
-<img src="/html/examples_28.png" alt="Colormaps example" width="800">
+<img src="/html/examples_31.png" alt="Colormaps example" width="800">
 
 ### Continuous colors
 
-<img src="/html/examples_30.png" alt="Continuous colors" width="800">
+<img src="/html/examples_33.png" alt="Continuous colors" width="800">
 
 ### Reordering of categorical variables
 With <code>set_order_options()</code>
 
-<img src="/html/examples_31.png" alt="Reordering" width="800">
+<img src="/html/examples_34.png" alt="Reordering" width="800">
 
 
 ### Superimposition of gramm objects on the same axes
 By making calling the update() method after a first draw, the same axes can be reused for another gramm plot.
 Here this allows to plot the whole dataset in the background of each facet.
 
-<img src="/html/examples_25.png" alt="gramm superimposition" width="800">
+<img src="/html/examples_27.png" alt="gramm superimposition" width="800">
 
 ## Acknowledgements
 gramm was inspired and/or used code from:

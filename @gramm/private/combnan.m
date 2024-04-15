@@ -22,6 +22,10 @@ if iscell(dat)
         res=vertcat(dat{:})';
     end
 else
-    res=dat;
+    if size(dat,1)==1
+        res=[dat NaN];
+    else
+        res=[dat;NaN];
+    end
 end
 end

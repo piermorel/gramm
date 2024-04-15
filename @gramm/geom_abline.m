@@ -13,9 +13,10 @@ my_addParameter(p,'slope',1);
 my_addParameter(p,'intercept',0);
 my_addParameter(p,'style','k--');
 my_addParameter(p,'extent',2);
+my_addParameter(p,'linewidth',1);
 parse(p,varargin{:});
 
 for obj_ind=1:numel(obj)
-    obj(obj_ind).abline=fill_abline(obj(obj_ind).abline,p.Results.slope,p.Results.intercept,NaN,NaN,@(x)x,p.Results.style,p.Results.extent);
+    obj(obj_ind).abline=fill_abline(obj(obj_ind).abline,p.Results.slope,p.Results.intercept,NaN,NaN,@(x)x,p.Results.style,p.Results.extent,p.Results.linewidth);
 end
 end
