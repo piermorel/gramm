@@ -9,7 +9,7 @@ To make changes, update the MATLAB code and republish this document.
 <title>gramm examples and how-tos</title>
 <meta name="generator" content="MATLAB 23.2">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2024-04-11">
+<meta name="DC.date" content="2024-04-15">
 <meta name="DC.source" content="examples.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -885,6 +885,7 @@ g(2,2) = copy(g(1,1));
 g(2,3) = copy(g(1,1));
 
 g(1,1).geom_swarm(<span class="string">'point_size'</span>,2);
+g(1,1).stat_summary(<span class="string">'geom'</span>,<span class="string">'point'</span>,<span class="string">'dodge'</span>,0.7,<span class="string">'width'</span>,0.9)
 g(1,1).set_title(<span class="string">'default method ''up'''</span>);
 
 g(1,2).geom_swarm(<span class="string">'point_size'</span>,2,<span class="string">'method'</span>,<span class="string">'fan'</span>);
@@ -904,6 +905,22 @@ g(2,3).set_title(<span class="string">'corral ''omit'' and alpha 0.3'</span>);
 
 g.set_title(<span class="string">'Options for geom_swarm()'</span>);
 g.draw();
+
+<span class="comment">%Make the points marking the group averages more visible</span>
+set([g(1,1).results.stat_summary.point_handle],<span class="string">'MarkerFaceColor'</span>,[0 0 0])
+set([g(1,1).results.stat_summary.point_handle],<span class="string">'Marker'</span>,<span class="string">'s'</span>)
+set([g(1,1).results.stat_summary.point_handle],<span class="string">'MarkerSize'</span>,8)
+</pre>
+<pre class="codeoutput">
+ans = 
+
+  gramm with properties:
+
+     legend_axe_handle: []
+      title_axe_handle: []
+    facet_axes_handles: []
+               results: [1&times;1 struct]
+
 </pre>
 <img vspace="5" hspace="5" src="examples_18.png" alt=""> <h2 id="24">Options for dodging and spacing graphic elements in <tt>stat_summary()</tt> and <tt>stat_boxplot()</tt>
 </h2>
@@ -1447,28 +1464,40 @@ g(1,1).geom_point();
 g(1,1).geom_line();
 g(1,1).set_title(<span class="string">'Default'</span>);
 
-g(1,2)=gramm(<span class="string">'x'</span>,x,<span class="string">'y'</span>,y,<span class="string">'size'</span>,sz);
+g(1,2)=gramm(<span class="string">'x'</span>,x,<span class="string">'y'</span>,y,<span class="string">'color'</span>,sz,<span class="string">'size'</span>,sz);
 g(1,2).geom_point();
-g(1,2).geom_line();
-g(1,2).set_line_options(<span class="string">'base_size'</span>,1,<span class="string">'step_size'</span>,0.2,<span class="string">'style'</span>,{<span class="string">':'</span> <span class="string">'-'</span> <span class="string">'--'</span> <span class="string">'-.'</span>});
-g(1,2).set_point_options(<span class="string">'base_size'</span>,4,<span class="string">'step_size'</span>,1);
-g(1,2).set_title(<span class="string">'Modified point and line base and step size + line style'</span>);
+g(1,2).set_point_options(<span class="string">'border_color'</span>,<span class="string">'k'</span>,<span class="string">'border_width'</span>,2);
+g(1,2).set_color_options(<span class="string">'legend'</span>,<span class="string">'merge'</span>);
+g(1,2).set_title(<span class="string">'Black point border color'</span>);
 
-g(2,1)=gramm(<span class="string">'x'</span>,x,<span class="string">'y'</span>,y,<span class="string">'size'</span>,sz,<span class="string">'subset'</span>,sz~=3 &amp; sz~=4);
-g(2,1).geom_line();
+g(1,3)=gramm(<span class="string">'x'</span>,x,<span class="string">'y'</span>,y,<span class="string">'color'</span>,sz,<span class="string">'size'</span>,sz);
+g(1,3).geom_point(<span class="string">'alpha'</span>,0);
+g(1,3).set_color_options(<span class="string">'legend'</span>,<span class="string">'merge'</span>);
+g(1,3).set_point_options(<span class="string">'border_color'</span>,<span class="string">'auto'</span>,<span class="string">'border_width'</span>,1.5);
+g(1,3).set_title(<span class="string">'Auto point border color and 0 point alpha'</span>);
+
+g(2,1)=gramm(<span class="string">'x'</span>,x,<span class="string">'y'</span>,y,<span class="string">'size'</span>,sz);
 g(2,1).geom_point();
-g(2,1).set_title(<span class="string">'Default (size according to category)'</span>);
+g(2,1).geom_line();
+g(2,1).set_line_options(<span class="string">'base_size'</span>,1,<span class="string">'step_size'</span>,0.2,<span class="string">'style'</span>,{<span class="string">':'</span> <span class="string">'-'</span> <span class="string">'--'</span> <span class="string">'-.'</span>});
+g(2,1).set_point_options(<span class="string">'base_size'</span>,4,<span class="string">'step_size'</span>,1);
+g(2,1).set_title(<span class="string">'Modified point/line base &amp; step size + line style'</span>);
 
 g(2,2)=gramm(<span class="string">'x'</span>,x,<span class="string">'y'</span>,y,<span class="string">'size'</span>,sz,<span class="string">'subset'</span>,sz~=3 &amp; sz~=4);
 g(2,2).geom_line();
 g(2,2).geom_point();
-g(2,2).set_line_options(<span class="string">'use_input'</span>,true,<span class="string">'input_fun'</span>,@(s)1.5+s);
-g(2,2).set_point_options(<span class="string">'use_input'</span>,true,<span class="string">'input_fun'</span>,@(s)5+s*2);
-g(2,2).set_title(<span class="string">'Size according to value'</span>);
+g(2,2).set_title(<span class="string">'Default (size according to category)'</span>);
+
+g(2,3)=gramm(<span class="string">'x'</span>,x,<span class="string">'y'</span>,y,<span class="string">'size'</span>,sz,<span class="string">'subset'</span>,sz~=3 &amp; sz~=4);
+g(2,3).geom_line();
+g(2,3).geom_point();
+g(2,3).set_line_options(<span class="string">'use_input'</span>,true,<span class="string">'input_fun'</span>,@(s)1.5+s);
+g(2,3).set_point_options(<span class="string">'use_input'</span>,true,<span class="string">'input_fun'</span>,@(s)5+s*2);
+g(2,3).set_title(<span class="string">'Size according to value'</span>);
 
 g.set_title(<span class="string">'Customization of line and point options'</span>);
 
-figure(<span class="string">'Position'</span>,[100 100 800 600]);
+figure(<span class="string">'Position'</span>,[100 100 1000 600]);
 g.draw();
 </pre>
 <img vspace="5" hspace="5" src="examples_35.png" alt=""> <h2 id="39">Decorate plot backgrounds with geom_polygon()</h2>
@@ -2397,6 +2426,7 @@ g(2,2) = copy(g(1,1));
 g(2,3) = copy(g(1,1));
 
 g(1,1).geom_swarm('point_size',2);
+g(1,1).stat_summary('geom','point','dodge',0.7,'width',0.9)
 g(1,1).set_title('default method ''up''');
 
 g(1,2).geom_swarm('point_size',2,'method','fan');
@@ -2417,6 +2447,10 @@ g(2,3).set_title('corral ''omit'' and alpha 0.3');
 g.set_title('Options for geom_swarm()');
 g.draw();
 
+%Make the points marking the group averages more visible
+set([g(1,1).results.stat_summary.point_handle],'MarkerFaceColor',[0 0 0])
+set([g(1,1).results.stat_summary.point_handle],'Marker','s')
+set([g(1,1).results.stat_summary.point_handle],'MarkerSize',8)
 
 
 %% Options for dodging and spacing graphic elements in |stat_summary()| and |stat_boxplot()|
@@ -2943,28 +2977,40 @@ g(1,1).geom_point();
 g(1,1).geom_line();
 g(1,1).set_title('Default');
 
-g(1,2)=gramm('x',x,'y',y,'size',sz);
+g(1,2)=gramm('x',x,'y',y,'color',sz,'size',sz);
 g(1,2).geom_point();
-g(1,2).geom_line();
-g(1,2).set_line_options('base_size',1,'step_size',0.2,'style',{':' '-' 'REPLACE_WITH_DASH_DASH' '-.'});
-g(1,2).set_point_options('base_size',4,'step_size',1);
-g(1,2).set_title('Modified point and line base and step size + line style');
+g(1,2).set_point_options('border_color','k','border_width',2);
+g(1,2).set_color_options('legend','merge');
+g(1,2).set_title('Black point border color');
 
-g(2,1)=gramm('x',x,'y',y,'size',sz,'subset',sz~=3 & sz~=4);
-g(2,1).geom_line();
+g(1,3)=gramm('x',x,'y',y,'color',sz,'size',sz);
+g(1,3).geom_point('alpha',0);
+g(1,3).set_color_options('legend','merge');
+g(1,3).set_point_options('border_color','auto','border_width',1.5);
+g(1,3).set_title('Auto point border color and 0 point alpha');
+
+g(2,1)=gramm('x',x,'y',y,'size',sz);
 g(2,1).geom_point();
-g(2,1).set_title('Default (size according to category)');
+g(2,1).geom_line();
+g(2,1).set_line_options('base_size',1,'step_size',0.2,'style',{':' '-' 'REPLACE_WITH_DASH_DASH' '-.'});
+g(2,1).set_point_options('base_size',4,'step_size',1);
+g(2,1).set_title('Modified point/line base & step size + line style');
 
 g(2,2)=gramm('x',x,'y',y,'size',sz,'subset',sz~=3 & sz~=4);
 g(2,2).geom_line();
 g(2,2).geom_point();
-g(2,2).set_line_options('use_input',true,'input_fun',@(s)1.5+s);
-g(2,2).set_point_options('use_input',true,'input_fun',@(s)5+s*2);
-g(2,2).set_title('Size according to value');
+g(2,2).set_title('Default (size according to category)');
+
+g(2,3)=gramm('x',x,'y',y,'size',sz,'subset',sz~=3 & sz~=4);
+g(2,3).geom_line();
+g(2,3).geom_point();
+g(2,3).set_line_options('use_input',true,'input_fun',@(s)1.5+s);
+g(2,3).set_point_options('use_input',true,'input_fun',@(s)5+s*2);
+g(2,3).set_title('Size according to value');
 
 g.set_title('Customization of line and point options');
 
-figure('Position',[100 100 800 600]);
+figure('Position',[100 100 1000 600]);
 g.draw();
 
 %% Decorate plot backgrounds with geom_polygon()
