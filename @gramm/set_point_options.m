@@ -18,8 +18,11 @@ my_addParameter(p, 'base_size', 5 );
 my_addParameter(p, 'step_size', 2 );
 my_addParameter(p, 'use_input', false );
 my_addParameter(p, 'input_fun', @(v)v );
+my_addParameter(p, 'border_width', 0.5);
+my_addParameter(p, 'border_color', 'none');
 my_addParameter(p, 'markers', {'o' 's' 'd' '^' 'v' '>' '<' 'p' 'h' '*' '+' 'x'} );
 parse(p,varargin{:});
+
             
 for obj_ind=1:numel(obj)
     obj(obj_ind).point_options=p.Results;
