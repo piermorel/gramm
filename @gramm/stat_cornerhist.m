@@ -117,11 +117,24 @@ end
 
 function cornerhist_redraw(parent_axe,child_axe,x_pos,aspect_ratio)
 
-
 %Get info about updated parent axis
-set(parent_axe,'Units','Pixels')
+
+%If we are in a tiled layout within a tiled layout
+if class(parent_axe.Parent.Parent)=="matlab.graphics.layout.TiledChartLayout"
+    tmp_unit = parent_axe.Parent.Units;
+    parent_axe.Parent.Units= 'Pixels';
+    pa_pos=parent_axe.Parent.Position;
+    parent_axe.Parent.Units=tmp_unit;
+else
+    tmp_unit = parent_axe.Units;
+    parent_axe.Units= 'Pixels';
+    pa_pos=plotboxpos(parent_axe);
+    parent_axe.Units= tmp_unit;
+end
+
+
 %pa_pos=get(parent_axe,'Position');
-pa_pos=plotboxpos(parent_axe);
+%pa_pos=plotboxpos(parent_axe)
 pa_xlim=get(parent_axe,'XLim');
 pa_ylim=get(parent_axe,'YLim');
 
@@ -273,8 +286,8 @@ end
 
 % Convert plot box position to the units used by the axis
 
-temp = axes('Units', 'Pixels', 'Position', pos, 'Visible', 'off', 'parent', get(h, 'parent'));
-set(temp, 'Units', currunit);
-pos = get(temp, 'position');
-delete(temp);
+% temp = axes('Units', 'Pixels', 'Position', pos, 'Visible', 'off', 'parent', get(h, 'parent'));
+% set(temp, 'Units', currunit);
+% pos = get(temp, 'position');
+% delete(temp);
 end

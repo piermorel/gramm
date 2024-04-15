@@ -33,6 +33,14 @@ function obj = set_layout_options( obj , varargin )
 %                   default. Useful only when 'redraw' is false, otherwise
 %                   'redraw_gap' is used. Default values are with ticks [0.06 0.06],
 %                   without ticks [0.02 0.02], facet wrap [0.09 0.03].
+% 'spacing'         Corresponds to 'TileSpacing' option in tiledlayout()
+%                   within a gramm plot
+% 'padding'         Corresponds to 'Padding' option in tiledlayout()
+%                   within a gramm plot
+% 'multi_spacing'   Corrseponds to 'TileSpacing' option in tiledlayout()
+%                   between multiple gramm plots 
+% 'multi_padding'   Corresponds to 'Padding' option in tiledlayout()
+%                   between multiple gramm plots 
 
 p=inputParser;
 my_addParameter(p,'position' , 'auto' );
@@ -45,6 +53,10 @@ my_addParameter(p,'redraw_gap',0.04);
 my_addParameter(p,'margin_height',[0.1 0.2]);
 my_addParameter(p,'margin_width',[0.1 0.2]);
 my_addParameter(p,'gap','auto'); 
+my_addParameter(p,'multi_padding','compact'); 
+my_addParameter(p,'multi_spacing','compact'); 
+my_addParameter(p,'padding','compact'); 
+my_addParameter(p,'spacing','compact'); 
 parse(p,varargin{:});
 
 for obj_ind=1:numel(obj)

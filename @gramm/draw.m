@@ -35,7 +35,7 @@ if numel(obj)>1
     nc=size(obj,2);
     
     if obj(1).updater.first_draw
-        bigtile = tiledlayout(nl,nc,'Padding','compact','TileSpacing','compact');
+        bigtile = tiledlayout(nl,nc,'Padding',obj(1).layout_options.multi_padding,'TileSpacing',obj(1).layout_options.multi_spacing);
         bigtile.OuterPosition(3)=0.98;
 
         bigtile.Title.String = obj(1).bigtitle;
@@ -294,8 +294,8 @@ else
     end
     obj.layout.OuterPosition(3)=0.98;
 end
-obj.layout.TileSpacing = "compact";
-obj.layout.Padding = "compact";
+obj.layout.TileSpacing = obj.layout_options.spacing;
+obj.layout.Padding = obj.layout_options.padding;
 
 obj.data_size=numel(temp_aes.x);
 
@@ -1247,6 +1247,12 @@ set(gcf,'color','w','PaperPositionMode','auto');
 if do_redraw  && ~obj.multi.active %Redrawing for multiple plots is handled at the beginning of draw()
 %    redraw(obj);
     set(gcf,'SizeChangedFcn',@obj.redraw);
+    
+    if ~isempty(obj.redraw_fun) %If there is something to redraw we force it
+        drawnow;
+        obj.parent.Position=obj(1).parent.Position+[0 0 0 1];
+        obj.parent.Position=obj(1).parent.Position+[0 0 0 -1];
+    end
 end
 
 

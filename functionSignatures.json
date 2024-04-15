@@ -428,7 +428,11 @@
 			{"name":"redraw_gap","kind":"namevalue","type":"numeric"},
             {"name":"margin_height","kind":"namevalue","type":"numeric"},
             {"name":"margin_width","kind":"namevalue","type":"numeric"},
-			{"name":"gap","kind":"namevalue","type":"choices={'auto'}"}
+			{"name":"gap","kind":"namevalue","type":"choices={'auto'}"},
+            {"name":"multi_spacing","kind":"namevalue","type":"choices={'loose','compact','tight','none'}"},
+            {"name":"multi_padding","kind":"namevalue","type":"choices={'loose','compact','tight'}"},
+            {"name":"spacing","kind":"namevalue","type":"choices={'loose','compact','tight','none'}"},
+            {"name":"padding","kind":"namevalue","type":"choices={'loose','compact','tight'}"}
 		]
 },
 "gramm.axe_property":
