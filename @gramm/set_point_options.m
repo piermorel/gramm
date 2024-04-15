@@ -24,7 +24,7 @@ my_addParameter(p, 'markers', {'o' 's' 'd' '^' 'v' '>' '<' 'p' 'h' '*' '+' 'x'} 
 parse(p,varargin{:});
 
 if p.Results.border_width==0 || strcmp(p.Results.border_color,'none')
-    parse(p,'border_width',1,'border_color','none');
+    parse(p,'border_width',0.5,'border_color','none');
 end
             
 for obj_ind=1:numel(obj)

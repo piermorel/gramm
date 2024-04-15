@@ -529,7 +529,11 @@ for ind_row=1:length(uni_row)
                                     draw_data.marker=obj.point_options.markers{1+mod(ind_marker-1,length(obj.point_options.markers))};
                                     draw_data.line_style=obj.line_options.styles{1+mod(ind_linestyle-1,length(obj.line_options.styles))};
                                     draw_data.border_width=obj.point_options.border_width;
-                                    draw_data.border_color=obj.point_options.border_color;
+                                    if strcmp(obj.point_options.border_color,'auto')
+                                        draw_data.border_color=draw_data.color;
+                                    else
+                                        draw_data.border_color=obj.point_options.border_color;
+                                    end
                                     if obj.line_options.use_input
                                         draw_data.line_size=obj.line_options.input_fun(uni_size{ind_size});
                                     else
