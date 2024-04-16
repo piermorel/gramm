@@ -505,6 +505,12 @@ for ind_row=1:length(uni_row)
                                     draw_data.color=cmap((ind_color-1)*length(uni_lightness)+ind_lightness,:);
                                     draw_data.marker=obj.point_options.markers{1+mod(ind_marker-1,length(obj.point_options.markers))};
                                     draw_data.line_style=obj.line_options.styles{1+mod(ind_linestyle-1,length(obj.line_options.styles))};
+                                    draw_data.border_width=obj.point_options.border_width;
+                                    if strcmp(obj.point_options.border_color,'auto')
+                                        draw_data.border_color=draw_data.color;
+                                    else
+                                        draw_data.border_color=obj.point_options.border_color;
+                                    end
                                     if obj.line_options.use_input
                                         draw_data.line_size=obj.line_options.input_fun(uni_size{ind_size});
                                     else
@@ -670,6 +676,8 @@ str_uni_marker = cellfun(@num2str,uni_marker,'UniformOutput',false);
     end
     hold on
     set(obj.legend_axe_handle,'Visible','off','NextPlot','add');
+    obj.legend_axe_handle.Toolbar.Visible = 'off';
+    obj.legend_axe_handle.Interactions = [];
     %set(obj.legend_axe_handle,'PlotBoxAspectRatio',[1 1 1]);
 % else
 %     axes(obj.legend_axe_handle)
@@ -879,7 +887,12 @@ for ind_row=1:length(uni_row) %Loop over rows
         
         set(ca,'FontName',obj.text_options.font,...
             'FontSize',obj.text_options.base_size)
-
+        
+        if isempty(obj.aes.z)
+            axtoolbar(ca,{'datacursor','pan','zoomin','zoomout','pan','restoreview'});
+        else
+            axtoolbar(ca,{'datacursor','rotate','pan','zoomin','zoomout','pan','restoreview'});
+        end
         
         if obj.continuous_color_options.active
             %Set color limits the same way on each plot
