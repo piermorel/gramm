@@ -875,6 +875,11 @@ obj.layout.XLabel.FontName=obj.text_options.font;
 obj.layout.XLabel.FontSize=obj.text_options.base_size*obj.text_options.label_scaling;
 
 
+if isempty(obj.aes.z)
+    axtoolbar(obj.layout,{'datacursor','pan','zoomin','zoomout','pan','restoreview'});
+else
+    axtoolbar(obj.layout,{'datacursor','rotate','pan','zoomin','zoomout','pan','restoreview'});
+end
 
 
 %Set various properties on each of the subplots
@@ -887,12 +892,7 @@ for ind_row=1:length(uni_row) %Loop over rows
         
         set(ca,'FontName',obj.text_options.font,...
             'FontSize',obj.text_options.base_size)
-        
-        if isempty(obj.aes.z)
-            axtoolbar(ca,{'datacursor','pan','zoomin','zoomout','pan','restoreview'});
-        else
-            axtoolbar(ca,{'datacursor','rotate','pan','zoomin','zoomout','pan','restoreview'});
-        end
+       
         
         if obj.continuous_color_options.active
             %Set color limits the same way on each plot
