@@ -636,6 +636,8 @@ if ~isempty(obj.title)
             'Parent',obj.parent);
         
         set(obj.title_axe_handle,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
+        obj.title_axe_handle.Toolbar.Visible='off';
+        obj.title_axe_handle.Interactions=[];
         obj.title_text_handle=text(0,0,obj.title,...
             'FontWeight','bold',...
             'Interpreter',obj.text_options.interpreter,...
@@ -695,6 +697,8 @@ if obj.updater.first_draw
     end
     hold on
     set(obj.legend_axe_handle,'Visible','off','NextPlot','add');
+    obj.legend_axe_handle.Toolbar.Visible = 'off';
+    obj.legend_axe_handle.Interactions = [];
     %set(obj.legend_axe_handle,'PlotBoxAspectRatio',[1 1 1]);
 else
     axes(obj.legend_axe_handle)
@@ -875,7 +879,12 @@ for ind_row=1:length(uni_row) %Loop over rows
         
         set(ca,'FontName',obj.text_options.font,...
             'FontSize',obj.text_options.base_size)
-
+        
+        if isempty(obj.aes.z)
+            axtoolbar(ca,{'datacursor','pan','zoomin','zoomout','pan','restoreview'});
+        else
+            axtoolbar(ca,{'datacursor','rotate','pan','zoomin','zoomout','pan','restoreview'});
+        end
         
         if obj.continuous_color_options.active
             %Set color limits the same way on each plot
