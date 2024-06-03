@@ -94,7 +94,9 @@ else
     end
 end
 
-hndl.EdgeAlpha = params.alpha;
+if ~isempty(hndl)
+    hndl.EdgeAlpha = params.alpha;
+end
 
 obj.results.geom_line_handle{obj.result_ind,1}=hndl;
 end

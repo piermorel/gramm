@@ -47,7 +47,9 @@ hndl=scatter(draw_data.x,draw_data.y,draw_data.point_size^2,...
     'Marker',draw_data.marker,...
     'MarkerEdgeColor','none','MarkerFaceColor',draw_data.color);
 
-hndl.MarkerFaceAlpha=params.alpha;
+if ~isempty(hndl)
+    hndl.MarkerFaceAlpha=params.alpha;
+end
 
 obj.results.geom_jitter_handle{obj.result_ind,1}=hndl;
 end

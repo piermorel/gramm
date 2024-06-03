@@ -85,7 +85,9 @@ else
     end
 end
 
-hndl.MarkerFaceAlpha=params.alpha;
+if ~isempty(hndl)
+    hndl.MarkerFaceAlpha=params.alpha;
+end
 
 obj.results.geom_point_handle{obj.result_ind,1}=hndl;
 end
