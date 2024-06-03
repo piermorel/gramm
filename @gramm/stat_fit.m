@@ -8,6 +8,8 @@ function obj=stat_fit(obj,varargin)
 % (param1,param2,...paramN,x) to the data.
 % Parameters:
 % - 'fun': anonymous function used for the fit
+% - 'fit_options' : fit options as obtained using Matlab's fitoptions()
+% function. Overrides the 'StartPoint' option.
 % - 'StartPoint': Array containing starting values for the
 % parameter to be fitted [start_param1,start_param2,...start_paramN]
 % - 'intopt': Option passed to predint() for the type of bounds
@@ -22,6 +24,7 @@ function obj=stat_fit(obj,varargin)
 p=inputParser;
 my_addParameter(p,'fun',@(a,b,x)a*x+b);
 my_addParameter(p,'StartPoint',[]);
+my_addParameter(p,'fit_options',[]);
 my_addParameter(p,'intopt','observation');
 my_addParameter(p,'geom','area');
 my_addParameter(p,'fullrange',false);
@@ -44,10 +47,14 @@ combx=combx(sel);
 comby=comby(sel);
 
 %Do the fit depending on options
-if isempty(params.StartPoint)
-    mdl=fit(shiftdim(combx),shiftdim(comby),params.fun);
+if isempty(params.fit_options)
+    if isempty(params.StartPoint)
+        [mdl, gof]=fit(shiftdim(combx),shiftdim(comby),params.fun);
+    else
+        [mdl, gof]=fit(shiftdim(combx),shiftdim(comby),params.fun,'StartPoint',params.StartPoint);
+    end
 else
-    mdl=fit(shiftdim(combx),shiftdim(comby),params.fun,'StartPoint',params.StartPoint);
+    [mdl, gof]=fit(shiftdim(combx),shiftdim(comby),params.fun,params.fit_options);
 end
 
 %Create x values for the fit plot
@@ -58,13 +65,19 @@ else
 end
 %Get fit value and CI
 newy=feval(mdl,newx);
+try
 yci=predint(mdl,newx,1-obj.stat_options.alpha,params.intopt);
+catch
+    disp('ERROR : no prediction intervals');
+    yci = [newx  newx]*NaN;
+end
 
 
 obj.results.stat_fit{obj.result_ind,1}.x=newx;
 obj.results.stat_fit{obj.result_ind,1}.y=newy;
 obj.results.stat_fit{obj.result_ind,1}.yci=yci;
 obj.results.stat_fit{obj.result_ind,1}.model=mdl;
+obj.results.stat_fit{obj.result_ind,1}.gof=gof;
 
 %Plot fit
 hndl=plotci(obj,newx,newy,yci,draw_data,params.geom);
