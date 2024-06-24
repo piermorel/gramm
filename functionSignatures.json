@@ -153,12 +153,14 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
-			{"name":"fun","kind":"namevalue","type":"numeric"},
+			{"name":"fun","kind":"namevalue","type":"function_handle"},
             {"name":"StartPoint","kind":"namevalue","type":"numeric"},
             {"name":"intopt","kind":"namevalue","type":"choices={'observation','functional'}"},
             {"name":"fullrange","kind":"namevalue","type":"choices={1,0}"},
             {"name":"disp_fit","kind":"namevalue","type":"choices={1,0}"},
-            {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only'}"}
+            {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only'}"},
+			{"name":"stats","kind":"namevalue","type":"choices={1,0}"},
+			{"name":"fit_options","kind":"namevalue","type":"struct"}
 		]
 },
 "gramm.stat_bin":
