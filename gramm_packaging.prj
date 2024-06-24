@@ -38,7 +38,61 @@ paper
 .gitignore
 createMLTBX.m</param.exclude.filters>
     <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
-    <param.examples />
+    <param.examples>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;examples&gt;
+   &lt;exampleCategory name="gramm"&gt;
+      &lt;example name="examples" type="html"&gt;
+         &lt;file type="source"&gt;/html/examples.html&lt;/file&gt;
+         &lt;file type="main"&gt;/examples.m&lt;/file&gt;
+         &lt;file type="thumbnail"&gt;/html/examples.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_01.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_02.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_03.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_04.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_05.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_06.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_07.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_08.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_09.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_10.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_11.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_12.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_13.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_14.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_15.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_16.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_17.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_18.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_19.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_20.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_21.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_22.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_23.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_24.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_25.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_26.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_27.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_28.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_29.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_30.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_31.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_32.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_33.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_34.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_35.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_36.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_37.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_38.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_39.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_40.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_41.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_42.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_43.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_44.png&lt;/file&gt;
+         &lt;file type="image"&gt;/html/examples_45.png&lt;/file&gt;
+      &lt;/example&gt;
+   &lt;/exampleCategory&gt;
+&lt;/examples&gt;</param.examples>
     <param.demosxml />
     <param.apps />
     <param.registered.apps />
@@ -72,7 +126,6 @@ createMLTBX.m</param.exclude.filters>
       <param.products.version />
       <param.platforms />
       <param.exclude.pcodedmfiles />
-      <param.examples />
       <param.demosxml />
       <param.apps />
       <param.registered.apps />
@@ -104,6 +157,7 @@ createMLTBX.m</param.exclude.filters>
       <file>${PROJECT_ROOT}/gramm/example_data.mat</file>
       <file>${PROJECT_ROOT}/gramm/example_spectra.mat</file>
       <file>${PROJECT_ROOT}/gramm/examples</file>
+      <file>${PROJECT_ROOT}/gramm/examples.m</file>
       <file>${PROJECT_ROOT}/gramm/functionSignatures.json</file>
       <file>${PROJECT_ROOT}/gramm/html</file>
       <file>${PROJECT_ROOT}/gramm/info.xml</file>

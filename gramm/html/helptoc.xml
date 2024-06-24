@@ -3,10 +3,10 @@
 <toc version="2.0">
 <!-- First tocitem specifies top level in Help browser Contents pane -->
 <!-- This can be a roadmap page, as shown below, or a content page -->
-    <tocitem target="GettingStarted.html"> Getting Started example
-     <tocitem target="gramm_cheat_sheet.html"> Cheat sheet
+    <tocitem target="GettingStarted.html" image="HelpIcon.GETTING_STARTED"> Getting Started example
+     <tocitem target="gramm_cheat_sheet.html" image="HelpIcon.USER_GUIDE"> Cheat sheet
     </tocitem>
-    <tocitem target="examples.html">Full examples for gramm
+    <tocitem target="examples.html" image="HelpIcon.EXAMPLES">Full examples for gramm
         <!-- Nest tocitems to create hierarchical entries in  Contents-->
         <!-- To include icons, use the following syntax for tocitems: -->
         <!-- <tocitem target="foo.html" image="HelpIcon.NAME"> -->
