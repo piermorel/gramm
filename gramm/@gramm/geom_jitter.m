@@ -11,6 +11,7 @@ my_addParameter(p,'width',0.2);
 my_addParameter(p,'height',0);
 my_addParameter(p,'dodge',0);
 my_addParameter(p,'alpha',1);
+my_addParameter(p,'raw_width',false);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_jitter(dobj,dd,p.Results)});
@@ -25,7 +26,18 @@ draw_data.y=comb(draw_data.y);
 
 draw_data.x=dodger(draw_data.x,draw_data,params.dodge);
 
-draw_data.x=draw_data.x+rand(size(draw_data.x))*params.width-params.width/2;
+if params.dodge>0
+    params.avl_width=draw_data.dodge_avl_w*params.width./(draw_data.n_colors);
+else
+    params.avl_width=draw_data.dodge_avl_w*params.width;
+end
+
+if params.raw_width
+    draw_data.x=draw_data.x+rand(size(draw_data.x))*params.width-params.width/2;
+else
+    draw_data.x=draw_data.x+rand(size(draw_data.x))*params.avl_width-params.avl_width/2;
+end
+
 draw_data.y=draw_data.y+rand(size(draw_data.y))*params.height-params.height/2;
 
 %We adjust axes limits to accomodate for the jittering
