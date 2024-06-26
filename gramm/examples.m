@@ -725,13 +725,13 @@ g(1,1).geom_swarm('point_size',2);
 g(1,1).stat_summary('geom','point','dodge',0.7,'width',0.9)
 g(1,1).set_title('default method ''up''');
 
-g(1,2).geom_swarm('point_size',2,'method','fan');
+g(1,2).geom_swarm('point_size',2,'type','fan');
 g(1,2).set_title('method ''fan''');
 
-g(1,3).geom_swarm('point_size',2,'method','hex');
+g(1,3).geom_swarm('point_size',2,'type','hex');
 g(1,3).set_title('method ''hex''');
 
-g(2,1).geom_swarm('point_size',2,'method','square');
+g(2,1).geom_swarm('point_size',2,'type','square');
 g(2,1).set_title('method ''square''');
 
 g(2,2).geom_swarm('point_size',2,'corral','gutter','alpha',0.5,'dodge',0.8,'width',0.7);
