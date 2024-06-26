@@ -41,7 +41,7 @@ parse(p,varargin{:});
 temp_results=p.Results;
 if isempty(temp_results.lambda)
     switch temp_results.method
-        case 'perfect'
+        case 'eilers'
             temp_results.lambda = 1000;
         case 'smoothingspline'
             temp_results.lambda = [];
@@ -60,7 +60,7 @@ function hndl=my_smooth(obj,draw_data,params)
 %Define anonymous function for smoothing depending on method
 switch params.method
     case 'eilers'
-        fun=@(x,y)wrap_eilers(x,y,params.npoints,1000); %Standard value for cell/matrix input
+        fun=@(x,y)wrap_eilers(x,y,params.npoints,params.lambda); %Standard value for cell/matrix input
     case 'smoothingspline'
         fun=@(x,y)wrap_fit(x,y,params.npoints,params.lambda);
     otherwise
@@ -82,8 +82,12 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
     for k=1:length(draw_data.y) %then we smooth each trajectory independently
         if ~isempty(draw_data.y{k})
             
+            tmpx = shiftdim(draw_data.x{k});
+            tmpy = shiftdim(draw_data.y{k});
+            idnan=isnan(tmpx) | isnan(tmpy);
+
             %[tempy(k,:),tempx(k,:)] = scatsm(draw_data.x{k}, draw_data.y{k}, params.lambda, 2, params.npoints);
-            [tempx(k,:),tempy(k,:)] = fun(shiftdim(draw_data.x{k}), shiftdim(draw_data.y{k}));
+            [tempx(k,:),tempy(k,:)] = fun(tmpx(~idnan), tmpy(~idnan));
         end
     end
     hndl=plot(tempx',tempy','LineStyle',draw_data.line_style,'lineWidth',draw_data.line_size,'Color',draw_data.color);

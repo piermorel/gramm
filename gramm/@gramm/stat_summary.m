@@ -130,7 +130,7 @@ function hndl=my_summary(obj,draw_data,params)
 
 %Advanced defaults
 if isempty(params.dodge)
-    if sum(strcmp(params.geom,'bar'))>0 && draw_data.n_colors>1 %If we have a bar as geom, we dodge
+    if (sum(strcmp(params.geom,'bar'))>0 || sum(strcmp(params.geom,'edge_bar'))>0) && draw_data.n_colors>1 %If we have a bar as geom, we dodge
         params.dodge=0.6;
     else
         params.dodge=0;
@@ -273,7 +273,7 @@ if params.setylim
 end
 
 %When we do bar plots we want to have zero in the y axis anyway
-if sum(strcmp(params.geom,'bar'))>0
+if sum(strcmp(params.geom,'bar'))>0 || sum(strcmp(params.geom,'edge_bar'))>0
     if obj.plot_lim.miny(obj.current_row,obj.current_column)>0 %Values above zero -> change miny
         obj.plot_lim.miny(obj.current_row,obj.current_column)=0;
     end
