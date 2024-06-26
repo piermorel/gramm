@@ -1,7 +1,7 @@
 function obj = geom_swarm(obj,varargin)
 
 p = inputParser;
-addOptional(p,'method','up')
+addOptional(p,'type','up')
 addOptional(p,'corral','none')
 addOptional(p,'point_size',3)
 addOptional(p,'dodge',0.7);
@@ -94,7 +94,7 @@ ysz = ptpos(4)/diff(ax.YLim);
 
 ypx = y*ysz; %Convert y values to point values
 
-switch params.method
+switch params.type
     case 'up'
         [ypx, si]=sort(ypx,1,"ascend");
     case 'down'
@@ -116,7 +116,7 @@ y = ypx/ysz;
 %other points (ie could possibly be in contact)
 D = squareform(pdist(ypx)) < r*2;
 
-hex = strcmp(params.method,'hex');
+hex = strcmp(params.type,'hex');
 ff=@(k)((-1)^(k+1)) * ceil(k/2); %function to alternate 1 -1 2 -2 3 -3
 
 xpx = zeros(length(y),1);
