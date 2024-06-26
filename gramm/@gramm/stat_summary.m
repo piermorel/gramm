@@ -50,6 +50,7 @@ function obj=stat_summary(obj,varargin)
 %       - 'bar': displays the locations as bars
 %       - 'edge_bar': displays the locations as bars with black edge
 %       - 'point': displays the locations as points
+%       - 'black_point': displays the locations as black points
 % - 'setylim': set to true if you want the y axis limits to be
 % set by the summarized data instead of the underlying data
 % points.

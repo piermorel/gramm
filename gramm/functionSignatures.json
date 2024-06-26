@@ -100,7 +100,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
-			{"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only'}"},
+			{"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
             {"name":"width","kind":"namevalue","type":"numeric"},
             {"name":"dodge","kind":"namevalue","type":"numeric"}
 		]
@@ -118,7 +118,7 @@
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
 			{"name":"type","kind":"namevalue","type":"choices={'ci','bootci','sem','std','quartile','95percentile','fitnormalci','fitpoissonci','fitbinomialci'}"},
-			{"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only'}"},
+			{"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
 			{"name":"setylim","kind":"namevalue","type":"choices={1,0}"},
 			{"name":"interp","kind":"namevalue","type":"choices={'linear','nearest','next','previous','pchip','makima','spline'}"},
 			{"name":"interp_in","kind":"namevalue","type":"numeric"},
@@ -131,11 +131,11 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
-			{"name":"method","kind":"namevalue","type":"choices={'eilers','smoothingspline','moving','lowess','sgolay'}"},
+			{"name":"method","kind":"namevalue","type":"choices={'eilers','smoothingspline','moving','lowess','loess','sgolay','rloess','rlowess'}"},
             {"name":"lambda","kind":"namevalue","type":"numeric"},
             {"name":"npoints","kind":"namevalue","type":"numeric"},
             {"name":"width","kind":"namevalue","type":"numeric"}, 
-            {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only'}"},
+            {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
 			{"name":"setylim","kind":"namevalue","type":"choices={1,0}"}
 		]
 },
@@ -144,7 +144,7 @@
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
 			{"name":"distribution","kind":"namevalue","type":"choices={'normal','binomial','poisson','gamma','inverse gaussian'}"},
-            {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only'}"},
+            {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
             {"name":"fullrange","kind":"namevalue","type":"choices={1,0}"},
             {"name":"disp_fit","kind":"namevalue","type":"choices={1,0}"}
 		]
@@ -158,7 +158,7 @@
             {"name":"intopt","kind":"namevalue","type":"choices={'observation','functional'}"},
             {"name":"fullrange","kind":"namevalue","type":"choices={1,0}"},
             {"name":"disp_fit","kind":"namevalue","type":"choices={1,0}"},
-            {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only'}"},
+            {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
 			{"name":"stats","kind":"namevalue","type":"choices={1,0}"},
 			{"name":"fit_options","kind":"namevalue","type":"struct"}
 		]

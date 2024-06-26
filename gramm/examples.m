@@ -246,8 +246,7 @@ g.draw();
 % dodging. |'ymin'| and |'ymax'| are absolute, and not given relative to
 % |'y'|
 
-cars_table=struct2table(cars);
-cars_summary=rowfun(@(hp)deal(nanmean(hp),bootci(200,@(x)nanmean(x),hp)'),cars_table(cars.Cylinders~=3 & cars.Cylinders~=5,:),...
+cars_summary=rowfun(@(hp)deal(nanmean(hp),bootci(200,@(x)nanmean(x),hp)'),cars(cars.Cylinders~=3 & cars.Cylinders~=5,:),...
     'InputVariables',{'Horsepower'},...
     'GroupingVariables',{'Origin_Region' 'Cylinders'},...
     'OutputVariableNames',{'hp_mean' 'hp_ci'});
@@ -836,17 +835,16 @@ g.draw();
 
 %% Plotting text or labeling with geom_label()
 
-%Convert structure to a table
-cars_table=struct2table(cars);
+
 
 %Create short version of model names by removing manufacturer
-cars_table.ModelShort=cellfun(@(ma,mo)mo(length(ma)+1:end),cars_table.Manufacturer,cars_table.Model,'UniformOutput',false);
+cars.ModelShort=cellfun(@(ma,mo)mo(length(ma)+1:end),cars.Manufacturer,cars.Model,'UniformOutput',false);
 
 figure('Position',[100 100 800 500]);
 clear g
 %Provide 'label' as data
-g=gramm('x',cars_table.Horsepower,'y',cars_table.Acceleration,...
-    'label',cars_table.ModelShort,'color',cars_table.Manufacturer,'subset',strcmp(cars_table.Origin_Region,'Japan'));
+g=gramm('x',cars.Horsepower,'y',cars.Acceleration,...
+    'label',cars.ModelShort,'color',cars.Manufacturer,'subset',strcmp(cars.Origin_Region,'Japan'));
 %geom_label() takes the same arguments as text().
 %'BackgroundColor','EdgeColor' and 'Color' can be set to 'auto'
 g.geom_label('VerticalAlignment','middle','HorizontalAlignment','center','BackgroundColor','auto','Color','k');
@@ -857,8 +855,8 @@ g.draw();
 
 % geom_label works when 3D data is provided
 figure('Position',[100 100 800 500]);
-g=gramm('x',cars_table.Horsepower,'y',cars_table.Acceleration,'z',cars_table.MPG,...
-    'label',cars_table.ModelShort,'color',cars_table.Manufacturer,'subset',strcmp(cars_table.Origin_Region,'Japan'));
+g=gramm('x',cars.Horsepower,'y',cars.Acceleration,'z',cars.MPG,...
+    'label',cars.ModelShort,'color',cars.Manufacturer,'subset',strcmp(cars.Origin_Region,'Japan'));
 g.geom_label('VerticalAlignment','middle','HorizontalAlignment','center','BackgroundColor','auto','Color','k');
 g.set_limit_extra([0.2 0.2],[0.1 0.1]);
 g.set_names('color','Manufacturer','x','Horsepower','y','Acceleration','z','MPG');
@@ -870,7 +868,7 @@ figure('Position',[100 100 800 500]);
 clear g
 %Compute number of models outside of gramm so that the output can be used
 %as label
-temp_table=rowfun(@numel,cars_table,'OutputVariableNames','N','GroupingVariables',{'Origin_Region','Model_Year'},'InputVariables','MPG');
+temp_table=rowfun(@numel,cars,'OutputVariableNames','N','GroupingVariables',{'Origin_Region','Model_Year'},'InputVariables','MPG');
 g=gramm('x',temp_table.Model_Year,'y',temp_table.N,'color',temp_table.Origin_Region,'label',temp_table.N);
 g.geom_bar('dodge',0.7,'width',0.6);
 g.geom_label('color','k','dodge',0.7,'VerticalAlignment','bottom','HorizontalAlignment','center');
@@ -1044,11 +1042,9 @@ g.draw();
 %% Plot one variable against many others
 %Inspired by: https://drsimonj.svbtle.com/plot-some-variables-against-many-others
 
-%Convert structure to a table
-cars_table=struct2table(cars);
 
 %Use stack to transform the wide table to a long format
-T=stack(cars_table,{'Displacement'  'Weight' 'Acceleration'});
+T=stack(cars,{'Displacement'  'Weight' 'Acceleration'});
 
 %Use the variable resutling from the stacking as x
 g=gramm('x',T.Displacement_Weight_Acceleration,'y',T.MPG,'color',T.Horsepower,'marker',T.Cylinders,'subset',T.Cylinders~=3 & T.Cylinders~=5 & T.Model_Year<75);
@@ -1521,5 +1517,3 @@ end
 % Ugly color legend
 l = legend('4','','6','','8','','Location','southeast');
 title(l,'#Cyl');
-
-
