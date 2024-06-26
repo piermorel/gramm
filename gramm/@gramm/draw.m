@@ -389,19 +389,17 @@ for ind_row=1:length(uni_row)
                     %And we copy the contents of the first facet in the new ones
                     copyobj(first_axes_children,obj.facet_axes_handles(ind_row,ind_column));
                 end
-            %else
-                %In other cases (same facets or multiple to
-                %one facet), the facets already exist
-                %axes(obj.facet_axes_handles(ind_row,ind_column));
-            end
-            
-            if obj.updater.facet_updated==-1 %If facets were updated from many to one facets
+            elseif obj.updater.facet_updated==-1 %If facets were updated from many to one facets
                 if ind_column==1 && ind_row==1
                     %We store the current content of the first
                     %facet so that we can check which new
                     %things are going to be drawn in
                     first_axes_children=allchild(obj.facet_axes_handles(ind_row,ind_column));
                 end
+            else
+                %In other cases (same facets or multiple to
+                %one facet), the facets already exist
+                axes(obj.facet_axes_handles(ind_row,ind_column));
             end
         end
         
