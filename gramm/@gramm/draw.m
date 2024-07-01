@@ -379,6 +379,7 @@ for ind_row=1:length(uni_row)
                     %axes(obj.facet_axes_handles(ind_row,ind_column));
                     %Store content of first facet for copying it on the other facets !
                     first_axes_children=allchild(obj.facet_axes_handles(ind_row,ind_column));
+                    axes(obj.facet_axes_handles(ind_row,ind_column));
                 else
                     %We need to create the next facets because they don't exist
                     if obj.wrap_ncols>0
