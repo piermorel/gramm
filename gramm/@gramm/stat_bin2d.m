@@ -37,14 +37,7 @@ else
     obj.plot_lim.miny(obj.current_row,obj.current_column)=params.edges{2}(1);
     obj.plot_lim.maxy(obj.current_row,obj.current_column)=params.edges{2}(end);
     
-    %Put values on the upper edges as if they were in the last
-    %bin
-    N(:,end-1)=N(:,end-1)+N(:,end);
-    N(end-1,:)=N(end-1,:)+N(end,:);
-    
-    %Remove upper edge
-    N(:,end)=[];
-    N(end,:)=[];
+
     
 end
 
@@ -64,9 +57,13 @@ switch params.geom
         
         Nr=reshape(N',1,numel(N));
         sel=Nr>0;
-        %sel=true(size(Nr));
+
         
         if isempty(params.edges)
+
+             Nr=reshape(N',1,numel(N));
+            sel=Nr>0;
+
             %Get polygon half widths
             wx=(C{1}(2)-C{1}(1))/2;
             wy=(C{2}(2)-C{2}(1))/2;
@@ -83,6 +80,19 @@ switch params.geom
             
             
         else
+
+            %Put values on the upper edges as if they were in the last
+            %bin
+            N(:,end-1)=N(:,end-1)+N(:,end);
+            N(end-1,:)=N(end-1,:)+N(end,:);
+
+            %Remove upper edge
+            N(:,end)=[];
+            N(end,:)=[];
+
+            Nr=reshape(N',1,numel(N));
+            sel=Nr>0;
+
             [Xs, Ys]=meshgrid(params.edges{1}(1:end-1),params.edges{2}(1:end-1));
             [Xe, Ye]=meshgrid(params.edges{1}(2:end),params.edges{2}(2:end));
             
