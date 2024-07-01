@@ -8,9 +8,10 @@
    <demosection>
       <label>gramm</label>
       <demoitem>
-         <label>Examples</label>
-         <type>M-file</type>
-          <source>examples</source>
+         <label>examples</label>
+         <type>other</type>
+         <source>examples</source>
+         <file>html/examples.html</file>
       </demoitem>
    </demosection>
 </demos>

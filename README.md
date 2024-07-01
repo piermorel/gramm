@@ -61,7 +61,7 @@ The typical workflow to generate a figure with gramm is the following:
 - In the last step, gramm draws the figure, and takes care of all the annoying parts: no need to loop over colors or subplots, colors and legends are generated automatically, axes limits are taken care of, etc.
 
 For example, with gramm, 7 lines of code are enough to create the figure below from the <code>carbig</code> dataset. Here the figure represents the evolution of fuel economy of new cars in time, with number of cylinders indicated by color, and regions of origin separated across subplot columns:
-<img src="/html/examples_01.png" alt="gramm example" width="800">
+<img src="gramm/html/example_export.png" alt="gramm example" width="800">
 
 ```matlab
 load carbig.mat %Load example dataset about cars

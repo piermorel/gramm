@@ -11,6 +11,14 @@ if ~isfile(prjFile)
     error("Unable to find \'%s\'.", prjFile);
 end
 
+export("gramm/doc/gramm_landing.mlx","gramm/html/gramm_landing.html");
+export("gramm/doc/GettingStarted.mlx","gramm/html/GettingStarted.html");
+export("gramm/doc/Groups.mlx","gramm/html/Groups.html");
+export("gramm/doc/TimeSeries.mlx","gramm/html/TimeSeries.html");
+export("gramm/doc/XY.mlx","gramm/html/XY.html");
+export("gramm/doc/examples.mlx","gramm/html/examples.html");
+
+
 packagingData = matlab.addons.toolbox.ToolboxOptions(prjFile);
 
 % Update the version number
