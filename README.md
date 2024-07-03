@@ -20,15 +20,15 @@ Gramm has been used in many publications from varied fields, but is particularil
 
 ## Workflow
 
-The typical workflow to generate a figure is detailed in the ["Getting Started" live script.](#demo-live-scripts)
+The typical workflow to generate this figure with only 7 lines of code is detailed in the ["Getting Started" live script.](#demo-live-scripts). The figure uses data from the <code>carbig</code> dataset and represents the evolution of fuel economy of new cars with time, depending on the number of cylinders indicated by color, and regions of origin separated across subplot columns.
 
-In short:
+<img src="images/gettingstarted_export.png" alt="GettingStarted example" width="800">
+
+In short, the workflow is the following:
 1. Provide gramm with the relevant data for the figure: X and Y variables, but also grouping variables that will determine color, subplot rows/columns, etc.
 2. Add graphical layers to your figure: raw data layers (directly plot data as points, lines...) or statistical layers (fits, histograms, densities, summaries with confidence intervals...). One instruction is enough to add each layer, and all layers offer many customization options.
 3. Draw the figure, gramm takes care of all the annoying parts: no need to loop over colors or subplots, colors and legends are generated automatically, axes limits are taken care of, etc.
 
-For example, with gramm, 7 lines of code are enough to create the figure below from the <code>carbig</code> dataset. Here the figure represents the evolution of fuel economy of new cars in time, with number of cylinders indicated by color, and regions of origin separated across subplot columns:
-<img src="images/gettingstarted_export.png" alt="GettingStarted example" width="800">
 
 ```matlab
 load example_data.mat %Load example dataset about cars
