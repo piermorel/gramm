@@ -1,21 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>gramm cheat sheet pdf</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gramm Cheat Sheet PDF</title>
     <style>
         html, body {
             margin: 0;
             padding: 0;
             height: 100%;
             width: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
         }
         .pdf-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .pdf-embed {
             width: 100%;
             height: 100%;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .download-link {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .download-link a {
+            text-decoration: none;
+            color: #007BFF;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <embed src="gramm cheat sheet.pdf" type="application/pdf" class="pdf-container">
+    <div class="pdf-container">
+        <embed src="gramm cheat sheet.pdf" type="application/pdf" class="pdf-embed" alt="Gramm Cheat Sheet PDF">
+        <p>If you cannot view the PDF, <a href="gramm cheat sheet.pdf" download>click here to download it.</a></p>
+    </div>
 </body>
 </html>

@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="2481086458" file="/Users/pierre/Library/CloudStorage/Dropbox/Work/Lille/grammtmp/gramm_packaging.prj" location="/Users/pierre/Library/CloudStorage/Dropbox/Work/Lille/grammtmp" name="gramm_packaging" target="target.toolbox" target-name="Package Toolbox">
+  <configuration build-checksum="2481086458" file="/Volumes/DataSSD/Dropbox/Work/Lille/grammtmp/gramm_packaging.prj" location="/Volumes/DataSSD/Dropbox/Work/Lille/grammtmp" name="gramm_packaging" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>gramm</param.appname>
     <param.authnamewatermark>Pierre Morel</param.authnamewatermark>
     <param.email>pier.morel@gmail.com</param.email>
@@ -106,6 +106,7 @@ createMLTBX.m</param.exclude.filters>
       <file>${PROJECT_ROOT}/gramm</file>
     </fileset.rootdir>
     <fileset.rootfiles>
+      <file>${PROJECT_ROOT}/gramm/.DS_Store</file>
       <file>${PROJECT_ROOT}/gramm/@gramm</file>
       <file>${PROJECT_ROOT}/gramm/demos.xml</file>
       <file>${PROJECT_ROOT}/gramm/doc</file>
@@ -121,19 +122,12 @@ createMLTBX.m</param.exclude.filters>
     <fileset.depfun.excluded />
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}" name="gramm.mltbx" optional="false">/Users/pierre/Library/CloudStorage/Dropbox/Work/Lille/grammtmp/gramm.mltbx</file>
+      <file location="${PROJECT_ROOT}" name="gramm.mltbx" optional="false">/Volumes/DataSSD/Dropbox/Work/Lille/grammtmp/gramm.mltbx</file>
     </build-deliverables>
     <workflow />
     <matlab>
       <root>/Applications/MATLAB_R2023b.app</root>
-      <toolboxes>
-        <toolbox name="neuralnetwork" />
-      </toolboxes>
-      <toolbox>
-        <neuralnetwork>
-          <enabled>true</enabled>
-        </neuralnetwork>
-      </toolbox>
+      <toolboxes />
     </matlab>
     <platform>
       <unix>true</unix>
@@ -144,9 +138,9 @@ createMLTBX.m</param.exclude.filters>
       <vista>false</vista>
       <linux>false</linux>
       <solaris>false</solaris>
-      <osver>14.5</osver>
-      <os32>true</os32>
-      <os64>false</os64>
+      <osver>13.6.7</osver>
+      <os32>false</os32>
+      <os64>true</os64>
       <arch>maci64</arch>
       <matlab>true</matlab>
     </platform>
