@@ -7,7 +7,7 @@ Gramm is a Matlab toolbox that enables the rapid creation of complex, publicatio
 
 The Matlab implementation of `gramm` is inspired by the "grammar of graphics" principles ([Wilkinson 1999](http://www.springer.com/de/book/9781475731002)) and the ([ggplot2](http://ggplot2.tidyverse.org/)) library for R by Hadley Wickham. As a reference to this inspiration, gramm stands for **GRAM**mar of graphics for **M**ATLAB. A similar library called [Seaborn](https://seaborn.pydata.org) also exists for Python.
 
-Gramm has been used in many publications from varied fields, but is particularily suited for neuroscience, from human movement psychophysics ([Morel et al. 2017](https://doi.org/10.1371/journal.pbio.2001323)), to electrophysiology ([Morel et al. 2016](https://doi.org/10.1088/1741-2560/13/1/016002); [Ferrea et al. 2017](https://doi.org/10.1152/jn.00504.2017)), human functional imaging  ([Wan et al. 2017](https://doi.org/10.1002/hbm.23932)) and animal training ([Berger et al. 2017](https://doi.org/10.1152/jn.00614.2017)).
+Gramm has been used in many publications from varied fields and is particularily suited for neuroscience, from human movement psychophysics ([Morel et al. 2017](https://doi.org/10.1371/journal.pbio.2001323)), to electrophysiology ([Morel et al. 2016](https://doi.org/10.1088/1741-2560/13/1/016002); [Ferrea et al. 2017](https://doi.org/10.1152/jn.00504.2017)), human functional imaging  ([Wan et al. 2017](https://doi.org/10.1002/hbm.23932)) and animal training ([Berger et al. 2017](https://doi.org/10.1152/jn.00614.2017)).
 
 - [Workflow](#workflow)
 - [Demo live scripts](#demo-live-scripts)
@@ -24,34 +24,36 @@ The typical workflow to generate this figure with only 7 lines of code is detail
 
 <img src="images/gettingstarted_export.png" alt="GettingStarted example" width="800">
 
-In short, the workflow is the following:
-1. Provide gramm with the relevant data for the figure: X and Y variables, but also grouping variables that will determine color, subplot rows/columns, etc.
-2. Add graphical layers to your figure: raw data layers (directly plot data as points, lines...) or statistical layers (fits, histograms, densities, summaries with confidence intervals...). One instruction is enough to add each layer, and all layers offer many customization options.
-3. Draw the figure, gramm takes care of all the annoying parts: no need to loop over colors or subplots, colors and legends are generated automatically, axes limits are taken care of, etc.
-
-
+Here are the main steps to generate tis figure:
+1. Provide gramm with the relevant data for the figure: X and Y variables, but also the variables that will determine color, subplot rows/columns, etc.
 ```matlab
 load example_data.mat %Load example dataset about cars
 
-% Create a gramm object, provide x (year of production) and y (fuel economy) data,
-% color grouping data (number of cylinders) and select a subset of the data
+% Create a gramm object g, provide x (year of production) and y (fuel economy) data, color grouping data (number of cylinders) and select a subset of the data (even numbers of cylinders)
 g=gramm('x',cars.Model_Year,'y',cars.MPG,'color',cars.Cylinders,...
-    'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
+    'subset',~mod(cars.Cylinders,2);
 % Subdivide the data in subplots horizontally by region of origin
 g.facet_grid([],cars.Origin_Region);
-% Plot raw data as points
-g.geom_point("dodge",0.5);
-% Plot linear fits of the data with associated confidence intervals 
-g.stat_glm();
+```
+2. Add graphical layers to your figure: raw data layers (directly plot data as points, lines...) or statistical layers (fits, histograms, densities, summaries with confidence intervals...). One instruction is enough to add each layer, and all layers offer many customization options.
+```matlab
+g.geom_point("dodge",0.5); % Plot raw data as points with a small horizontal offset between groups
+g.stat_glm(); % Plot linear fits of the data
+```
+3. Optionally configure legends, title and adjust the look the figure (colors, axes, etc.)
+```matlab
 % Set appropriate names for legends
-g.set_names('column','Origin', 'x','Year of production', y','Fuel economy (MPG)','color','# Cylinders');
+g.set_names('column','Origin', 'x','Year of production', 'y','Fuel economy (MPG)','color','# Cylinders');
 %Set figure title
 g.set_title('Fuel economy of new cars between 1970 and 1982');
-% Do the actual drawing
+```
+4. Draw the figure, gramm takes care of all the annoying parts: no need to loop over colors or subplots, colors and legends are generated automatically, axes limits are taken care of, etc.
+```matlab
 g.draw();
 ```
 
 ## Demo live scripts ##
+More detailed explanations and use cases are described in these live scripts. We recommend opening the live scripts in MATLAB to benefit from interactive elements.
 |Demo|View online|Open in Matlab Online|Preview|
 |---|---|---|---|
 |Getting Started|[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/packaging/gramm/html/GettingStarted.html) |[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/GettingStarted.mlx)|<img src="images/gettingstarted_export.png" width="300">|
@@ -63,14 +65,15 @@ g.draw();
 
 ## About gramm ##
 
-### Installation ###
+### Installin gramm ###
 
-- Automatically within MATLAB : Open the Add-ons explorer, search for "gramm" and click Add !
-- Or by downloading the toolbox package : download the latest .mltbx file from the [GitHub Releases](https://github.com/piermorel/gramm/releases) and double-click the downloaded file to install.
+We recommend installing gramm directly through MATLAB's Add-ons explorer. Search for "gramm" and click Add!
+
+You can also install gramm manually by downloading the latest .mltbx file or by adding the gramm folder from the repository to your path.
 
 ### Documentation ###
 
-Once the toolbox is installed, type ```doc``` in the MATLAB command window and you will see gramm in the "Supplemental Software" on the bottom left menu. From there you will have access to several live script demos and a cheat sheet with all commands in a compact format.
+Once the toolbox is installed, type ```doc``` in the MATLAB command window and you will see gramm in the "Supplemental Software" section at the bottom of the left navigation bar. From there you will have access to several live script demos and a cheat sheet with all commands in a compact format.
 
 ### Citing gramm ###
 
@@ -104,7 +107,6 @@ Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open So
   - swarm / beeswarm plots (<code>geom_swarm()</code>)
   - text labels (<code>geom_label()</code>)
 
-
 - Multiple statistical visualizations on the data:
   - y data summarized by x values (uniques or binned) with confidence intervals (<code>stat_summary()</code>)
   - histograms and density plots of x values (<code>stat_bin()</code> and <code>stat_density()</code>)
@@ -120,9 +122,10 @@ Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open So
 - Easy export in multiple formats with a convenient <code>export()</code> method that can be called after <code>draw()</code> and maintains correct dimensions/aspect ratio. 
 - All visualizations have plenty of options accessible through arguments, from computational to esthetic ones.
 - Representation of groupings can be fully customized (colormaps, ordering)
-- Multiple gramm plots can be combined in the same figure by creating a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix. An overarching title can be added by calling <code>set_title()</code> on the whole matrix.
-- MATLABs axes properties are acessible through the method <code>axe_property()</code>
+- Multiple gramm plots can be combined in the same figure by creating a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix.
+- MATLABs axes properties are modifiable through the method <code>axe_property()</code>
 - Non-data graphical elements can be added such as reference lines or polygons (<code>geom_abline()</code>, <code>geom_vline()</code>,<code>geom_hline()</code>,<code>geom_polygon()</code>)
+- For advanced customization, handles of all graphic elements and computation results are easily available after the <code>draw()</code> through the <code>results</code> structure of the gramm object
 
 
 ## Gallery
