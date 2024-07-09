@@ -5,7 +5,7 @@
 
 Gramm is a Matlab toolbox that enables the rapid creation of complex, publication-quality figures. Its design philosophy focuses on a *declarative* approach, where users specify the desired end result, as opposed to the traditional *imperative* method involving for loops, if/else statements, etc.
 
-The Matlab implementation of `gramm` is inspired by the "grammar of graphics" principles ([Wilkinson 1999](http://www.springer.com/de/book/9781475731002)) and the ([ggplot2](http://ggplot2.tidyverse.org/)) library for R by Hadley Wickham. As a reference to this inspiration, gramm stands for **GRAM**mar of graphics for **M**ATLAB. A similar library called [Seaborn](https://seaborn.pydata.org) also exists for Python.
+The Matlab implementation of `gramm` is inspired by the "grammar of graphics" principles ([Wilkinson 1999](http://www.springer.com/de/book/9781475731002)) and the [ggplot2](http://ggplot2.tidyverse.org/) library for R by Hadley Wickham. As a reference to this inspiration, gramm stands for **GRAM**mar of graphics for **M**ATLAB. A similar library called [Seaborn](https://seaborn.pydata.org) also exists for Python.
 
 Gramm has been used in many publications from varied fields and is particularily suited for neuroscience, from human movement psychophysics ([Morel et al. 2017](https://doi.org/10.1371/journal.pbio.2001323)), to electrophysiology ([Morel et al. 2016](https://doi.org/10.1088/1741-2560/13/1/016002); [Ferrea et al. 2017](https://doi.org/10.1152/jn.00504.2017)), human functional imaging  ([Wan et al. 2017](https://doi.org/10.1002/hbm.23932)) and animal training ([Berger et al. 2017](https://doi.org/10.1152/jn.00614.2017)).
 
@@ -24,7 +24,7 @@ The typical workflow to generate this figure with only 7 lines of code is detail
 
 <img src="images/gettingstarted_export.png" alt="GettingStarted example" width="800">
 
-Here are the main steps to generate tis figure:
+Here are the main steps to generate this figure:
 1. Provide gramm with the relevant data for the figure: X and Y variables, but also the variables that will determine color, subplot rows/columns, etc.
 ```matlab
 load example_data.mat %Load example dataset about cars
