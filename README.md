@@ -72,7 +72,7 @@ g.draw();
 
 ## About gramm ##
 
-### Installin gramm ###
+### Installing gramm ###
 
 We recommend installing gramm directly through MATLAB's Add-ons explorer. Search for "gramm" and click Add!
 
