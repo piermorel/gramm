@@ -35,6 +35,14 @@ export("gramm/doc/TimeSeries.mlx","gramm/html/TimeSeries.html");
 export("gramm/doc/XY.mlx","gramm/html/XY.html");
 export("gramm/doc/examples.mlx","gramm/html/examples.html");
 
+%Remove downloaded sample data files
+delete("example_data.mat")
+delete("example_movement.mat")
+delete("example_spectra.mat")
+delete("gramm/doc/example_data.mat")
+delete("gramm/doc/example_movement.mat")
+delete("gramm/doc/example_spectra.mat")
+
 packagingData = matlab.addons.toolbox.ToolboxOptions(prjFile);
 
 % Update the version number

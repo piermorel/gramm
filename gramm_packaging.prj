@@ -1,12 +1,12 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="2481086458" file="/Volumes/DataSSD/Dropbox/Work/Lille/grammtmp/gramm_packaging.prj" location="/Volumes/DataSSD/Dropbox/Work/Lille/grammtmp" name="gramm_packaging" target="target.toolbox" target-name="Package Toolbox">
+  <configuration build-checksum="2481086458" file="/Users/pierre/Dropbox/Work/Lille/grammtmp/gramm_packaging.prj" location="/Users/pierre/Dropbox/Work/Lille/grammtmp" name="gramm_packaging" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>gramm</param.appname>
     <param.authnamewatermark>Pierre Morel</param.authnamewatermark>
     <param.email>pier.morel@gmail.com</param.email>
     <param.company />
-    <param.summary>gramm is a powerful and full-featured plotting toolbox similar to ggplot2 or seaborn</param.summary>
-    <param.description>Gramm is a powerful plotting toolbox which allows to quickly create complex, publication-quality figures in Matlab, and is inspired by R's ggplot2 library.</param.description>
-    <param.screenshot />
+    <param.summary>gramm is a powerful and full-featured plotting and visualization toolbox similar to ggplot2 or seaborn</param.summary>
+    <param.description>Gramm is a MATLAB toolbox that enables the rapid creation of complex, publication-quality figures. Its design philosophy focuses on a declarative approach, where users specify the desired end result, as opposed to the traditional imperative method involving for loops, if/else statements, etc.</param.description>
+    <param.screenshot>${PROJECT_ROOT}/images/gettingstarted_export.png</param.screenshot>
     <param.version>2.27</param.version>
     <param.output>${PROJECT_ROOT}/gramm.mltbx</param.output>
     <param.products.name />
@@ -36,18 +36,10 @@
 .git
 paper
 .gitignore
-createMLTBX.m</param.exclude.filters>
+createMLTBX.m
+.DS_Store</param.exclude.filters>
     <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
-    <param.examples>&lt;?xml version="1.0" encoding="utf-8"?&gt;
-&lt;examples&gt;
-   &lt;exampleCategory name="gramm"&gt;
-      &lt;example name="examples" type="html"&gt;
-         &lt;file type="source"&gt;/html/examples.html&lt;/file&gt;
-         &lt;file type="main"&gt;/examples.m&lt;/file&gt;
-         &lt;file type="thumbnail"/&gt;
-      &lt;/example&gt;
-   &lt;/exampleCategory&gt;
-&lt;/examples&gt;</param.examples>
+    <param.examples />
     <param.demosxml />
     <param.apps />
     <param.registered.apps />
@@ -74,13 +66,13 @@ createMLTBX.m</param.exclude.filters>
     <param.additional.sw.linux.url />
     <unset>
       <param.company />
-      <param.screenshot />
       <param.output />
       <param.products.name />
       <param.products.id />
       <param.products.version />
       <param.platforms />
       <param.exclude.pcodedmfiles />
+      <param.examples />
       <param.demosxml />
       <param.apps />
       <param.registered.apps />
@@ -106,28 +98,32 @@ createMLTBX.m</param.exclude.filters>
       <file>${PROJECT_ROOT}/gramm</file>
     </fileset.rootdir>
     <fileset.rootfiles>
-      <file>${PROJECT_ROOT}/gramm/.DS_Store</file>
       <file>${PROJECT_ROOT}/gramm/@gramm</file>
       <file>${PROJECT_ROOT}/gramm/demos.xml</file>
       <file>${PROJECT_ROOT}/gramm/doc</file>
-      <file>${PROJECT_ROOT}/gramm/example_data.mat</file>
-      <file>${PROJECT_ROOT}/gramm/example_movement.mat</file>
-      <file>${PROJECT_ROOT}/gramm/example_spectra.mat</file>
-      <file>${PROJECT_ROOT}/gramm/examples.m</file>
       <file>${PROJECT_ROOT}/gramm/functionSignatures.json</file>
       <file>${PROJECT_ROOT}/gramm/html</file>
       <file>${PROJECT_ROOT}/gramm/info.xml</file>
     </fileset.rootfiles>
     <fileset.depfun.included />
-    <fileset.depfun.excluded />
+    <fileset.depfun.excluded>
+      <file>${PROJECT_ROOT}/example_data.mat</file>
+    </fileset.depfun.excluded>
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}" name="gramm.mltbx" optional="false">/Volumes/DataSSD/Dropbox/Work/Lille/grammtmp/gramm.mltbx</file>
+      <file location="${PROJECT_ROOT}" name="gramm.mltbx" optional="false">/Users/pierre/Dropbox/Work/Lille/grammtmp/gramm.mltbx</file>
     </build-deliverables>
     <workflow />
     <matlab>
       <root>/Applications/MATLAB_R2023b.app</root>
-      <toolboxes />
+      <toolboxes>
+        <toolbox name="neuralnetwork" />
+      </toolboxes>
+      <toolbox>
+        <neuralnetwork>
+          <enabled>true</enabled>
+        </neuralnetwork>
+      </toolbox>
     </matlab>
     <platform>
       <unix>true</unix>
@@ -138,7 +134,7 @@ createMLTBX.m</param.exclude.filters>
       <vista>false</vista>
       <linux>false</linux>
       <solaris>false</solaris>
-      <osver>13.6.7</osver>
+      <osver>14.5</osver>
       <os32>false</os32>
       <os64>true</os64>
       <arch>maci64</arch>

@@ -3,20 +3,32 @@
 
  [![View gramm on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://mathworks.com/matlabcentral/fileexchange/54465-gramm-data-visualization-toolbox)
 
-Gramm is a Matlab toolbox that enables the rapid creation of complex, publication-quality figures. Its design philosophy focuses on a *declarative* approach, where users specify the desired end result, as opposed to the traditional *imperative* method involving for loops, if/else statements, etc.
+Gramm is a MATLAB toolbox that enables the rapid creation of complex, publication-quality figures. Its design philosophy focuses on a *declarative* approach, where users specify the desired end result, as opposed to the traditional *imperative* method involving for loops, if/else statements, etc.
 
-The Matlab implementation of `gramm` is inspired by the "grammar of graphics" principles ([Wilkinson 1999](http://www.springer.com/de/book/9781475731002)) and the [ggplot2](http://ggplot2.tidyverse.org/) library for R by Hadley Wickham. As a reference to this inspiration, gramm stands for **GRAM**mar of graphics for **M**ATLAB. A similar library called [Seaborn](https://seaborn.pydata.org) also exists for Python.
+The MATLAB implementation of `gramm` is inspired by the "grammar of graphics" principles ([Wilkinson 1999](http://www.springer.com/de/book/9781475731002)) and the [ggplot2](http://ggplot2.tidyverse.org/) library for R by Hadley Wickham. As a reference to this inspiration, gramm stands for **GRAM**mar of graphics for **M**ATLAB. A similar library called [Seaborn](https://seaborn.pydata.org) also exists for Python.
 
 Gramm has been used in many publications from varied fields and is particularily suited for neuroscience, from human movement psychophysics ([Morel et al. 2017](https://doi.org/10.1371/journal.pbio.2001323)), to electrophysiology ([Morel et al. 2016](https://doi.org/10.1088/1741-2560/13/1/016002); [Ferrea et al. 2017](https://doi.org/10.1152/jn.00504.2017)), human functional imaging  ([Wan et al. 2017](https://doi.org/10.1002/hbm.23932)) and animal training ([Berger et al. 2017](https://doi.org/10.1152/jn.00614.2017)).
 
-- [Workflow](#workflow)
 - [Demo live scripts](#demo-live-scripts)
+- [Workflow](#workflow)
 - [About gramm](#about-gramm)
   - [Installation](#Installation)
   - [Documentation](#Documentation)
   - [Citing gramm](#citing-gramm)
 - [Features](#features)
 - [Gallery](#gallery)
+
+## Demo live scripts ##
+Typical use cases are described in these live scripts. We recommend opening the live scripts in MATLAB to benefit from interactive elements. A simplified workflow is presented below this table.
+
+|Demo|View online|Open in Matlab Online|Preview|
+|---|---|---|---|
+|Getting Started|[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/packaging/gramm/html/GettingStarted.html) |[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/GettingStarted.mlx)|<img src="images/gettingstarted_export.png" width="300">|
+|Explore grouped data|[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/packaging/gramm/html/Groups.html) |[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/Groups.mlx)|<img src="images/groups_export.png" width="300">|
+|Explore X/Y data|[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/packaging/gramm/html/XY.html) |[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/XY.mlx)|<img src="images/xy_export.png" width="300">|
+|Explore Time Series data|[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/packaging/gramm/html/TimeSeries.html) |[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/TimeSeries.mlx)|<img src="images/timeseries_export.png" width="300">|
+|Advanced examples|[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/packaging/gramm/html/examples.html) |[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/examples.mlx)|<img src="images/overlaid_export.png" width="300">|
+
 
 ## Workflow
 
@@ -29,7 +41,8 @@ Here are the main steps to generate this figure:
 ```matlab
 load example_data.mat %Load example dataset about cars
 
-% Create a gramm object g, provide x (year of production) and y (fuel economy) data, color grouping data (number of cylinders) and select a subset of the data (even numbers of cylinders)
+% Create a gramm object g, provide x (year of production) and y (fuel economy) data,
+% color grouping data (number of cylinders) and select a subset of the data (even numbers of cylinders)
 g=gramm('x',cars.Model_Year,'y',cars.MPG,'color',cars.Cylinders,...
     'subset',~mod(cars.Cylinders,2);
 % Subdivide the data in subplots horizontally by region of origin
@@ -37,13 +50,16 @@ g.facet_grid([],cars.Origin_Region);
 ```
 2. Add graphical layers to your figure: raw data layers (directly plot data as points, lines...) or statistical layers (fits, histograms, densities, summaries with confidence intervals...). One instruction is enough to add each layer, and all layers offer many customization options.
 ```matlab
-g.geom_point("dodge",0.5); % Plot raw data as points with a small horizontal offset between groups
-g.stat_glm(); % Plot linear fits of the data
+ % Plot raw data as points with a small horizontal offset between groups
+g.geom_point("dodge",0.5);
+% Plot linear fits of the data
+g.stat_glm(); 
 ```
 3. Optionally configure legends, title and adjust the look the figure (colors, axes, etc.)
 ```matlab
 % Set appropriate names for legends
-g.set_names('column','Origin', 'x','Year of production', 'y','Fuel economy (MPG)','color','# Cylinders');
+g.set_names('column','Origin', 'x','Year of production', 'y','Fuel economy (MPG)',...
+    'color','# Cylinders');
 %Set figure title
 g.set_title('Fuel economy of new cars between 1970 and 1982');
 ```
@@ -52,15 +68,6 @@ g.set_title('Fuel economy of new cars between 1970 and 1982');
 g.draw();
 ```
 
-## Demo live scripts ##
-More detailed explanations and use cases are described in these live scripts. We recommend opening the live scripts in MATLAB to benefit from interactive elements.
-|Demo|View online|Open in Matlab Online|Preview|
-|---|---|---|---|
-|Getting Started|[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/packaging/gramm/html/GettingStarted.html) |[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/GettingStarted.mlx)|<img src="images/gettingstarted_export.png" width="300">|
-|Explore grouped data|[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/packaging/gramm/html/Groups.html) |[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/Groups.mlx)|<img src="images/groups_export.png" width="300">|
-|Explore X/Y data|[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/packaging/gramm/html/XY.html) |[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/XY.mlx)|<img src="images/xy_export.png" width="300">|
-|Explore Time Series data|[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/packaging/gramm/html/TimeSeries.html) |[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/TimeSeries.mlx)|<img src="images/timeseries_export.png" width="300">|
-|Advanced examples|[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/packaging/gramm/html/examples.html) |[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/examples.mlx)|<img src="images/overlaid_export.png" width="300">|
 
 
 ## About gramm ##
