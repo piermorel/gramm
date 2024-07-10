@@ -21,6 +21,8 @@ Gramm has been used in many publications from varied fields and is particularily
 ## Demo live scripts ##
 Typical use cases are described in these live scripts. We recommend opening the live scripts in MATLAB to benefit from interactive elements. A simplified workflow is presented below this table.
 
+To run the files in Matlab online, you will need to add the gramm folder to your path (select the gramm folder in the files panel on the left, right click>Add to Path>Selected Folder(s)).
+
 |Demo|View online|Open in Matlab Online|Preview|
 |---|---|---|---|
 |Getting Started|[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/master/gramm/html/GettingStarted.html) |[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/GettingStarted.mlx)|<img src="images/gettingstarted_export.png" width="300">|
