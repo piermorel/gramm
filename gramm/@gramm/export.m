@@ -16,6 +16,8 @@ function obj = export(obj, varargin)
 %   plot. Setting this manually is tricky.
 % - 'units' allows to set the units used for the 'width' and 'height'
 %   input. Supports 'centimeters' and 'inches'. Default is 'centimeters'.
+% - 'resolution' set the resolution in dpi with an integer. Use 0 for
+% screen resolution
 
 % Retrieve figure handle (all are the same so only the first is ok)
 h_fig = obj(1).parent;
@@ -43,6 +45,7 @@ my_addParameter(p,'file_type', default_file_type);
 my_addParameter(p,'width', width_fig);
 my_addParameter(p,'height', height_fig);
 my_addParameter(p,'units', 'centimeters');
+my_addParameter(p,'resolution', 0);
 parse(p,varargin{:});
 
 % Turn off warning due to a custom defined figure resize function called on save
@@ -86,20 +89,20 @@ set(h_fig, 'PaperPosition', [0, 0, width, height]);
 % Save figure in preferred file type
 switch p.Results.file_type
 	case 'pdf'
-		print(h_fig, file_path, '-dpdf', '-painters');
+		print(h_fig, file_path, '-dpdf', '-vector');
 	
 	case 'eps'
-		print(h_fig, file_path, '-depsc', '-painters', '-r300');
+		print(h_fig, file_path, '-depsc', '-vector', ['-r' num2str(p.Results.resolution)]);
 
 	case 'svg'
-		print(h_fig, file_path, '-dsvg', '-painters');
+		print(h_fig, file_path, '-dsvg', '-vector');
 		
 	case 'png'
-		print(h_fig, file_path, '-dpng', '-opengl', '-r300');
+		print(h_fig, file_path, '-dpng', '-image', ['-r' num2str(p.Results.resolution)]);
 
 	case 'jpg'
 		warning('JPEG is not recommanded for saving figures. Use PDF or SVG whenever possible');
-		print(h_fig, file_path, '-djpeg', '-opengl', '-r300');
+		print(h_fig, file_path, '-djpeg', '-image', ['-r' num2str(p.Results.resolution)]);
 		
 	otherwise
 		error('Argument file_type not recognized. Available options are: pdf, eps, svg, png, jpg.')

@@ -535,7 +535,8 @@
 			{"name":"file_type","kind":"namevalue","type":"choices={'svg','pdf','eps','png','jpg'}"},
 			{"name":"width","kind":"namevalue","type":"numeric"},
 			{"name":"height","kind":"namevalue","type":"numeric"},
-			{"name":"units","kind":"namevalue","type":"choices={'centimeters','inches'}"}
+			{"name":"units","kind":"namevalue","type":"choices={'centimeters','inches'}"},
+            {"name":"resolution","kind":"namevalue","type":"integer"}
 		]
 }
 }
