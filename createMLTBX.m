@@ -11,6 +11,8 @@ if ~isfile(prjFile)
     error("Unable to find \'%s\'.", prjFile);
 end
 
+addpath gramm/
+
 export("gramm/doc/gramm_landing.mlx","gramm/html/gramm_landing.html",Run=true);
 export("gramm/doc/GettingStarted.mlx","gramm/html/GettingStarted.html",Run=true);
 export("gramm/doc/Groups.mlx","gramm/html/Groups.html",Run=true);
@@ -47,7 +49,7 @@ packagingData = matlab.addons.toolbox.ToolboxOptions(prjFile);
 
 % Update the version number
 packagingData.ToolboxVersion = toolboxVersion;
-outputFileName = packagingData.ToolboxName + "_" + toolboxVersion + ".mltbx";
+outputFileName = packagingData.ToolboxName + "_" + packagingData.ToolboxVersion + ".mltbx";
 packagingData.OutputFile =outputFileName;
 
 % Create toolbox MLTBX
