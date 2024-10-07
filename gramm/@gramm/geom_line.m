@@ -3,10 +3,13 @@ function obj=geom_line(obj,varargin)
 %
 % This will add a layer that will display data as lines
 % If the data is not properly grouped/ordered things can look weird.
+% In simple cases without cell array inputs, setting the 'ordered'
+% parameter to true will order line nodes along the x axis
 
 p=inputParser;
 my_addParameter(p,'dodge',0);
 my_addParameter(p,'alpha',1);
+my_addParameter(p,'ordered',false);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_line(dobj,dd,p.Results)});
@@ -84,6 +87,10 @@ else
         x=combnan(draw_data.x);
         y=combnan(draw_data.y);
         x=dodger(x,draw_data,params.dodge);
+        if params.ordered
+            [x,i]=sort(x);
+            y=y(i);
+        end
         [x,y]=to_polar(obj,x,y);
         
         hndl=patch('XData',combnan(x),'YData',combnan(y),...

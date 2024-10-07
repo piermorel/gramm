@@ -68,7 +68,7 @@ function obj=stat_summary(obj,varargin)
 % - 'bin_in': Use to bin the input. This is intended for input
 % given as a 1-D array, creates bins over x and computes the summary
 % over the binned data. Argument corresponds to the number of
-% bins
+% bins. If given as array this will be interpreted as bin edges
 % - 'dodge': use to dodge the plotted elements depending on
 % color (recommended for 'bar', 'errorbar', 'black_errorbar').
 % A value of 0 deactivates dodging. Other values set the space
@@ -116,7 +116,7 @@ my_addParameter(p,'width',[]);
 my_addParameter(p,'setylim',false);
 my_addParameter(p,'interp','none');
 my_addParameter(p,'interp_in',-1);
-my_addParameter(p,'bin_in',-1);
+my_addParameter(p,'bin_in',[]);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_summary(dobj,dd,p.Results)});
@@ -172,7 +172,7 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
         end
     end
     
-    if params.bin_in>0
+    if ~isempty(params.bin_in)
         warning('bin_in in stat_summary() not supported for Matrix/Cell X/Y inputs');
     end
     
@@ -199,10 +199,15 @@ else %If input was provided as 1D array
     x=comb(draw_data.x);
     y=comb(draw_data.y);
     
-    if params.bin_in>0
+    if ~isempty(params.bin_in)
         %If X binning was requested we do it
-        binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.bin_in+1);
-        bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
+        if numel(params.bin_in)==1
+            binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.bin_in+1);
+            bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
+        else
+            binranges = params.bin_in;
+            bincenters = (params.bin_in(1:end-1)+params.bin_in(2:end))/2;
+        end
         [~,binind]=my_histcounts(x,binranges,'count');
         uni_x=bincenters;
         sel=binind~=0; %histcounts can return zero as bin index if NaN data we remove them here
@@ -316,7 +321,7 @@ if ~strcmp(params.interp,'none')
 end
 
 %If X were modified
-if params.bin_in>0 || params.interp_in>0 || ~strcmp(params.interp,'none')
+if ~isempty(params.bin_in) || params.interp_in>0 || ~strcmp(params.interp,'none')
     %We reinitialize dodging parameters for plotci to work correctly
     draw_data.dodge_avl_w=uni_x(2)-uni_x(1);
     draw_data.dodge_fallback=true;
