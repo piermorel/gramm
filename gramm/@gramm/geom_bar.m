@@ -19,6 +19,7 @@ my_addParameter(p,'stacked',false);
 my_addParameter(p,'dodge',0);
 my_addParameter(p,'FaceColor','auto');
 my_addParameter(p,'EdgeColor','k');
+my_addParameter(p,'fill',[]);
 my_addParameter(p,'LineWidth',[]);
 parse(p,varargin{:});
 
@@ -48,15 +49,22 @@ x=shiftdim(x)';
 y=shiftdim(y)';
 
 % Check for automatic Face- and EdgeColor options
-if strcmp(params.FaceColor,'auto')
-    FaceColor=draw_data.color;
+if ~isempty(params.fill)
+    %Set up colors according to fill
+    [FaceColor , FaceAlpha , EdgeColor , EdgeAlpha] = parse_fill (params.fill,draw_data.color);
 else
-    FaceColor=params.FaceColor;
-end
-if strcmp(params.EdgeColor,'auto')
-    EdgeColor=draw_data.color;
-else
-    EdgeColor=params.EdgeColor;
+    FaceAlpha = 1;
+    EdgeAlpha = 1;
+    if strcmp(params.FaceColor,'auto')
+        FaceColor=draw_data.color;
+    else
+        FaceColor=params.FaceColor;
+    end
+    if strcmp(params.EdgeColor,'auto')
+        EdgeColor=draw_data.color;
+    else
+        EdgeColor=params.EdgeColor;
+    end
 end
 
 if isempty(params.LineWidth)
@@ -67,41 +75,22 @@ else
 end
 
 if params.stacked
-    
-    %Problem with stacked bar when different x values are used
-    if obj.firstrun(obj.current_row,obj.current_column)
-        %Store heights at the level of dodge x
-        obj.extra.stacked_bar_height=zeros(1,length(draw_data.facet_x));
-        %obj.plot_lim.minx(obj.current_row,obj.current_column)=min(x)-width;
-        %obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(x)+width;
-    end
-    
-    % Stack index is used to keep track of the stacks
-    x_stack_ind=arrayfun(@(xin)find(abs(draw_data.facet_x-xin)<1e-10,1),x);
-    
-    % Calculate bar patch left/right coordinates
-    barleft=x-width/2;
-    barright=x+width/2;
-    
-    % Calculate bar patch top/bottom coordinates
-    barbottom=zeros(size(x));
-    bartop=zeros(size(x));
-    for k=1:length(x) %Loop in order to make stacked bar height cumulative even when plotted at the same x/color
-        barbottom(k)=obj.extra.stacked_bar_height(x_stack_ind(k));
-        bartop(k)=obj.extra.stacked_bar_height(x_stack_ind(k))+y(k);
-        obj.extra.stacked_bar_height(x_stack_ind(k))=obj.extra.stacked_bar_height(x_stack_ind(k))+y(k);
-    end
+
+    [bar_x,barbottom, bartop] = stacker(obj,x,y,draw_data.facet_x,0,'bar');
+
+    barleft=bar_x-width/2;
+    barright=bar_x+width/2;
 
     xpatch=[barleft ; barright ; barright ; barleft];
     ypatch=[barbottom ; barbottom ; bartop ; bartop];
     [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
-     
-    if obj.plot_lim.maxy(obj.current_row,obj.current_column)<max(obj.extra.stacked_bar_height)
-        obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(obj.extra.stacked_bar_height);
+
+    if obj.plot_lim.maxy(obj.current_row,obj.current_column)<max(bartop)
+        obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(bartop);
     end
-    
+
 else
-    
+
     % Calculate dodged positions
     if dodge>0
         bar_width=draw_data.dodge_avl_w*width./(draw_data.n_colors);
@@ -109,23 +98,25 @@ else
         bar_width=draw_data.dodge_avl_w*width;
     end
     x=dodger(x',draw_data,dodge)';
-    
+
     % Calculate bar patch coordinates
     barleft=x-bar_width/2;
     barright=x+bar_width/2;
     xpatch=[barleft ; barright ; barright ; barleft];
     ypatch=[zeros(1,length(y)) ; zeros(1,length(y)) ; y ; y];
     [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
-    
+
 end
 
 % Convert unmatched structure to cell array of name-value pairs
 args=my_struct2cell(unmatched);
 
-% Draw the bars
+
 hndl=patch(xpatch,ypatch,[1 1 1],...
     'FaceColor',FaceColor,...
     'EdgeColor',EdgeColor,...
+    'FaceAlpha',FaceAlpha,...
+    'EdgeAlpha',EdgeAlpha,...
     'LineWidth',LineWidth, args{:});
 
 % Assign bar handle to obj

@@ -74,7 +74,11 @@
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
 			{"name":"dodge","kind":"namevalue","type":"numeric"},
-			{"name":"alpha","kind":"namevalue","type":"numeric"}		
+			{"name":"alpha","kind":"namevalue","type":["numeric", ">=0", "<=1"]},	
+            {"name":"stacked","kind":"namevalue","type":"logical"},
+            {"name":"fill","kind":"namevalue","type":"numeric"},
+            {"name":"fill_alpha","kind":"namevalue","type":["numeric", ">=0", "<=1"]},
+            {"name":"ordered","kind":"namevalue","type":"logical"}
 		]
 },
 "gramm.geom_raster":
@@ -92,7 +96,8 @@
             		{"name":"dodge","kind":"namevalue","type":"numeric"},
             		{"name":"stacked","kind":"namevalue","type":"choices={1,0}"},
             		{"name":"FaceColor","kind":"namevalue","type":"numeric"},
-			{"name":"EdgeColor","kind":"namevalue","type":"numeric"},
+			        {"name":"EdgeColor","kind":"namevalue","type":"numeric"},
+                    {"name":"fill","kind":"namevalue","type":"choices={'face','edge','all','transparent'}"},
             		{"name":"LineWidth","kind":"namevalue","type":"numeric"}
 		]
 },

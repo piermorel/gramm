@@ -24,6 +24,8 @@ if isempty(params.fill)
     switch params.geom
         case 'bar'
             params.fill='face';
+        case 'stacked_bars'
+            params.fill='face';
         case 'line'
             params.fill='edge';
         case 'overlaid_bar'

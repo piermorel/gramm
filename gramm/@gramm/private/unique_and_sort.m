@@ -40,10 +40,10 @@ if numel(sortopts)>1 %Custom ordering
     sortopts=shiftdim(sortopts);
     %If correct lengt and we have integers and all numbers from 1 to N are there we probably have indices
     if length(sortopts)==length(y) && isnumeric(sortopts) && sum(sort(sortopts)==(1:length(y))')==numel(y)
-        disp('ordering given as indices')
+        %disp('ordering given as indices')
         y=y(sortopts);
     else
-        disp('ordering given as values')
+        %disp('ordering given as values')
         try
             %This should work whatever the lengths of either array
             [present,order]=ismember(sortopts,y);
