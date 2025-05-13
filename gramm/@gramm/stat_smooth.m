@@ -124,7 +124,7 @@ else
     if length(combx)>3
         
         %Special case for Eilers method, find best smoothing (done per smooth) using RMS cross-validation error
-        if strcmp(params.method,'eilers') && ischar(params.lambda) && strcmp(params.lambda,'auto')
+        if strcmp(params.method,'eilers') && (ischar(params.lambda) || isstring(params.lambda)) && strcmp(params.lambda,'auto')
             lambdas = 10 .^ (0:.2:7);
             cvs=zeros(1,length(lambdas));
             for k = 1:length(lambdas)

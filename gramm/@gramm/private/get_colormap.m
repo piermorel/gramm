@@ -4,7 +4,7 @@ function cmap=get_colormap(nc,nl,opts)
 color_ind = temp_c(:);
 lightness_ind = temp_l(:);
 
-if ischar(opts.map)
+if ischar(opts.map) || isstring(opts.map)
 
     %Brewer colormaps from http://colorbrewer2.org
     switch opts.map

@@ -730,7 +730,7 @@ if obj.layout_options.legend
     %Lightness legend
     if length(uni_lightness)>1 && any(strcmp(obj.color_options.legend,{'separate','separate_gray','merge'}))
         
-        if ischar(obj.color_options.map) && strcmp(obj.color_options.map,'lch') && strcmp(obj.color_options.legend,'separate_gray')
+        if (ischar(obj.color_options.map) || isstring(obj.color_options.map)) && strcmp(obj.color_options.map,'lch') && strcmp(obj.color_options.legend,'separate_gray')
             %With LCH we can generate a correct desaturated legend
             lightness_legend_map=pa_LCH2RGB([linspace(obj.color_options.lightness_range(1),obj.color_options.lightness_range(2),length(uni_lightness))' ...
                 zeros(length(uni_lightness),1)...

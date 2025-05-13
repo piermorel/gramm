@@ -74,6 +74,11 @@ for k=1:length(fields)
         if ~old_matlab && iscategorical(aes.(fields{k}))
             out.(fields{k})=cellstr(out.(fields{k}));
         end
+
+        %Convert string data to cellstr.
+        if ~old_matlab && isstring(aes.(fields{k}))
+            out.(fields{k})=cellstr(out.(fields{k}));
+        end
         
     end
 end
