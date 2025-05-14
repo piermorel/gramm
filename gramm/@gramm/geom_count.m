@@ -17,7 +17,7 @@ end
 
 function hndl=my_count(obj,draw_data,params)
 
-if obj.continuous_color
+if obj.continuous_color_options.active
     disp('geom_count() unsupported with continuous color')
     hndl=[];
 else
