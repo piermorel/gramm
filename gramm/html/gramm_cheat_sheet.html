@@ -8,10 +8,13 @@
             padding: 0;
             height: 100%;
             width: 100%;
+            overflow: hidden; /* Prevents scrollbars on the page itself */
         }
         .pdf-container {
             width: 100%;
-            height: 100%;
+            height: 100vh; /* Use viewport height for full height */
+            display: block; /* Ensures the element takes up full space */
+            border: none; /* Removes any default borders */
         }
     </style>
 </head>

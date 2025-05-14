@@ -40,6 +40,9 @@ To run the files in Matlab online, you will need to add the gramm folder to your
 
 <img src="images/timeseries_export.png" width="300">&emsp;[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/master/gramm/html/TimeSeries.html) &emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/TimeSeries.mlx)
 
+- **Explore table data from an open dataset hosted on S3:**
+
+<img src="images/stacked_export.png" width="300">&emsp;[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/master/gramm/html/OnlineTable.html) &emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/OnlineTable.mlx)
 
 - **Advanced examples:**
 

@@ -26,6 +26,8 @@
                      image="HelpIcon.EXAMPLES">XY data (fits, clusters)</tocitem>
             <tocitem target="TimeSeries.html"
                      image="HelpIcon.EXAMPLES">Time series</tocitem>
+            <tocitem target="OnlineTable.html"
+                     image="HelpIcon.EXAMPLES">Online Table data</tocitem>
             <tocitem target="examples.html"
                      image="HelpIcon.EXAMPLES">More advanced examples for gramm</tocitem>
         </tocitem>

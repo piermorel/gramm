@@ -19,6 +19,7 @@ export("gramm/doc/Groups.mlx","gramm/html/Groups.html",Run=true);
 export("gramm/doc/TimeSeries.mlx","gramm/html/TimeSeries.html",Run=true);
 export("gramm/doc/XY.mlx","gramm/html/XY.html",Run=true);
 export("gramm/doc/examples.mlx","gramm/html/examples.html",Run=true);
+export("gramm/doc/OnlineTable.mlx","gramm/html/OnlineTable.html",Run=true);
 
 movefile('./gramm/doc/gettingstarted_export.png','./images/gettingstarted_export.png')
 movefile('./gramm/doc/groups_export.png','./images/groups_export.png')
@@ -28,6 +29,7 @@ movefile('./gramm/doc/overlaid_export.png','./images/overlaid_export.png')
 movefile('./gramm/doc/layout_export.png','./images/layout_export.png')
 movefile('./gramm/doc/colorlegend_export.png','./images/colorlegend_export.png')
 movefile('./gramm/doc/scaling_export.png','./images/scaling_export.png')
+movefile('./gramm/doc/stacked_export.png','./images/stacked_export.png')
 
 %We need to run it again to have correctly sized figures in the html pages
 export("gramm/doc/gramm_landing.mlx","gramm/html/gramm_landing.html");
@@ -36,6 +38,7 @@ export("gramm/doc/Groups.mlx","gramm/html/Groups.html");
 export("gramm/doc/TimeSeries.mlx","gramm/html/TimeSeries.html");
 export("gramm/doc/XY.mlx","gramm/html/XY.html");
 export("gramm/doc/examples.mlx","gramm/html/examples.html");
+export("gramm/doc/OnlineTable.mlx","gramm/html/OnlineTable.html");
 
 %Remove downloaded sample data files
 delete("example_data.mat")
