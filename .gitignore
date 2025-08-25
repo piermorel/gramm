@@ -1,0 +1,11 @@
+# Files that shouldn't be in GitHub Pages
+.DS_Store
+CLAUDE.md
+*.numbers
+*.mltbx
+
+# Jekyll build files
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata

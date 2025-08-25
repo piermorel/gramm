@@ -1,0 +1,23 @@
+# Minimal Jekyll configuration for Gramm GitHub Pages
+title: "Gramm - Grammar of Graphics for MATLAB"
+description: "Data visualization toolbox for MATLAB inspired by ggplot2"
+url: "https://piermorel.github.io/gramm"
+
+# Enable plugins for better Markdown handling
+plugins:
+  - jekyll-optional-front-matter
+  - jekyll-readme-index
+
+# Don't process the HTML documentation from MATLAB - serve as static files
+exclude:
+  - docs/*.html
+  - "*.m"
+  - "*.mat" 
+  - "*.prj"
+  - "*.mltbx"
+
+# GitHub Pages safe mode
+safe: true
+
+# Use GitHub's default theme
+theme: minima
