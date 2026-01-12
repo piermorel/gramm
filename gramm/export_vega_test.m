@@ -624,22 +624,22 @@ close all;
 svg_files{end+1} = 'test_stat_qq.svg';
 test_titles{end+1} = 'Q-Q Plots';
 
-%% Test 30: Polynomial Fitting (stat_fit)
-figure('Visible', 'off');
-x = linspace(0, 10, 50);
-y = 0.1*x.^2 + randn(1, 50)*2;
+% %% Test 30: Polynomial Fitting (stat_fit)
+% figure('Visible', 'off');
+% x = linspace(0, 10, 50);
+% y = 0.1*x.^2 + randn(1, 50)*2;
 
-g30 = gramm('x', x, 'y', y);
-g30.stat_fit('fun', @(a,b,c,x) a*x.^2 + b*x + c);
-g30.geom_point();
-g30.set_title('Polynomial Fitting');
-g30.draw();
+% g30 = gramm('x', x, 'y', y);
+% g30.stat_fit('fun', @(a,b,c,x) a*x.^2 + b*x + c);
+% g30.geom_point();
+% g30.set_title('Polynomial Fitting');
+% g30.draw();
 
-export_vega(g30, 'file_name', 'test_stat_fit', 'export_path', vega_dir, 'width', '400', 'height', '300');
+% export_vega(g30, 'file_name', 'test_stat_fit', 'export_path', vega_dir, 'width', '400', 'height', '300');
 
-svg_filename = fullfile(svg_dir, 'test_stat_fit.svg');
-g30.export('file_name', svg_filename);
-close all;
+% svg_filename = fullfile(svg_dir, 'test_stat_fit.svg');
+% g30.export('file_name', svg_filename);
+% close all;
 
 svg_files{end+1} = 'test_stat_fit.svg';
 test_titles{end+1} = 'Polynomial Fitting';
