@@ -544,4 +544,20 @@
             {"name":"resolution","kind":"namevalue","type":"integer"}
 		]
 }
+  ,
+  "gramm.export_vega":
+  {
+        "inputs":[
+                {"name":"obj","kind":"required","type":"gramm"},
+                {"name":"file_name","kind":"namevalue","type":"char"},
+                {"name":"export_path","kind":"namevalue","type":"char"},
+                {"name":"x","kind":"namevalue","type":"char"},
+                {"name":"y","kind":"namevalue","type":"char"},
+                {"name":"title","kind":"namevalue","type":"char"},
+                {"name":"width","kind":"namevalue","type":"numeric"},
+                {"name":"height","kind":"namevalue","type":"numeric"},
+                {"name":"interactive","kind":"namevalue","type":"choices={'true','false'}"},
+                {"name":"tooltip","kind":"namevalue","type":"choices={'true','false'}"}
+        ]
+  }
 }
