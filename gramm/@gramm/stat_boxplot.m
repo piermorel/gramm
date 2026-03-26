@@ -19,6 +19,8 @@ p=inputParser;
 my_addParameter(p,'width',0.6);
 my_addParameter(p,'dodge',0.7);
 my_addParameter(p,'notch',false);
+my_addParameter(p,'outlier',true);
+
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_boxplot(dobj,dd,p.Results)});
@@ -137,7 +139,9 @@ obj.results.stat_boxplot{obj.result_ind,1}.lower_whisker_handle=line([boxmid' ; 
 obj.results.stat_boxplot{obj.result_ind,1}.upper_whisker_handle=line([boxmid' ; boxmid'],[p(:,end-1)' ; p(:,end)'],'Color','k');
 
 %Draw outliers
-obj.results.stat_boxplot{obj.result_ind,1}.outliers_handle=plot(boxmid(outliersx),outliersy,'o','MarkerEdgeColor','none','MarkerFaceColor',draw_data.color);
+if params.outlier
+    obj.results.stat_boxplot{obj.result_ind,1}.outliers_handle=plot(boxmid(outliersx),outliersy,'o','MarkerEdgeColor','none','MarkerFaceColor',draw_data.color);
+end
 
 %Adjust limits
 obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(max(boxright),obj.plot_lim.maxx(obj.current_row,obj.current_column));
