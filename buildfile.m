@@ -11,5 +11,5 @@ reportFormat = matlab.unittest.plugins.codecoverage.CoverageReport('coverage-rep
 covPlugin = matlab.unittest.plugins.CodeCoveragePlugin.forFolder("gramm","Producing",  reportFormat);
 plan("runExample") = ExampleDrivenTesterTask("gramm/examples", CodeCoveragePlugin = covPlugin);
 
-plan.DefaultTasks = "check";
+plan.DefaultTasks = ["check" "runExample"];
 end
