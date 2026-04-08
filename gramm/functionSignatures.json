@@ -238,7 +238,7 @@
             {"name":"width","kind":"namevalue","type":"numeric"},
             {"name":"dodge","kind":"namevalue","type":"numeric"},
             {"name":"notch","kind":"namevalue","type":"choices={1,0}"},
-            {"name":"outlier","kind":"namevalue","type":"choices={1,0}"}
+            {"name":"outliers","kind":"namevalue","type":"choices={1,0}"}
 		]
 },
 "gramm.stat_violin":
