@@ -28,6 +28,15 @@ jobs:
           # See https://github.com/matlab-actions/setup-matlab/#set-up-matlab
           products: Statistics_and_Machine_Learning_Toolbox Curve_Fitting_Toolbox
 
+      - name: Install ExampleDrivenTester add-on (File Exchange)
+        uses: matlab-actions/run-command@v2
+        with:
+          command: |
+            fileExchangeId = 156374;
+            addonReleaseVersion = 0.92;
+            openProject('gramm.prj');
+            installAddOn(fileExchangeId, addonReleaseVersion);
+                        
       # Run tests authored using the MATLAB unit testing framework or Simulink Test.
       #- name: Run MATLAB tests
       #  uses: matlab-actions/run-tests@v2
@@ -47,8 +56,8 @@ jobs:
         with:
           name: test-results
           path: |
-            testresults.html
-            coverageresults.html
+            test-report/
+            coverage-report/
             release/
 
       # Alternatively, run MATLAB scripts, functions, and statements.
