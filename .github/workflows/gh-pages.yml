@@ -1,0 +1,86 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+    paths: 
+      - 'README.md'
+      - 'gramm/html/**'
+      - 'images/**'
+      - 'paper/**'
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master branch
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages-content
+          
+      - name: Update content from master
+        run: |
+          # Copy README.md
+          cp README.md gh-pages-content/
+          
+          # Copy images directory
+          rm -rf gh-pages-content/images
+          cp -r images/ gh-pages-content/images/
+          
+          # Copy paper directory
+          rm -rf gh-pages-content/paper
+          cp -r paper/ gh-pages-content/paper/
+          
+          # Copy HTML documentation
+          rm -rf gh-pages-content/docs
+          mkdir -p gh-pages-content/docs
+          cp gramm/html/* gh-pages-content/docs/
+          
+          # Note: Custom files in gh-pages (like index.html, _config.yml) are preserved
+          
+      - name: Commit and push changes
+        run: |
+          cd gh-pages-content
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Only add files that came from master branch
+          git add README.md images/ docs/ paper/
+          
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-update from master branch"
+            git push origin gh-pages
+          fi
+          
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: gh-pages-content
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2

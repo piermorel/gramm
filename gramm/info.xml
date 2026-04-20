@@ -1,0 +1,25 @@
+<productinfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:noNamespaceSchemaLocation="optional">
+    <?xml-stylesheet type="text/xsl"href="optional"?>
+    <!-- info.xml file for the mytoolbox toolbox -->
+    <!-- Version 1.0 -->
+    <!-- Copyright (date) (owner).-->
+    
+    <!-- Supply the following six elements in the order specified -->
+    <!-- (Required) Release of MATLAB. Not currently used but required -->
+    <!-- to parse the file -->
+    <matlabrelease>R2018a</matlabrelease>
+    <!-- (Required) Title of toolbox. Appears in the Contents pane -->
+    <name>gramm</name>
+    <!-- (Required) Label for the toolbox. pick one: -->
+    <!-- matlab, toolbox, simulink, blockset, links_targets  -->
+    <type>toolbox</type>
+    <!-- (Required) Icon file to display in the Start button. Not currently used -->
+    <!-- but required to parse the file -->
+    <icon></icon>
+    <!-- (Required if you supply help) Relative path to help (HTML) folder -->
+    <help_location>./html</help_location>
+    <!-- (Required if you supply help) Icon used in the Help browser TOC -->
+    <!-- Ignored in R2015a and later -->
+    <help_contents_icon></help_contents_icon>
+</productinfo>
