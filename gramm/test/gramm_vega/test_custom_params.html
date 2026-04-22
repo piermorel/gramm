@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vega Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+<body>
+    <div id="test_custom_params_chart"></div>
+    <script>
+        fetch("test_custom_params.json")
+            .then(response => response.json())
+            .then(spec => {
+                console.log("DEBUG: Loaded Vega spec:", spec);
+                console.log("DEBUG: Axes found:", spec.axes);
+                if (spec.axes) {
+                    spec.axes.forEach((axis, i) => {
+                        console.log(`DEBUG: Axis ${i} - Orient: ${axis.orient}, Title: "${axis.title}"`);
+                    });
+                }
+                if (spec.marks) {
+                    spec.marks.forEach((mark, i) => {
+                        if (mark.encode && mark.encode.update && mark.encode.update.tooltip) {
+                            console.log(`DEBUG: Mark ${i} tooltip signal: ${mark.encode.update.tooltip.signal}`);
+                        }
+                    });
+                }
+                vegaEmbed("#test_custom_params_chart", spec, {
+                    actions: true,
+                    theme: "default",
+                    renderer: "canvas"
+                });
+            })
+            .catch(error => console.error("Error loading chart:", error));
+    </script>
+</body>
+</html>
