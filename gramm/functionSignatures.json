@@ -66,7 +66,8 @@
 			{"name":"width","kind":"namevalue","type":"numeric"},
 			{"name":"height","kind":"namevalue","type":"numeric"},	
 			{"name":"dodge","kind":"namevalue","type":"numeric"},
-			{"name":"alpha","kind":"namevalue","type":"numeric"}		
+			{"name":"alpha","kind":"namevalue","type":"numeric"},
+			{"name":"raw_width","kind":"namevalue","type":"logical"}
 		]
 },
 "gramm.geom_line":
@@ -95,8 +96,8 @@
             		{"name":"width","kind":"namevalue","type":"numeric"},
             		{"name":"dodge","kind":"namevalue","type":"numeric"},
             		{"name":"stacked","kind":"namevalue","type":"choices={1,0}"},
-            		{"name":"FaceColor","kind":"namevalue","type":"numeric"},
-			        {"name":"EdgeColor","kind":"namevalue","type":"numeric"},
+            		{"name":"FaceColor","kind":"namevalue"},
+			        {"name":"EdgeColor","kind":"namevalue"},
                     {"name":"fill","kind":"namevalue","type":"choices={'face','edge','all','transparent'}"},
             		{"name":"LineWidth","kind":"namevalue","type":"numeric"}
 		]
@@ -115,7 +116,7 @@
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
             {"name":"dodge","kind":"namevalue","type":"numeric"},
-            {"name":"Color","kind":"namevalue","type":"numeric"}
+            {"name":"Color","kind":"namevalue"}
 		]
 },
 "gramm.stat_summary":
@@ -139,7 +140,6 @@
 			{"name":"method","kind":"namevalue","type":"choices={'eilers','smoothingspline','moving','lowess','loess','sgolay','rloess','rlowess'}"},
             {"name":"lambda","kind":"namevalue","type":"numeric"},
             {"name":"npoints","kind":"namevalue","type":"numeric"},
-            {"name":"width","kind":"namevalue","type":"numeric"}, 
             {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
 			{"name":"setylim","kind":"namevalue","type":"choices={1,0}"}
 		]
@@ -221,14 +221,14 @@
 			{"name":"obj","kind":"required","type":"gramm"},
             {"name":"type","kind":"namevalue","type":"choices={'95percentile','ci'}"},
             {"name":"geom","kind":"namevalue","type":"choices={'area','line'}"},
-            {"name":"patch_opts","kind":"namevalue","type":"numeric"}
+            {"name":"patch_opts","kind":"namevalue","type":"cell"}
 		]
 },
 "gramm.stat_qq":
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
-            {"name":"distribution","kind":"namevalue","type":"numeric"}
+            {"name":"distribution","kind":"namevalue"}
 		]
 },
 "gramm.stat_boxplot":
@@ -274,7 +274,9 @@
 			{"name":"obj","kind":"required","type":"gramm"},
             {"name":"intercept","kind":"namevalue","type":"numeric"},
             {"name":"slope","kind":"namevalue","type":"numeric"},
-            {"name":"style","kind":"namevalue","type":"numeric"}
+            {"name":"style","kind":"namevalue","type":"char"},
+            {"name":"extent","kind":"namevalue","type":"numeric"},
+            {"name":"linewidth","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_vline":
@@ -282,7 +284,9 @@
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
             {"name":"xintercept","kind":"namevalue","type":"numeric"},
-            {"name":"style","kind":"namevalue","type":"numeric"}
+            {"name":"style","kind":"namevalue","type":"char"},
+            {"name":"extent","kind":"namevalue","type":"numeric"},
+            {"name":"linewidth","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_hline":
@@ -290,15 +294,19 @@
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
             {"name":"yintercept","kind":"namevalue","type":"numeric"},
-            {"name":"style","kind":"namevalue","type":"numeric"}
+            {"name":"style","kind":"namevalue","type":"char"},
+            {"name":"extent","kind":"namevalue","type":"numeric"},
+            {"name":"linewidth","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_funline":
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
-            {"name":"fun","kind":"namevalue","type":"numeric"},
-            {"name":"style","kind":"namevalue","type":"numeric"}
+            {"name":"fun","kind":"namevalue","type":"function_handle"},
+            {"name":"style","kind":"namevalue","type":"char"},
+            {"name":"extent","kind":"namevalue","type":"numeric"},
+            {"name":"linewidth","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_polygon":
@@ -311,6 +319,14 @@
             {"name":"color","kind":"namevalue","type":"numeric"},
             {"name":"line_color","kind":"namevalue","type":"numeric"},
             {"name":"line_style","kind":"namevalue","type":"numeric"}
+		]
+},
+"gramm.geom_count":
+{
+		"inputs":[
+			{"name":"obj","kind":"required","type":"gramm"},
+            {"name":"scale","kind":"namevalue","type":"numeric"},
+            {"name":"point_color","kind":"namevalue","type":"choices={'all','face','edge'}"}
 		]
 },
 "gramm.set_names":
@@ -502,19 +518,10 @@
 			{"name":"obj","kind":"required","type":"gramm"}
 		]
 },
-"gramm.coord_flip":
-{
-		"inputs":[
-			{"name":"obj","kind":"required","type":"gramm"},
-			{"name":"draw","kind":"namevalue","type":"choices={1,0}"},
-			{"name":"redraw","kind":"namevalue","type":"numeric"}
-		]
-},
 "gramm.update":
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
-			{"name":"color","kind":"namevalue","type":"numeric"},
             {"name":"x", "kind":"namevalue"},
             {"name":"y", "kind":"namevalue"},
             {"name":"z", "kind":"namevalue"},
