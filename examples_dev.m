@@ -1120,7 +1120,7 @@ g(1,3).stat_summary('geom',{'bar'},'dodge',0);
 g(1,3).set_color_options('lightness_range',[0 95],'chroma_range',[0 0]);
 g(1,3).set_title('Modified LCH (''lightness'' groups)','FontSize',12);
 
-%Go back to Matlab's defauls colormap
+%Go back to Matlab's default colormap
 g(2,1).set_color_options('map','matlab');
 g(2,1).set_title('Matlab 2014B+ ','FontSize',12);
 
