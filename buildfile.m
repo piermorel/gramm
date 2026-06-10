@@ -13,7 +13,6 @@ plan("runExample") = ExampleDrivenTesterTask("gramm/examples", CodeCoveragePlugi
 
 plan("package").Dependencies = ["check" "runExample"];
 plan("package").Inputs = "gramm.prj";
-plan("publish").Dependencies = [];
 
 plan.DefaultTasks = ["check" "runExample"];
 end
@@ -38,42 +37,33 @@ function packageTask(context)
 end
 
 function publishTask(~)
-%publishTask Publish edited examples to HTML with an index page.
-%   Looks for .m files in gramm/examples/edited/, publishes each to HTML
-%   in gramm/examples/html/, then generates a categorized index page.
-
-editedDir = fullfile("gramm", "examples", "edited");
-htmlDir = fullfile("gramm", "examples", "html");
-
-if ~isfolder(editedDir)
-    error("buildfile:publishTask", ...
-        "Edited examples folder not found: %s\nAdd .m files to this folder to publish.", editedDir);
-end
+examplesDir = fullfile("gramm", "examples");
+htmlDir = fullfile(examplesDir, "html");
 
 if ~isfolder(htmlDir)
     mkdir(htmlDir);
 end
 
-mFiles = dir(fullfile(editedDir, "*.m"));
+mFiles = dir(fullfile(examplesDir, "example_*.m"));
 if isempty(mFiles)
-    error("buildfile:publishTask", ...
-        "No .m files found in %s.\nAdd edited .m files to publish.", editedDir);
+    error("buildfile:publishTask", "No example_*.m files found in %s.", examplesDir);
 end
-
-addpath gramm/
-addpath(editedDir);
 
 opts.format = 'html';
 opts.outputDir = htmlDir;
 opts.showCode = true;
+opts.figureSnapMethod = 'print';
 
 fprintf("Publishing %d examples to HTML...\n", numel(mFiles));
 for i = 1:numel(mFiles)
-    srcFile = fullfile(editedDir, mFiles(i).name);
+    srcFile = fullfile(examplesDir, mFiles(i).name);
     fprintf("  %s\n", mFiles(i).name);
     publish(srcFile, opts);
 end
 
-addpath buildutils/
-generateExamplesIndex(htmlDir);
+indexOpts.format = 'html';
+indexOpts.outputDir = htmlDir;
+indexOpts.showCode = false;
+publish(fullfile(examplesDir, "index.m"), indexOpts);
+fprintf("Published index.html\n");
 end
