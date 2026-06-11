@@ -14,7 +14,7 @@ plan("runExample") = ExampleDrivenTesterTask("gramm/examples", CodeCoveragePlugi
 plan("publish").Inputs = "gramm/examples/*.m";
 plan("publish").Outputs = "gramm/examples/html/**";
 
-%plan("package").Dependencies = ["check" "runExample"];
+plan("package").Dependencies = ["check" "runExample"];
 
 plan.DefaultTasks = ["check" "runExample"];
 end
