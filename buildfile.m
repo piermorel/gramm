@@ -11,15 +11,17 @@ reportFormat = matlab.unittest.plugins.codecoverage.CoverageReport('coverage-rep
 covPlugin = matlab.unittest.plugins.CodeCoveragePlugin.forFolder("gramm","Producing",  reportFormat);
 plan("runExample") = ExampleDrivenTesterTask("gramm/examples", CodeCoveragePlugin = covPlugin);
 
-plan("package").Dependencies = ["check" "runExample"];
-plan("package").Inputs = "gramm.prj";
+plan("publish").Inputs = "gramm/examples/*.m";
+plan("publish").Outputs = "gramm/examples/html/**";
+
+%plan("package").Dependencies = ["check" "runExample"];
 
 plan.DefaultTasks = ["check" "runExample"];
 end
 
-function packageTask(context)
+function packageTask(~)
 % Create MLTBX package
-    prjFile = context.Task.Inputs.Path;
+    prjFile = "gramm.prj";
     packagingData = matlab.addons.toolbox.ToolboxOptions(prjFile);
     tagVersion = getenv("CI_COMMIT_TAG");
     if ~isempty(tagVersion)
