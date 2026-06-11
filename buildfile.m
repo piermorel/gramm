@@ -18,7 +18,7 @@ plan.DefaultTasks = ["check" "runExample"];
 end
 
 function packageTask(context)
-
+% Create MLTBX package
     prjFile = context.Task.Inputs.Path;
     packagingData = matlab.addons.toolbox.ToolboxOptions(prjFile);
     tagVersion = getenv("CI_COMMIT_TAG");
@@ -37,6 +37,7 @@ function packageTask(context)
 end
 
 function publishTask(~)
+% Create HTML pages from examples
 examplesDir = fullfile("gramm", "examples");
 htmlDir = fullfile(examplesDir, "html");
 
