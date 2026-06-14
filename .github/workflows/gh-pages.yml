@@ -3,9 +3,10 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [master]
-    paths: 
+    paths:
       - 'README.md'
       - 'gramm/html/**'
+      - 'gramm/examples/html/**'
       - 'images/**'
       - 'paper/**'
   workflow_dispatch: # Allow manual triggering
@@ -54,6 +55,12 @@ jobs:
           rm -rf gh-pages-content/docs
           mkdir -p gh-pages-content/docs
           cp gramm/html/* gh-pages-content/docs/
+
+          # Copy published examples HTML
+          if [ -d "gramm/examples/html" ]; then
+            mkdir -p gh-pages-content/docs/examples
+            cp gramm/examples/html/* gh-pages-content/docs/examples/
+          fi
           
           # Note: Custom files in gh-pages (like index.html, _config.yml) are preserved
           
