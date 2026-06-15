@@ -28,6 +28,7 @@ jobs:
           command: |
             fileExchangeId = 156374;
             addonReleaseVersion = 0.92;
+            openProject('gramm.prj');
             installAddOn(fileExchangeId, addonReleaseVersion);
 
       - name: Check for code issues
