@@ -36,7 +36,10 @@ if ~obj(1).handle_graphics
         end
     else
         warning('Windows Pre-2014b version detected, forcing to software openGL which is less buggy')
-        opengl software
+        % opengl was removed in recent MATLAB releases. This branch is only
+        % reached on pre-R2014b handle graphics, so call it dynamically to
+        % avoid static Code Analyzer failures on newer releases.
+        feval('opengl','software');
     end
 end
 
