@@ -1,6 +1,3 @@
-# This workflow was generated using the GitHub Actions Workflow Generator for MATLAB.
-# See https://matlab-actions.github.io/workflow-generator
-
 name: MATLAB
 
 on:
@@ -13,19 +10,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      
-      # Set up MATLAB and other MathWorks products on the runner.
+
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@v2
         with:
           release: R2025b
           cache: true
-          # Set up additional products using the products input.
-          # See https://github.com/matlab-actions/setup-matlab/#set-up-matlab
           products: Statistics_and_Machine_Learning_Toolbox Curve_Fitting_Toolbox
 
       - name: Install ExampleDrivenTester add-on (File Exchange)
@@ -36,19 +30,16 @@ jobs:
             addonReleaseVersion = 0.92;
             openProject('gramm.prj');
             installAddOn(fileExchangeId, addonReleaseVersion);
-                        
-      # Run tests authored using the MATLAB unit testing framework or Simulink Test.
-      #- name: Run MATLAB tests
-      #  uses: matlab-actions/run-tests@v2
-        # If you are not using a MATLAB project, add your source code to the path using the source-folder input.
-        # with:
-        #   source-folder: myfolderA; myfolderB
 
-      # Alternatively, run tasks from your buildfile.m.
-      - name: Run MATLAB build
+      - name: Check for code issues
         uses: matlab-actions/run-build@v2
-      #   with:
-      #     tasks: test
+        with:
+          tasks: check
+
+      - name: Run examples as test
+        uses: matlab-actions/run-build@v2
+        with:
+          tasks: runExample
 
       - name: Upload test results
         if: always()
@@ -58,10 +49,3 @@ jobs:
           path: |
             test-report/
             coverage-report/
-            release/
-
-      # Alternatively, run MATLAB scripts, functions, and statements.
-      # - name: Run MATLAB command
-      #   uses: matlab-actions/run-command@v2
-      #   with:
-      #     command: results = runtests('IncludeSubfolders',true); assertSuccess(results);
