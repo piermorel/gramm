@@ -735,6 +735,9 @@ if obj.layout_options.legend
             lightness_legend_map=pa_LCH2RGB([linspace(obj.color_options.lightness_range(1),obj.color_options.lightness_range(2),length(uni_lightness))' ...
                 zeros(length(uni_lightness),1)...
                 zeros(length(uni_lightness),1)]);
+            if strcmp(my_theme(gcf), "Dark Theme")
+                lightness_legend_map = fliplightness(lightness_legend_map);
+            end
         else
             %Make a colormap with the first color
             lightness_legend_map=get_colormap(1,length(str_uni_lightness),obj.color_options);
@@ -1245,7 +1248,24 @@ end
 
 
 %Background !
-set(gcf,'color',obj.facet_axes_handles(1).Color,'PaperPositionMode','auto');
+if strcmp(my_theme(gcf), 'Light Theme')
+    set(gcf,'color',[1 1 1],'PaperPositionMode','auto');
+else
+    set(gcf,'color',[0.0706    0.0706    0.0706],'PaperPositionMode','auto');
+    %Handle black lines and markers : we assume that pure black should
+    %become white
+    h=findall(gcf,'Color',[0 0 0]);
+    set(h,'Color',fliplightness([0 0 0]));
+    h=findall(gcf,'EdgeColor',[0 0 0]);
+    set(h,'EdgeColor',fliplightness([0 0 0]));
+    h=findall(gcf,'MarkerEdgeColor',[0 0 0]);
+    set(h,'MarkerEdgeColor',fliplightness([0 0 0]));
+    h=findall(gcf,'MarkerFaceColor',[0 0 0]);
+    set(h,'MarkerFaceColor',fliplightness([0 0 0]));
+end
+
+
+
 
 
 % Make everything tight and set the resize function so that it stays so

@@ -1,0 +1,56 @@
+% List the files in your toolbox folder to exclude from packaging. Specify the 
+% file path as a path relative to the toolbox folder. 
+% List only one exclude per line. 
+%
+% For example:
+%
+% Exclude a specific file in the toolbox folder:
+% file1.svn
+%
+% Exclude a specific file in a subfolder of the toolbox folder:
+% example/file1.svn
+%
+% Exclude all files in a subfolder of the toolbox folder:
+% example/*
+% 
+% Exclude all files with a certain name in all subfolders of the toolbox folder:
+% **/file1.svn
+% 
+%Exclude all files matching a pattern in all subfolders of the toolbox folder:
+% **/*.bak
+%
+% Exclude all top level files and folders beginning with the character "%":
+% \%example/%file.svn
+%
+**/resources/project/**/*
+resources
+**/*.prj
+**/*.prj.bak
+**/.git/**/*
+**/.svn/**/*
+**/.buildtool/**/*
+**/*.asv
+% List files contained in your toolbox folder that you would like to exclude
+% from packaging.  Excludes should be listed relative to the toolbox folder.
+% Some examples of how to specify excludes are provided below:
+%
+% A single file in the toolbox folder:
+% .svn
+%
+% A single file in a subfolder of the toolbox folder:
+% example/.svn
+%
+% All files in a subfolder of the toolbox folder:
+% example/*
+%
+% All files of a certain name in all subfolders of the toolbox folder:
+% **/.svn
+%
+% All files matching a pattern in all subfolders of the toolbox folder:
+% **/*.bak
+%
+.git
+paper
+.gitignore
+createMLTBX.m
+.DS_Store

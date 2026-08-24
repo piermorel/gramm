@@ -231,4 +231,8 @@ cmap_ind = sub2ind([cmap_nl cmap_nc],lightness_ind,color_ind);
 
 cmap = cmap(cmap_ind , :);
 
+if strcmp(my_theme(gcf), "Dark Theme")
+    cmap = fliplightness(cmap);
+end
+
 end

@@ -32,8 +32,8 @@ obj.plot_lim.maxx(obj.current_row,obj.current_column)=xl(2);
 obj.plot_lim.miny(obj.current_row,obj.current_column)=yl(1);
 obj.plot_lim.maxy(obj.current_row,obj.current_column)=yl(2);
 
-xlim([obj.plot_lim.minx obj.plot_lim.maxx]);
-ylim([obj.plot_lim.miny obj.plot_lim.maxy]);
+xlim([obj.plot_lim.minx(obj.current_row,obj.current_column) obj.plot_lim.maxx(obj.current_row,obj.current_column)]);
+ylim([obj.plot_lim.miny(obj.current_row,obj.current_column) obj.plot_lim.maxy(obj.current_row,obj.current_column)]);
 
 uni_x=unique(x);
 

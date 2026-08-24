@@ -1,0 +1,39 @@
+# Release workflow - creates GitHub releases with toolbox binaries
+# Triggered when you push a version tag (e.g., v3.0.2)
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on version tags like v3.0.2
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Set up MATLAB and other MathWorks products on the runner.
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: R2025b
+          cache: true
+          products: Statistics_and_Machine_Learning_Toolbox Curve_Fitting_Toolbox
+
+      - name: Build toolbox
+        uses: matlab-actions/run-command@v2
+        with:
+          command: |
+            version = erase('${{ github.ref_name }}', 'v');
+            createMLTBX('gramm.prj', version);
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: gramm*.mltbx
+          draft: true
+          generate_release_notes: true
