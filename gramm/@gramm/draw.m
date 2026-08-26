@@ -379,6 +379,7 @@ for ind_row=1:length(uni_row)
                     %axes(obj.facet_axes_handles(ind_row,ind_column));
                     %Store content of first facet for copying it on the other facets !
                     first_axes_children=allchild(obj.facet_axes_handles(ind_row,ind_column));
+                    axes(obj.facet_axes_handles(ind_row,ind_column));
                 else
                     %We need to create the next facets because they don't exist
                     if obj.wrap_ncols>0
@@ -389,19 +390,17 @@ for ind_row=1:length(uni_row)
                     %And we copy the contents of the first facet in the new ones
                     copyobj(first_axes_children,obj.facet_axes_handles(ind_row,ind_column));
                 end
-            %else
-                %In other cases (same facets or multiple to
-                %one facet), the facets already exist
-                %axes(obj.facet_axes_handles(ind_row,ind_column));
-            end
-            
-            if obj.updater.facet_updated==-1 %If facets were updated from many to one facets
+            elseif obj.updater.facet_updated==-1 %If facets were updated from many to one facets
                 if ind_column==1 && ind_row==1
                     %We store the current content of the first
                     %facet so that we can check which new
                     %things are going to be drawn in
                     first_axes_children=allchild(obj.facet_axes_handles(ind_row,ind_column));
                 end
+            else
+                %In other cases (same facets or multiple to
+                %one facet), the facets already exist
+                axes(obj.facet_axes_handles(ind_row,ind_column));
             end
         end
         
@@ -527,26 +526,13 @@ for ind_row=1:length(uni_row)
                                     draw_data.continuous_color=temp_aes.color(sel);
                                     draw_data.color=cmap((ind_color-1)*length(uni_lightness)+ind_lightness,:);
                                     draw_data.marker=obj.point_options.markers{1+mod(ind_marker-1,length(obj.point_options.markers))};
-                                    if isfield(obj.point_options,'border_width')
-                                        draw_data.border_width=obj.point_options.border_width;
-                                    else
-                                        draw_data.border_width=0.5;
-                                    end
-                                    if isfield(obj.point_options,'border_color')
-                                        if (ischar(obj.point_options.border_color) || isstring(obj.point_options.border_color)) ...
-                                                && strcmpi(strtrim(char(obj.point_options.border_color)),'auto')
-                                            if obj.continuous_color_options.active
-                                                draw_data.border_color='flat';
-                                            else
-                                                draw_data.border_color=draw_data.color;
-                                            end
-                                        else
-                                            draw_data.border_color=obj.point_options.border_color;
-                                        end
-                                    else
-                                        draw_data.border_color='none';
-                                    end
                                     draw_data.line_style=obj.line_options.styles{1+mod(ind_linestyle-1,length(obj.line_options.styles))};
+                                    draw_data.border_width=obj.point_options.border_width;
+                                    if strcmp(obj.point_options.border_color,'auto')
+                                        draw_data.border_color=draw_data.color;
+                                    else
+                                        draw_data.border_color=obj.point_options.border_color;
+                                    end
                                     if obj.line_options.use_input
                                         draw_data.line_size=obj.line_options.input_fun(uni_size{ind_size});
                                     else
@@ -649,6 +635,8 @@ if ~isempty(obj.title)
             'Parent',obj.parent);
         
         set(obj.title_axe_handle,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
+        obj.title_axe_handle.Toolbar.Visible='off';
+        obj.title_axe_handle.Interactions=[];
         obj.title_text_handle=text(0,0,obj.title,...
             'FontWeight','bold',...
             'Interpreter',obj.text_options.interpreter,...
@@ -708,6 +696,8 @@ if obj.updater.first_draw
     end
     hold on
     set(obj.legend_axe_handle,'Visible','off','NextPlot','add');
+    obj.legend_axe_handle.Toolbar.Visible = 'off';
+    obj.legend_axe_handle.Interactions = [];
     %set(obj.legend_axe_handle,'PlotBoxAspectRatio',[1 1 1]);
 else
     axes(obj.legend_axe_handle)
@@ -740,11 +730,14 @@ if obj.layout_options.legend
     %Lightness legend
     if length(uni_lightness)>1 && any(strcmp(obj.color_options.legend,{'separate','separate_gray','merge'}))
         
-        if ischar(obj.color_options.map) && strcmp(obj.color_options.map,'lch') && strcmp(obj.color_options.legend,'separate_gray')
+        if (ischar(obj.color_options.map) || isstring(obj.color_options.map)) && strcmp(obj.color_options.map,'lch') && strcmp(obj.color_options.legend,'separate_gray')
             %With LCH we can generate a correct desaturated legend
             lightness_legend_map=pa_LCH2RGB([linspace(obj.color_options.lightness_range(1),obj.color_options.lightness_range(2),length(uni_lightness))' ...
                 zeros(length(uni_lightness),1)...
                 zeros(length(uni_lightness),1)]);
+            if strcmp(my_theme(gcf), "Dark Theme")
+                lightness_legend_map = fliplightness(lightness_legend_map);
+            end
         else
             %Make a colormap with the first color
             lightness_legend_map=get_colormap(1,length(str_uni_lightness),obj.color_options);
@@ -888,7 +881,12 @@ for ind_row=1:length(uni_row) %Loop over rows
         
         set(ca,'FontName',obj.text_options.font,...
             'FontSize',obj.text_options.base_size)
-
+        
+        if isempty(obj.aes.z)
+            axtoolbar(ca,{'datacursor','pan','zoomin','zoomout','pan','restoreview'});
+        else
+            axtoolbar(ca,{'datacursor','rotate','pan','zoomin','zoomout','pan','restoreview'});
+        end
         
         if obj.continuous_color_options.active
             %Set color limits the same way on each plot
@@ -1249,8 +1247,26 @@ for ind_row=1:length(uni_row) %Loop over rows
 end
 
 
-%White background !
-set(gcf,'color','w','PaperPositionMode','auto');
+%Background !
+if strcmp(my_theme(gcf), 'Light Theme')
+    set(gcf,'color',[1 1 1],'PaperPositionMode','auto');
+else
+    set(gcf,'color',[0.0706    0.0706    0.0706],'PaperPositionMode','auto');
+    %Handle black lines and markers : we assume that pure black should
+    %become white
+    h=findall(gcf,'Color',[0 0 0]);
+    set(h,'Color',fliplightness([0 0 0]));
+    h=findall(gcf,'EdgeColor',[0 0 0]);
+    set(h,'EdgeColor',fliplightness([0 0 0]));
+    h=findall(gcf,'MarkerEdgeColor',[0 0 0]);
+    set(h,'MarkerEdgeColor',fliplightness([0 0 0]));
+    h=findall(gcf,'MarkerFaceColor',[0 0 0]);
+    set(h,'MarkerFaceColor',fliplightness([0 0 0]));
+end
+
+
+
+
 
 % Make everything tight and set the resize function so that it stays so
 if do_redraw  && ~obj.multi.active %Redrawing for multiple plots is handled at the beginning of draw()
