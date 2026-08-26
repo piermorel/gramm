@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gramm Vega Export Documentation</title>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <style>
+    :root {
+      --bg: #f7f7f2;
+      --text: #1e282f;
+      --panel: #ffffff;
+      --border: #d8d8d1;
+      --muted: #5b6873;
+      --accent: #27495d;
+      --error-bg: #fff4f4;
+      --error-text: #9a2f2f;
+      --error-border: #f0cfcf;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+      line-height: 1.48;
+    }
+
+    .layout {
+      width: min(1440px, 96vw);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 270px minmax(0, 1fr);
+      gap: 24px;
+      padding: 22px 0 40px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 16px;
+      align-self: start;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 14px;
+      max-height: calc(100vh - 32px);
+      overflow: auto;
+    }
+
+    .sidebar-title {
+      margin: 0 0 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .outline-link {
+      display: block;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 5px 0;
+      border-bottom: 1px dotted transparent;
+      overflow-wrap: anywhere;
+    }
+
+    .outline-link:hover {
+      border-bottom-color: var(--border);
+      color: var(--accent);
+    }
+
+    .outline-divider {
+      margin: 10px 0;
+      border: 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .outline-subtitle {
+      margin: 0 0 6px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .outline-link-example {
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 3px 0;
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    .hero {
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.65rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .hero p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .section {
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      margin-top: 14px;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 1.18rem;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0 0 9px;
+    }
+
+    ul {
+      margin: 0 0 10px;
+      padding-left: 18px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 10px;
+      min-height: 120px;
+    }
+
+    .panel-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .code-block {
+      margin: 0;
+      padding: 9px;
+      border: 1px solid #ecece7;
+      background: #fbfbf8;
+      overflow: auto;
+      font-family: "IBM Plex Mono", "Menlo", "Consolas", monospace;
+      font-size: 0.78rem;
+      line-height: 1.4;
+      white-space: pre;
+    }
+
+    .tutorial-code {
+      margin-top: 8px;
+    }
+
+    .example-note {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .example-card {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      margin-top: 16px;
+    }
+
+    .example-title {
+      margin: 0 0 6px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .example-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .output-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .svg-image {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid #ecece7;
+      background: #fff;
+    }
+
+    .vega-host {
+      width: 100%;
+      min-height: 280px;
+    }
+
+    .error-box {
+      margin: 0;
+      padding: 8px;
+      color: var(--error-text);
+      background: var(--error-bg);
+      border: 1px solid var(--error-border);
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.8rem;
+    }
+
+    code {
+      background: #efefe8;
+      padding: 0 3px;
+      border-radius: 2px;
+      font-family: "IBM Plex Mono", "Menlo", "Consolas", monospace;
+      font-size: 0.84em;
+    }
+
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .sidebar {
+        position: static;
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .output-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .layout {
+        width: min(1200px, 94vw);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="top">
+    <aside class="sidebar" aria-label="Page outline">
+      <p class="sidebar-title">Outline</p>
+      <a class="outline-link" href="#overview">Overview</a>
+      <a class="outline-link" href="#what-is-vega">What Is Vega</a>
+      <a class="outline-link" href="#use-cases">Use Cases</a>
+      <a class="outline-link" href="#tutorial">How To Call <code>export_vega</code></a>
+      <a class="outline-link" href="#examples">Examples</a>
+      <a class="outline-link" href="#license">License</a>
+      <hr class="outline-divider">
+      <p class="outline-subtitle">Example Jump Links</p>
+      <div id="example-outline"></div>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <h1>Gramm Vega Export Documentation</h1>
+        <p>Documentation for the Vega-export function in this Gramm branch, including usage and side-by-side examples.</p>
+      </header>
+
+      <section class="section" id="overview">
+        <h2>Overview</h2>
+        <p>This variation extends Gramm with <code>export_vega</code>, which translates a drawn Gramm object into a Vega specification and writes export files for browser rendering.</p>
+        <p>The generated outputs complement the standard Gramm SVG export: SVG gives a static snapshot, while Vega gives a declarative spec that can be rendered and interacted with in web contexts.</p>
+      </section>
+
+      <section class="section" id="what-is-vega">
+        <h2>What Is Vega</h2>
+        <p>Vega is a JSON-based visualization grammar. A Vega spec defines data, scales, axes, and marks, and the Vega runtime renders that spec in the browser. Learn more at <a href="https://vega.github.io/vega/" target="_blank" rel="noreferrer">vega.github.io/vega</a>.</p>
+        <p>As the chart is specified as JSON, it is portable and can be embedded in documentation, apps, and dashboards without requiring MATLAB at render time.</p>
+      </section>
+
+      <section class="section" id="use-cases">
+        <h2>Use Cases</h2>
+        <ul>
+          <li>Ship interactive versions of Gramm figures to web pages while preserving the MATLAB preprocessing pipeline.</li>
+          <li>Compare SVG parity against Vega output during renderer development and regression checks.</li>
+          <li>Share plot specs (<code>.json</code>) as reproducible artifacts that downstream web tools can load directly.</li>
+        </ul>
+      </section>
+
+      <section class="section" id="tutorial">
+        <h2>General Tutorial: Calling <code>export_vega</code></h2>
+        <p>Typical flow: build a Gramm object, draw it, then call <code>export_vega</code> with file and rendering options.</p>
+        <div class="panel tutorial-code">
+          <div class="panel-label">Minimal Example</div>
+          <pre class="code-block">x = randn(300, 1);
+y = 0.35 * x + randn(300, 1);
+group = repelem(["A", "B", "C"], 100)';
+
+g = gramm('x', x, 'y', y, 'color', group);
+g.geom_point();
+g.stat_glm();
+g.set_names('x', 'Signal', 'y', 'Response');
+g.draw();
+
+export_vega(g, ...
+    'file_name', 'tutorial_scatter_glm', ...
+    'export_path', './test/gramm_vega', ...
+    'width', '500', ...
+    'height', '340', ...
+    'x', 'Signal', ...
+    'y', 'Response', ...
+    'interactive', 'true', ...
+    'tooltip', 'true', ...
+    'title', 'Scatter + GLM');</pre>
+        </div>
+        <p>Argument reference (example value and meaning):</p>
+        <ul>
+          <li><code>g</code> = <code>g</code>: the drawn Gramm object to export.</li>
+          <li><code>'file_name', 'tutorial_scatter_glm'</code>: base name of output files; writes <code>tutorial_scatter_glm.json</code> and <code>tutorial_scatter_glm.html</code>.</li>
+          <li><code>'export_path', './test/gramm_vega'</code>: directory where export files are saved.</li>
+          <li><code>'x', 'Signal'</code>: x-axis title in the Vega chart.</li>
+          <li><code>'y', 'Response'</code>: y-axis title in the Vega chart.</li>
+          <li><code>'title', 'Scatter + GLM'</code>: chart title shown in rendered output.</li>
+          <li><code>'width', '500'</code>: plot width in pixels.</li>
+          <li><code>'height', '340'</code>: plot height in pixels.</li>
+          <li><code>'interactive', 'true'</code>: enables interactive legend behavior when color groups are present.</li>
+          <li><code>'tooltip', 'true'</code>: enables hover tooltips on marks.</li>
+        </ul>
+        <p>The function writes both <code>&lt;file_name&gt;.json</code> and <code>&lt;file_name&gt;.html</code> into <code>export_path</code>.</p>
+      </section>
+
+      <section class="section" id="examples">
+        <h2>Examples</h2>
+        <p class="example-note">Each example below is loaded from this repository: MATLAB code from <code>test/script</code>, SVG from <code>test/gramm_svg</code>, and Vega spec rendering from <code>test/gramm_vega</code>.</p>
+        <div id="examples-gallery"></div>
+      </section>
+
+      <section class="section" id="license">
+        <h2>License</h2>
+        <p>This Vega-export plugin variation is released under the MIT License.</p>
+    <p>If you have questions about usage, want to contribute, or find issues, please contact the maintainer (<a href="mailto:shu343@gatech.edu">Songwen Hu</a>) or submit a pull request on the repository.</p>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./vega_export_docs.js"></script>
+</body>
+</html>

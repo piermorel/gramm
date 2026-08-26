@@ -1,3 +1,4 @@
+
 function obj=stat_boxplot(obj,varargin)
 %stat_boxplot() Create box and whiskers plots
 %
@@ -12,6 +13,8 @@ function obj=stat_boxplot(obj,varargin)
 % - 'dodge' allows to set the spacing between boxes of
 %   different colors within an unique value of x.
 % - 'width' allows to set the width of the individual boxes.
+% - 'outliers' set to false to hide outliers. If the value is not set,
+% outliers are not plotted when geom_point() or geom_jitter() are used.
 % See the documentation of stat_summary() for the behavior of
 % 'dodge' and 'width'
 
@@ -19,9 +22,19 @@ p=inputParser;
 my_addParameter(p,'width',0.6);
 my_addParameter(p,'dodge',0.7);
 my_addParameter(p,'notch',false);
+my_addParameter(p,'outliers',true);
+
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dobj,dd)my_boxplot(dobj,dd,p.Results)});
+params = p.Results;
+%Did the user specify the outliers settings
+if any(strcmp(p.UsingDefaults,'outliers'))
+    params.default_outliers = true;
+else
+    params.default_outliers = false;
+end
+
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_boxplot(dobj,dd,params)});
 obj.results.stat_boxplot={};
 
 end
@@ -136,8 +149,25 @@ end
 obj.results.stat_boxplot{obj.result_ind,1}.lower_whisker_handle=line([boxmid' ; boxmid'],[p(:,1)' ; p(:,2)'],'Color','k');
 obj.results.stat_boxplot{obj.result_ind,1}.upper_whisker_handle=line([boxmid' ; boxmid'],[p(:,end-1)' ; p(:,end)'],'Color','k');
 
+%Auto detect geom_point and geom_jitter to deactivate outlier plotting if
+%not explicitly set
+if any(cellfun(@(f)string(func2str(f)).contains(["jitter" "point"]),obj.geom))
+    if params.default_outliers
+        params.outliers = false;
+        if any(obj.firstrun,"all")
+            disp("geom_jitter() or geom_point() are present, stat_boxplot() outliers ignored ");
+        end
+    else
+        if params.outliers && any(obj.firstrun,"all")
+            disp("geom_jitter() or geom_point() are present and stat_boxplot() outliers are plotted");
+        end
+    end
+end
+
 %Draw outliers
-obj.results.stat_boxplot{obj.result_ind,1}.outliers_handle=plot(boxmid(outliersx),outliersy,'o','MarkerEdgeColor','none','MarkerFaceColor',draw_data.color);
+if params.outliers
+    obj.results.stat_boxplot{obj.result_ind,1}.outliers_handle=plot(boxmid(outliersx),outliersy,'o','MarkerEdgeColor','none','MarkerFaceColor',draw_data.color);
+end
 
 %Adjust limits
 obj.plot_lim.maxx(obj.current_row,obj.current_column)=max(max(boxright),obj.plot_lim.maxx(obj.current_row,obj.current_column));

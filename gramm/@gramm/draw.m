@@ -735,7 +735,7 @@ if obj.layout_options.legend
             lightness_legend_map=pa_LCH2RGB([linspace(obj.color_options.lightness_range(1),obj.color_options.lightness_range(2),length(uni_lightness))' ...
                 zeros(length(uni_lightness),1)...
                 zeros(length(uni_lightness),1)]);
-            if theme(gcf).Name=="Dark Theme"
+            if strcmp(my_theme(gcf), "Dark Theme")
                 lightness_legend_map = fliplightness(lightness_legend_map);
             end
         else
@@ -1248,7 +1248,7 @@ end
 
 
 %Background !
-if theme(gcf).Name=="Light Theme"
+if strcmp(my_theme(gcf), 'Light Theme')
     set(gcf,'color',[1 1 1],'PaperPositionMode','auto');
 else
     set(gcf,'color',[0.0706    0.0706    0.0706],'PaperPositionMode','auto');
