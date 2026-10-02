@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gramm Vega export examples</title>
+  <style>
+    body { max-width: 44rem; margin: 4rem auto; padding: 0 1.5rem; font: 16px/1.6 system-ui, sans-serif; color: #222; }
+    h1 { line-height: 1.2; }
+    pre { padding: 1rem; background: #f3f5f7; overflow-x: auto; border-radius: .4rem; }
+    a { color: #075aa8; }
+  </style>
+</head>
+<body>
+  <h1>Vega export examples</h1>
+  <p id="status" role="status">Checking for the generated examples…</p>
+  <p><a id="examples" href="../examples/html/vega/index.html">Open the Vega examples</a></p>
+  <section id="help">
+    <h2>Build the examples</h2>
+    <p>If the examples have not been generated, run these commands in MATLAB from the repository root:</p>
+    <pre><code>openProject('gramm.prj');
+buildtool runVega
+buildtool publish</code></pre>
+    <p><code>runVega</code> tests the Vega examples and creates the interactive comparison gallery.
+      <code>publish</code> creates the example index linked above. Then reload this page.</p>
+    <p>For browser viewing, serve the repository root over HTTP:</p>
+    <pre><code>python3 -m http.server 8000 --bind 127.0.0.1</code></pre>
+    <p>Then open <a href="http://localhost:8000/gramm/html/vega_export.html">this page on localhost</a>.</p>
+  </section>
+  <noscript><p>Automatic redirection requires JavaScript. Use the link above to open the examples.</p></noscript>
+  <script>
+    (async () => {
+      const status = document.getElementById('status');
+      const target = document.getElementById('examples').href;
+      if (location.protocol === 'file:') {
+        status.textContent = 'Your browser may prevent checking local files. Try the examples link above, or serve the repository over HTTP. If the file is missing, build the examples below.';
+        return;
+      }
+      try {
+        const response = await fetch(target, { method: 'HEAD', cache: 'no-store' });
+        if (response.ok) {
+          status.textContent = 'Opening the Vega examples…';
+          location.replace(target);
+        } else if (response.status === 404) {
+          status.textContent = 'The Vega example index has not been generated. Run buildtool runVega, then buildtool publish, as shown below.';
+        } else {
+          status.textContent = 'The example index could not be checked (HTTP ' + response.status + '). Try the link above, or build the examples below.';
+        }
+      } catch {
+        status.textContent = 'The example index could not be checked. Try the link above, or serve the repository over HTTP. If the file is missing, build the examples below.';
+      }
+    })();
+  </script>
+</body>
+</html>

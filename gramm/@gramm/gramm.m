@@ -247,8 +247,8 @@ classdef gramm < matlab.mixin.Copyable
         obj=stat_cornerhist(obj,varargin)
         obj=stat_violin(obj,varargin)
         
-		%vega export
-		obj=export_d3(obj,varargin)
+		% Vega export
+		export_vega(obj,varargin)
 		
         function obj=set_parent(obj,parent)
             obj.parent=parent;
@@ -257,7 +257,6 @@ classdef gramm < matlab.mixin.Copyable
     end
 
 end
-
 
 
 

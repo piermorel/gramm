@@ -143,6 +143,9 @@ function analysis = analyzeGrammObject(g)
     
     % Extract continuous color options for heatmaps/2D plots
     analysis.continuous_color = extractContinuousColorInfo(g);
+    
+    % Extract point border style so symbol marks can match gramm defaults/options.
+    analysis.point_style = extractPointStyle(g, analysis);
 end
 
 function aes = extractAesthetics(g)
@@ -281,6 +284,275 @@ function hex_colors = convertColormapToHex(colormap_matrix, num_colors)
     end
 end
 
+function color_value = convertMatlabColorToVega(color_input, default_color)
+    % Convert MATLAB color formats to Vega-compatible CSS colors.
+    if nargin < 2
+        default_color = '#fc4464';
+    end
+    
+    color_value = default_color;
+    
+    if isempty(color_input)
+        return;
+    end
+    
+    if isnumeric(color_input) && numel(color_input) >= 3
+        rgb = double(color_input(1:3));
+        rgb = max(min(rgb, 1), 0);
+        color_value = sprintf('#%02x%02x%02x', ...
+            round(rgb(1) * 255), round(rgb(2) * 255), round(rgb(3) * 255));
+        return;
+    end
+    
+    if isstring(color_input)
+        color_str = char(color_input(1));
+    elseif ischar(color_input)
+        color_str = color_input;
+    else
+        return;
+    end
+    
+    color_str = strtrim(color_str);
+    if isempty(color_str)
+        return;
+    end
+    
+    switch lower(color_str)
+        case 'none'
+            color_value = 'none';
+        case {'auto', 'flat'}
+            color_value = default_color;
+        case {'r', 'red'}
+            color_value = '#ff0000';
+        case {'g', 'green'}
+            color_value = '#00ff00';
+        case {'b', 'blue'}
+            color_value = '#0000ff';
+        case {'c', 'cyan'}
+            color_value = '#00ffff';
+        case {'m', 'magenta'}
+            color_value = '#ff00ff';
+        case {'y', 'yellow'}
+            color_value = '#ffff00';
+        case {'k', 'black'}
+            color_value = '#000000';
+        case {'w', 'white'}
+            color_value = '#ffffff';
+        otherwise
+            color_value = color_str;
+    end
+end
+
+function point_style = extractPointStyle(g, analysis)
+    % Extract point border style (color + width) from gramm options/handles.
+    point_style = struct();
+    point_style.border_color = 'none';
+    point_style.border_width = 0.5;
+    
+    % Start from gramm point options when available.
+    try
+        if isprop(g(1), 'point_options') && ~isempty(g(1).point_options)
+            point_options = g(1).point_options;
+            
+            if isfield(point_options, 'border_color') && ~isempty(point_options.border_color)
+                point_style.border_color = convertMatlabColorToVega(point_options.border_color, point_style.border_color);
+            end
+            
+            if isfield(point_options, 'border_width')
+                point_style.border_width = sanitizeLineWidth(point_options.border_width, point_style.border_width);
+            end
+        end
+    catch
+    end
+    
+    % Prefer runtime handle style when available (captures user overrides accurately).
+    point_handle = [];
+    try
+        point_handle = findFirstPointHandle(analysis);
+    catch
+    end
+    
+    if ~isempty(point_handle)
+        try
+            edge_color = get(point_handle, 'MarkerEdgeColor');
+            point_style.border_color = convertMatlabColorToVega(edge_color, point_style.border_color);
+        catch
+        end
+        
+        try
+            point_style.border_width = sanitizeLineWidth(get(point_handle, 'LineWidth'), point_style.border_width);
+        catch
+        end
+    end
+    
+    % No visible border should force zero width.
+    if ischar(point_style.border_color) || isstring(point_style.border_color)
+        if strcmpi(strtrim(char(point_style.border_color)), 'none')
+            point_style.border_width = 0;
+        end
+    end
+end
+
+function point_handle = findFirstPointHandle(analysis)
+    point_handle = [];
+    
+    if isfield(analysis, 'geoms')
+        geom_fields = {'geom_point_handle', 'geom_jitter_handle', 'geom_swarm_handle'};
+        for i = 1:numel(geom_fields)
+            field_name = geom_fields{i};
+            if isfield(analysis.geoms, field_name)
+                point_handle = findFirstGraphicsHandle(analysis.geoms.(field_name));
+                if ~isempty(point_handle)
+                    return;
+                end
+            end
+        end
+    end
+    
+    % Fallback for stat_qq where point handles live in extracted stat data.
+    if isfield(analysis, 'stats') && isfield(analysis.stats, 'stat_qq')
+        qq_data = analysis.stats.stat_qq;
+        for i = 1:numel(qq_data)
+            if isfield(qq_data{i}, 'point_handle')
+                point_handle = findFirstGraphicsHandle(qq_data{i}.point_handle);
+                if ~isempty(point_handle)
+                    return;
+                end
+            end
+        end
+    end
+end
+
+function handle_out = findFirstGraphicsHandle(handle_in)
+    handle_out = [];
+    
+    if isempty(handle_in)
+        return;
+    end
+    
+    if iscell(handle_in)
+        for i = 1:numel(handle_in)
+            handle_out = findFirstGraphicsHandle(handle_in{i});
+            if ~isempty(handle_out)
+                return;
+            end
+        end
+        return;
+    end
+    
+    try
+        if all(isgraphics(handle_in))
+            handle_out = handle_in(1);
+            return;
+        end
+    catch
+    end
+    
+    try
+        for i = 1:numel(handle_in)
+            handle_out = findFirstGraphicsHandle(handle_in(i));
+            if ~isempty(handle_out)
+                return;
+            end
+        end
+    catch
+    end
+end
+
+function line_width = sanitizeLineWidth(line_width_input, default_width)
+    line_width = default_width;
+    if isnumeric(line_width_input) && ~isempty(line_width_input)
+        candidate = double(line_width_input(1));
+        if isfinite(candidate) && candidate >= 0
+            line_width = candidate;
+        end
+    end
+end
+
+function [border_color, border_width] = getPointBorderStyle(analysis)
+    border_color = 'none';
+    border_width = 0;
+    
+    if isfield(analysis, 'point_style')
+        if isfield(analysis.point_style, 'border_color') && ~isempty(analysis.point_style.border_color)
+            border_color = analysis.point_style.border_color;
+        end
+        if isfield(analysis.point_style, 'border_width')
+            border_width = sanitizeLineWidth(analysis.point_style.border_width, border_width);
+        end
+    end
+    
+    if ischar(border_color) || isstring(border_color)
+        if strcmpi(strtrim(char(border_color)), 'none')
+            border_width = 0;
+        end
+    end
+end
+
+function color_range = getCategoricalColorRange(num_groups)
+    % Return default categorical palette.
+    % Special case: when there are exactly 2 groups, use red + blue.
+    base_colors = {'#fc4464', '#08bc4d', '#04b0fc', '#ff9500', '#9b59b6', '#e74c3c', '#2ecc71', '#3498db'};
+    
+    if nargin < 1 || isempty(num_groups) || ~isnumeric(num_groups) || num_groups <= 0
+        color_range = base_colors;
+        return;
+    end
+    
+    if num_groups == 2
+        color_range = {base_colors{1}, base_colors{3}};
+    else
+        color_range = base_colors;
+    end
+end
+
+function num_groups = countUniqueGroups(group_values)
+    % Count unique grouping values across common MATLAB container types.
+    if isempty(group_values)
+        num_groups = 0;
+        return;
+    end
+    
+    if iscell(group_values)
+        group_values = group_values(~cellfun(@isempty, group_values));
+        if isempty(group_values)
+            num_groups = 0;
+            return;
+        end
+        try
+            num_groups = numel(unique(group_values));
+        catch
+            num_groups = numel(unique(string(group_values)));
+        end
+        return;
+    end
+    
+    if isstring(group_values)
+        group_values = group_values(strlength(group_values) > 0);
+        if isempty(group_values)
+            num_groups = 0;
+            return;
+        end
+        num_groups = numel(unique(group_values));
+        return;
+    end
+    
+    if ischar(group_values)
+        if size(group_values, 1) > 1
+            num_groups = numel(unique(cellstr(group_values)));
+        else
+            num_groups = 1;
+        end
+        return;
+    end
+    
+    try
+        num_groups = numel(unique(group_values));
+    catch
+        num_groups = numel(unique(string(group_values)));
+    end
+end
+
 %% ===== CHART TYPE DETECTION =====
 
 function chart_spec = detectAllChartTypes(analysis, params)
@@ -350,13 +622,15 @@ function chart_spec = detectAllChartTypes(analysis, params)
                 chart_spec.layers{end+1} = createStatViolinLayer(analysis, params);
             case 'stat_qq_handle'
                 chart_spec.layers{end+1} = createStatQqLayer(analysis, params);
-            % TODO: Re-implement other stat types with new approach
-            % case 'stat_fit_handle'
-            %     chart_spec.layers{end+1} = createStatFitLayer(analysis, params);
+            case 'stat_fit_handle'
+                chart_spec.layers{end+1} = createStatFitLayer(analysis, params);
             case 'stat_bin2d_handle'
                 chart_spec.layers{end+1} = createStatBin2dLayer(analysis, params);
-            % case 'stat_ellipse_handle'
-            %     chart_spec.layers{end+1} = createStatEllipseLayer(analysis, params);
+            case 'stat_ellipse_handle'
+                % Draw ellipses behind points to match gramm's default layering.
+                ellipse_layer = createStatEllipseLayer(analysis, params);
+                chart_spec.layers = [{ellipse_layer}, chart_spec.layers];
+            % TODO: Re-implement other stat types with new approach
             % case 'stat_cornerhist_handle'
             %     chart_spec.layers{end+1} = createStatCornerhist(analysis, params);
         end
@@ -395,8 +669,9 @@ function layer = createPointLayer(analysis, params)
     marks.encode.enter.x = struct('scale', 'xscale', 'field', 'x');
     marks.encode.enter.y = struct('scale', 'yscale', 'field', 'y');
     marks.encode.enter.size = struct('value', 60);
-    marks.encode.enter.stroke = struct('value', 'white');
-    marks.encode.enter.strokeWidth = struct('value', 1);
+    [point_border_color, point_border_width] = getPointBorderStyle(analysis);
+    marks.encode.enter.stroke = struct('value', point_border_color);
+    marks.encode.enter.strokeWidth = struct('value', point_border_width);
     
     if analysis.grouping.hasColorGroup
         marks.encode.enter.fill = struct('scale', 'color', 'field', 'color');
@@ -503,7 +778,7 @@ function layer = createBarLayer(analysis, params)
         colorscale.name = 'color';
         colorscale.type = 'ordinal';
         colorscale.domain = struct('data', 'table', 'field', 'color');
-        colorscale.range = {'#fc4464', '#08bc4d', '#04b0fc', '#ff9500', '#9b59b6', '#e74c3c', '#2ecc71', '#3498db'};
+        colorscale.range = getCategoricalColorRange(countUniqueGroups(analysis.grouping.colorData));
         layer.vegaSpec.scales{end+1} = colorscale;
     end
     
@@ -514,44 +789,44 @@ function layer = createBarLayer(analysis, params)
     };
     
     if analysis.grouping.hasColorGroup
-        % For grouped bars, use the official nested group structure
+        % Grouped bars only: one outer x-group, then dodge bars by color within each group.
         marks = struct();
+        marks.name = 'bars';
         marks.type = 'group';
-        marks.from = struct('facet', struct('data', 'table', 'name', 'facet', 'groupby', 'x'));
+        marks.from = struct('facet', struct('name', 'bar_group', 'data', 'table', 'groupby', 'x'));
         
-        % Positioning for each group
         marks.encode = struct();
         marks.encode.enter = struct();
         marks.encode.enter.x = struct('scale', 'xscale', 'field', 'x');
-        
-        % Add signal for width calculation
+        % Group-local width signal required so inner scales use the x-band width.
         marks.signals = {struct('name', 'width', 'update', 'bandwidth(''xscale'')')};
         
-        % Add inner scale for positioning bars within each group
-        pos_scale = struct();
-        pos_scale.name = 'pos';
-        pos_scale.type = 'band';
-        pos_scale.range = 'width';
-        pos_scale.domain = struct('data', 'facet', 'field', 'color');
-        marks.scales = {pos_scale};
+        xoffset = struct();
+        xoffset.name = 'xoffset';
+        xoffset.type = 'band';
+        xoffset.domain = struct('data', 'table', 'field', 'color');
+        xoffset.range = 'width';
+        % Match gramm grouped bars: contiguous bars within each dodge group.
+        xoffset.padding = 0;
         
-        % Create the individual bar mark within each group
-        bar_mark = struct();
-        bar_mark.name = 'bars';
-        bar_mark.from = struct('data', 'facet');
-        bar_mark.type = 'rect';
-        bar_mark.encode = struct();
-        bar_mark.encode.enter = struct();
-        bar_mark.encode.enter.x = struct('scale', 'pos', 'field', 'color');
-        bar_mark.encode.enter.width = struct('scale', 'pos', 'band', 1);
-        bar_mark.encode.enter.y = struct('scale', 'yscale', 'field', 'y');
-        bar_mark.encode.enter.y2 = struct('scale', 'yscale', 'value', 0);
-        bar_mark.encode.enter.fill = struct('scale', 'color', 'field', 'color');
+        inner_mark = struct();
+        inner_mark.type = 'rect';
+        inner_mark.from = struct('data', 'bar_group');
+        inner_mark.encode = struct();
+        inner_mark.encode.enter = struct();
+        inner_mark.encode.enter.x = struct('scale', 'xoffset', 'field', 'color');
+        inner_mark.encode.enter.width = struct('scale', 'xoffset', 'band', 1);
+        inner_mark.encode.enter.y = struct('scale', 'yscale', 'field', 'y');
+        inner_mark.encode.enter.y2 = struct('scale', 'yscale', 'value', 0);
+        inner_mark.encode.enter.fill = struct('scale', 'color', 'field', 'color');
+        inner_mark.encode.enter.stroke = struct('value', '#000');
+        inner_mark.encode.enter.strokeWidth = struct('value', 1);
         
-        % Add tooltip support to nested bar mark
-        bar_mark = addTooltipToMark(bar_mark, params, analysis);
+        % Add tooltip support on the actual rect mark.
+        inner_mark = addTooltipToMark(inner_mark, params, analysis);
         
-        marks.marks = {bar_mark};
+        marks.scales = {xoffset};
+        marks.marks = {inner_mark};
     else
         % Single bars can use simple rect mark
         marks = struct();
@@ -599,8 +874,9 @@ function layer = createJitterLayer(analysis, params)
     marks.encode.update.x = struct('signal', 'scale(''xscale'', datum.x) + bandwidth(''xscale'')/2 + (random() - 0.5) * bandwidth(''xscale'') * 0.8');
     marks.encode.enter.y = struct('scale', 'yscale', 'field', 'y');
     marks.encode.enter.size = struct('value', 60);
-    marks.encode.enter.stroke = struct('value', 'white');
-    marks.encode.enter.strokeWidth = struct('value', 1);
+    [point_border_color, point_border_width] = getPointBorderStyle(analysis);
+    marks.encode.enter.stroke = struct('value', point_border_color);
+    marks.encode.enter.strokeWidth = struct('value', point_border_width);
     
     if analysis.grouping.hasColorGroup
         marks.encode.enter.fill = struct('scale', 'color', 'field', 'color');
@@ -649,7 +925,7 @@ function layer = createSwarmLayer(analysis, params)
         colorscale.name = 'color';
         colorscale.type = 'ordinal';
         colorscale.domain = struct('data', 'table', 'field', 'color');
-        colorscale.range = {'#fc4464', '#08bc4d', '#04b0fc', '#ff9500', '#9b59b6', '#e74c3c', '#2ecc71', '#3498db'};
+        colorscale.range = getCategoricalColorRange(countUniqueGroups(analysis.grouping.colorData));
         scales{end+1} = colorscale;
     end
     
@@ -670,8 +946,9 @@ function layer = createSwarmLayer(analysis, params)
     % Encode properties
     marks.encode = struct();
     marks.encode.enter = struct();
-    marks.encode.enter.stroke = struct('value', 'white');
-    marks.encode.enter.strokeWidth = struct('value', 1);
+    [point_border_color, point_border_width] = getPointBorderStyle(analysis);
+    marks.encode.enter.stroke = struct('value', point_border_color);
+    marks.encode.enter.strokeWidth = struct('value', point_border_width);
     marks.encode.enter.size = struct('value', 80);
     
     % CRITICAL: Preserve exact Y values from data - no transformation applied
@@ -936,6 +1213,16 @@ function stats = extractStatisticsData(g)
     % Extract stat_qq data if present
     if isfield(g.results, 'stat_qq') && ~isempty(g.results.stat_qq)
         stats.stat_qq = extractQqData(g.results.stat_qq);
+    end
+
+    % Extract stat_fit data if present
+    if isfield(g.results, 'stat_fit') && ~isempty(g.results.stat_fit)
+        stats.stat_fit = extractFitData(g.results.stat_fit);
+    end
+    
+    % Extract stat_ellipse data if present
+    if isfield(g.results, 'stat_ellipse') && ~isempty(g.results.stat_ellipse)
+        stats.stat_ellipse = extractEllipseData(g.results.stat_ellipse);
     end
     
     % Extract stat_bin2d data if present
@@ -1234,80 +1521,426 @@ function smooth_data = extractSmoothData(stat_smooth_results)
     
 end
 
+function fit_data = extractFitData(stat_fit_results)
+    % Extract stat_fit regression data from gramm's computed results.
+    % This includes fitted line coordinates and confidence intervals.
+    
+    if isempty(stat_fit_results)
+        fit_data = [];
+        return;
+    end
+    
+    fit_data = {};
+    
+    % stat_fit results are typically struct arrays.
+    if numel(stat_fit_results) > 1
+        results_to_process = cell(numel(stat_fit_results), 1);
+        for k = 1:numel(stat_fit_results)
+            results_to_process{k} = stat_fit_results(k);
+        end
+    else
+        results_to_process = {stat_fit_results};
+    end
+    
+    for i = 1:length(results_to_process)
+        result = results_to_process{i};
+        
+        if ~isempty(result) && isfield(result, 'x') && isfield(result, 'y')
+            data_entry = struct();
+            data_entry.x = result.x;
+            data_entry.y = result.y;
+            data_entry.group = i;
+            
+            if isfield(result, 'yci') && ~isempty(result.yci)
+                yci = result.yci;
+                
+                if istable(yci)
+                    yci = yci{:,:};
+                elseif iscell(yci)
+                    try
+                        yci = cell2mat(yci);
+                    catch
+                        try
+                            yci = vertcat(yci{:});
+                        catch
+                            yci = [];
+                        end
+                    end
+                end
+                
+                if ~isempty(yci)
+                    if size(yci, 2) == 2
+                        data_entry.ci_lower = yci(:, 1);
+                        data_entry.ci_upper = yci(:, 2);
+                    elseif size(yci, 1) == 2
+                        data_entry.ci_lower = yci(1, :)';
+                        data_entry.ci_upper = yci(2, :)';
+                    end
+                end
+            end
+            
+            if isfield(result, 'line_handle')
+                data_entry.line_handle = result.line_handle;
+            end
+            
+            if isfield(result, 'area_handle')
+                data_entry.area_handle = result.area_handle;
+            end
+            
+            fit_data{end+1} = data_entry;
+        end
+    end
+    
+end
+
 function bin_data = extractBinData(stat_bin_results)
-    % Extract histogram/bin data from gramm's computed results
-    % This includes bin edges, centers, counts for histogram visualization
+    % Extract histogram/bin data from gramm's computed results.
+    % Includes precomputed bins plus rendered geometry/style from MATLAB handles
+    % so Vega output can match stat_bin geom options (bar/stacked/line/point/...).
     
     if isempty(stat_bin_results)
         bin_data = [];
         return;
     end
     
-    % Handle both single-group and multi-group stat_bin structures
-    if numel(stat_bin_results) > 1
-        % Multi-group: struct array with multiple elements
-        bin_data = {};
-        
+    if isstruct(stat_bin_results) && ~iscell(stat_bin_results)
+        results_to_process = cell(numel(stat_bin_results), 1);
         for k = 1:numel(stat_bin_results)
-            result = stat_bin_results(k);
+            results_to_process{k} = stat_bin_results(k);
+        end
+    elseif iscell(stat_bin_results)
+        results_to_process = stat_bin_results;
+    else
+        bin_data = [];
+        return;
+    end
+    
+    bin_groups = {};
+    
+    for k = 1:numel(results_to_process)
+        result = results_to_process{k};
+        
+        if isempty(result) || ~isfield(result, 'edges') || ~isfield(result, 'centers') || ~isfield(result, 'counts')
+            continue;
+        end
+        
+        group_data = struct();
+        group_data.group = k;
+        group_data.edges = result.edges(:);
+        group_data.centers = result.centers(:);
+        group_data.counts = result.counts(:);
+        
+        % Defaults used if handle extraction fails.
+        group_data.fill_color = '#fc4464';
+        group_data.stroke_color = '#000000';
+        group_data.fill_opacity = 1;
+        group_data.stroke_opacity = 1;
+        group_data.stroke_width = 1;
+        group_data.line_color = '#fc4464';
+        group_data.line_width = 1.5;
+        group_data.point_color = '#fc4464';
+        group_data.point_size = 50;
+        
+        % Extract bar geometry/style when available.
+        if isfield(result, 'bar_handle') && ~isempty(result.bar_handle)
+            group_data.bar_handle = result.bar_handle;
             
-            if isfield(result, 'edges') && isfield(result, 'centers') && isfield(result, 'counts')
-                group_data = struct();
-                group_data.edges = result.edges;      % Bin edges
-                group_data.centers = result.centers;  % Bin centers  
-                group_data.counts = result.counts;    % Count values
-                group_data.group = k;                 % Group identifier
+            try
+                [bar_x_left, bar_x_right, bar_y_bottom, bar_y_top] = ...
+                    extractHistogramPatchCoordinates(get(result.bar_handle, 'XData'), get(result.bar_handle, 'YData'));
                 
-                % Ensure counts is a column vector for consistency
-                if size(group_data.counts, 2) > size(group_data.counts, 1)
-                    group_data.counts = group_data.counts';
+                if ~isempty(bar_x_left)
+                    group_data.bar_x_left = bar_x_left;
+                    group_data.bar_x_right = bar_x_right;
+                    group_data.bar_y_bottom = bar_y_bottom;
+                    group_data.bar_y_top = bar_y_top;
                 end
-                
-                % Ensure centers is a column vector for consistency  
-                if size(group_data.centers, 2) > size(group_data.centers, 1)
-                    group_data.centers = group_data.centers';
+            catch
+            end
+            
+            try
+                group_data.fill_color = convertMatlabColorToVega(get(result.bar_handle, 'FaceColor'), '#fc4464');
+            catch
+            end
+            
+            try
+                group_data.stroke_color = convertMatlabColorToVega(get(result.bar_handle, 'EdgeColor'), '#000000');
+            catch
+            end
+            
+            try
+                face_alpha = get(result.bar_handle, 'FaceAlpha');
+                if isnumeric(face_alpha) && ~isempty(face_alpha)
+                    group_data.fill_opacity = max(0, min(1, double(face_alpha(1))));
                 end
-                
-                
-                % Extract handles for reference
-                if isfield(result, 'bar_handle')
-                    group_data.bar_handle = result.bar_handle;
+            catch
+            end
+            
+            try
+                edge_alpha = get(result.bar_handle, 'EdgeAlpha');
+                if isnumeric(edge_alpha) && ~isempty(edge_alpha)
+                    group_data.stroke_opacity = max(0, min(1, double(edge_alpha(1))));
                 end
-                
-                bin_data{end+1} = group_data;
-            else
+            catch
+            end
+            
+            try
+                line_width = get(result.bar_handle, 'LineWidth');
+                if isnumeric(line_width) && ~isempty(line_width)
+                    group_data.stroke_width = double(line_width(1));
+                end
+            catch
             end
         end
-    else
-        % Single group
         
-        if isfield(stat_bin_results, 'edges') && isfield(stat_bin_results, 'centers') && isfield(stat_bin_results, 'counts')
-            bin_data = struct();
-            bin_data.edges = stat_bin_results.edges;      % Bin edges
-            bin_data.centers = stat_bin_results.centers;  % Bin centers  
-            bin_data.counts = stat_bin_results.counts;    % Count values
-            bin_data.group = 1;                           % Single group identifier
+        % Extract line/stairs geometry/style when available.
+        if isfield(result, 'line_handle') && ~isempty(result.line_handle)
+            group_data.line_handle = result.line_handle;
             
-            % Ensure counts is a column vector for consistency
-            if size(bin_data.counts, 2) > size(bin_data.counts, 1)
-                bin_data.counts = bin_data.counts';
+            try
+                line_x = get(result.line_handle, 'XData');
+                line_y = get(result.line_handle, 'YData');
+                group_data.line_x = line_x(:);
+                group_data.line_y = line_y(:);
+            catch
             end
             
-            % Ensure centers is a column vector for consistency  
-            if size(bin_data.centers, 2) > size(bin_data.centers, 1)
-                bin_data.centers = bin_data.centers';
+            try
+                group_data.line_color = convertMatlabColorToVega(get(result.line_handle, 'Color'), '#fc4464');
+            catch
             end
             
-            
-            % Extract handles for reference
-            if isfield(stat_bin_results, 'bar_handle')
-                bin_data.bar_handle = stat_bin_results.bar_handle;
+            try
+                line_width = get(result.line_handle, 'LineWidth');
+                if isnumeric(line_width) && ~isempty(line_width)
+                    group_data.line_width = double(line_width(1));
+                end
+            catch
             end
-        else
-            bin_data = [];
+        end
+        
+        % Extract fill patch style for line/stairs if present.
+        if isfield(result, 'fill_handle') && ~isempty(result.fill_handle)
+            group_data.fill_handle = result.fill_handle;
+            
+            try
+                fill_alpha = get(result.fill_handle, 'FaceAlpha');
+                if isnumeric(fill_alpha) && ~isempty(fill_alpha)
+                    group_data.fill_opacity = max(0, min(1, double(fill_alpha(1))));
+                end
+            catch
+            end
+            
+            try
+                group_data.fill_color = convertMatlabColorToVega(get(result.fill_handle, 'FaceColor'), group_data.line_color);
+            catch
+            end
+        end
+        
+        % Extract point geometry/style when available.
+        if isfield(result, 'point_handle') && ~isempty(result.point_handle)
+            group_data.point_handle = result.point_handle;
+            
+            try
+                point_x = get(result.point_handle, 'XData');
+                point_y = get(result.point_handle, 'YData');
+                group_data.point_x = point_x(:);
+                group_data.point_y = point_y(:);
+            catch
+            end
+            
+            try
+                group_data.point_color = convertMatlabColorToVega(get(result.point_handle, 'MarkerFaceColor'), '#fc4464');
+            catch
+            end
+            
+            try
+                marker_size = get(result.point_handle, 'MarkerSize');
+                if isnumeric(marker_size) && ~isempty(marker_size)
+                    size_value = max(1, double(marker_size(1)));
+                    group_data.point_size = size_value * size_value * 2;
+                end
+            catch
+            end
+        end
+        
+        bin_groups{end+1} = group_data; %#ok<AGROW>
+    end
+    
+    if isempty(bin_groups)
+        bin_data = [];
+        return;
+    end
+    
+    % Infer the actual stat_bin geom and store it on each group.
+    detected_geom = inferHistogramGeom(bin_groups);
+    for k = 1:numel(bin_groups)
+        bin_groups{k}.geom = detected_geom;
+    end
+    
+    if numel(bin_groups) == 1
+        bin_data = bin_groups{1};
+    else
+        bin_data = bin_groups;
+    end
+    
+end
+
+function [x_left, x_right, y_bottom, y_top] = extractHistogramPatchCoordinates(x_data, y_data)
+    x_left = [];
+    x_right = [];
+    y_bottom = [];
+    y_top = [];
+    
+    if isempty(x_data) || isempty(y_data)
+        return;
+    end
+    
+    x_data = double(x_data);
+    y_data = double(y_data);
+    
+    % Normalize to 4 x N bin-rectangle format used by my_histplot patch calls.
+    if isvector(x_data)
+        n_rects = floor(numel(x_data) / 4);
+        if n_rects <= 0 || numel(y_data) < 4 * n_rects
+            return;
+        end
+        x_data = reshape(x_data(1:4*n_rects), 4, n_rects);
+        y_data = reshape(y_data(1:4*n_rects), 4, n_rects);
+    else
+        if size(x_data, 1) ~= 4 && size(x_data, 2) == 4
+            x_data = x_data';
+            y_data = y_data';
+        elseif size(x_data, 1) ~= 4
+            x_flat = x_data(:);
+            y_flat = y_data(:);
+            n_rects = floor(numel(x_flat) / 4);
+            if n_rects <= 0 || numel(y_flat) < 4 * n_rects
+                return;
+            end
+            x_data = reshape(x_flat(1:4*n_rects), 4, n_rects);
+            y_data = reshape(y_flat(1:4*n_rects), 4, n_rects);
         end
     end
     
+    valid_cols = all(isfinite(x_data), 1) & all(isfinite(y_data), 1);
+    x_data = x_data(:, valid_cols);
+    y_data = y_data(:, valid_cols);
+    
+    if isempty(x_data)
+        return;
+    end
+    
+    x_left = min(x_data, [], 1)';
+    x_right = max(x_data, [], 1)';
+    y_bottom = min(y_data, [], 1)';
+    y_top = max(y_data, [], 1)';
+end
+
+function geom = inferHistogramGeom(bin_groups)
+    geom = 'bar';
+    
+    if isempty(bin_groups)
+        return;
+    end
+    
+    % Point geom.
+    has_point = false;
+    for k = 1:numel(bin_groups)
+        if isfield(bin_groups{k}, 'point_x') && ~isempty(bin_groups{k}.point_x)
+            has_point = true;
+            break;
+        end
+    end
+    if has_point
+        geom = 'point';
+        return;
+    end
+    
+    % Line or stairs geom.
+    line_group = [];
+    for k = 1:numel(bin_groups)
+        if isfield(bin_groups{k}, 'line_x') && ~isempty(bin_groups{k}.line_x)
+            line_group = bin_groups{k};
+            break;
+        end
+    end
+    
+    if ~isempty(line_group)
+        n_line = numel(line_group.line_x);
+        n_bins = numel(line_group.counts);
+        if n_line > n_bins + 1
+            geom = 'stairs';
+        else
+            geom = 'line';
+        end
+        return;
+    end
+    
+    % Bar family: bar / stacked_bar / overlaid_bar.
+    is_overlaid = false;
+    for k = 1:numel(bin_groups)
+        if isfield(bin_groups{k}, 'fill_opacity') && bin_groups{k}.fill_opacity < 0.95
+            is_overlaid = true;
+            break;
+        end
+    end
+    if is_overlaid
+        geom = 'overlaid_bar';
+        return;
+    end
+    
+    if numel(bin_groups) <= 1
+        geom = 'bar';
+        return;
+    end
+    
+    % Distinguish dodged bars (bar) from stacked bars by x alignment.
+    ref_group = bin_groups{1};
+    is_dodged = false;
+    if isfield(ref_group, 'bar_x_left') && isfield(ref_group, 'bar_x_right')
+        for k = 2:numel(bin_groups)
+            cur_group = bin_groups{k};
+            if ~isfield(cur_group, 'bar_x_left') || ~isfield(cur_group, 'bar_x_right')
+                continue;
+            end
+            
+            n = min([numel(ref_group.bar_x_left), numel(cur_group.bar_x_left), ...
+                     numel(ref_group.bar_x_right), numel(cur_group.bar_x_right)]);
+            if n == 0
+                continue;
+            end
+            
+            ref_left = ref_group.bar_x_left(1:n);
+            ref_right = ref_group.bar_x_right(1:n);
+            cur_left = cur_group.bar_x_left(1:n);
+            cur_right = cur_group.bar_x_right(1:n);
+            
+            tol = max(1e-9, 1e-6 * max(1, max(abs([ref_left; ref_right]))));
+            if max(abs(ref_left - cur_left)) > tol || max(abs(ref_right - cur_right)) > tol
+                is_dodged = true;
+                break;
+            end
+        end
+    end
+    
+    if is_dodged
+        geom = 'bar';
+        return;
+    end
+    
+    % Non-dodged opaque bars with nonzero bottoms correspond to stacked_bar.
+    for k = 2:numel(bin_groups)
+        cur_group = bin_groups{k};
+        if isfield(cur_group, 'bar_y_bottom') && ~isempty(cur_group.bar_y_bottom)
+            if any(cur_group.bar_y_bottom > 1e-9)
+                geom = 'stacked_bar';
+                return;
+            end
+        end
+    end
+    
+    geom = 'bar';
 end
 
 function summary_data = extractSummaryData(stat_summary_results)
@@ -1544,6 +2177,177 @@ function qq_data = extractQqData(stat_qq_results)
     
 end
 
+function ellipse_data = extractEllipseData(stat_ellipse_results)
+    % Extract ellipse boundary/fill/center style information from stat_ellipse.
+    
+    if isempty(stat_ellipse_results)
+        ellipse_data = {};
+        return;
+    end
+    
+    ellipse_data = {};
+    
+    if isstruct(stat_ellipse_results) && ~iscell(stat_ellipse_results)
+        if numel(stat_ellipse_results) > 1
+            results_to_process = cell(numel(stat_ellipse_results), 1);
+            for k = 1:numel(stat_ellipse_results)
+                results_to_process{k} = stat_ellipse_results(k);
+            end
+        else
+            results_to_process = {stat_ellipse_results};
+        end
+    elseif iscell(stat_ellipse_results)
+        results_to_process = stat_ellipse_results;
+    else
+        return;
+    end
+    
+    for i = 1:length(results_to_process)
+        result = results_to_process{i};
+        if isempty(result)
+            continue;
+        end
+        
+        ellipse_entry = struct();
+        ellipse_entry.group = i;
+        
+        % Default center from reported ellipse mean
+        if isfield(result, 'mean') && isnumeric(result.mean) && numel(result.mean) >= 2
+            if all(isfinite(result.mean(1:2)))
+                ellipse_entry.center_x = result.mean(1);
+                ellipse_entry.center_y = result.mean(2);
+            end
+        end
+        
+        has_curve = false;
+        
+        % Primary path: extract rendered ellipse geometry from patch handle
+        if isfield(result, 'ellipse_handle') && ~isempty(result.ellipse_handle)
+            try
+                x_data = get(result.ellipse_handle, 'XData');
+                y_data = get(result.ellipse_handle, 'YData');
+                if ~isempty(x_data) && ~isempty(y_data)
+                    ellipse_entry.x = x_data(:);
+                    ellipse_entry.y = y_data(:);
+                    has_curve = true;
+                end
+            catch
+            end
+            
+            try
+                face_color = get(result.ellipse_handle, 'FaceColor');
+                ellipse_entry.fill_color = convertMatlabColorToVega(face_color, '#fc4464');
+            catch
+            end
+            
+            try
+                edge_color = get(result.ellipse_handle, 'EdgeColor');
+                ellipse_entry.stroke_color = convertMatlabColorToVega(edge_color, '#fc4464');
+            catch
+            end
+            
+            try
+                face_alpha = get(result.ellipse_handle, 'FaceAlpha');
+                if isnumeric(face_alpha) && ~isempty(face_alpha)
+                    ellipse_entry.fill_opacity = max(0, min(1, double(face_alpha(1))));
+                end
+            catch
+            end
+            
+            try
+                line_width = get(result.ellipse_handle, 'LineWidth');
+                if isnumeric(line_width) && ~isempty(line_width)
+                    ellipse_entry.stroke_width = double(line_width(1));
+                end
+            catch
+            end
+        end
+        
+        % Fallback path: reconstruct from covariance when handle geometry is unavailable
+        if ~has_curve && isfield(result, 'mean') && isfield(result, 'cv')
+            mean_xy = result.mean;
+            cv_matrix = result.cv;
+            if isnumeric(mean_xy) && numel(mean_xy) >= 2 && isnumeric(cv_matrix) && all(size(cv_matrix) == [2 2])
+                if all(isfinite(mean_xy(1:2))) && all(isfinite(cv_matrix(:)))
+                    try
+                        angle = 0:pi/(0.5*30):2*pi;
+                        unit_points = [cos(angle); sin(angle)];
+                        scale_factor = sqrt(chi2inv(0.95, 2)); % 95% ellipse
+                        ellipse_points = sqrtm(cv_matrix) * unit_points * scale_factor;
+                        ellipse_entry.x = ellipse_points(1, :)' + mean_xy(1);
+                        ellipse_entry.y = ellipse_points(2, :)' + mean_xy(2);
+                        has_curve = true;
+                    catch
+                    end
+                end
+            end
+        end
+        
+        % Center marker position/color
+        if isfield(result, 'center_handle') && ~isempty(result.center_handle)
+            try
+                center_x = get(result.center_handle, 'XData');
+                center_y = get(result.center_handle, 'YData');
+                if ~isempty(center_x) && ~isempty(center_y)
+                    ellipse_entry.center_x = center_x(1);
+                    ellipse_entry.center_y = center_y(1);
+                end
+            catch
+            end
+            
+            try
+                center_color = get(result.center_handle, 'MarkerEdgeColor');
+                ellipse_entry.center_color = convertMatlabColorToVega(center_color, '#fc4464');
+            catch
+            end
+            
+            try
+                center_line_width = get(result.center_handle, 'LineWidth');
+                ellipse_entry.center_border_width = sanitizeLineWidth(center_line_width, 0.5);
+            catch
+            end
+        end
+        
+        % Apply robust defaults
+        if ~isfield(ellipse_entry, 'fill_color')
+            ellipse_entry.fill_color = '#fc4464';
+        end
+        
+        if ~isfield(ellipse_entry, 'stroke_color')
+            if strcmp(ellipse_entry.fill_color, 'none')
+                ellipse_entry.stroke_color = '#fc4464';
+            else
+                ellipse_entry.stroke_color = ellipse_entry.fill_color;
+            end
+        end
+        
+        if ~isfield(ellipse_entry, 'fill_opacity')
+            if strcmp(ellipse_entry.fill_color, 'none')
+                ellipse_entry.fill_opacity = 0;
+            else
+                ellipse_entry.fill_opacity = 0.2;
+            end
+        end
+        
+        if ~isfield(ellipse_entry, 'stroke_width')
+            ellipse_entry.stroke_width = 2;
+        end
+        
+        if ~isfield(ellipse_entry, 'center_color')
+            ellipse_entry.center_color = ellipse_entry.stroke_color;
+        end
+        
+        if ~isfield(ellipse_entry, 'center_border_width')
+            ellipse_entry.center_border_width = 0.5;
+        end
+        
+        if has_curve && isfield(ellipse_entry, 'x') && isfield(ellipse_entry, 'y')
+            ellipse_data{end+1} = ellipse_entry;
+        end
+    end
+    
+end
+
 function stats = detectStatHandles(g)
     % New implementation that extracts actual statistical data from gramm objects
     % This replaces the old handle-only detection approach
@@ -1591,6 +2395,16 @@ function stats = detectStatHandles(g)
     % Add stat_qq_handle flag if stat_qq data exists
     if isfield(stats, 'stat_qq') && ~isempty(stats.stat_qq)
         stats.stat_qq_handle = true;  % Flag to indicate QQ data exists
+    end
+
+    % Add stat_fit_handle flag if stat_fit data exists
+    if isfield(stats, 'stat_fit') && ~isempty(stats.stat_fit)
+        stats.stat_fit_handle = true;  % Flag to indicate fit data exists
+    end
+    
+    % Add stat_ellipse_handle flag if stat_ellipse data exists
+    if isfield(stats, 'stat_ellipse') && ~isempty(stats.stat_ellipse)
+        stats.stat_ellipse_handle = true;  % Flag to indicate ellipse data exists
     end
     
     % Add stat_bin2d_handle flag if stat_bin2d data exists
@@ -1679,7 +2493,7 @@ function layer = createStatGlmLayer(analysis, params)
         group_scale.name = 'groupColor';
         group_scale.type = 'ordinal';
         group_scale.domain = struct('data', 'stats', 'field', 'group');
-        group_scale.range = {'#fc4464', '#08bc4d', '#04b0fc', '#ff9500', '#9b59b6', '#e74c3c', '#2ecc71', '#3498db'};
+        group_scale.range = getCategoricalColorRange(length(glm_data));
         layer.vegaSpec.scales{end+1} = group_scale;
     end
     
@@ -1807,13 +2621,14 @@ function layer = createStatGlmLayer(analysis, params)
     points_marks.encode.enter.x = struct('scale', 'xscale', 'field', 'x');
     points_marks.encode.enter.y = struct('scale', 'yscale', 'field', 'y');
     points_marks.encode.enter.size = struct('value', 50);
-    points_marks.encode.enter.stroke = struct('value', 'white');
-    points_marks.encode.enter.strokeWidth = struct('value', 1);
+    [point_border_color, point_border_width] = getPointBorderStyle(analysis);
+    points_marks.encode.enter.stroke = struct('value', point_border_color);
+    points_marks.encode.enter.strokeWidth = struct('value', point_border_width);
     
     if analysis.grouping.hasColorGroup
         points_marks.encode.enter.fill = struct('scale', 'color', 'field', 'color');
     else
-        points_marks.encode.enter.fill = struct('value', 'steelblue');
+        points_marks.encode.enter.fill = struct('value', '#ff4565');
     end
     
     % Add tooltip support
@@ -1845,7 +2660,7 @@ function layer = createStatSmoothLayer(analysis, params)
         groupScale.name = 'groupColor';
         groupScale.type = 'ordinal';
         groupScale.domain = struct('data', 'stats', 'field', 'group');
-        groupScale.range = {'#fc4464', '#08bc4d', '#04b0fc', '#ff9500', '#9b59b6', '#e74c3c', '#2ecc71', '#3498db'};
+        groupScale.range = getCategoricalColorRange(length(smooth_data));
         layer.vegaSpec.scales{end+1} = groupScale;
     end
     
@@ -1988,8 +2803,9 @@ function layer = createStatSmoothLayer(analysis, params)
     points_marks.encode.enter.x = struct('scale', 'xscale', 'field', 'x');
     points_marks.encode.enter.y = struct('scale', 'yscale', 'field', 'y');
     points_marks.encode.enter.size = struct('value', 50);
-    points_marks.encode.enter.stroke = struct('value', 'white');
-    points_marks.encode.enter.strokeWidth = struct('value', 1);
+    [point_border_color, point_border_width] = getPointBorderStyle(analysis);
+    points_marks.encode.enter.stroke = struct('value', point_border_color);
+    points_marks.encode.enter.strokeWidth = struct('value', point_border_width);
     
     % Color encoding for points
     if analysis.grouping.hasColorGroup
@@ -2007,150 +2823,313 @@ function layer = createStatSmoothLayer(analysis, params)
 end
 
 function layer = createStatBinLayer(analysis, params)
-    % Create a stat_bin layer with histogram bars
-    % This creates proper bar charts instead of scatter plots for histograms
+    % Create a stat_bin layer that matches gramm's histogram geom options.
     
-    % Get bin data from analysis
     bin_data = analysis.stats.stat_bin;
+    histogram_groups = normalizeHistogramGroups(bin_data);
     
-    % Create base Vega specification for this layer
     layer = struct();
     layer.vegaSpec = createBaseVegaSpec();
     layer.vegaSpec.width = str2double(params.width);
     layer.vegaSpec.height = str2double(params.height);
-    
-    % Set up scales for histogram - custom scales needed for proper y-domain
     layer.vegaSpec.scales = createHistogramScales(analysis);
-    
-    % Set up axes
     layer.vegaSpec.axes = createVegaAxes(analysis, params);
     
-    % Handle both single-group and multi-group bin data
-    bin_vega_data = [];
-    
-    if iscell(bin_data)
-        % Multi-group: process each group separately
-        for g = 1:length(bin_data)
-            group_bin = bin_data{g};
-            for i = 1:length(group_bin.centers)
-                data_point = struct();
-                data_point.x = group_bin.centers(i);      % Bin center for x position
-                data_point.count = group_bin.counts(i);   % Count for height
-                data_point.group = group_bin.group;       % Group identifier
-                
-                % Calculate bin width from edges for proper bar width
-                if i == 1
-                    % First bin
-                    bin_width = group_bin.edges(2) - group_bin.edges(1);
-                else
-                    % Use previous bin width (should be consistent)
-                    bin_width = group_bin.edges(i+1) - group_bin.edges(i);
-                end
-                data_point.bin_width = bin_width;
-                
-                % Add bin boundaries for reference
-                data_point.x_left = group_bin.edges(i);
-                data_point.x_right = group_bin.edges(i+1);
-                
-                bin_vega_data = [bin_vega_data; data_point];
-            end
-        end
-    else
-        % Single group
-        for i = 1:length(bin_data.centers)
-            data_point = struct();
-            data_point.x = bin_data.centers(i);      % Bin center for x position
-            data_point.count = bin_data.counts(i);   % Count for height
-            data_point.group = bin_data.group;       % Group identifier (always 1 for single)
-            
-            % Calculate bin width from edges for proper bar width
-            if i == 1
-                % First bin
-                bin_width = bin_data.edges(2) - bin_data.edges(1);
-            else
-                % Use previous bin width (should be consistent)
-                bin_width = bin_data.edges(i+1) - bin_data.edges(i);
-            end
-            data_point.bin_width = bin_width;
-            
-            % Add bin boundaries for reference
-            data_point.x_left = bin_data.edges(i);
-            data_point.x_right = bin_data.edges(i+1);
-            
-            bin_vega_data = [bin_vega_data; data_point];
-        end
+    if isempty(histogram_groups)
+        empty_source = struct('name', 'bins', 'values', []);
+        layer.vegaSpec.data{end+1} = empty_source;
+        layer.vegaSpec.marks = {};
+        return;
     end
     
-    % Add bin data source
+    num_groups = numel(histogram_groups);
+    group_labels = getHistogramGroupLabels(analysis, num_groups);
+    hist_geom = inferHistogramGeom(histogram_groups);
+    
+    bins_values = [];
+    
+    switch hist_geom
+        case {'bar', 'stacked_bar', 'overlaid_bar'}
+            for g = 1:num_groups
+                group_bin = histogram_groups{g};
+                group_label = group_labels{min(max(g, 1), numel(group_labels))};
+                
+                if isfield(group_bin, 'bar_x_left') && isfield(group_bin, 'bar_x_right') ...
+                        && isfield(group_bin, 'bar_y_bottom') && isfield(group_bin, 'bar_y_top')
+                    x_left = group_bin.bar_x_left(:);
+                    x_right = group_bin.bar_x_right(:);
+                    y_bottom = group_bin.bar_y_bottom(:);
+                    y_top = group_bin.bar_y_top(:);
+                    n = min([numel(x_left), numel(x_right), numel(y_bottom), numel(y_top), numel(group_bin.counts)]);
+                else
+                    edges = group_bin.edges(:);
+                    counts = group_bin.counts(:);
+                    n = min(numel(counts), numel(edges) - 1);
+                    x_left = edges(1:n);
+                    x_right = edges(2:n+1);
+                    y_bottom = zeros(n, 1);
+                    y_top = counts(1:n);
+                end
+                
+                for i = 1:n
+                    point = struct();
+                    point.group = g;
+                    point.color = group_label;
+                    point.count = group_bin.counts(i);
+                    point.x_left = x_left(i);
+                    point.x_right = x_right(i);
+                    point.y_bottom = y_bottom(i);
+                    point.y_top = y_top(i);
+                    point.fill_color = group_bin.fill_color;
+                    point.stroke_color = group_bin.stroke_color;
+                    point.fill_opacity = group_bin.fill_opacity;
+                    point.stroke_opacity = group_bin.stroke_opacity;
+                    point.stroke_width = group_bin.stroke_width;
+                    bins_values = [bins_values; point];
+                end
+            end
+            
+        case {'line', 'stairs'}
+            for g = 1:num_groups
+                group_bin = histogram_groups{g};
+                group_label = group_labels{min(max(g, 1), numel(group_labels))};
+                
+                if isfield(group_bin, 'line_x') && isfield(group_bin, 'line_y')
+                    line_x = group_bin.line_x(:);
+                    line_y = group_bin.line_y(:);
+                else
+                    line_x = group_bin.centers(:);
+                    line_y = group_bin.counts(:);
+                end
+                
+                n = min(numel(line_x), numel(line_y));
+                for i = 1:n
+                    point = struct();
+                    point.group = g;
+                    point.color = group_label;
+                    point.x = line_x(i);
+                    point.y = line_y(i);
+                    point.order = i;
+                    point.line_color = group_bin.line_color;
+                    point.line_width = group_bin.line_width;
+                    bins_values = [bins_values; point];
+                end
+            end
+            
+        case 'point'
+            for g = 1:num_groups
+                group_bin = histogram_groups{g};
+                group_label = group_labels{min(max(g, 1), numel(group_labels))};
+                
+                if isfield(group_bin, 'point_x') && isfield(group_bin, 'point_y')
+                    point_x = group_bin.point_x(:);
+                    point_y = group_bin.point_y(:);
+                else
+                    point_x = group_bin.centers(:);
+                    point_y = group_bin.counts(:);
+                end
+                
+                n = min(numel(point_x), numel(point_y));
+                for i = 1:n
+                    point = struct();
+                    point.group = g;
+                    point.color = group_label;
+                    point.x = point_x(i);
+                    point.y = point_y(i);
+                    point.point_color = group_bin.point_color;
+                    point.point_size = group_bin.point_size;
+                    bins_values = [bins_values; point];
+                end
+            end
+    end
+    
     bin_data_source = struct();
     bin_data_source.name = 'bins';
-    bin_data_source.values = bin_vega_data;
+    bin_data_source.values = bins_values;
     layer.vegaSpec.data{end+1} = bin_data_source;
     
-    % Create histogram bars mark with multi-group support
-    if iscell(bin_data) && length(bin_data) > 1
-        % Multi-group: use grouped approach like other multi-group visualizations
-        bars_mark = struct();
-        bars_mark.name = 'histogram_bars';
-        bars_mark.type = 'group';
-        bars_mark.from = struct('facet', struct('name', 'bin_group_data', 'data', 'bins', 'groupby', 'group'));
-        
-        % Inner rect mark for each group
-        inner_rect = struct();
-        inner_rect.type = 'rect';
-        inner_rect.from = struct('data', 'bin_group_data');
-        
-        inner_rect.encode = struct();
-        inner_rect.encode.enter = struct();
-        
-        % Position bars using bin edges for precise alignment
-        inner_rect.encode.enter.x = struct('scale', 'xscale', 'field', 'x_left');
-        inner_rect.encode.enter.x2 = struct('scale', 'xscale', 'field', 'x_right');
-        inner_rect.encode.enter.y = struct('scale', 'yscale', 'value', 0);      % Base at y=0
-        inner_rect.encode.enter.y2 = struct('scale', 'yscale', 'field', 'count'); % Height from count
-        
-        % Multi-group bar styling with color scale
-        inner_rect.encode.enter.fill = struct('scale', 'groupColor', 'field', 'group');
-        inner_rect.encode.enter.stroke = struct('value', 'white');
-        inner_rect.encode.enter.strokeWidth = struct('value', 1);
-        
-        % Add tooltip showing bin and group info
-        inner_rect.encode.update = struct();
-        inner_rect.encode.update.tooltip = struct('signal', ...
-            "'Group: ' + datum.group + ', Bin: [' + format(datum.x_left, '.2f') + ', ' + format(datum.x_right, '.2f') + '], Count: ' + datum.count");
-        
-        bars_mark.marks = {inner_rect};
+    is_multi_group = num_groups > 1;
+    
+    switch hist_geom
+        case {'bar', 'stacked_bar', 'overlaid_bar'}
+            bars_mark = struct();
+            bars_mark.name = 'histogram_bars';
+            bars_mark.type = 'rect';
+            bars_mark.from = struct('data', 'bins');
+            bars_mark.encode = struct();
+            bars_mark.encode.enter = struct();
+            bars_mark.encode.enter.x = struct('scale', 'xscale', 'field', 'x_left');
+            bars_mark.encode.enter.x2 = struct('scale', 'xscale', 'field', 'x_right');
+            bars_mark.encode.enter.y = struct('scale', 'yscale', 'field', 'y_bottom');
+            bars_mark.encode.enter.y2 = struct('scale', 'yscale', 'field', 'y_top');
+            bars_mark.encode.enter.fillOpacity = struct('field', 'fill_opacity');
+            bars_mark.encode.enter.stroke = struct('field', 'stroke_color');
+            bars_mark.encode.enter.strokeOpacity = struct('field', 'stroke_opacity');
+            bars_mark.encode.enter.strokeWidth = struct('field', 'stroke_width');
+            
+            if is_multi_group
+                bars_mark.encode.enter.fill = struct('scale', 'color', 'field', 'color');
+            else
+                bars_mark.encode.enter.fill = struct('field', 'fill_color');
+            end
+            
+            bars_mark.encode.update = struct();
+            bars_mark.encode.update.tooltip = struct('signal', ...
+                "'Group: ' + datum.color + ', Bin: [' + format(datum.x_left, '.2f') + ', ' + format(datum.x_right, '.2f') + '], Count: ' + format(datum.count, '.3f')");
+            
+            layer.vegaSpec.marks = {bars_mark};
+            
+        case {'line', 'stairs'}
+            if is_multi_group
+                lines_mark = struct();
+                lines_mark.name = 'histogram_lines';
+                lines_mark.type = 'group';
+                lines_mark.from = struct('facet', struct('name', 'bin_group_data', 'data', 'bins', 'groupby', 'color'));
+                
+                inner_line = struct();
+                inner_line.type = 'line';
+                inner_line.from = struct('data', 'bin_group_data');
+                inner_line.sort = struct('field', 'order', 'order', 'ascending');
+                inner_line.encode = struct();
+                inner_line.encode.enter = struct();
+                inner_line.encode.enter.x = struct('scale', 'xscale', 'field', 'x');
+                inner_line.encode.enter.y = struct('scale', 'yscale', 'field', 'y');
+                inner_line.encode.enter.stroke = struct('scale', 'color', 'field', 'color');
+                inner_line.encode.enter.strokeWidth = struct('field', 'line_width');
+                inner_line.encode.enter.fill = struct('value', 'transparent');
+                inner_line.encode.enter.fillOpacity = struct('value', 0);
+                inner_line.encode.update = struct();
+                inner_line.encode.update.fill = struct('value', 'transparent');
+                inner_line.encode.update.fillOpacity = struct('value', 0);
+                inner_line.encode.update.tooltip = struct('signal', ...
+                    "'Group: ' + datum.color + ', X: ' + format(datum.x, '.2f') + ', Count: ' + format(datum.y, '.3f')");
+                
+                lines_mark.marks = {inner_line};
+                layer.vegaSpec.marks = {lines_mark};
+            else
+                line_mark = struct();
+                line_mark.name = 'histogram_line';
+                line_mark.type = 'line';
+                line_mark.from = struct('data', 'bins');
+                line_mark.sort = struct('field', 'order', 'order', 'ascending');
+                line_mark.encode = struct();
+                line_mark.encode.enter = struct();
+                line_mark.encode.enter.x = struct('scale', 'xscale', 'field', 'x');
+                line_mark.encode.enter.y = struct('scale', 'yscale', 'field', 'y');
+                line_mark.encode.enter.stroke = struct('field', 'line_color');
+                line_mark.encode.enter.strokeWidth = struct('field', 'line_width');
+                line_mark.encode.enter.fill = struct('value', 'transparent');
+                line_mark.encode.enter.fillOpacity = struct('value', 0);
+                line_mark.encode.update = struct();
+                line_mark.encode.update.fill = struct('value', 'transparent');
+                line_mark.encode.update.fillOpacity = struct('value', 0);
+                line_mark.encode.update.tooltip = struct('signal', ...
+                    "'X: ' + format(datum.x, '.2f') + ', Count: ' + format(datum.y, '.3f')");
+                
+                layer.vegaSpec.marks = {line_mark};
+            end
+            
+        case 'point'
+            point_mark = struct();
+            point_mark.name = 'histogram_points';
+            point_mark.type = 'symbol';
+            point_mark.from = struct('data', 'bins');
+            point_mark.encode = struct();
+            point_mark.encode.enter = struct();
+            point_mark.encode.enter.x = struct('scale', 'xscale', 'field', 'x');
+            point_mark.encode.enter.y = struct('scale', 'yscale', 'field', 'y');
+            point_mark.encode.enter.size = struct('field', 'point_size');
+            point_mark.encode.enter.stroke = struct('value', 'none');
+            point_mark.encode.enter.strokeWidth = struct('value', 0);
+            
+            if is_multi_group
+                point_mark.encode.enter.fill = struct('scale', 'color', 'field', 'color');
+            else
+                point_mark.encode.enter.fill = struct('field', 'point_color');
+            end
+            
+            point_mark.encode.update = struct();
+            point_mark.encode.update.tooltip = struct('signal', ...
+                "'Group: ' + datum.color + ', X: ' + format(datum.x, '.2f') + ', Count: ' + format(datum.y, '.3f')");
+            
+            layer.vegaSpec.marks = {point_mark};
+    end
+end
+
+function histogram_groups = normalizeHistogramGroups(bin_data)
+    if isempty(bin_data)
+        histogram_groups = {};
+    elseif iscell(bin_data)
+        histogram_groups = bin_data;
     else
-        % Single group: use simple rect marks
-        bars_mark = struct();
-        bars_mark.name = 'histogram_bars';
-        bars_mark.type = 'rect';
-        bars_mark.from = struct('data', 'bins');
-        
-        bars_mark.encode = struct();
-        bars_mark.encode.enter = struct();
-        
-        % Position bars using bin edges for precise alignment
-        bars_mark.encode.enter.x = struct('scale', 'xscale', 'field', 'x_left');
-        bars_mark.encode.enter.x2 = struct('scale', 'xscale', 'field', 'x_right');
-        bars_mark.encode.enter.y = struct('scale', 'yscale', 'value', 0);      % Base at y=0
-        bars_mark.encode.enter.y2 = struct('scale', 'yscale', 'field', 'count'); % Height from count
-        
-        % Single group bar styling
-        bars_mark.encode.enter.fill = struct('value', '#fc4464');  % Red color like gramm default
-        bars_mark.encode.enter.stroke = struct('value', 'white');
-        bars_mark.encode.enter.strokeWidth = struct('value', 1);
-        
-        % Add tooltip showing bin info
-        bars_mark.encode.update = struct();
-        bars_mark.encode.update.tooltip = struct('signal', ...
-            "'Bin: [' + format(datum.x_left, '.2f') + ', ' + format(datum.x_right, '.2f') + '], Count: ' + datum.count");
+        histogram_groups = {bin_data};
+    end
+end
+
+function group_labels = getHistogramGroupLabels(analysis, num_groups)
+    group_labels = cell(num_groups, 1);
+    for i = 1:num_groups
+        group_labels{i} = sprintf('Group %d', i);
     end
     
-    % Set up marks array with just the bars (no scatter points for histograms)
-    marks = {bars_mark};
+    if ~isfield(analysis, 'grouping') || ~isfield(analysis.grouping, 'hasColorGroup') ...
+            || ~analysis.grouping.hasColorGroup || ~isfield(analysis.grouping, 'colorData')
+        return;
+    end
     
-    layer.vegaSpec.marks = marks;
+    color_data = analysis.grouping.colorData;
+    if isempty(color_data)
+        return;
+    end
+    
+    try
+        unique_values = unique(color_data, 'stable');
+    catch
+        try
+            unique_values = unique(string(color_data), 'stable');
+        catch
+            return;
+        end
+    end
+    
+    n = min(num_groups, numel(unique_values));
+    for i = 1:n
+        group_labels{i} = stringifyHistogramGroupValue(unique_values(i), i);
+    end
+end
+
+function label = stringifyHistogramGroupValue(raw_value, fallback_index)
+    label = sprintf('Group %d', fallback_index);
+    
+    if iscell(raw_value)
+        if isempty(raw_value)
+            return;
+        end
+        raw_value = raw_value{1};
+    end
+    
+    try
+        if isstring(raw_value)
+            if isempty(raw_value)
+                return;
+            end
+            label = char(raw_value(1));
+        elseif ischar(raw_value)
+            if isempty(raw_value)
+                return;
+            end
+            label = raw_value;
+        elseif isnumeric(raw_value) || islogical(raw_value)
+            if numel(raw_value) == 1
+                label = num2str(raw_value);
+            else
+                label = mat2str(raw_value);
+            end
+        else
+            label = char(string(raw_value));
+        end
+    catch
+    end
 end
 
 function layer = createStatSummaryLayer(analysis, params)
@@ -2277,7 +3256,7 @@ function layer = createStatSummaryLayer(analysis, params)
         color_scale.name = 'color';
         color_scale.type = 'ordinal';
         color_scale.domain = struct('data', 'summary_lines', 'field', 'group');
-        color_scale.range = {'#fc4464', '#08bc4d', '#04b0fc', '#ff9500', '#9b59b6', '#e74c3c', '#2ecc71', '#3498db'};
+        color_scale.range = getCategoricalColorRange(length(summary_data));
         scales{end+1} = color_scale;
     else
         % Single group: use fixed color
@@ -2457,7 +3436,7 @@ function layer = createStatBoxplotLayer(analysis, params)
     color_scale.name = 'color';
     color_scale.type = 'ordinal';
     color_scale.domain = struct('data', 'boxplot_boxes', 'field', 'category');
-    color_scale.range = {'#fc4464', '#08bc4d', '#04b0fc', '#ff9500', '#9b59b6', '#e74c3c', '#2ecc71', '#3498db'};
+    color_scale.range = getCategoricalColorRange(length(boxplot_data));
     scales{end+1} = color_scale;
     
     layer.vegaSpec.scales = scales;
@@ -2609,7 +3588,7 @@ function layer = createStatDensityLayer(analysis, params)
         groupScale.type = 'ordinal';
         % Use the same domain as the main color scale to ensure consistent mapping
         groupScale.domain = struct('data', 'table', 'field', 'color');
-        groupScale.range = {'#fc4464', '#08bc4d', '#04b0fc', '#ff9500', '#9b59b6', '#e74c3c', '#2ecc71', '#3498db'};
+        groupScale.range = getCategoricalColorRange(max(length(density_data), countUniqueGroups(analysis.grouping.colorData)));
         scales{end+1} = groupScale;
     end
     
@@ -2678,7 +3657,7 @@ end
 
 function layer = createStatViolinLayer(analysis, params)
     % Create a stat_violin layer with violin plots showing density distribution
-    % This creates area charts showing density curves mirrored on both sides
+    % This creates closed filled polygons from mirrored density boundaries
     
     layer = struct();
     layer.isVegaChart = true;
@@ -2691,87 +3670,139 @@ function layer = createStatViolinLayer(analysis, params)
     
     violin_data = analysis.stats.stat_violin;
     
-    % Create violin data table for Vega
-    vega_violin_data = [];
+    % Create closed polygon path data for Vega (left side up, right side down)
+    vega_violin_poly_data = [];
     
-    % Get category labels from analysis (similar to density implementation)
-    if analysis.grouping.hasColorGroup && isfield(analysis, 'aes') && isfield(analysis.aes, 'color')
-        unique_groups = unique(analysis.aes.color, 'stable');
-    else
-        unique_groups = {};
+    % Build a mapping from stat_violin category indices to original x labels.
+    % stat_violin stores numeric category indices (or values) in unique_x.
+    unique_x_categories = {};
+    if isfield(analysis, 'aes') && isfield(analysis.aes, 'x') && ~isempty(analysis.aes.x)
+        unique_x_categories = unique(analysis.aes.x, 'stable');
+        if isnumeric(unique_x_categories)
+            unique_x_categories = num2cell(unique_x_categories);
+        elseif ischar(unique_x_categories)
+            unique_x_categories = cellstr(unique_x_categories);
+        elseif isstring(unique_x_categories)
+            unique_x_categories = cellstr(unique_x_categories);
+        elseif iscategorical(unique_x_categories)
+            unique_x_categories = cellstr(string(unique_x_categories));
+        end
     end
+    
+    violin_category_indices = zeros(length(violin_data), 1);
+    for i = 1:length(violin_data)
+        violin_category_indices(i) = violin_data{i}.category_index;
+    end
+    unique_violin_categories = unique(violin_category_indices, 'stable');
+    has_label_mapping = ~isempty(unique_x_categories) && ...
+        length(unique_x_categories) == length(unique_violin_categories);
     
     for i = 1:length(violin_data)
         entry = violin_data{i};
         x_density = entry.x_density(:);      % Density values (width from center)
         y_values = entry.y_values(:);        % Y positions
         
-        % Map category index to actual category label
-        if ~isempty(unique_groups) && entry.category_index <= length(unique_groups)
-            category_label = unique_groups{entry.category_index};
+        % Map stat_violin category index/value to original x label when possible
+        if has_label_mapping
+            category_pos = find(abs(unique_violin_categories - entry.category_index) < 1e-10, 1, 'first');
+            if ~isempty(category_pos)
+                if iscell(unique_x_categories)
+                    category_label = unique_x_categories{category_pos};
+                else
+                    category_label = unique_x_categories(category_pos);
+                end
+            else
+                category_label = entry.category_index;
+            end
         else
-            category_label = sprintf('Category_%d', entry.category_index);
+            category_label = entry.category_index;
         end
         
-        
-        % Create violin shape data (mirror density on both sides)
-        for j = 1:length(y_values)
-            % Normalize density to a reasonable width (e.g., max 0.4 band width)
-            normalized_density = x_density(j) / max(x_density) * 0.4;
-            
-            % Left side of violin (negative density)
-            left_point = struct();
-            left_point.category = category_label;
-            left_point.y = y_values(j);
-            left_point.x_offset = -normalized_density;
-            left_point.density = x_density(j);
-            left_point.group = entry.group;
-            vega_violin_data = [vega_violin_data; left_point];
-            
-            % Right side of violin (positive density) 
-            right_point = struct();
-            right_point.category = category_label;
-            right_point.y = y_values(j);
-            right_point.x_offset = normalized_density;
-            right_point.density = x_density(j);
-            right_point.group = entry.group;
-            vega_violin_data = [vega_violin_data; right_point];
+        valid_points = isfinite(y_values) & isfinite(x_density);
+        y_values = y_values(valid_points);
+        x_density = x_density(valid_points);
+        if isempty(y_values)
+            continue;
         end
+        
+        % Ensure a monotonic y sequence for path construction
+        [y_sorted, sort_idx] = sort(y_values, 'ascend');
+        density_sorted = x_density(sort_idx);
+        
+        max_density = max(density_sorted);
+        if isempty(max_density) || ~isfinite(max_density) || max_density <= 0
+            continue;
+        end
+        
+        width_sorted = density_sorted / max_density * 0.4;
+        point_order = 1;
+        
+        % Left boundary: walk up in y
+        for j = 1:length(y_sorted)
+            data_point = struct();
+            data_point.category = category_label;
+            data_point.y = y_sorted(j);
+            data_point.x_offset = -width_sorted(j);
+            data_point.density = density_sorted(j);
+            data_point.group = entry.group;
+            data_point.order = point_order;
+            point_order = point_order + 1;
+            vega_violin_poly_data = [vega_violin_poly_data; data_point];
+        end
+        
+        % Right boundary: walk back down in y
+        for j = length(y_sorted):-1:1
+            data_point = struct();
+            data_point.category = category_label;
+            data_point.y = y_sorted(j);
+            data_point.x_offset = width_sorted(j);
+            data_point.density = density_sorted(j);
+            data_point.group = entry.group;
+            data_point.order = point_order;
+            point_order = point_order + 1;
+            vega_violin_poly_data = [vega_violin_poly_data; data_point];
+        end
+        
+        % Explicitly close polygon at the starting point
+        close_point = struct();
+        close_point.category = category_label;
+        close_point.y = y_sorted(1);
+        close_point.x_offset = -width_sorted(1);
+        close_point.density = density_sorted(1);
+        close_point.group = entry.group;
+        close_point.order = point_order;
+        vega_violin_poly_data = [vega_violin_poly_data; close_point];
     end
     
-    % Create violin marks using area
+    % Create violin marks from closed filled lines
     violin_mark = struct();
     violin_mark.name = 'violin_plots';
     violin_mark.type = 'group';
-    violin_mark.from = struct('facet', struct('name', 'violin_category', 'data', 'violin', 'groupby', 'category'));
+    violin_mark.from = struct('facet', struct('name', 'violin_category', 'data', 'violin_poly', 'groupby', 'category'));
     
-    % Create area mark for each violin
-    area_mark = struct();
-    area_mark.type = 'area';
-    area_mark.from = struct('data', 'violin_category');
-    area_mark.sort = struct('field', 'y');
+    line_mark = struct();
+    line_mark.type = 'line';
+    line_mark.from = struct('data', 'violin_category');
+    line_mark.sort = struct('field', 'order');
     
-    % Encoding for violin shape
-    area_encoding = struct();
-    area_encoding.enter = struct();
-    area_encoding.enter.x = struct('scale', 'xscale', 'field', 'category', 'band', 0.5);
-    area_encoding.enter.x.offset = struct('field', 'x_offset', 'scale', 'violin_width');
-    area_encoding.enter.y = struct('scale', 'yscale', 'field', 'y');
-    area_encoding.enter.fill = struct('value', '#ff4565');
-    area_encoding.enter.fillOpacity = struct('value', 0.7);
-    area_encoding.enter.stroke = struct('value', '#ff4565');
-    area_encoding.enter.strokeWidth = struct('value', 1);
-    
-    area_encoding.update = struct();
-    area_encoding.update.tooltip = struct('signal', ...
+    line_encoding = struct();
+    line_encoding.update = struct();
+    line_encoding.update.x = struct('scale', 'xscale', 'field', 'category', 'band', 0.5, ...
+        'offset', struct('signal', 'scale(''violin_width'', datum.x_offset)'));
+    line_encoding.update.y = struct('scale', 'yscale', 'field', 'y');
+    line_encoding.update.fill = struct('value', '#ff4565');
+    line_encoding.update.fillOpacity = struct('value', 0.7);
+    line_encoding.update.stroke = struct('value', '#ff4565');
+    line_encoding.update.strokeWidth = struct('value', 1);
+    line_encoding.update.tooltip = struct('signal', ...
         '''Category: '' + datum.category + '', Y: '' + format(datum.y, ''.3f'') + '', Density: '' + format(datum.density, ''.6f'')');
     
-    area_mark.encode = area_encoding;
-    violin_mark.marks = {area_mark};
+    line_mark.encode = line_encoding;
+    violin_mark.marks = {line_mark};
     
     % Initialize vegaSpec structure to match other stat layers
     layer.vegaSpec = struct();
-    layer.vegaSpec.data = {struct('name', 'violin', 'values', vega_violin_data)};
+    layer.vegaSpec.data = {struct('name', 'violin_poly', 'values', vega_violin_poly_data)};
     layer.vegaSpec.marks = {violin_mark};
     
     % Create scales for violin plots
@@ -2781,7 +3812,7 @@ function layer = createStatViolinLayer(analysis, params)
     xscale = struct();
     xscale.name = 'xscale';
     xscale.type = 'band';
-    xscale.domain = struct('data', 'violin', 'field', 'category', 'sort', true);
+    xscale.domain = struct('data', 'violin_poly', 'field', 'category', 'sort', true);
     xscale.padding = 0.1;
     xscale.range = 'width';
     scales{end+1} = xscale;
@@ -2790,7 +3821,7 @@ function layer = createStatViolinLayer(analysis, params)
     yscale = struct();
     yscale.name = 'yscale';
     yscale.type = 'linear';
-    yscale.domain = struct('data', 'violin', 'field', 'y');
+    yscale.domain = struct('data', 'violin_poly', 'field', 'y');
     yscale.range = 'height';
     yscale.nice = true;
     yscale.zero = true;
@@ -2891,7 +3922,7 @@ function layer = createStatQqLayer(analysis, params)
         color_scale.name = 'color';
         color_scale.type = 'ordinal';
         color_scale.domain = struct('data', 'qq', 'field', 'color');
-        color_scale.range = {'#fc4464', '#08bc4d', '#04b0fc', '#ff9500', '#9b59b6', '#e74c3c', '#2ecc71', '#3498db'};
+        color_scale.range = getCategoricalColorRange(countUniqueGroups({vega_qq_data.color}));
         scales{end+1} = color_scale;
     end
     
@@ -2912,8 +3943,9 @@ function layer = createStatQqLayer(analysis, params)
     qq_encoding.enter.x = struct('scale', 'xscale', 'field', 'x');
     qq_encoding.enter.y = struct('scale', 'yscale', 'field', 'y');
     qq_encoding.enter.size = struct('value', 60);
-    qq_encoding.enter.stroke = struct('value', 'white');
-    qq_encoding.enter.strokeWidth = struct('value', 1);
+    [point_border_color, point_border_width] = getPointBorderStyle(analysis);
+    qq_encoding.enter.stroke = struct('value', point_border_color);
+    qq_encoding.enter.strokeWidth = struct('value', point_border_width);
     
     if analysis.grouping.hasColorGroup
         qq_encoding.enter.fill = struct('scale', 'color', 'field', 'color');
@@ -2931,38 +3963,404 @@ function layer = createStatQqLayer(analysis, params)
     
 end
 
-function scales = createHistogramScales(analysis)
-    % Create custom scales for histograms with proper y-domain from count data
-    % This ensures the y-axis shows the actual count range instead of 0-1
+function layer = createStatFitLayer(analysis, params)
+    % Create a stat_fit layer with fitted lines and confidence intervals.
+    % This mirrors the stat_glm/stat_smooth style using pre-computed gramm data.
     
-    scales = {};
-    bin_data = analysis.stats.stat_bin;
+    fit_data = analysis.stats.stat_fit;
     
-    % Handle both single-group and multi-group data
-    if iscell(bin_data)
-        % Multi-group: get ranges from all groups
-        all_edges = [];
-        all_counts = [];
-        
-        for g = 1:length(bin_data)
-            group_bin = bin_data{g};
-            all_edges = [all_edges, group_bin.edges];
-            all_counts = [all_counts; group_bin.counts];
-        end
-        
-        x_min = min(all_edges);
-        x_max = max(all_edges);
-        y_max = max(all_counts);
-        
-    else
-        % Single group
-        x_min = min(bin_data.edges);
-        x_max = max(bin_data.edges);
-        y_max = max(bin_data.counts);
-        
+    layer = struct();
+    layer.vegaSpec = createBaseVegaSpec();
+    layer.vegaSpec.width = str2double(params.width);
+    layer.vegaSpec.height = str2double(params.height);
+    
+    layer.vegaSpec.scales = createVegaScales(analysis, false, 'table');
+    
+    if length(fit_data) > 1 || analysis.grouping.hasColorGroup
+        groupScale = struct();
+        groupScale.name = 'groupColor';
+        groupScale.type = 'ordinal';
+        groupScale.domain = struct('data', 'stats', 'field', 'group');
+        groupScale.range = getCategoricalColorRange(length(fit_data));
+        layer.vegaSpec.scales{end+1} = groupScale;
     end
     
-    % X-scale: use bin edges range
+    layer.vegaSpec.axes = createVegaAxes(analysis, params);
+    
+    stats_data = [];
+    has_ci = false;
+    for i = 1:length(fit_data)
+        entry = fit_data{i};
+        for j = 1:length(entry.x)
+            data_point = struct();
+            data_point.x = entry.x(j);
+            data_point.regression_y = entry.y(j);
+            data_point.group = entry.group;
+            
+            if isfield(entry, 'ci_lower') && isfield(entry, 'ci_upper') && ...
+                    j <= length(entry.ci_lower) && j <= length(entry.ci_upper)
+                data_point.ci_lower = entry.ci_lower(j);
+                data_point.ci_upper = entry.ci_upper(j);
+                has_ci = true;
+            else
+                data_point.ci_lower = NaN;
+                data_point.ci_upper = NaN;
+            end
+            
+            stats_data = [stats_data; data_point];
+        end
+    end
+    
+    stats_data_source = struct();
+    stats_data_source.name = 'stats';
+    stats_data_source.values = stats_data;
+    layer.vegaSpec.data{end+1} = stats_data_source;
+    
+    marks = {};
+    has_stats = ~isempty(stats_data);
+    
+    if has_stats && has_ci
+        ci_data_source = struct();
+        ci_data_source.name = 'confidence_filtered';
+        ci_data_source.source = 'stats';
+        ci_data_source.transform = {struct('type', 'filter', 'expr', 'isValid(datum.ci_lower) && isValid(datum.ci_upper)')};
+        layer.vegaSpec.data{end+1} = ci_data_source;
+        
+        if length(fit_data) > 1 || analysis.grouping.hasColorGroup
+            ci_marks = struct();
+            ci_marks.name = 'confidence_areas';
+            ci_marks.type = 'group';
+            ci_marks.from = struct('facet', struct('name', 'ci_group_data', 'data', 'confidence_filtered', 'groupby', 'group'));
+            
+            inner_area = struct();
+            inner_area.type = 'area';
+            inner_area.from = struct('data', 'ci_group_data');
+            inner_area.sort = struct('field', 'x');
+            inner_area.encode = struct();
+            inner_area.encode.enter = struct();
+            inner_area.encode.enter.x = struct('scale', 'xscale', 'field', 'x');
+            inner_area.encode.enter.y = struct('scale', 'yscale', 'field', 'ci_lower');
+            inner_area.encode.enter.y2 = struct('scale', 'yscale', 'field', 'ci_upper');
+            inner_area.encode.enter.fillOpacity = struct('value', 0.2);
+            inner_area.encode.enter.strokeWidth = struct('value', 0);
+            inner_area.encode.enter.fill = struct('scale', 'groupColor', 'field', 'group');
+            
+            ci_marks.marks = {inner_area};
+        else
+            ci_marks = struct();
+            ci_marks.name = 'confidence_areas';
+            ci_marks.type = 'area';
+            ci_marks.from = struct('data', 'confidence_filtered');
+            ci_marks.sort = struct('field', 'x');
+            ci_marks.encode = struct();
+            ci_marks.encode.enter = struct();
+            ci_marks.encode.enter.x = struct('scale', 'xscale', 'field', 'x');
+            ci_marks.encode.enter.y = struct('scale', 'yscale', 'field', 'ci_lower');
+            ci_marks.encode.enter.y2 = struct('scale', 'yscale', 'field', 'ci_upper');
+            ci_marks.encode.enter.fillOpacity = struct('value', 0.2);
+            ci_marks.encode.enter.strokeWidth = struct('value', 0);
+            ci_marks.encode.enter.fill = struct('value', '#ff4565');
+        end
+        
+        marks{end+1} = ci_marks;
+    end
+    
+    if has_stats
+        if length(fit_data) > 1 || analysis.grouping.hasColorGroup
+            reg_marks = struct();
+            reg_marks.name = 'fit_lines';
+            reg_marks.type = 'group';
+            reg_marks.from = struct('facet', struct('name', 'group_data', 'data', 'stats', 'groupby', 'group'));
+            
+            inner_line = struct();
+            inner_line.type = 'line';
+            inner_line.from = struct('data', 'group_data');
+            inner_line.sort = struct('field', 'x');
+            inner_line.encode = struct();
+            inner_line.encode.enter = struct();
+            inner_line.encode.enter.x = struct('scale', 'xscale', 'field', 'x');
+            inner_line.encode.enter.y = struct('scale', 'yscale', 'field', 'regression_y');
+            inner_line.encode.enter.strokeWidth = struct('value', 2);
+            inner_line.encode.enter.stroke = struct('scale', 'groupColor', 'field', 'group');
+            
+            reg_marks.marks = {inner_line};
+        else
+            reg_marks = struct();
+            reg_marks.name = 'fit_lines';
+            reg_marks.type = 'line';
+            reg_marks.from = struct('data', 'stats');
+            reg_marks.sort = struct('field', 'x');
+            reg_marks.encode = struct();
+            reg_marks.encode.enter = struct();
+            reg_marks.encode.enter.x = struct('scale', 'xscale', 'field', 'x');
+            reg_marks.encode.enter.y = struct('scale', 'yscale', 'field', 'regression_y');
+            reg_marks.encode.enter.strokeWidth = struct('value', 2);
+            reg_marks.encode.enter.stroke = struct('value', '#ff4565');
+        end
+        
+        marks{end+1} = reg_marks;
+    end
+    
+    % Keep points in this layer for parity with existing stat_* layer behavior.
+    points_marks = struct();
+    points_marks.name = 'data_points';
+    points_marks.type = 'symbol';
+    points_marks.from = struct('data', 'table');
+    points_marks.encode = struct();
+    points_marks.encode.enter = struct();
+    points_marks.encode.enter.x = struct('scale', 'xscale', 'field', 'x');
+    points_marks.encode.enter.y = struct('scale', 'yscale', 'field', 'y');
+    points_marks.encode.enter.size = struct('value', 50);
+    [point_border_color, point_border_width] = getPointBorderStyle(analysis);
+    points_marks.encode.enter.stroke = struct('value', point_border_color);
+    points_marks.encode.enter.strokeWidth = struct('value', point_border_width);
+    
+    if analysis.grouping.hasColorGroup
+        points_marks.encode.enter.fill = struct('scale', 'color', 'field', 'color');
+    else
+        points_marks.encode.enter.fill = struct('value', '#ff4565');
+    end
+    
+    points_marks = addTooltipToMark(points_marks, params, analysis);
+    marks{end+1} = points_marks;
+    
+    layer.vegaSpec.marks = marks;
+end
+
+function layer = createStatEllipseLayer(analysis, params)
+    % Create a stat_ellipse layer using extracted ellipse point paths.
+    
+    layer = struct();
+    layer.isVegaChart = true;
+    layer.vegaSpec = createBaseVegaSpec();
+    
+    if ~isfield(analysis, 'stats') || ~isfield(analysis.stats, 'stat_ellipse') || isempty(analysis.stats.stat_ellipse)
+        layer.vegaSpec.data = {struct('name', 'table', 'values', [])};
+        layer.vegaSpec.scales = createVegaScales(analysis);
+        layer.vegaSpec.axes = createVegaAxes(analysis, params);
+        layer.vegaSpec.marks = {};
+        return;
+    end
+    
+    ellipse_stats = analysis.stats.stat_ellipse;
+    ellipse_points = [];
+    ellipse_centers = [];
+    
+    for i = 1:length(ellipse_stats)
+        entry = ellipse_stats{i};
+        if isempty(entry) || ~isfield(entry, 'x') || ~isfield(entry, 'y')
+            continue;
+        end
+        
+        x_vals = entry.x(:);
+        y_vals = entry.y(:);
+        valid = isfinite(x_vals) & isfinite(y_vals);
+        x_vals = x_vals(valid);
+        y_vals = y_vals(valid);
+        
+        if numel(x_vals) < 3
+            continue;
+        end
+        
+        % Ensure closed polygon so line fill renders shaded ellipse.
+        if abs(x_vals(1) - x_vals(end)) > eps || abs(y_vals(1) - y_vals(end)) > eps
+            x_vals(end+1) = x_vals(1);
+            y_vals(end+1) = y_vals(1);
+        end
+        
+        if isfield(entry, 'group')
+            group_id = entry.group;
+        else
+            group_id = i;
+        end
+        
+        if isfield(entry, 'fill_color')
+            fill_color = entry.fill_color;
+        else
+            fill_color = '#fc4464';
+        end
+        
+        if isfield(entry, 'stroke_color')
+            stroke_color = entry.stroke_color;
+        else
+            stroke_color = fill_color;
+        end
+        
+        if isfield(entry, 'fill_opacity')
+            fill_opacity = double(entry.fill_opacity);
+        else
+            fill_opacity = 0.2;
+        end
+        
+        if isfield(entry, 'stroke_width')
+            stroke_width = double(entry.stroke_width);
+        else
+            stroke_width = 2;
+        end
+        
+        for j = 1:length(x_vals)
+            point = struct();
+            point.x = x_vals(j);
+            point.y = y_vals(j);
+            point.group = group_id;
+            point.order = j;
+            point.fill_color = fill_color;
+            point.stroke_color = stroke_color;
+            point.fill_opacity = fill_opacity;
+            point.stroke_width = stroke_width;
+            ellipse_points = [ellipse_points; point];
+        end
+        
+        if isfield(entry, 'center_x') && isfield(entry, 'center_y')
+            if isfinite(entry.center_x) && isfinite(entry.center_y)
+                center_point = struct();
+                center_point.x = entry.center_x;
+                center_point.y = entry.center_y;
+                center_point.group = group_id;
+                
+                if isfield(entry, 'center_color')
+                    center_point.center_color = entry.center_color;
+                else
+                    center_point.center_color = stroke_color;
+                end
+                
+                if isfield(entry, 'center_border_width')
+                    center_point.center_border_width = sanitizeLineWidth(entry.center_border_width, 0.5);
+                else
+                    center_point.center_border_width = 0.5;
+                end
+                
+                ellipse_centers = [ellipse_centers; center_point];
+            end
+        end
+    end
+    
+    if isempty(ellipse_points)
+        layer.vegaSpec.data = {struct('name', 'table', 'values', [])};
+        layer.vegaSpec.scales = createVegaScales(analysis);
+        layer.vegaSpec.axes = createVegaAxes(analysis, params);
+        layer.vegaSpec.marks = {};
+        return;
+    end
+    
+    data_sources = {};
+    data_sources{end+1} = struct('name', 'ellipse_points', 'values', ellipse_points);
+    
+    if ~isempty(ellipse_centers)
+        data_sources{end+1} = struct('name', 'ellipse_centers', 'values', ellipse_centers);
+    end
+    
+    layer.vegaSpec.data = data_sources;
+    layer.vegaSpec.scales = createVegaScales(analysis);
+    layer.vegaSpec.axes = createVegaAxes(analysis, params);
+    
+    marks = {};
+    
+    ellipse_mark = struct();
+    ellipse_mark.name = 'ellipse_regions';
+    ellipse_mark.type = 'group';
+    ellipse_mark.from = struct('facet', struct('name', 'ellipse_group_data', 'data', 'ellipse_points', 'groupby', 'group'));
+    
+    inner_line = struct();
+    inner_line.type = 'line';
+    inner_line.from = struct('data', 'ellipse_group_data');
+    inner_line.sort = struct('field', 'order', 'order', 'ascending');
+    inner_line.encode = struct();
+    inner_line.encode.update = struct();
+    inner_line.encode.update.x = struct('scale', 'xscale', 'field', 'x');
+    inner_line.encode.update.y = struct('scale', 'yscale', 'field', 'y');
+    inner_line.encode.update.fill = struct('field', 'fill_color');
+    inner_line.encode.update.fillOpacity = struct('field', 'fill_opacity');
+    inner_line.encode.update.stroke = struct('field', 'stroke_color');
+    inner_line.encode.update.strokeWidth = struct('field', 'stroke_width');
+    
+    ellipse_mark.marks = {inner_line};
+    marks{end+1} = ellipse_mark;
+    
+    if ~isempty(ellipse_centers)
+        center_mark = struct();
+        center_mark.name = 'ellipse_center_markers';
+        center_mark.type = 'symbol';
+        center_mark.from = struct('data', 'ellipse_centers');
+        center_mark.encode = struct();
+        center_mark.encode.update = struct();
+        center_mark.encode.update.x = struct('scale', 'xscale', 'field', 'x');
+        center_mark.encode.update.y = struct('scale', 'yscale', 'field', 'y');
+        center_mark.encode.update.shape = struct('value', 'cross');
+        center_mark.encode.update.size = struct('value', 160);
+        center_mark.encode.update.fill = struct('field', 'center_color');
+        center_mark.encode.update.stroke = struct('field', 'center_color');
+        center_mark.encode.update.strokeWidth = struct('field', 'center_border_width');
+        marks{end+1} = center_mark;
+    end
+    
+    layer.vegaSpec.marks = marks;
+end
+
+function scales = createHistogramScales(analysis)
+    % Create custom scales for histograms with domains derived from the
+    % rendered stat_bin geometry (important for stacked and dodged variants).
+    
+    scales = {};
+    histogram_groups = normalizeHistogramGroups(analysis.stats.stat_bin);
+    
+    x_values = [];
+    y_values = [];
+    
+    for g = 1:numel(histogram_groups)
+        group_bin = histogram_groups{g};
+        
+        if isfield(group_bin, 'edges') && ~isempty(group_bin.edges)
+            x_values = [x_values; group_bin.edges(:)];
+        end
+        
+        if isfield(group_bin, 'bar_x_left') && ~isempty(group_bin.bar_x_left)
+            x_values = [x_values; group_bin.bar_x_left(:)];
+        end
+        if isfield(group_bin, 'bar_x_right') && ~isempty(group_bin.bar_x_right)
+            x_values = [x_values; group_bin.bar_x_right(:)];
+        end
+        if isfield(group_bin, 'line_x') && ~isempty(group_bin.line_x)
+            x_values = [x_values; group_bin.line_x(:)];
+        end
+        if isfield(group_bin, 'point_x') && ~isempty(group_bin.point_x)
+            x_values = [x_values; group_bin.point_x(:)];
+        end
+        
+        if isfield(group_bin, 'bar_y_top') && ~isempty(group_bin.bar_y_top)
+            y_values = [y_values; group_bin.bar_y_top(:)];
+        end
+        if isfield(group_bin, 'line_y') && ~isempty(group_bin.line_y)
+            y_values = [y_values; group_bin.line_y(:)];
+        end
+        if isfield(group_bin, 'point_y') && ~isempty(group_bin.point_y)
+            y_values = [y_values; group_bin.point_y(:)];
+        end
+        if isfield(group_bin, 'counts') && ~isempty(group_bin.counts)
+            y_values = [y_values; group_bin.counts(:)];
+        end
+    end
+    
+    x_values = x_values(isfinite(x_values));
+    y_values = y_values(isfinite(y_values));
+    
+    if isempty(x_values)
+        x_min = 0;
+        x_max = 1;
+    else
+        x_min = min(x_values);
+        x_max = max(x_values);
+    end
+    
+    if isempty(y_values)
+        y_max = 1;
+    else
+        y_max = max(y_values);
+        if y_max <= 0
+            y_max = 1;
+        end
+    end
+    
     xscale = struct();
     xscale.name = 'xscale';
     xscale.type = 'linear';
@@ -2970,25 +4368,54 @@ function scales = createHistogramScales(analysis)
     xscale.range = 'width';
     scales{end+1} = xscale;
     
-    % Y-scale: use count range from bins data
     yscale = struct();
     yscale.name = 'yscale';
     yscale.type = 'linear';
-    yscale.domain = [0, y_max];  % Always start from 0 for histograms
+    yscale.domain = [0, y_max];
     yscale.range = 'height';
     yscale.nice = true;
     yscale.zero = true;
     scales{end+1} = yscale;
     
-    % Add groupColor scale for multi-group histograms
-    if iscell(bin_data) && length(bin_data) > 1
-        groupScale = struct();
-        groupScale.name = 'groupColor';
-        groupScale.type = 'ordinal';
-        groupScale.domain = struct('data', 'bins', 'field', 'group');
-        groupScale.range = {'#fc4464', '#08bc4d', '#04b0fc', '#ff9500', '#9b59b6', '#e74c3c', '#2ecc71', '#3498db'};
-        scales{end+1} = groupScale;
+    if numel(histogram_groups) > 1
+        color_scale = struct();
+        color_scale.name = 'color';
+        color_scale.type = 'ordinal';
+        color_scale.domain = struct('data', 'bins', 'field', 'color');
+        color_scale.range = extractHistogramColorRange(histogram_groups);
+        scales{end+1} = color_scale;
+    end
+end
+
+function color_range = extractHistogramColorRange(histogram_groups)
+    num_groups = numel(histogram_groups);
+    default_range = getCategoricalColorRange(num_groups);
+    
+    if num_groups == 0
+        color_range = default_range;
+        return;
+    end
+    
+    color_range = cell(num_groups, 1);
+    
+    for i = 1:num_groups
+        group_bin = histogram_groups{i};
         
+        group_color = '';
+        if isfield(group_bin, 'fill_color') && ~isempty(group_bin.fill_color) && ~strcmp(group_bin.fill_color, 'none')
+            group_color = group_bin.fill_color;
+        elseif isfield(group_bin, 'line_color') && ~isempty(group_bin.line_color) && ~strcmp(group_bin.line_color, 'none')
+            group_color = group_bin.line_color;
+        elseif isfield(group_bin, 'point_color') && ~isempty(group_bin.point_color) && ~strcmp(group_bin.point_color, 'none')
+            group_color = group_bin.point_color;
+        end
+        
+        if isempty(group_color)
+            fallback_idx = min(i, numel(default_range));
+            group_color = default_range{fallback_idx};
+        end
+        
+        color_range{i} = group_color;
     end
 end
 
@@ -3050,7 +4477,7 @@ function scales = createVegaScales(analysis, forceBandScale, dataSource)
         colorscale.name = 'color';
         colorscale.type = 'ordinal';
         colorscale.domain = struct('data', dataSource, 'field', 'color');
-        colorscale.range = {'#fc4464', '#08bc4d', '#04b0fc', '#ff9500', '#9b59b6', '#e74c3c', '#2ecc71', '#3498db'};
+        colorscale.range = getCategoricalColorRange(countUniqueGroups(analysis.grouping.colorData));
         scales{end+1} = colorscale;
     end
 end
@@ -3142,8 +4569,8 @@ function color_encoding = createColorEncoding(grouping)
     end
     
     % Default color palette - extend if needed
-    default_colors = {'#fc4464', '#08bc4d', '#04b0fc', '#ff9500', '#9b59b6', '#e74c3c', '#2ecc71', '#3498db'};
     num_colors = length(color_encoding.scale.domain);
+    default_colors = getCategoricalColorRange(num_colors);
     color_encoding.scale.range = default_colors(1:min(num_colors, length(default_colors)));
 end
 
@@ -3841,4 +5268,3 @@ function layer = createStatBin2dLayer(analysis, params)
     
     layer.vegaSpec.marks = marks;
 end
-

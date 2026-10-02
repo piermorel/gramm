@@ -54,3 +54,9 @@ paper
 .gitignore
 createMLTBX.m
 .DS_Store
+
+% Generated build and validation outputs
+build
+test-report
+coverage-report
+issues.mat
