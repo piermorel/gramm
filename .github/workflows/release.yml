@@ -16,7 +16,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      # Set up MATLAB and other MathWorks products on the runner.
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@v2
         with:
@@ -24,12 +23,36 @@ jobs:
           cache: true
           products: Statistics_and_Machine_Learning_Toolbox Curve_Fitting_Toolbox
 
-      - name: Build toolbox
+      - name: Install ExampleDrivenTester add-on (File Exchange)
         uses: matlab-actions/run-command@v2
         with:
           command: |
-            version = erase('${{ github.ref_name }}', 'v');
-            createMLTBX('gramm.prj', version);
+            fileExchangeId = 156374;
+            addonReleaseVersion = 0.92;
+            openProject('gramm.prj');
+            installAddOn(fileExchangeId, addonReleaseVersion);
+
+      - name: Check for code issues
+        uses: matlab-actions/run-build@v2
+        with:
+          tasks: check
+
+      - name: Run examples as test
+        uses: matlab-actions/run-build@v2
+        with:
+          tasks: runExample
+
+      - name: Publish the documents
+        uses: matlab-actions/run-build@v2
+        with:
+          tasks: publish
+
+      - name: Package toolbox
+        uses: matlab-actions/run-build@v2
+        env:
+          CI_COMMIT_TAG: ${{ github.ref_name }}
+        with:
+          tasks: package
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
