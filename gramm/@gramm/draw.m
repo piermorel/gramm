@@ -25,24 +25,6 @@ if isempty(obj(1).parent)
     end
 end
 
-%There are bugs with the hardware openGL renderer in pre 2014b version,
-%on Mac OS and Win the x and y axes become invisible and on
-%Windows the patch objects behave strangely.
-if ~obj(1).handle_graphics
-    if ismac
-        warning('Mac Pre-2014b version detected, forcing to ''Painters'' renderer to show axes lines. Use set(gcf,''Renderer'',''OpenGL'') to restore transparency')
-        if isprop(obj(1).parent,'Renderer')
-            set(obj(1).parent,'Renderer','Painters');
-        end
-    else
-        warning('Windows Pre-2014b version detected, forcing to software openGL which is less buggy')
-        % opengl was removed in recent MATLAB releases. This branch is only
-        % reached on pre-R2014b handle graphics, so call it dynamically to
-        % avoid static Code Analyzer failures on newer releases.
-        feval('opengl','software');
-    end
-end
-
 %Handle call of draw() on array of gramm objects by dividing the figure
 %up and launching the individual draw functions of each object
 if numel(obj)>1
@@ -86,11 +68,7 @@ if numel(obj)>1
     %Set up tight redrawing for multiple plots
     if do_redraw
         redraw(obj);
-        if verLessThan('matlab','8.4')
-            set(gcf,'ResizeFcn',@(a,b)redraw(obj));
-        else
-            set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
-        end
+        set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
     end
     return;
 end
@@ -310,11 +288,7 @@ obj.result_ind=1;
 
 %Initialize facet axes handles
 if obj.updater.first_draw
-    if obj.handle_graphics %Post 2014b we return objects
-        obj.facet_axes_handles=gobjects(length(uni_row),length(uni_column));
-    else
-        obj.facet_axes_handles=zeros(length(uni_row),length(uni_column));
-    end
+    obj.facet_axes_handles=gobjects(length(uni_row),length(uni_column));
 end
 
 %Set the dodge width across all facets
@@ -1132,9 +1106,7 @@ for ind_row=1:length(uni_row) %Loop over rows
                 set(ca,'XTick',1:length(obj.x_ticks))
                 if has_xtick
                     set(ca,'XTickLabel',obj.x_ticks)
-                    if isprop(ca,'TickLabelInterpreter') %Just try it (doesn't exist in pre-2014b)
-                        set(ca,'TickLabelInterpreter','none')
-                    end
+                    set(ca,'TickLabelInterpreter','none')
                 end
             end
             
@@ -1274,11 +1246,7 @@ end
 % Make everything tight and set the resize function so that it stays so
 if do_redraw  && ~obj.multi.active %Redrawing for multiple plots is handled at the beginning of draw()
     redraw(obj);
-    if verLessThan('matlab','8.4')
-        set(gcf,'ResizeFcn',@(a,b)redraw(obj));
-    else
-        set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
-    end
+    set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
 end
 
 

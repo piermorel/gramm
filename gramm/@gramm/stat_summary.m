@@ -38,9 +38,7 @@ function obj=stat_summary(obj,varargin)
 %       - 'lines': displays a line that connects the central locations
 %       and lighter lines for the variabilities
 %       - 'area': displays a line that connects the central locations
-%       and a transparent area for the variabilities. WARNING:
-%       this changes the renderer to opengl and disables proper
-%       vector output on older matlab versions
+%       and a transparent area for the variabilities.
 %       - 'area_only': displays the variabilities only, using a transparent area
 %       - 'solid_area': displays a line that connects the locations
 %       and a solid area for the variabilities. Use this for

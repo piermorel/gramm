@@ -1,12 +1,7 @@
 function output = my_theme(f)
-%To maintain compatibility with older versions
-persistent has_theme
-if isempty(has_theme)
-    has_theme=~verLessThan('matlab','25.1');
-end
-
-if has_theme
-    output = theme(f).Name;
+%Figure themes only exist from R2025a, older figures are always light
+if isprop(f,'Theme')
+    output = f.Theme.Name;
 else
     output = 'Light Theme';
 end
