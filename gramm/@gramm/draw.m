@@ -581,6 +581,7 @@ for ind_row=1:length(uni_row)
 %                         'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
 %                         'Parent',obj.facet_axes_handles(ind_row,ind_column))];
                     obj.facet_axes_handles(ind_row,ind_column).Title.String = column_string;
+                    obj.facet_text_handles=[obj.facet_text_handles obj.facet_axes_handles(ind_row,ind_column).Title];
                 end
             end
             if length(uni_row)>1  && obj.row_labels
@@ -603,13 +604,23 @@ for ind_row=1:length(uni_row)
 %                         'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
 %                         'Parent',obj.facet_axes_handles(ind_row,ind_column))];
                     
-                    %Now we use right yyaxis for row titles
-                    yyaxis(obj.facet_axes_handles(ind_row,ind_column),"right")
-                    ylabel(row_string,'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
-                        'FontWeight','bold','color','black','rotation',-90)%,'VerticalAlignment','Bottom');
-                    obj.facet_axes_handles(ind_row,ind_column).YAxis(2).Color="none";
-                    obj.facet_axes_handles(ind_row,ind_column).YAxis(2).Label.Color="Black";
-                    yyaxis(obj.facet_axes_handles(ind_row,ind_column),"left")
+                    %Row titles are the right-side YLabel of an empty axes
+                    %placed in the same tile as the facet, so that
+                    %tiledlayout reserves their space without touching
+                    %the facet axes themselves
+                    ca=obj.facet_axes_handles(ind_row,ind_column);
+                    row_axe=axes(obj.layout);
+                    row_axe.Layout.Tile=ca.Layout.Tile;
+                    set(row_axe,'Color','none','XColor','none','YColor','none',...
+                        'XTick',[],'YTick',[],'YAxisLocation','right',...
+                        'HitTest','off','PickableParts','none','HandleVisibility','off');
+                    row_axe.YLabel.String=row_string;
+                    set(row_axe.YLabel,'Interpreter',obj.text_options.interpreter,...
+                        'FontName',obj.text_options.font,...
+                        'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
+                        'FontWeight','bold','Color',ca.Title.Color,...
+                        'Rotation',-90,'VerticalAlignment','bottom','Visible','on');
+                    obj.facet_text_handles=[obj.facet_text_handles row_axe.YLabel];
                 end
             end
         end
