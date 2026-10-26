@@ -71,7 +71,7 @@ for k=1:length(fields)
         end
 
         %Convert string data to cellstr.
-        if ~old_matlab && isstring(aes.(fields{k}))
+        if isstring(aes.(fields{k}))
             out.(fields{k})=cellstr(out.(fields{k}));
         end
         

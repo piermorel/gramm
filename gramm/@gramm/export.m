@@ -76,8 +76,22 @@ if strcmp(p.Results.units, 'inches')
 	end
 end
 
-% Cropping paper to fit the figure
+% Lay the figure out at the export size so that what gramm scales itself
+% (legend spacing, stat_cornerhist() insets) is correct in the file: print()
+% resizes the figure to the paper size without calling SizeChangedFcn
+old_units = h_fig.Units;
+old_position = h_fig.Position;
 set(h_fig, 'Units', 'centimeters');
+if any(abs(h_fig.Position(3:4) - [width height]) > 0.01)
+    h_fig.Position(3:4) = [width height];
+    drawnow;
+    redraw(obj);
+    restore = onCleanup(@()restore_figure(obj, h_fig, old_position, old_units));
+else
+    restore = onCleanup(@()set(h_fig, 'Units', old_units));
+end
+
+% Cropping paper to fit the figure
 set(h_fig, 'PaperUnits', 'centimeters');
 set(h_fig, 'PaperSize', [width, height]);
 set(h_fig, 'PaperPosition', [0, 0, width, height]);
@@ -107,4 +121,14 @@ end
 % Turn warning back on
 warning('on', 'MATLAB:print:CustomResizeFcnInPrint');
 
+end
+
+function restore_figure(obj, h_fig, old_position, old_units)
+% Give the figure back its on-screen size and units after export
+if isvalid(h_fig)
+    set(h_fig, 'Units', old_units);
+    h_fig.Position = old_position;
+    drawnow;
+    redraw(obj);
+end
 end

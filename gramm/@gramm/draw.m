@@ -60,6 +60,11 @@ if numel(obj)>1
         end
     end
     
+    %Legend vertical scaling, once the whole layout is known
+    for k=1:numel(obj)
+        scale_legend(obj(k));
+    end
+
     %Set up tight redrawing for multiple plots
     if do_redraw
 
@@ -829,18 +834,20 @@ end
 tmp = obj.legend_axe_handle.Children;
 obj.legend_transform = hgtransform('Parent',obj.legend_axe_handle);
 set(tmp,'Parent',obj.legend_transform);
+%Like the texts, symbols stay visible outside of the axes limits
+set(findobj(tmp,'Type','line'),'Clipping','off');
 
 %Set size of legend axes
 set(obj.legend_axe_handle,'XLim',[1 8]);
-%xlim([1 8])
 if obj.legend_y<0
     set(obj.legend_axe_handle,'YLim',[obj.legend_y -obj.legend_y]/2);
-    %ylim([obj.legend_y 1])
 end
-%set(obj.legend_axe_handle,'DataAspectRatio',[1 1 1]);
 
-legend_scale = 25/(obj.legend_axe_handle.Position(4)*obj.parent.Position(4)/diff(obj.legend_axe_handle.YLim));
-obj.legend_transform.Matrix=makehgtform("scale",[1 legend_scale 1],"translate",[0 -(obj.legend_y+legend_y_additional_step+legend_y_step)/2 0]);
+%Make the tiledlayout reserve the legend width. The vertical scaling
+%(scale_legend()) is done at the end of draw(), once the layout is complete
+if strcmp(obj.layout_options.legend_position,'auto')
+    reserve_legend_width(obj);
+end
 
 
 
@@ -1275,6 +1282,11 @@ end
 
 
 
+
+%Legend vertical scaling (for multiple plots it's done once all are drawn)
+if ~obj.multi.active
+    scale_legend(obj);
+end
 
 % Make everything tight and set the resize function so that it stays so
 if do_redraw  && ~obj.multi.active %Redrawing for multiple plots is handled at the beginning of draw()

@@ -9,42 +9,13 @@ function obj=redraw(obj,src,event)
 % elements are drawn in a separate figure
 
 
-legend_y_step=1;
-legend_y_additional_step=0.5;
-if numel(obj)>1
-    nl=size(obj,1);
-    nc=size(obj,2);
-    for l=1:nl
-        for c=1:nc
-            try %%Sometimes indexing gets broken
-                legend_scale = 25/(obj(l,c).legend_axe_handle.Position(4)*src.Position(4)/diff(obj(l,c).legend_axe_handle.YLim)*obj(l,c).layout.OuterPosition(4));
-                if ~(isinf(legend_scale))
-                    obj(l,c).legend_transform.Matrix=makehgtform("scale",[1 legend_scale 1],"translate",[0 -(obj(l,c).legend_y+legend_y_additional_step+legend_y_step)/2 0]);
-                end
-            catch
-                %warning('legend resize issue');
-            end
-            if ~isempty(obj(l,c).redraw_fun)
-                for k=1:length(obj(l,c).redraw_fun)
-                    obj(l,c).redraw_fun{k}();
-                end
-            end
-        end
+%Legend width and facet positions are handled by tiledlayout, only the
+%legend vertical scale and the stat_cornerhist() insets need updating
+for k=1:numel(obj)
+    scale_legend(obj(k));
+    for f=1:length(obj(k).redraw_fun)
+        obj(k).redraw_fun{f}();
     end
-else
-
-    legend_scale = 25/(obj.legend_axe_handle.Position(4)*src.Position(4)/diff(obj.legend_axe_handle.YLim));
-    if ~(isinf(legend_scale))
-        obj.legend_transform.Matrix=makehgtform("scale",[1 legend_scale 1],"translate",[0 -(obj.legend_y+legend_y_additional_step+legend_y_step)/2 0]);
-    else
-        warning('inf legend size');
-    end
-    if ~isempty(obj.redraw_fun)
-        for k=1:length(obj.redraw_fun)
-            obj.redraw_fun{k}();
-        end
-    end
-
 end
 
 
