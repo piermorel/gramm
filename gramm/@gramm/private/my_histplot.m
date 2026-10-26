@@ -148,6 +148,7 @@ switch params.geom
     case 'bar'
         xpatch=[bar_right ; bar_left ; bar_left ; bar_right];
         ypatch=[zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'];
+        ypatch(:,bincounts==0)=NaN; %Hide empty bins (their degenerate faces can be rendered as stray lines)
         [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
         results.bar_handle=patch(xpatch,...
             ypatch,...
@@ -166,6 +167,7 @@ switch params.geom
     case 'stacked_bar'
         xpatch=[binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing];
         ypatch=[obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'];
+        ypatch(:,bincounts==0)=NaN; %Hide empty bins (their degenerate faces can be rendered as stray lines)
         [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
         results.bar_handle=patch(xpatch,...
             ypatch,...
