@@ -9,8 +9,7 @@ function obj = export(obj, varargin)
 % - 'export_path' Path of the destination folder (absolute or relative). 
     %By default the file is saved in the current folder 
 % - 'file_type': supports 'svg','pdf' and 'eps' for vector output, and
-%   'png' and 'jpg' for high-resolution bitmap output. The default is 'svg' on 2014b+ Matlab
-%   versions, and 'pdf' on older versions.
+%   'png' and 'jpg' for high-resolution bitmap output. The default is 'svg'.
 % - 'width' and 'height' allow to set the desired size of the exported
 %   figure. By default (recommended), the exported figure will look the same as the on-screen
 %   plot. Setting this manually is tricky.
@@ -30,15 +29,11 @@ resolution = get(0, 'ScreenPixelsPerInch')/2.54;
 width_fig = fig_pos(3)/resolution;
 height_fig = fig_pos(4)/resolution;
 
-%SVG is unsupported on older Matlab versions
-default_file_type='svg';
-
-
 % parse arguments and set defaults
 p=inputParser;
 my_addParameter(p,'file_name','gramm_export');
 my_addParameter(p,'export_path','');
-my_addParameter(p,'file_type', default_file_type);
+my_addParameter(p,'file_type', 'svg');
 my_addParameter(p,'width', width_fig);
 my_addParameter(p,'height', height_fig);
 my_addParameter(p,'units', 'centimeters');

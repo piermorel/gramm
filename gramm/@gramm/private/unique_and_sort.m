@@ -2,9 +2,8 @@ function y=unique_and_sort(x,sortopts)
 % Unique() function that ignores NaNs in arrays and empty values as well as 'NA' in
 % cellstrs, and sorts according to sortopts
 
-
 %Create unique in original order
-y = unique(x,'stable'); %we keep the original order
+y = unique(x,'stable');
 
 %Clean up uniques
 if ~iscell(x)

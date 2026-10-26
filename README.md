@@ -112,7 +112,7 @@ Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open So
 
 ### Compatibility ###
 
- Recent versions of gramm (3.0 and above) target MATLAB above R2018b. Older releases work in older MATLAB versions. The statistics toolbox is required for some methods: <code>stat_glm()</code>, some <code>stat_summary()</code> methods, <code>stat_density()</code>. The curve fitting toolbox or the statistics toolbox is required for <code>stat_fit()</code>.
+ Recent versions of gramm (3.0 and above) target MATLAB above R2018b. Older releases work in older MATLAB versions. The statistics toolbox is required for some methods: <code>stat_glm()</code>, <code>stat_qq()</code>, <code>stat_density()</code>, <code>stat_violin()</code>, <code>stat_bin2d()</code>, <code>stat_ellipse()</code>, <code>geom_swarm()</code>, and <code>stat_summary()</code> except for the <code>'std'</code> and <code>'sem'</code> types. The curve fitting toolbox is required for <code>stat_smooth()</code> methods other than the default <code>'eilers'</code>. The curve fitting toolbox or the statistics toolbox is required for <code>stat_fit()</code>.
 
 
 ## Main Features

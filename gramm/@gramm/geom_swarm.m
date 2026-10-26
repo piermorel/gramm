@@ -100,7 +100,7 @@ switch params.type
     case 'down'
         [ypx, si]=sort(ypx,1,"descend");
     case 'fan'
-        [~, si]=sort(abs(ypx-nanmean(ypx)),1,"ascend");
+        [~, si]=sort(abs(ypx-mean(ypx,'omitnan')),1,"ascend");
         ypx=ypx(si);
     otherwise %hex and square
         [ypx, si]=sort(ypx,1,"ascend");

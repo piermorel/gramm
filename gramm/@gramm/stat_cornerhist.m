@@ -49,8 +49,7 @@ end
 
 new_child=false;
 %Create child axis if necessary
-if (isa(obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column),'matlab.graphics.GraphicsPlaceholder'))...
-    || (obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column)==0)
+if isa(obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column),'matlab.graphics.GraphicsPlaceholder')
 
 
     %If first run, create inset axis(weird, if cha is not used as intermediary
@@ -68,7 +67,6 @@ if (isa(obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column),'matl
     %Set properties
     set(cha,'color','none','Units','Pixels');
     set(cha,'Ycolor','none','Box','off');
-
     
    new_child=true;
 else

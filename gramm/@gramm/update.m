@@ -4,7 +4,6 @@ function obj=update(obj,varargin)
 % Update takes the same arguments as the constructor gramm(). Only provide
 % the data you want to replace.
 
-
 if numel(obj)>1
     error('update() can only be called on a single gramm object');
 end

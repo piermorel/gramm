@@ -1144,9 +1144,7 @@ for ind_row=1:length(uni_row) %Loop over rows
                 set(ca,'XTick',1:length(obj.x_ticks))
                 if has_xtick
                     set(ca,'XTickLabel',obj.x_ticks)
-                    if isprop(ca,'TickLabelInterpreter') %Just try it (doesn't exist in pre-2014b)
-                        set(ca,'TickLabelInterpreter','none')
-                    end
+                    set(ca,'TickLabelInterpreter','none')
                 end
             end
             

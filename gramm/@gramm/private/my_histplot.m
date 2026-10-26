@@ -97,8 +97,8 @@ if setylim
         obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(bincounts);
         
         if ~isempty(params.edges) %If edges are specified we use those for x scale
-            obj.plot_lim.minx(obj.current_row,obj.current_column)=binranges(1)-nanmean(diff(binranges));
-            obj.plot_lim.maxx(obj.current_row,obj.current_column)=binranges(end)+nanmean(diff(binranges));
+            obj.plot_lim.minx(obj.current_row,obj.current_column)=binranges(1)-mean(diff(binranges),'omitnan');
+            obj.plot_lim.maxx(obj.current_row,obj.current_column)=binranges(end)+mean(diff(binranges),'omitnan');
         end
         
         %obj.firstrun(obj.current_row,obj.current_column)=0;
@@ -148,6 +148,7 @@ switch params.geom
     case 'bar'
         xpatch=[bar_right ; bar_left ; bar_left ; bar_right];
         ypatch=[zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'];
+        ypatch(:,bincounts==0)=NaN; %Hide empty bins (their degenerate faces can be rendered as stray lines)
         [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
         results.bar_handle=patch(xpatch,...
             ypatch,...
@@ -166,6 +167,7 @@ switch params.geom
     case 'stacked_bar'
         xpatch=[binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing];
         ypatch=[obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'];
+        ypatch(:,bincounts==0)=NaN; %Hide empty bins (their degenerate faces can be rendered as stray lines)
         [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
         results.bar_handle=patch(xpatch,...
             ypatch,...

@@ -4,7 +4,6 @@ function out=validate_aes(aes)
 %consistency. Handle special case of size parameter that can be set by the
 %user
 
-
 out=aes;
 fields=fieldnames(aes);
 
