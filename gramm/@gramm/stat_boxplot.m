@@ -44,8 +44,9 @@ end
 
 function hndl=my_boxplot(obj,draw_data,params)
 
-x=comb(draw_data.x);
-y=comb(draw_data.y);
+%Make sure we have column vectors (data given as matrix/cells is combined as rows)
+x=shiftdim(comb(draw_data.x));
+y=shiftdim(comb(draw_data.y));
 
 %NEW: compute unique Xs at the facet level (to avoid problems
 %with bar dodging width computation)
