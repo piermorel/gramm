@@ -59,12 +59,12 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         %If a CI on the mean is requested, we replace the original points
         %with bootstrapped mean samples
         if strcmp(params.type,'ci')
-            r=bootstrp(obj.stat_options.nboot,@nanmean,r);
+            r=bootstrp(obj.stat_options.nboot,@(v) mean(v,'omitnan'),r);
         end
         
         %Extract mean and covariance
-        m=nanmean(r);
-        cv=nancov(r);
+        m=mean(r,'omitnan');
+        cv=cov(r,'omitrows');
         
         
         %Compute ellipse points
@@ -111,12 +111,12 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         %If a CI on the mean is requested, we replace the original points
         %with bootstrapped mean samples
         if strcmp(params.type,'ci')
-            r=bootstrp(obj.stat_options.nboot,@nanmean,r);
+            r=bootstrp(obj.stat_options.nboot,@(v) mean(v,'omitnan'),r);
         end
         
         %Extract mean and covariance
-        m=nanmean(r);
-        cv=nancov(r);
+        m=mean(r,'omitnan');
+        cv=cov(r,'omitrows');
         
         obj.results.stat_ellipse{obj.result_ind,1}.mean=m;
         obj.results.stat_ellipse{obj.result_ind,1}.cv=cv;

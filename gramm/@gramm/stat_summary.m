@@ -162,7 +162,7 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
         %same location for the same indices)
         x=padded_cell2mat(draw_data.x);
         y=padded_cell2mat(draw_data.y);
-        uni_x=nanmean(x);
+        uni_x=mean(x,'omitnan');
         %Add a check for X alignment
         x_diff=max(x)-min(x);
         if  size(x,1)>1 && any(x_diff(1:end-1)>diff(uni_x)/10) %More than a tenth of delta x variation
@@ -355,7 +355,7 @@ end
 
 function [ymean,yci]=computeci(y,type,alpha,nboot)
 
-ymean=nanmean(y);
+ymean=mean(y,'omitnan');
 
 %Check number of samples
 nsamp=size(y,1);
@@ -386,23 +386,23 @@ end
 try
     switch type
         case 'bootci'
-            yci=bootci(nboot,{@(ty)nanmean(ty),y},'alpha',alpha);
+            yci=bootci(nboot,{@(ty)mean(ty,'omitnan'),y},'alpha',alpha);
         case 'ci'
-            %ci=1.96*nanstd(y)./sqrt(sum(~isnan(y)));
+            %ci=1.96*std(y,'omitnan')./sqrt(sum(~isnan(y)));
             %Correction for small samples (equivalent to fitnormalci)
-            ci=tinv(1-alpha/2,sum(~isnan(y))-1).*nanstd(y)./sqrt(sum(~isnan(y)));
+            ci=tinv(1-alpha/2,sum(~isnan(y))-1).*std(y,'omitnan')./sqrt(sum(~isnan(y)));
             yci=bsxfun(@plus,ymean,[-ci;ci]);
         case 'std'
-            ci=nanstd(y);
+            ci=std(y,'omitnan');
             yci=bsxfun(@plus,ymean,[-ci;ci]);
         case 'sem'
-            ci=nanstd(y)./sqrt(sum(~isnan(y)));
+            ci=std(y,'omitnan')./sqrt(sum(~isnan(y)));
             yci=bsxfun(@plus,ymean,[-ci;ci]);
         case 'quartile'
-            ymean=nanmedian(y);
+            ymean=median(y,'omitnan');
             yci=prctile(y,[25 75]);
         case '95percentile'
-            ymean=nanmedian(y);
+            ymean=median(y,'omitnan');
             yci=prctile(y,[2.5 97.5]);
         case 'fitnormalci'
             pd=fitdist(y,'Normal');

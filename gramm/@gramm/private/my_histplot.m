@@ -97,8 +97,8 @@ if setylim
         obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(bincounts);
         
         if ~isempty(params.edges) %If edges are specified we use those for x scale
-            obj.plot_lim.minx(obj.current_row,obj.current_column)=binranges(1)-nanmean(diff(binranges));
-            obj.plot_lim.maxx(obj.current_row,obj.current_column)=binranges(end)+nanmean(diff(binranges));
+            obj.plot_lim.minx(obj.current_row,obj.current_column)=binranges(1)-mean(diff(binranges),'omitnan');
+            obj.plot_lim.maxx(obj.current_row,obj.current_column)=binranges(end)+mean(diff(binranges),'omitnan');
         end
         
         %obj.firstrun(obj.current_row,obj.current_column)=0;
