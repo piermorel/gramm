@@ -264,7 +264,8 @@ obj.firstrun=ones(n_rows,n_columns);
 %Index in the loops
 obj.result_ind=1;
 
-%Initialize facet axes handles
+%Initialize facet axes handles (when going from one to many facets after
+%update() this is done once the content of the first facet is copied)
 if obj.updater.first_draw
     obj.facet_axes_handles=gobjects(length(uni_row),length(uni_column));
 end
@@ -275,32 +276,39 @@ if isempty(draw_data.dodge_avl_w) || draw_data.dodge_avl_w==0
     draw_data.dodge_avl_w=1;
 end
 
-%Initialize tiled layout object
+%Initialize tiled layout object. After update() the existing layout is
+%reused, unless we go from one to many facets
 if obj.updater.facet_updated==1
-    orig_f = gcf;
-    tmp_f=figure('Visible',false);
+    %The content of the single facet and the legend axes are set aside in
+    %a hidden figure while the layout is rebuilt (creating a tiledlayout in
+    %a figure deletes everything in it)
+    tmp_f=figure('Visible','off');
+    set(0,'CurrentFigure',ancestor(obj.parent,'figure'));
     tmp_axes = axes(tmp_f);
     first_axes_children = copyobj(allchild(obj.facet_axes_handles(1,1)),tmp_axes);
+    obj.legend_axe_handle.Parent=tmp_f;
     delete(obj.layout);
-    figure(orig_f);
+    obj.facet_axes_handles=gobjects(length(uni_row),length(uni_column));
 end
-if obj.multi.active
-   if obj.wrap_ncols>0
-        obj.layout = tiledlayout(obj.multi.layout,ceil(length(uni_column)/obj.wrap_ncols),obj.wrap_ncols);
+if obj.updater.first_draw || obj.updater.facet_updated==1
+    if obj.multi.active
+        if obj.wrap_ncols>0
+            obj.layout = tiledlayout(obj.multi.layout,ceil(length(uni_column)/obj.wrap_ncols),obj.wrap_ncols);
+        else
+            obj.layout = tiledlayout(obj.multi.layout,length(uni_row),length(uni_column));
+        end
+        obj.layout.Layout.Tile=obj.multi.tile_num;
     else
-        obj.layout = tiledlayout(obj.multi.layout,length(uni_row),length(uni_column));
-   end
-   obj.layout.Layout.Tile=obj.multi.tile_num;
-else
-    if obj.wrap_ncols>0
-        obj.layout = tiledlayout(ceil(length(uni_column)/obj.wrap_ncols),obj.wrap_ncols);
-    else
-        obj.layout = tiledlayout(length(uni_row),length(uni_column));
+        if obj.wrap_ncols>0
+            obj.layout = tiledlayout(obj.parent,ceil(length(uni_column)/obj.wrap_ncols),obj.wrap_ncols);
+        else
+            obj.layout = tiledlayout(obj.parent,length(uni_row),length(uni_column));
+        end
+        obj.layout.OuterPosition(3)=0.98;
     end
-    obj.layout.OuterPosition(3)=0.98;
+    obj.layout.TileSpacing = obj.layout_options.spacing;
+    obj.layout.Padding = obj.layout_options.padding;
 end
-obj.layout.TileSpacing = obj.layout_options.spacing;
-obj.layout.Padding = obj.layout_options.padding;
 
 obj.data_size=numel(temp_aes.x);
 
@@ -348,48 +356,31 @@ for ind_row=1:length(uni_row)
         
         %Create subplot (much faster to do it here at the most upper level: changing subplot takes a
         %long time in Matlab)
-        if obj.updater.first_draw %If we are in the normal case (first draw() call)
+        if obj.updater.first_draw || obj.updater.facet_updated==1
+            %First draw() call, or update() from one to many facets: the
+            %facets are (re)created in the layout
             if obj.wrap_ncols>0
                 obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,ind_column);
             else
                 obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,(ind_row-1)*length(uni_column)+ind_column);
-            end            
-        else %If we are in a draw() call after an update() call
-            if obj.updater.facet_updated==1 %If faceting was updated from one to multiple facets
-                if ind_column==1 && ind_row==1 %If we are in the first facet
-                    %We don't need to create it again, it exists
-                    %axes(obj.facet_axes_handles(ind_row,ind_column));
-                    %Store content of first facet for copying it on the other facets !
-                    first_axes_children=allchild(obj.facet_axes_handles(ind_row,ind_column));
-                    axes(obj.facet_axes_handles(ind_row,ind_column));
-                else
-                    %We need to create the next facets because they don't exist
-                    if obj.wrap_ncols>0
-                       obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,ind_column);
-                    else
-                       obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,(ind_row-1)*length(uni_column)+ind_column);
-                    end
-                    %And we copy the contents of the first facet in the new ones
-                    copyobj(first_axes_children,obj.facet_axes_handles(ind_row,ind_column));
-                end
-            elseif obj.updater.facet_updated==-1 %If facets were updated from many to one facets
-                if ind_column==1 && ind_row==1
-                    %We store the current content of the first
-                    %facet so that we can check which new
-                    %things are going to be drawn in
-                    first_axes_children=allchild(obj.facet_axes_handles(ind_row,ind_column));
-                end
-            else
-                %In other cases (same facets or multiple to
-                %one facet), the facets already exist
-                axes(obj.facet_axes_handles(ind_row,ind_column));
             end
+            if obj.updater.facet_updated==1
+                %Copy the content of the former single facet
+                copyobj(first_axes_children,obj.facet_axes_handles(ind_row,ind_column));
+            end
+        elseif obj.updater.facet_updated==-1 && ind_column==1 && ind_row==1
+            %update() from many to one facet: new content is drawn in the
+            %first facet only, and copied to the others at the end of
+            %draw(). Store what is already there to know what is new.
+            first_axes_children=allchild(obj.facet_axes_handles(1,1));
         end
         
         %Make axes current
         %Was making figure visible even when visibility was set to off
         %axes(obj.facet_axes_handles(ind_row,ind_column)); 
-        groot.CurrentFigure.CurrentAxes=obj.facet_axes_handles(ind_row,ind_column);
+        %(groot can't be used here: the assignment would make it a variable)
+        set(0,'CurrentFigure',ancestor(obj.facet_axes_handles(ind_row,ind_column),'figure'));
+        set(gcf,'CurrentAxes',obj.facet_axes_handles(ind_row,ind_column));
         
         hold on
         
@@ -628,13 +619,10 @@ for ind_row=1:length(uni_row)
     end
     
 end
-if obj.updater.facet_updated==1
-    close(tmp_f);
-end
 
 %% draw() Title
 if ~isempty(obj.title)
-    if obj.updater.first_draw
+    if obj.updater.first_draw || obj.updater.facet_updated==1
 
         obj.layout.Title.String = obj.title;
         obj.layout.Title.FontWeight='bold';
@@ -676,8 +664,9 @@ str_uni_size = cellfun(@num2str,uni_size,'UniformOutput',false);
 str_uni_marker = cellfun(@num2str,uni_marker,'UniformOutput',false);
 
 
-%Create axes for legends
-%if obj.updater.first_draw
+%Create axes for legends (after update() the same legend axes is reused and
+%the new entries are added below the existing ones)
+if obj.updater.first_draw
     if strcmp(obj.layout_options.legend_position,'auto')
         obj.legend_axe_handle=axes(obj.layout);
         obj.legend_axe_handle.Layout.Tile='east';
@@ -694,9 +683,16 @@ str_uni_marker = cellfun(@num2str,uni_marker,'UniformOutput',false);
     obj.legend_axe_handle.Toolbar.Visible = 'off';
     obj.legend_axe_handle.Interactions = [];
     %set(obj.legend_axe_handle,'PlotBoxAspectRatio',[1 1 1]);
-% else
-%     axes(obj.legend_axe_handle)
-% end
+elseif obj.updater.facet_updated==1
+    %Bring back the legend axes set aside while the layout was rebuilt
+    if strcmp(obj.layout_options.legend_position,'auto')
+        obj.legend_axe_handle.Parent=obj.layout;
+        obj.legend_axe_handle.Layout.Tile='east';
+    else
+        obj.legend_axe_handle.Parent=obj.parent;
+    end
+    close(tmp_f);
+end
 
 legend_y_step=1;
 legend_y_additional_step=0.5;
@@ -843,7 +839,10 @@ end
 
 %Group legend objects
 tmp = obj.legend_axe_handle.Children;
-obj.legend_transform = hgtransform('Parent',obj.legend_axe_handle);
+if isempty(obj.legend_transform) || ~isvalid(obj.legend_transform)
+    obj.legend_transform = hgtransform('Parent',obj.legend_axe_handle);
+end
+tmp(tmp==obj.legend_transform)=[];
 set(tmp,'Parent',obj.legend_transform);
 %Like the texts, symbols stay visible outside of the axes limits
 set(findobj(tmp,'Type','line'),'Clipping','off');
