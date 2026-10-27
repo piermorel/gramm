@@ -69,12 +69,12 @@ if numel(obj)>1
 
     %Set up tight redrawing for multiple plots
     if do_redraw
-        fig=register_redraw(obj);
+        register_redraw(obj);
 
-        %Workaround for Matlab bug
+        %Redraw once the layout is computed (positions of the elements
+        %handled by redraw() are only known then)
         drawnow;
-        fig.Position=fig.Position+[0 0 0 1];
-        fig.Position=fig.Position+[0 0 0 -1];
+        redraw(obj);
     end
     return;
 end
@@ -1306,12 +1306,11 @@ end
 % Make everything tight and set the resize function so that it stays so
 if do_redraw  && ~obj.multi.active %Redrawing for multiple plots is handled at the beginning of draw()
 %    redraw(obj);
-    fig=register_redraw(obj);
+    register_redraw(obj);
     
-    if ~isempty(obj.redraw_fun) %If there is something to redraw we force it
+    if ~isempty(obj.redraw_fun) %If there is something to redraw we do it once the layout is computed
         drawnow;
-        fig.Position=fig.Position+[0 0 0 1];
-        fig.Position=fig.Position+[0 0 0 -1];
+        redraw(obj);
     end
 end
 
@@ -1335,7 +1334,7 @@ end
 obj.updater.first_draw=false;
 end
 
-function fig=register_redraw(obj)
+function register_redraw(obj)
 %All the gramm plots of a figure (arrays, or plots drawn in tiles of a
 %tiledlayout with set_parent()) are redrawn when it is resized
 fig=ancestor(obj(1).parent,'figure');
