@@ -1002,53 +1002,138 @@ g.draw();
 
 
 %% Use custom layouts in gramm, marginal histogram example
-
+% Custom layouts are made by drawing gramm plots in tiles of a tiledlayout
+% with set_parent(layout,'tile',tile,'span',span), where tile and span work as
+% in nexttile(). Here the scatter plot spans 3x3 tiles of a 4x4 layout, with
+% the histograms in the top row and in the right column.
 
 load fisheriris.mat
 
-clear g
-figure;
+figure('Position',[100 100 600 550]);
+t=tiledlayout(4,4,'TileSpacing','compact','Padding','compact');
 
-%Create x data histogram on top
-g(1,1)=gramm('x',meas(:,2),'color',species);
-g(1,1).set_layout_options('Position',[0 0.8 0.8 0.2],... %Set the position in the figure (as in standard 'Position' axe property)
-    'legend',false,... % No need to display legend for side histograms
-    'margin_height',[0.02 0.05],... %We set custom margins, values must be coordinated between the different elements so that alignment is maintained
-    'margin_width',[0.1 0.02],...
-    'redraw',false); %We deactivate automatic redrawing/resizing so that the axes stay aligned according to the margin options
-g(1,1).set_names('x','');
-g(1,1).stat_bin('geom','stacked_bar','fill','all','nbins',15); %histogram
-g(1,1).axe_property('XTickLabel',''); % We deactivate tht ticks
+%Create x data histogram on top (first row, first 3 columns)
+g_top=gramm('x',meas(:,2),'color',species);
+g_top.set_parent(t,'tile',1,'span',[1 3]);
+g_top.set_layout_options('legend',false); % No need to display legend for side histograms
+g_top.set_names('x','','y','Count');
+g_top.stat_bin('geom','stacked_bar','fill','all','nbins',15); %histogram
+g_top.axe_property('XTickLabel',''); % We deactivate the ticks
 
-%Create a scatter plot
-g(2,1)=gramm('x',meas(:,2),'y',meas(:,1),'color',species);
-g(2,1).set_names('x','Sepal Width','y','Sepal Length','color','Species');
-g(2,1).geom_point(); %Scatter plot
-g(2,1).set_point_options('base_size',6);
-g(2,1).set_layout_options('Position',[0 0 0.8 0.8],...
-    'legend_pos',[0.83 0.75 0.2 0.2],... %We detach the legend from the plot and move it to the top right
-    'margin_height',[0.1 0.02],...
-    'margin_width',[0.1 0.02],...
-    'redraw',false);
-g(2,1).axe_property('Ygrid','on'); 
+%Create a scatter plot (rows 2 to 4, columns 1 to 3)
+g_main=gramm('x',meas(:,2),'y',meas(:,1),'color',species);
+g_main.set_parent(t,'tile',5,'span',[3 3]);
+g_main.set_names('x','Sepal Width','y','Sepal Length','color','Species');
+g_main.geom_point(); %Scatter plot
+g_main.set_point_options('base_size',6);
+%The legend is moved to the free top right corner (in normalized figure
+%units), so that the scatter plot keeps the width of the top histogram
+g_main.set_layout_options('legend_position',[0.8 0.78 0.18 0.2]);
+g_main.axe_property('Ygrid','on'); 
 
-%Create y data histogram on the right
-g(3,1)=gramm('x',meas(:,1),'color',species);
-g(3,1).set_layout_options('Position',[0.8 0 0.2 0.8],...
-    'legend',false,...
-    'margin_height',[0.1 0.02],...
-    'margin_width',[0.02 0.05],...
-    'redraw',false);
-g(3,1).set_names('x','');
-g(3,1).stat_bin('geom','stacked_bar','fill','all','nbins',15); %histogram
-g(3,1).coord_flip();
-g(3,1).axe_property('XTickLabel','');
+%Create y data histogram on the right (rows 2 to 4, last column)
+g_right=gramm('x',meas(:,1),'color',species);
+g_right.set_parent(t,'tile',8,'span',[3 1]);
+g_right.set_layout_options('legend',false);
+g_right.set_names('x','','y','Count');
+g_right.stat_bin('geom','stacked_bar','fill','all','nbins',15); %histogram
+g_right.coord_flip();
+g_right.axe_property('XTickLabel','');
 
-%Set global axe properties
+%Set global properties and draw the three plots
+g=[g_top g_main g_right];
 g.axe_property('TickDir','out','XGrid','on','GridColor',[0.5 0.5 0.5]);
-g.set_title('Fisher Iris, custom layout');
 g.set_color_options('map','d3_10');
+title(t,'Fisher Iris, custom layout','FontWeight','bold');
+for k=1:numel(g)
+    g(k).draw();
+end
+
+%% Plots of different sizes
+% gramm plots can be drawn in tiles of a tiledlayout with
+% set_parent(layout,'tile',tile,'span',span). tile and span work as in
+% nexttile(): tile is the number of the first tile (counted row by row, or
+% given as [row column]) and span is the number of [rows columns] covered
+% by the plot.
+
+figure('Position',[100 100 1000 600]);
+t=tiledlayout(2,3);
+
+%Large plot on the left, spanning 2 rows and 2 columns
+g_large=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
+g_large.set_parent(t,'tile',1,'span',[2 2]);
+g_large.geom_point();
+g_large.stat_glm();
+g_large.set_names('x','Horsepower','y','MPG','color','# Cyl');
+g_large.set_title('Fuel economy vs. horsepower');
+g_large.draw();
+
+%Two smaller plots on the right
+g_top=gramm('x',cars.Origin_Region,'y',cars.MPG,'color',cars.Origin_Region);
+g_top.set_parent(t,'tile',3);
+g_top.stat_boxplot();
+g_top.set_names('x','','y','MPG');
+g_top.set_layout_options('legend',false);
+g_top.set_title('Per region');
+g_top.draw();
+
+g_bottom=gramm('x',cars.Model_Year,'y',cars.MPG);
+g_bottom.set_parent(t,'tile',6);
+g_bottom.stat_summary('geom','area');
+g_bottom.set_names('x','Year','y','MPG');
+g_bottom.set_title('Over the years');
+g_bottom.draw();
+
+
+%% Combine gramm with regular Matlab axes
+% The other tiles of the tiledlayout can hold any Matlab plot, created with
+% nexttile() as usual
+
+figure('Position',[100 100 900 400]);
+t=tiledlayout(1,2);
+
+g=gramm('x',cars.Weight,'y',cars.Acceleration,'color',cars.Origin_Region);
+g.set_parent(t,'tile',1);
+g.geom_point();
+g.set_names('x','Weight','y','Acceleration','color','Origin');
+g.set_title('gramm plot');
 g.draw();
+
+ax=nexttile(t,2);
+imagesc(ax,corr([cars.Horsepower cars.Weight cars.Acceleration cars.MPG],'rows','complete'));
+axis(ax,'image');
+colorbar(ax);
+ax.XTick=1:4; ax.YTick=1:4;
+ax.XTickLabel={'Horsepower','Weight','Acceleration','MPG'};
+ax.YTickLabel=ax.XTickLabel;
+title(ax,'Regular Matlab axes (correlations)');
+
+
+%% Array of gramm plots in a tile
+% An array of gramm plots can itself be drawn in a tile: give the tile to
+% the whole array with set_parent()
+
+figure('Position',[100 100 1000 600]);
+t=tiledlayout(1,3);
+
+clear g
+g(1,1)=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Origin_Region);
+g(1,1).geom_point();
+g(1,1).set_title('Points');
+g(2,1)=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Origin_Region);
+g(2,1).stat_glm();
+g(2,1).set_title('Fits');
+g.set_names('x','Horsepower','y','MPG','color','Origin');
+g.set_title('Array of gramm plots spanning two tiles');
+g.set_parent(t,'tile',1,'span',[1 2]);
+g.draw();
+
+g2=gramm('x',cars.MPG,'color',cars.Origin_Region);
+g2.set_parent(t,'tile',3);
+g2.stat_density();
+g2.set_names('x','MPG','color','Origin');
+g2.set_title('Single plot');
+g2.draw();
 
 %% Plot one variable against many others
 %Inspired by: https://drsimonj.svbtle.com/plot-some-variables-against-many-others
@@ -1090,6 +1175,8 @@ g(2,1).facet_axes_handles(1).XLim=[-5 6];
 g(2,1).facet_axes_handles(1).XTick=-5:5:5;
 g(2,1).facet_axes_handles(2).XLim=[50 90];
 g(2,1).facet_axes_handles(2).XTick=50:5:90;
+%Update the facet widths ('space' option) to the new axis limits
+g.redraw();
 
 %% Customizing color maps with set_color_options()
 % With the method set_color_options(), automatic color generation for
@@ -1488,6 +1575,141 @@ figure
 g17=gramm('x',X,'y',Y,'color',C);
 g17.geom_line();
 g17.draw();
+
+
+%% Dev tests: facet_grid() 'space' option
+% Facet widths/heights should be proportional to the axis ranges for
+% free_x, free_y and free (also with coord_flip, where x is vertical), and
+% stay equal for 'independent' and facet_wrap(). Resizing the figure should
+% keep the proportions and keep row titles next to their facet
+
+clear g
+x=cars.Horsepower; y=cars.MPG;
+g(1,1)=gramm('x',x,'y',y,'color',cars.Cylinders);
+g(1,1).facet_grid(cars.Model_Year>76,cars.Origin_Region,'scale','free_x','space','free_x');
+g(1,1).set_title('free_x');
+g(1,2)=gramm('x',x,'y',y,'color',cars.Cylinders);
+g(1,2).facet_grid(cars.Origin_Region,cars.Model_Year>76,'scale','free_y','space','free_y');
+g(1,2).set_title('free_y');
+g(1,3)=gramm('x',x,'y',y,'color',cars.Cylinders);
+g(1,3).facet_grid(cars.Model_Year>76,cars.Origin_Region,'scale','free','space','free');
+g(1,3).set_title('free, tight spacing');
+g(2,1)=gramm('x',x,'y',y,'color',cars.Cylinders);
+g(2,1).facet_grid(cars.Model_Year>76,cars.Origin_Region,'scale','free_x','space','free_x');
+g(2,1).coord_flip();
+g(2,1).set_title('free_x with coord_flip()');
+g(2,2)=gramm('x',x,'y',y,'color',cars.Cylinders);
+g(2,2).facet_grid(cars.Model_Year>76,cars.Origin_Region,'scale','independent','space','free');
+g(2,2).set_title('independent (equal sizes)');
+g(2,3)=gramm('x',x,'y',y,'color',cars.Cylinders);
+g(2,3).facet_wrap(cars.Origin_Region,'scale','free_x');
+g(2,3).set_title('facet_wrap (equal sizes)');
+for k=1:numel(g)
+    g(k).geom_point();
+    g(k).set_layout_options('legend',false);
+end
+g(1,3).set_layout_options('legend',false,'spacing','tight');
+figure('Position',[100 100 1400 800]);
+g.draw();
+
+%% Dev tests: update() paths
+% Same facets, one to many facets, many to one facet, and one to many
+% inside an array (the untouched element warns about draw() without
+% update(), as on master)
+
+figure('Position',[100 100 900 500]);
+g=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Cylinders);
+g.geom_point(); g.set_title('Same facets'); g.draw();
+g.update('color',cars.Origin_Region); g.stat_glm(); g.draw();
+
+figure('Position',[100 100 900 500]);
+g=gramm('x',cars.Model_Year,'y',cars.MPG,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
+g.stat_glm('geom','area'); g.set_color_options('chroma',0,'lightness',75);
+g.set_title('One to many'); g.draw();
+g.update('color',cars.Cylinders); g.facet_grid([],cars.Origin_Region);
+g.geom_point(); g.draw();
+
+figure('Position',[100 100 900 500]);
+g=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Origin_Region);
+g.facet_grid([],cars.Origin_Region); g.geom_point(); g.set_title('Many to one'); g.draw();
+g.update('color',[]); g.facet_grid([],[]); g.stat_glm(); g.draw();
+
+figure('Position',[100 100 900 500]);
+clear g
+g(1,1)=gramm('x',cars.Horsepower,'y',cars.MPG);
+g(1,1).geom_point(); g(1,1).set_title('Untouched');
+g(1,2)=gramm('x',cars.Model_Year,'y',cars.MPG);
+g(1,2).stat_glm('geom','area'); g(1,2).set_title('One to many in array');
+g.draw();
+g(1,2).update('color',cars.Cylinders); g(1,2).facet_grid([],cars.Origin_Region);
+g(1,2).geom_point(); g.draw();
+
+%% Dev tests: set_parent() tiles and removed layout options
+% update() from one to many facets in a tile must rebuild the facets in the
+% same tile and leave the plain axes untouched. Removed set_layout_options()
+% options must raise a gramm:removedOption error
+
+figure('Position',[100 100 1000 500]);
+t=tiledlayout(2,3);
+ax=nexttile(t,3); plot(ax,1:10); title(ax,'Plain axes');
+g=gramm('x',cars.Model_Year,'y',cars.MPG);
+g.set_parent(t,'tile',1,'span',[2 2]);
+g.stat_glm('geom','area'); g.set_title('One to many in a tile');
+g.draw();
+g.update('color',cars.Cylinders); g.facet_grid([],cars.Origin_Region);
+g.geom_point(); g.draw();
+fprintf('Layout tile %d span %s, plain axes still there: %d\n',g.layout.Layout.Tile,mat2str(g.layout.Layout.TileSpan),isgraphics(ax));
+
+try
+    g=gramm('x',1:3,'y',1:3);
+    g.set_layout_options('position',[0 0 1 1]);
+    disp('Removed option did not raise an error');
+catch err
+    fprintf('Removed option raises %s\n',err.identifier);
+end
+
+%Tiles that don't fit in the layout must raise an error, and tiles given as
+%[row column] must land in the right tile
+t=tiledlayout(figure,2,2);
+try
+    g=gramm('x',1:3,'y',1:3);
+    g.set_parent(t,'tile',2,'span',[1 2]);
+    disp('Tile outside of the layout did not raise an error');
+catch err
+    fprintf('Tile outside of the layout: %s\n',err.message);
+end
+g=gramm('x',1:3,'y',1:3);
+g.set_parent(t,'tile',[2 1]);
+g.geom_point();
+g.draw();
+fprintf('Tile [2 1] of a 2x2 layout is tile %d\n',g.layout.Layout.Tile);
+
+%% Dev tests: legends
+% The legend column should be as wide as the legend text (long labels,
+% several legends), arrays with and without legends should keep their plots
+% aligned, and legends should survive figure resizing
+
+lbl=strcat(cars.Origin_Region,' (a rather long label)');
+figure('Position',[100 100 900 500]);
+g=gramm('x',cars.Horsepower,'y',cars.MPG,'color',lbl,'marker',cars.Cylinders);
+g.geom_point();
+g.set_names('color','Region of origin of the car','marker','# Cyl');
+g.draw();
+
+f=figure('Position',[100 100 1000 700]);
+clear g
+g(1,1)=gramm('x',cars.Horsepower,'y',cars.MPG);
+g(1,1).geom_point(); g(1,1).set_title('No legend');
+g(1,2)=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Cylinders);
+g(1,2).geom_point(); g(1,2).set_title('Short legend');
+g(2,1)=gramm('x',cars.Horsepower,'y',cars.MPG,'color',lbl);
+g(2,1).geom_point(); g(2,1).set_title('Long legend');
+g(2,2)=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Cylinders);
+g(2,2).geom_point(); g(2,2).facet_grid([],cars.Origin_Region); g(2,2).set_title('Facets');
+g.set_names('color','# Cyl');
+g.draw();
+f.Position(3:4)=[700 500]; drawnow;
+f.Position(3:4)=[1000 700];
 
 
 %% Raw matlab code equivalent to the first figure (in paper.md)

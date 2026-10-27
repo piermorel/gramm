@@ -25,3 +25,5 @@ g(2,1).facet_axes_handles(1).XLim=[-5 6];
 g(2,1).facet_axes_handles(1).XTick=-5:5:5;
 g(2,1).facet_axes_handles(2).XLim=[50 90];
 g(2,1).facet_axes_handles(2).XTick=50:5:90;
+%Update the facet widths ('space' option) to the new axis limits
+g.redraw();

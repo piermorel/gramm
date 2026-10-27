@@ -2,37 +2,15 @@ function obj = set_layout_options( obj , varargin )
 % set_layout_options Change figure layout options
 %
 % 'name',value pairs:
-% 'position':       specify the position of the gramm plot in the figure, using
-%                   normalized coordinates (between 0 and 1) [left bottom width height]
-%                   Default is 'auto', which sets the positions/sizes 
-%                   according to the gramm object array indices
 % 'legend':         specify (true/false) whether the side legend will be
 %                   displayed. set_layout_options('legend',false)
 %                   replaces no_legend()
-% 'legend_width':   specify the proportion of the gramm plot occupied by the
-%                   side legend (between 0 and 1). Default is 'auto'. In
-%                   order to set the legend width in figure normalized
-%                   coordinates, divide by the plot width specified in the
-%                   'position' argument.
 % 'legend_position':Separates the legend from the gramm plot and puts in a 
 %                   custom position in the figure (normalized coordinates).
-% 'title_centering' specify whether the plot title is aligned relative to
-%                   the whole plot including legends 'plot' or relative to
-%                   the plot without legends 'axes' (default)
 % 'redraw'          true (default) / false. Specify whether the figure gets
-%                   automatically redrawn and adjusted after initial draw
-%                   and on resize. Must be set on the first element when
-%                   using an array of gramm objects
-% 'redraw_gap'      gap between elements during automatic redraw
-% 'margin_height'   2-element vector indicating the bottom and top vertical
-%                   margins. Used only when 'redraw' is false
-% 'margin_width'    2-element vector indicating the left and right
-%                   horizontal margins. Used only when 'redraw' is false
-% 'gap'             2-element vector indicating the gaps between facet
-%                   subplots in the format [width height]). 'auto' by
-%                   default. Useful only when 'redraw' is false, otherwise
-%                   'redraw_gap' is used. Default values are with ticks [0.06 0.06],
-%                   without ticks [0.02 0.02], facet wrap [0.09 0.03].
+%                   automatically updated on resize (see redraw()). Must be
+%                   set on the first element when using an array of gramm
+%                   objects
 % 'spacing'         Corresponds to 'TileSpacing' option in tiledlayout()
 %                   within a gramm plot
 % 'padding'         Corresponds to 'Padding' option in tiledlayout()
@@ -41,18 +19,27 @@ function obj = set_layout_options( obj , varargin )
 %                   between multiple gramm plots 
 % 'multi_padding'   Corresponds to 'Padding' option in tiledlayout()
 %                   between multiple gramm plots 
+%
+% The position and size of gramm plots are set by tiledlayout. In order to
+% create custom layouts (plots of different sizes, combination with
+% regular Matlab axes), draw gramm plots in tiles of a tiledlayout using
+% set_parent(layout,'tile',tile,'span',span).
+
+%Options of the former manual layout, which have no equivalent with
+%tiledlayout
+removed={'position','legend_width','title_centering','redraw_gap','margin_height','margin_width','gap'};
+names=varargin(1:2:end);
+is_removed=cellfun(@(n)(ischar(n) || isstring(n)) && any(strcmpi(n,removed)),names);
+if any(is_removed)
+    error('gramm:removedOption',['set_layout_options(''%s'') is not supported anymore since gramm uses tiledlayout. ' ...
+        'For custom layouts, draw the gramm plot in a tile of a tiledlayout with set_parent(layout,''tile'',tile,''span'',span).'],...
+        char(names{find(is_removed,1)}));
+end
 
 p=inputParser;
-my_addParameter(p,'position' , 'auto' );
 my_addParameter(p,'legend', true );
-my_addParameter(p,'legend_width', 'auto' );
 my_addParameter(p,'legend_position', 'auto' );
-my_addParameter(p,'title_centering', 'axes');
 my_addParameter(p,'redraw',true);
-my_addParameter(p,'redraw_gap',0.04);
-my_addParameter(p,'margin_height',[0.1 0.2]);
-my_addParameter(p,'margin_width',[0.1 0.2]);
-my_addParameter(p,'gap','auto'); 
 my_addParameter(p,'multi_padding','compact'); 
 my_addParameter(p,'multi_spacing','compact'); 
 my_addParameter(p,'padding','compact'); 

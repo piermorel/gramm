@@ -48,6 +48,7 @@
 %% Advanced
 %
 % * <example_advanced_marginal_histograms.html Marginal histograms>
+% * <example_advanced_custom_layouts.html Custom layouts>
 % * <example_advanced_superimposed_plots.html Superimposed plots>
 % * <example_advanced_broken_axis.html Broken axis>
 % * <example_advanced_post_draw_customization.html Post-draw customization>

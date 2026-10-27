@@ -19,7 +19,7 @@ function obj = export(obj, varargin)
 % screen resolution
 
 % Retrieve figure handle (all are the same so only the first is ok)
-h_fig = obj(1).parent;
+h_fig = ancestor(obj(1).parent,'figure');
 
 % calculating defaults
 fig_pos = getpixelposition(h_fig);

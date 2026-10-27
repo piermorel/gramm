@@ -35,8 +35,13 @@ if numel(obj)>1
     nc=size(obj,2);
     
     if obj(1).updater.first_draw
-        bigtile = tiledlayout(nl,nc,'Padding',obj(1).layout_options.multi_padding,'TileSpacing',obj(1).layout_options.multi_spacing);
-        bigtile.OuterPosition(3)=0.98;
+        %The layout holding the gramm plots goes in the parent (figure,
+        %panel, or tile of a tiledlayout)
+        bigtile = tiledlayout(obj(1).parent,nl,nc,'Padding',obj(1).layout_options.multi_padding,'TileSpacing',obj(1).layout_options.multi_spacing);
+        if isa(obj(1).parent,'matlab.graphics.layout.TiledChartLayout')
+            bigtile.Layout.Tile=obj(1).parent_tile.tile;
+            bigtile.Layout.TileSpan=obj(1).parent_tile.span;
+        end
 
         bigtile.Title.String = obj(1).bigtitle;
         bigtile.Title.FontWeight='bold';
@@ -47,14 +52,11 @@ if numel(obj)>1
         end
     end
 
-    tmp=1;
     for l=1:nl
         for c=1:nc
             if obj(l,c).updater.first_draw
                 obj(l,c).multi.active=true;
-                obj(l,c).multi.layout = bigtile;
-                obj(l,c).multi.tile_num = tmp;
-                tmp=tmp+1;
+                obj(l,c).set_parent(bigtile,'tile',[l c]);
             end
             draw(obj(l,c));
         end
@@ -67,13 +69,12 @@ if numel(obj)>1
 
     %Set up tight redrawing for multiple plots
     if do_redraw
-
-        set(gcf,'SizeChangedFcn',@obj.redraw);
+        fig=register_redraw(obj);
 
         %Workaround for Matlab bug
         drawnow;
-        obj(1).parent.Position=obj(1).parent.Position+[0 0 0 1];
-        obj(1).parent.Position=obj(1).parent.Position+[0 0 0 -1];
+        fig.Position=fig.Position+[0 0 0 1];
+        fig.Position=fig.Position+[0 0 0 -1];
     end
     return;
 end
@@ -98,7 +99,7 @@ if ~iscell(uni_fig)
     uni_fig=num2cell(uni_fig);
 end
 if numel(uni_fig)>1 %if multiple figures
-    fig_pos=get(obj.parent,'Position'); %We'll create them with the same location and size as the current figure
+    fig_pos=get(ancestor(obj.parent,'figure'),'Position'); %We'll create them with the same location and size as the current figure
     %Convert to a cell
     obj={obj};
     for ind_fig=2:numel(uni_fig) %Make shallow copy of original object
@@ -291,21 +292,18 @@ if obj.updater.facet_updated==1
     obj.facet_axes_handles=gobjects(length(uni_row),length(uni_column));
 end
 if obj.updater.first_draw || obj.updater.facet_updated==1
-    if obj.multi.active
-        if obj.wrap_ncols>0
-            obj.layout = tiledlayout(obj.multi.layout,ceil(length(uni_column)/obj.wrap_ncols),obj.wrap_ncols);
-        else
-            obj.layout = tiledlayout(obj.multi.layout,length(uni_row),length(uni_column));
-        end
-        obj.layout.Layout.Tile=obj.multi.tile_num;
+    if obj.wrap_ncols>0
+        grid=[ceil(length(uni_column)/obj.wrap_ncols) obj.wrap_ncols];
     else
-        if obj.wrap_ncols>0
-            obj.layout = tiledlayout(obj.parent,ceil(length(uni_column)/obj.wrap_ncols),obj.wrap_ncols);
-        else
-            obj.layout = tiledlayout(obj.parent,length(uni_row),length(uni_column));
-        end
-        obj.layout.OuterPosition(3)=0.98;
+        %Facets may span several tiles (facet_grid() 'space' option)
+        [grid,facet_tile,facet_row_span,facet_col_span]=facet_layout(obj,length(uni_row),length(uni_column));
     end
+    obj.layout = tiledlayout(obj.parent,grid(1),grid(2));
+    if isa(obj.parent,'matlab.graphics.layout.TiledChartLayout')
+        obj.layout.Layout.Tile=obj.parent_tile.tile;
+        obj.layout.Layout.TileSpan=obj.parent_tile.span;
+    end
+    obj.facet_row_axes=gobjects(1,0);
     obj.layout.TileSpacing = obj.layout_options.spacing;
     obj.layout.Padding = obj.layout_options.padding;
 end
@@ -362,7 +360,8 @@ for ind_row=1:length(uni_row)
             if obj.wrap_ncols>0
                 obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,ind_column);
             else
-                obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,(ind_row-1)*length(uni_column)+ind_column);
+                obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,facet_tile(ind_row,ind_column),...
+                    [facet_row_span(ind_row) facet_col_span(ind_column)]);
             end
             if obj.updater.facet_updated==1
                 %Copy the content of the former single facet
@@ -602,6 +601,7 @@ for ind_row=1:length(uni_row)
                     ca=obj.facet_axes_handles(ind_row,ind_column);
                     row_axe=axes(obj.layout);
                     row_axe.Layout.Tile=ca.Layout.Tile;
+                    row_axe.Layout.TileSpan=ca.Layout.TileSpan;
                     set(row_axe,'Color','none','XColor','none','YColor','none',...
                         'XTick',[],'YTick',[],'YAxisLocation','right',...
                         'HitTest','off','PickableParts','none','HandleVisibility','off');
@@ -612,6 +612,7 @@ for ind_row=1:length(uni_row)
                         'FontWeight','bold','Color',ca.Title.Color,...
                         'Rotation',-90,'VerticalAlignment','bottom','Visible','on');
                     obj.facet_text_handles=[obj.facet_text_handles row_axe.YLabel];
+                    obj.facet_row_axes(ind_row)=row_axe;
                 end
             end
         end
@@ -676,7 +677,7 @@ if obj.updater.first_draw
         %set(obj.legend_axe_handle,'PlotBoxAspectRatio',[1 1 1]);
     else
         obj.legend_axe_handle=axes('Position',obj.layout_options.legend_position,...
-                'Parent',obj.parent);
+                'Parent',ancestor(obj.parent,'figure'));
     end
     hold on
     set(obj.legend_axe_handle,'Visible','off','NextPlot','add');
@@ -689,7 +690,7 @@ elseif obj.updater.facet_updated==1
         obj.legend_axe_handle.Parent=obj.layout;
         obj.legend_axe_handle.Layout.Tile='east';
     else
-        obj.legend_axe_handle.Parent=obj.parent;
+        obj.legend_axe_handle.Parent=ancestor(obj.parent,'figure');
     end
     close(tmp_f);
 end
@@ -878,7 +879,10 @@ end
 %% draw() axes modifications
 
 if obj.is_flipped
-    obj.layout.XLabel.String =obj.aes_names.y;
+    %With flipped axes, tiledlayout doesn't reserve space for the tick
+    %labels of the horizontal axis: an empty first line keeps the label
+    %below them
+    obj.layout.XLabel.String ={'' obj.aes_names.y};
     obj.layout.YLabel.String =obj.aes_names.x;
 else
     obj.layout.XLabel.String =obj.aes_names.x;
@@ -1291,6 +1295,9 @@ end
 
 
 
+%Facet sizes proportional to axes limits (facet_grid() 'space' option)
+apply_facet_space(obj);
+
 %Legend vertical scaling (for multiple plots it's done once all are drawn)
 if ~obj.multi.active
     scale_legend(obj);
@@ -1299,12 +1306,12 @@ end
 % Make everything tight and set the resize function so that it stays so
 if do_redraw  && ~obj.multi.active %Redrawing for multiple plots is handled at the beginning of draw()
 %    redraw(obj);
-    set(gcf,'SizeChangedFcn',@obj.redraw);
+    fig=register_redraw(obj);
     
     if ~isempty(obj.redraw_fun) %If there is something to redraw we force it
         drawnow;
-        obj.parent.Position=obj(1).parent.Position+[0 0 0 1];
-        obj.parent.Position=obj(1).parent.Position+[0 0 0 -1];
+        fig.Position=fig.Position+[0 0 0 1];
+        fig.Position=fig.Position+[0 0 0 -1];
     end
 end
 
@@ -1326,6 +1333,21 @@ end
 
 
 obj.updater.first_draw=false;
+end
+
+function fig=register_redraw(obj)
+%All the gramm plots of a figure (arrays, or plots drawn in tiles of a
+%tiledlayout with set_parent()) are redrawn when it is resized
+fig=ancestor(obj(1).parent,'figure');
+plots=reshape(obj,1,[]);
+previous=getappdata(fig,'gramm_plots');
+for k=1:numel(previous)
+    if ~any(previous(k)==plots)
+        plots=[plots previous(k)];
+    end
+end
+setappdata(fig,'gramm_plots',plots);
+set(fig,'SizeChangedFcn',@(~,~)redraw(getappdata(fig,'gramm_plots')));
 end
 
 function out=allmax(in)

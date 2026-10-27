@@ -45,10 +45,8 @@ classdef gramm < matlab.mixin.Copyable
         x_factor %Is X a categorical variable ?
         x_ticks %Store the ticks used for x
         
-        %store variables used when making multiple gramm plots in the same window:
-        multi=struct('orig',[0 0],...   origin (x,y) of the current gramm plot in normalized
-            'size',[1 1],...   size (w,h) of the current gramm plot in normalized values
-            'active',false)
+        %Is the gramm plot part of an array of gramm plots drawn together
+        multi=struct('active',false)
         
         %Stores variables relative to gramm updating
         updater=struct('facet_updated',0,...
@@ -118,12 +116,13 @@ classdef gramm < matlab.mixin.Copyable
         
         legend_text_handles=[] %Stores handles of text objects for legend
         facet_text_handles=[] %Stores handles of text objects for facet row and column titles
+        facet_row_axes=[] %Stores the overlay axes holding the facet row titles
         title_text_handle=[] %Stores handle of title text object
         
-        redraw_cache=[] %Cache store for faster redraw() calls
         redraw_fun={}
         
         parent=[]
+        parent_tile=struct('tile',1,'span',[1 1]) %Tile used when the parent is a tiledlayout
         
         data_size
 
@@ -197,7 +196,7 @@ classdef gramm < matlab.mixin.Copyable
         
         obj=fig(obj,fig)
         
-        obj=redraw(obj,spacing,display)
+        obj=redraw(obj,src,event)
         obj=draw(obj,do_redraw)
 		obj=export(obj,varargin)
            
@@ -215,6 +214,7 @@ classdef gramm < matlab.mixin.Copyable
         obj=axe_property(obj,varargin)
         obj=set_datetick(obj,varargin)
         obj=set_title(obj,title,varargin)
+        obj=set_parent(obj,parent,varargin)
         obj=set_names(obj,varargin)
         
         % geom  methods
@@ -246,10 +246,6 @@ classdef gramm < matlab.mixin.Copyable
         obj=stat_qq(obj,varargin)
         obj=stat_cornerhist(obj,varargin)
         obj=stat_violin(obj,varargin)
-           
-        function obj=set_parent(obj,parent)
-            obj.parent=parent;
-        end
         
     end
 

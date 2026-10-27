@@ -454,20 +454,22 @@
             {"name":"big_title_scaling","kind":"namevalue","type":"numeric"}
 		]
 },
+"gramm.set_parent":
+{
+		"inputs":[
+			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"parent","kind":"required","type":[["matlab.ui.Figure"],["matlab.ui.container.Panel"],["matlab.graphics.layout.TiledChartLayout"]]},
+			{"name":"tile","kind":"namevalue","type":["numeric","positive","integer"]},
+			{"name":"span","kind":"namevalue","type":["numeric","numel=2","positive","integer"]}
+		]
+},
 "gramm.set_layout_options":
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
-			{"name":"position","kind":"namevalue","type":"choices={'auto'}"},
 			{"name":"legend","kind":"namevalue","type":"choices={1,0}"},
-			{"name":"legend_width","kind":"namevalue","type":"choices={'auto'}"},
 			{"name":"legend_position","kind":"namevalue","type":"choices={'auto'}"},
-			{"name":"title_centering","kind":"namevalue","type":"choices={'axes','plot'}"},
 			{"name":"redraw","kind":"namevalue","type":"choices={1,0}"},
-			{"name":"redraw_gap","kind":"namevalue","type":"numeric"},
-            {"name":"margin_height","kind":"namevalue","type":"numeric"},
-            {"name":"margin_width","kind":"namevalue","type":"numeric"},
-			{"name":"gap","kind":"namevalue","type":"choices={'auto'}"},
             {"name":"multi_spacing","kind":"namevalue","type":"choices={'loose','compact','tight','none'}"},
             {"name":"multi_padding","kind":"namevalue","type":"choices={'loose','compact','tight'}"},
             {"name":"spacing","kind":"namevalue","type":"choices={'loose','compact','tight','none'}"},

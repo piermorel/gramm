@@ -55,9 +55,6 @@ for k = 1:length(temp_fields)
 end
 obj.polygon.on=false;
 
-%Remove cache
-obj.redraw_cache=[];
-
 %Reinitialize results
 obj.results=[];
 end
