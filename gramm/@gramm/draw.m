@@ -67,15 +67,15 @@ if numel(obj)>1
         scale_legend(obj(k));
     end
 
-    %Set up tight redrawing for multiple plots
+    %Set up redrawing on resize for multiple plots
     if do_redraw
         register_redraw(obj);
-
-        %Redraw once the layout is computed (positions of the elements
-        %handled by redraw() are only known then)
-        drawnow;
-        redraw(obj);
     end
+
+    %Redraw once the layout is computed (positions of the elements handled
+    %by redraw() and title widths are only known then)
+    drawnow;
+    redraw(obj);
     return;
 end
 
@@ -1243,14 +1243,17 @@ if ~obj.multi.active
     scale_legend(obj);
 end
 
-% Set the resize function
-if do_redraw  && ~obj.multi.active %Redrawing for multiple plots is handled at the beginning of draw()
-    register_redraw(obj);
-    
-    if ~isempty(obj.redraw_fun) %If there is something to redraw we do it once the layout is computed
-        drawnow;
-        redraw(obj);
+%Redrawing for multiple plots is handled at the beginning of draw()
+if ~obj.multi.active
+    % Set the resize function
+    if do_redraw
+        register_redraw(obj);
     end
+
+    %Redraw once the layout is computed (positions of the elements handled
+    %by redraw() and title widths are only known then)
+    drawnow;
+    redraw(obj);
 end
 
 
