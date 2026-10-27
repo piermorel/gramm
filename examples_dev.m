@@ -674,7 +674,7 @@ g.draw();
 
 %Possibility to use axe handles of the inset axes to add elements or change
 %properties
-plot(g.results.stat_cornerhist(2).child_axe_handle,[-2 -2],[0 50],'k:','LineWidth',2)
+xline(g.results.stat_cornerhist(2).child_axe_handle,-2,':','LineWidth',2)
 %set([g.results.stat_cornerhist.child_axe_handle],'XTick',[])
 
 %% Graphic and normalization options in stat_violin()
@@ -1469,7 +1469,7 @@ f=figure;
 %Create fake button
 c=uicontrol('Style','pushbutton','String','Dummy','Units','normalized','Position',[0.8 0.45 0.15 0.1]);
 %Create uipanel to put our gramm plots
-p=uipanel('Position',[0.05 0.1 0.7 0.8],'Parent',f,'BackgroundColor',[1 1 1]);
+p=uipanel('Position',[0.05 0.1 0.7 0.8],'Parent',f);
 
 % Starting with the example figure
 load example_data;
@@ -1493,7 +1493,7 @@ g.set_text_options('font','Courier',...
 g.draw();
 
 %It's possible to use the axes handles to add elements to single axes
-line([75 75],[0 50],'Color','k','LineStyle','--','Parent',g.facet_axes_handles(1));
+xline(g.facet_axes_handles(1),75,'--');
 text(75.3,47,{'Important' 'event'},'Parent',g.facet_axes_handles(1),'FontName','Courier');
 
 %It's also possible to change properties of graphical elements
@@ -1713,7 +1713,7 @@ f.Position(3:4)=[1000 700];
 
 %% Raw matlab code equivalent to the first figure (in paper.md)
 
-figure('Color',[1 1 1]);
+figure;
 
 % Define groups
 cyl = [4 6 8]; % Manually

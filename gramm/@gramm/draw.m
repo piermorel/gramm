@@ -581,14 +581,13 @@ for ind_row=1:length(uni_row)
                     row_axe=axes(obj.layout);
                     row_axe.Layout.Tile=ca.Layout.Tile;
                     row_axe.Layout.TileSpan=ca.Layout.TileSpan;
-                    set(row_axe,'Color','none','XColor','none','YColor','none',...
-                        'XTick',[],'YTick',[],'YAxisLocation','right',...
+                    set(row_axe,'Visible','off','YAxisLocation','right',...
                         'HitTest','off','PickableParts','none','HandleVisibility','off');
                     row_axe.YLabel.String=row_string;
                     set(row_axe.YLabel,'Interpreter',obj.text_options.interpreter,...
                         'FontName',obj.text_options.font,...
                         'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
-                        'FontWeight','bold','Color',ca.Title.Color,...
+                        'FontWeight','bold',...
                         'Rotation',-90,'VerticalAlignment','bottom','Visible','on');
                     obj.facet_text_handles=[obj.facet_text_handles row_axe.YLabel];
                     obj.facet_row_axes(ind_row)=row_axe;
@@ -700,9 +699,6 @@ if obj.layout_options.legend
             lightness_legend_map=pa_LCH2RGB([linspace(obj.color_options.lightness_range(1),obj.color_options.lightness_range(2),length(uni_lightness))' ...
                 zeros(length(uni_lightness),1)...
                 zeros(length(uni_lightness),1)]);
-            if strcmp(my_theme(gcf), "Dark Theme")
-                lightness_legend_map = fliplightness(lightness_legend_map);
-            end
         else
             %Make a colormap with the first color
             lightness_legend_map=get_colormap(1,length(str_uni_lightness),obj.color_options);
@@ -1232,22 +1228,8 @@ for ind_row=1:length(uni_row) %Loop over rows
 end
 
 
-%Background !
-if strcmp(my_theme(gcf), 'Light Theme')
-    set(gcf,'color',[1 1 1],'PaperPositionMode','auto');
-else
-    set(gcf,'color',[0.0706    0.0706    0.0706],'PaperPositionMode','auto');
-    %Handle black lines and markers : we assume that pure black should
-    %become white
-    h=findall(gcf,'Color',[0 0 0]);
-    set(h,'Color',fliplightness([0 0 0]));
-    h=findall(gcf,'EdgeColor',[0 0 0]);
-    set(h,'EdgeColor',fliplightness([0 0 0]));
-    h=findall(gcf,'MarkerEdgeColor',[0 0 0]);
-    set(h,'MarkerEdgeColor',fliplightness([0 0 0]));
-    h=findall(gcf,'MarkerFaceColor',[0 0 0]);
-    set(h,'MarkerFaceColor',fliplightness([0 0 0]));
-end
+%Background matching the axes, and black elements following the theme
+apply_theme(obj);
 
 
 

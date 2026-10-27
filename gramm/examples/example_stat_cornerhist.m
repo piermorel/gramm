@@ -30,5 +30,5 @@ g.draw();
 
 %Possibility to use axe handles of the inset axes to add elements or change
 %properties
-plot(g.results.stat_cornerhist(2).child_axe_handle,[-2 -2],[0 50],'k:','LineWidth',2)
+xline(g.results.stat_cornerhist(2).child_axe_handle,-2,':','LineWidth',2)
 %set([g.results.stat_cornerhist.child_axe_handle],'XTick',[])

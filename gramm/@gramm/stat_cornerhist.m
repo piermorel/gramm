@@ -40,7 +40,7 @@ end
 %Get parent axis
 parent_axe=obj.facet_axes_handles(obj.current_row,obj.current_column);
 parent_axe_pos=get(parent_axe,'Position');
-set(parent_axe,'color','none')
+fig=ancestor(parent_axe,'figure');
 
 %Compute default location of the child axis if needed
 if isempty(params.location)
@@ -70,8 +70,9 @@ if isa(obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column),'matla
     
    new_child=true;
 else
-    %If inset already created, just make it active axis
-   axes(obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column)); 
+    %If inset already created, just make it active axis (setting
+    %CurrentAxes instead of calling axes() keeps the inset on top)
+   set(fig,'CurrentAxes',obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column));
 end
 
 %Draw data is x-y
@@ -108,7 +109,7 @@ if new_child
     end  
 end
 
-axes(parent_axe);
+set(fig,'CurrentAxes',parent_axe);
 
 
 end

@@ -44,7 +44,7 @@ g.draw();
 % The following code produces a similar figure using raw MATLAB, to
 % illustrate how gramm simplifies the process
 
-figure('Color',[1 1 1]);
+figure;
 
 % Define groups
 cyl = [4 6 8]; % Manually
