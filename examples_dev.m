@@ -1614,8 +1614,7 @@ g.draw();
 
 %% Dev tests: update() paths
 % Same facets, one to many facets, many to one facet, and one to many
-% inside an array (the untouched element warns about draw() without
-% update(), as on master)
+% inside an array (the untouched element is skipped without warning)
 
 figure('Position',[100 100 900 500]);
 g=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Cylinders);

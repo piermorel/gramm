@@ -23,6 +23,8 @@ function packageTask(~)
 % Create MLTBX package
     prjFile = "gramm.prj";
     packagingData = matlab.addons.toolbox.ToolboxOptions(prjFile);
+    % tiledlayout features used by gramm (tilenum) need R2022b
+    packagingData.MinimumMatlabRelease = "R2022b";
     tagVersion = getenv("CI_COMMIT_TAG");
     if ~isempty(tagVersion)
         if startsWith(tagVersion, 'v')

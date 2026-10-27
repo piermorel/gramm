@@ -8,7 +8,7 @@
     <!-- Supply the following six elements in the order specified -->
     <!-- (Required) Release of MATLAB. Not currently used but required -->
     <!-- to parse the file -->
-    <matlabrelease>R2018a</matlabrelease>
+    <matlabrelease>R2022b</matlabrelease>
     <!-- (Required) Title of toolbox. Appears in the Contents pane -->
     <name>gramm</name>
     <!-- (Required) Label for the toolbox. pick one: -->

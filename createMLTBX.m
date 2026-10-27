@@ -52,6 +52,9 @@ packagingData = matlab.addons.toolbox.ToolboxOptions(prjFile);
 
 % Update the version number
 packagingData.ToolboxVersion = toolboxVersion;
+
+% tiledlayout features used by gramm (tilenum) need R2022b
+packagingData.MinimumMatlabRelease = "R2022b";
 outputFileName = packagingData.ToolboxName + "_" + packagingData.ToolboxVersion + ".mltbx";
 packagingData.OutputFile =outputFileName;
 

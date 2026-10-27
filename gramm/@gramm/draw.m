@@ -10,8 +10,8 @@ function obj=draw(obj,do_redraw)
 % different grouping aesthetics). When using superimposed
 % plots, the last draw() should be given without this false
 % argument. Giving false as argument deactivates the automatic
-% call for the redraw() function, i.e. deactivates the fancy
-% axis placement.
+% call for the redraw() function when the figure is resized.
+% To draw a gramm plot in a tile of a tiledlayout, see set_parent().
 
 %We set redraw() as resize callback by default
 if nargin<2
@@ -85,9 +85,12 @@ if isempty(obj.aes.x)
 end
 
 %If draw() is called a second time without update() having been
-%called we skip
+%called we skip (silently for the elements of an array of gramm plots that
+%were not updated when the array is drawn again)
 if (~obj.updater.first_draw && ~obj.updater.updated)
-    warning('Multiple draw() calls need update() calls')
+    if ~obj.multi.active
+        warning('Multiple draw() calls need update() calls')
+    end
     return
 end
 
@@ -374,10 +377,8 @@ for ind_row=1:length(uni_row)
             first_axes_children=allchild(obj.facet_axes_handles(1,1));
         end
         
-        %Make axes current
-        %Was making figure visible even when visibility was set to off
-        %axes(obj.facet_axes_handles(ind_row,ind_column)); 
-        %(groot can't be used here: the assignment would make it a variable)
+        %Make axes current (axes() would make an invisible figure visible;
+        %groot can't be used here: the assignment would make it a variable)
         set(0,'CurrentFigure',ancestor(obj.facet_axes_handles(ind_row,ind_column),'figure'));
         set(gcf,'CurrentAxes',obj.facet_axes_handles(ind_row,ind_column));
         
@@ -559,17 +560,6 @@ for ind_row=1:length(uni_row)
                 end
                 
                 if ind_row==1
-%                     obj.facet_text_handles=[obj.facet_text_handles ...
-%                         text('Interpreter',obj.text_options.interpreter,'String',column_string,'Rotation',0,...
-%                         'Units','normalized',...
-%                         'Position',[0.5 1.05 2],...
-%                         'BackgroundColor','none',...
-%                         'HorizontalAlignment','Center',...
-%                         'VerticalAlignment','bottom',...
-%                         'FontWeight','bold',...
-%                         'FontName',obj.text_options.font,...
-%                         'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
-%                         'Parent',obj.facet_axes_handles(ind_row,ind_column))];
                     obj.facet_axes_handles(ind_row,ind_column).Title.String = column_string;
                     obj.facet_text_handles=[obj.facet_text_handles obj.facet_axes_handles(ind_row,ind_column).Title];
                 end
@@ -582,17 +572,6 @@ for ind_row=1:length(uni_row)
                 end
                 
                 if ind_column==length(uni_column)
-%                     obj.facet_text_handles=[obj.facet_text_handles ...
-%                         text('Interpreter',obj.text_options.interpreter,'String',row_string,'Rotation',-90,...
-%                         'Units','normalized',...
-%                         'Position',[1.05 0.5 2],...
-%                         'BackgroundColor','none',...
-%                         'HorizontalAlignment','Center',...
-%                         'VerticalAlignment','bottom',...
-%                         'FontWeight','bold',...
-%                         'FontName',obj.text_options.font,...
-%                         'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
-%                         'Parent',obj.facet_axes_handles(ind_row,ind_column))];
                     
                     %Row titles are the right-side YLabel of an empty axes
                     %placed in the same tile as the facet, so that
@@ -636,7 +615,6 @@ if ~isempty(obj.title)
         end
     end
 else
-    obj.title_axe_handle=[];
 end
 
 %% Compute continuous colormap limits
@@ -671,10 +649,6 @@ if obj.updater.first_draw
     if strcmp(obj.layout_options.legend_position,'auto')
         obj.legend_axe_handle=axes(obj.layout);
         obj.legend_axe_handle.Layout.Tile='east';
-        %hold on
-        %obj.legend_axe_handle.Interruptible='off';
-        %drawnow nocallbacks
-        %set(obj.legend_axe_handle,'PlotBoxAspectRatio',[1 1 1]);
     else
         obj.legend_axe_handle=axes('Position',obj.layout_options.legend_position,...
                 'Parent',ancestor(obj.parent,'figure'));
@@ -683,7 +657,6 @@ if obj.updater.first_draw
     set(obj.legend_axe_handle,'Visible','off','NextPlot','add');
     obj.legend_axe_handle.Toolbar.Visible = 'off';
     obj.legend_axe_handle.Interactions = [];
-    %set(obj.legend_axe_handle,'PlotBoxAspectRatio',[1 1 1]);
 elseif obj.updater.facet_updated==1
     %Bring back the legend axes set aside while the layout was rebuilt
     if strcmp(obj.layout_options.legend_position,'auto')
@@ -1162,21 +1135,6 @@ for ind_row=1:length(uni_row) %Loop over rows
                 end
             end
             
-%             %Add axes labels on right and botttom graphs only
-%             if (~obj.is_flipped && on_left) || ~isempty(temp_aes.z) || ...
-%                (obj.is_flipped && on_bottom)   %If coord flipped do it the other way around (y like x)
-%                 ylabel(ca,obj.aes_names.y,...
-%                     'Interpreter',obj.text_options.interpreter,...
-%                     'FontName',obj.text_options.font,...
-%                     'FontSize',obj.text_options.base_size*obj.text_options.label_scaling); %,'Units','normalized','position',[-0.2 0.5 1]
-%             end
-%             if (~obj.is_flipped && on_bottom) || ~isempty(temp_aes.z) ||...
-%                 (obj.is_flipped && on_left) %If coord flipped do it the other way around (x like y)
-%                 xlabel(ca,obj.aes_names.x,...
-%                     'Interpreter',obj.text_options.interpreter,...
-%                     'FontName',obj.text_options.font,...
-%                     'FontSize',obj.text_options.base_size*obj.text_options.label_scaling)
-%             end
             %If we have z data
             if ~isempty(temp_aes.z)
                 zlabel(ca,obj.aes_names.z,...
@@ -1303,9 +1261,8 @@ if ~obj.multi.active
     scale_legend(obj);
 end
 
-% Make everything tight and set the resize function so that it stays so
+% Set the resize function
 if do_redraw  && ~obj.multi.active %Redrawing for multiple plots is handled at the beginning of draw()
-%    redraw(obj);
     register_redraw(obj);
     
     if ~isempty(obj.redraw_fun) %If there is something to redraw we do it once the layout is computed

@@ -112,7 +112,7 @@ Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open So
 
 ### Compatibility ###
 
- Recent versions of gramm (3.0 and above) target MATLAB above R2018b. Older releases work in older MATLAB versions. The statistics toolbox is required for some methods: <code>stat_glm()</code>, <code>stat_qq()</code>, <code>stat_density()</code>, <code>stat_violin()</code>, <code>stat_bin2d()</code>, <code>stat_ellipse()</code>, <code>geom_swarm()</code>, and <code>stat_summary()</code> except for the <code>'std'</code> and <code>'sem'</code> types. The curve fitting toolbox is required for <code>stat_smooth()</code> methods other than the default <code>'eilers'</code>. The curve fitting toolbox or the statistics toolbox is required for <code>stat_fit()</code>.
+ Recent versions of gramm (3.0 and above) target MATLAB above R2018b, and versions using MATLAB's tiledlayout for figure layouts require R2022b or later. Older releases work in older MATLAB versions. The statistics toolbox is required for some methods: <code>stat_glm()</code>, <code>stat_qq()</code>, <code>stat_density()</code>, <code>stat_violin()</code>, <code>stat_bin2d()</code>, <code>stat_ellipse()</code>, <code>geom_swarm()</code>, and <code>stat_summary()</code> except for the <code>'std'</code> and <code>'sem'</code> types. The curve fitting toolbox is required for <code>stat_smooth()</code> methods other than the default <code>'eilers'</code>. The curve fitting toolbox or the statistics toolbox is required for <code>stat_fit()</code>.
 
 
 ## Main Features
@@ -150,6 +150,7 @@ Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open So
 - All visualizations have plenty of options accessible through arguments, from computational to esthetic ones.
 - Representation of groupings can be fully customized (colormaps, ordering)
 - Multiple gramm plots can be combined in the same figure by creating a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix.
+- Custom layouts (plots of different sizes, marginal plots, combination with regular MATLAB axes) by drawing gramm plots in tiles of a tiledlayout with <code>set_parent(layout,'tile',tile,'span',span)</code>.
 - MATLABs axes properties are modifiable through the method <code>axe_property()</code>
 - Non-data graphical elements can be added such as reference lines or polygons (<code>geom_abline()</code>, <code>geom_vline()</code>,<code>geom_hline()</code>,<code>geom_polygon()</code>)
 - For advanced customization, handles of all graphic elements and computation results are easily available after the <code>draw()</code> through the <code>results</code> structure of the gramm object

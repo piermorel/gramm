@@ -4,11 +4,9 @@ classdef gramm < matlab.mixin.Copyable
     
     properties (Access=public)
         legend_axe_handle %Store the handle of the legend axis
-        title_axe_handle %Store the handle of the title axis
         facet_axes_handles %Stores the handles of the facet axes
         results %Stores the results of the draw functions and statistics computations
-        layout
-        legend_transform
+        layout %tiledlayout holding the facets, titles and legend
     end
     
     properties (Access=protected,Hidden=true)
@@ -106,6 +104,7 @@ classdef gramm < matlab.mixin.Copyable
         layout_options  %Structure holding layout options
         
         legend_y=0 %Current y position of the legend text
+        legend_transform %hgtransform scaling the legend vertically (see scale_legend())
         
         
         
