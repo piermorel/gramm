@@ -19,8 +19,10 @@ n_trials=15;
 movement_direction=directions(dir_ind(:))';
 preferred=[45 160 270];
 gain=[12 18 10 ; 25 18 16];
-rate=4+gain(sub2ind(size(gain),cond_ind(:),neuron_ind(:))).*exp(2*(cosd(movement_direction-preferred(neuron_ind(:))')-1));
-rate=max(0,rate+2*randn(numel(rate),1));
+mean_rate=4+gain(sub2ind(size(gain),cond_ind(:),neuron_ind(:))).*exp(2*(cosd(movement_direction-preferred(neuron_ind(:))')-1));
+% Spike counts in 1-s trials follow a Poisson distribution (spikes are
+% drawn independently in 1-ms bins)
+rate=sum(rand(numel(mean_rate),1000)<mean_rate/1000,2);
 neuron_names={'Neuron 1','Neuron 2','Neuron 3'};
 neuron=neuron_names(neuron_ind(:))';
 cond_names={'Before','After'};
