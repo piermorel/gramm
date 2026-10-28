@@ -50,32 +50,31 @@ else
 end
 
 hndl = gobjects(length(uni_x),1);
+y_orig = cell(length(uni_x),1);
 for ind_x=1:length(uni_x)
 
     ysel=y(abs(x-uni_x(ind_x))<1e-10);
-    y_orig = ysel;
+    y_orig{ind_x} = ysel;
 
     [xsel,ysel] = gen_swarm(ysel,params,parent_axe);
 
     xsel = xsel + dodge_uni_x(ind_x);
 
     hndl(ind_x) = scatter(xsel,ysel,(params.point_size*2)^2,'filled','MarkerFaceColor',draw_data.color,'MarkerFaceAlpha',params.alpha);
-    hndl(ind_x).UserData.x_offset = dodge_uni_x(ind_x);
-    hndl(ind_x).UserData.y_orig = y_orig;
 end
 
-obj.redraw_fun=vertcat(obj.redraw_fun,{@()swarm_redraw(parent_axe,hndl,params)});
+obj.redraw_fun=vertcat(obj.redraw_fun,{@()swarm_redraw(parent_axe,hndl,y_orig,dodge_uni_x,params)});
 
 obj.results.geom_swarm{obj.result_ind,1}.scatter_handle = hndl;
 
 end
 
-function swarm_redraw(ax,hndl,params)
+function swarm_redraw(ax,hndl,y_orig,x_offset,params)
 for k=1:length(hndl)
 
-    [x,y] = gen_swarm(hndl(k).UserData.y_orig,params,ax) ;
+    [x,y] = gen_swarm(y_orig{k},params,ax) ;
 
-    hndl(k).XData  = x + hndl(k).UserData.x_offset;
+    hndl(k).XData  = x + x_offset(k);
     hndl(k).YData  = y ;
 end
 end
