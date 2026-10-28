@@ -49,6 +49,8 @@ classdef gramm < matlab.mixin.Copyable
             'max_polar_y',-1,...
             'unit','radians')
         
+        axis_scale=struct('x','linear','y','linear','z','linear') %'linear' or 'log' axes (see set_scale())
+
         is_flipped=false; %Are the axes flipped?
         
         cat_order %Natural order of the values of categorical/datetime/duration grouping data (see validate_aes())
@@ -234,6 +236,7 @@ classdef gramm < matlab.mixin.Copyable
         obj=no_legend(obj)
         obj=set_limit_extra(obj,x_extra,y_extra,z_extra)
         obj=axe_property(obj,varargin)
+        obj=set_scale(obj,varargin)
         obj=set_datetick(obj,varargin)
         obj=set_title(obj,title,varargin)
         obj=set_parent(obj,parent,varargin)

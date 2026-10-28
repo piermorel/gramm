@@ -146,9 +146,9 @@ end
 
 switch params.geom
     case 'bar'
-        xpatch=[bar_right ; bar_left ; bar_left ; bar_right];
-        ypatch=[zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'];
+        [xpatch,ypatch]=bar_patch(bar_left,bar_right,zeros(1,length(bincounts)),bincounts');
         ypatch(:,bincounts==0)=NaN; %Hide empty bins (their degenerate faces can be rendered as stray lines)
+        ypatch=log_base(obj,ypatch);
         [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
         results.bar_handle=patch(xpatch,...
             ypatch,...
@@ -160,13 +160,13 @@ switch params.geom
         [xtemp,ytemp]=close_polar(obj,xtemp,ytemp);
         results.line_handle=plot(xtemp,ytemp,'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.line_size);
         xpatch=[bar_mid(1:end-1) ; bar_mid(2:end) ; bar_mid(2:end);bar_mid(1:end-1)];
-        ypatch=[zeros(1,length(bincounts)-1) ; zeros(1,length(bincounts)-1) ; bincounts(2:end)' ; bincounts(1:end-1)'];
+        ypatch=log_base(obj,[zeros(1,length(bincounts)-1) ; zeros(1,length(bincounts)-1) ; bincounts(2:end)' ; bincounts(1:end-1)']);
         results.fill_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',face_color,'EdgeColor','none','FaceAlpha',face_alpha);
         
     case 'stacked_bar'
-        xpatch=[binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing];
-        ypatch=[obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'];
+        [xpatch,ypatch]=bar_patch(binranges(1:end-1)+spacing,binranges(2:end)-spacing,obj.extra.stacked_bar_height,obj.extra.stacked_bar_height+bincounts');
         ypatch(:,bincounts==0)=NaN; %Hide empty bins (their degenerate faces can be rendered as stray lines)
+        ypatch=log_base(obj,ypatch);
         [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
         results.bar_handle=patch(xpatch,...
             ypatch,...
@@ -179,7 +179,7 @@ switch params.geom
         results.line_handle=plot(xtemp,ytemp,'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.line_size);
         
         xpatch=[binranges(1:end-1) ; binranges(2:end) ; binranges(2:end) ; binranges(1:end-1)];
-        ypatch=[obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'];
+        ypatch=log_base(obj,[obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts']);
         [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
         
         results.fill_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',face_color,'EdgeColor','none','FaceAlpha',face_alpha);

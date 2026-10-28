@@ -89,8 +89,7 @@ if params.stacked
     barleft=bar_x-width/2;
     barright=bar_x+width/2;
 
-    xpatch=[barleft ; barright ; barright ; barleft];
-    ypatch=[barbottom ; barbottom ; bartop ; bartop];
+    [xpatch,ypatch]=bar_patch(barleft,barright,barbottom,bartop);
 
     if obj.plot_lim.maxy(obj.current_row,obj.current_column)<max(bartop)
         obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(bartop);
@@ -109,14 +108,14 @@ else
     % Calculate bar patch coordinates
     barleft=x-bar_width/2;
     barright=x+bar_width/2;
-    xpatch=[barleft ; barright ; barright ; barleft];
-    ypatch=[zeros(1,length(y)) ; zeros(1,length(y)) ; y ; y];
+    [xpatch,ypatch]=bar_patch(barleft,barright,zeros(1,length(y)),y);
 
 end
 
 % Hide zero-height bars (NaN faces are not drawn): their degenerate faces
 % can be rendered as a stray horizontal line extending out of the axes
 ypatch(:,ypatch(1,:)==ypatch(3,:))=NaN;
+ypatch=log_base(obj,ypatch);
 [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
 
 % Convert unmatched structure to cell array of name-value pairs

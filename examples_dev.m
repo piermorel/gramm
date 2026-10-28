@@ -485,8 +485,10 @@ n_trials=15;
 movement_direction=directions(dir_ind(:))';
 preferred=[45 160 270];
 gain=[12 18 10 ; 25 18 16];
-rate=4+gain(sub2ind(size(gain),cond_ind(:),neuron_ind(:))).*exp(2*(cosd(movement_direction-preferred(neuron_ind(:))')-1));
-rate=max(0,rate+2*randn(numel(rate),1));
+mean_rate=4+gain(sub2ind(size(gain),cond_ind(:),neuron_ind(:))).*exp(2*(cosd(movement_direction-preferred(neuron_ind(:))')-1));
+% Spike counts in 1-s trials follow a Poisson distribution (spikes are
+% drawn independently in 1-ms bins)
+rate=sum(rand(numel(mean_rate),1000)<mean_rate/1000,2);
 neuron_names={'Neuron 1','Neuron 2','Neuron 3'};
 neuron=neuron_names(neuron_ind(:))';
 cond_names={'Before','After'};
@@ -555,6 +557,70 @@ g.set_title('Car attributes by region of origin');
 figure('Position',[100 100 600 500]);
 g.draw();
 
+
+%% Log axes: scatter plots
+% set_scale() makes axes logarithmic, here y with set_scale('y','log'), or
+% both x and y with set_scale('x','log','y','log'). The axis limits extend
+% proportionally beyond the data. Values at or below 0, which can't be
+% displayed on log axes, are left out of the limits.
+% axe_property('XScale','log') has the same effect as set_scale(). The
+% same data is shown with linear axes on the top row
+
+% US population from the census (MATLAB's census.mat), and power outages
+% in the US (MATLAB's outages.csv)
+load census
+outages=readtable('outages.csv');
+
+clear g
+for k=1:2
+    g(k,1)=gramm('x',cdate,'y',pop);
+    g(k,1).geom_line();
+    g(k,1).geom_point();
+    g(k,1).set_names('x','Year','y','US population (millions)');
+    g(k,2)=gramm('x',outages.Customers,'y',outages.Loss,'color',outages.Region);
+    g(k,2).geom_point('alpha',0.5);
+    g(k,2).set_names('x','Customers affected','y','Power loss (MW)','color','Region');
+end
+g(1,1).set_title('Linear axes');
+g(1,2).set_title('Linear axes');
+g(2,1).set_scale('y','log');
+g(2,1).set_title('Log y axis');
+g(2,2).set_scale('x','log','y','log');
+g(2,2).set_title('Log x and y axes');
+figure('Position',[100 100 1000 800]);
+g.draw();
+
+%% Log axes: histograms
+% On a log y axis, bars of stat_bin() (and geom_bar(), stat_summary()
+% bars) start from the bottom of the axis. The bins are computed on linear
+% values: on a log x axis, bins regularly spaced on the axis are given
+% with 'edges' and logspace(). The same data is shown with linear axes
+% and bins on the top row
+
+% Duration of power outages in the US (MATLAB's outages.csv)
+outages=readtable('outages.csv');
+duration=days(outages.RestorationTime-outages.OutageTime);
+cause_type=repmat({'Other'},height(outages),1);
+cause_type(contains(outages.Cause,{'storm','wind'}))={'Storm or wind'};
+
+clear g
+g(1,1)=gramm('x',duration);
+g(1,1).stat_bin('geom','bar');
+g(1,1).set_title('Linear axes');
+g(2,1)=gramm('x',duration);
+g(2,1).stat_bin('edges',logspace(-3.5,4.5,33),'geom','bar');
+g(2,1).set_scale('x','log');
+g(2,1).set_title('Log x axis');
+g(1,2)=gramm('x',duration,'color',cause_type);
+g(1,2).stat_bin('geom','overlaid_bar','fill','transparent');
+g(1,2).set_title('Linear axes');
+g(2,2)=gramm('x',duration,'color',cause_type);
+g(2,2).stat_bin('edges',logspace(-3.5,4.5,33),'geom','overlaid_bar','fill','transparent');
+g(2,2).set_scale('x','log','y','log');
+g(2,2).set_title('Log x and y axes');
+g.set_names('x','Outage duration (days)','y','Outages','color','Cause');
+figure('Position',[100 100 1000 750]);
+g.draw();
 
 %% Methods for visualizing repeated densities (e.g. spike densities)
 % With the support of 2D inputs for X and gramm's functionality for
@@ -2019,6 +2085,111 @@ for k=1:size(unsupported,1)
 end
 close(f);
 
+
+%% Dev tests: log axes
+% Every geom and stat on log axes, in an array of gramm plots (values at
+% or below 0 are left out of the limits, bars start from the bottom of
+% the axis), then facets, update() and the error in polar plots
+
+rng(3);
+n=300;
+lx=10.^(3*rand(n,1));
+ly=2*lx.^0.7.*exp(0.3*randn(n,1));
+ly(1:4)=[0 0 -1 -5]; %Not displayable
+lgrp=repmat({'A';'B';'C'},n/3,1);
+lcat=repmat({'u';'v';'w';'z'},n/4,1);
+lval=10.^(0.4*randn(n,1)+repmat((0:3)',n/4,1));
+lt=(1:20)';
+lsig=[10.^(lt/5) ; 10.^(lt/8)];
+lsig_grp=repelem({'A';'B'},20,1);
+
+figure('Position',[50 50 1800 1100]);
+clear g
+g(1,1)=gramm('x',lx,'y',ly,'color',lgrp);
+g(1,1).geom_point(); g(1,1).set_scale('x','log','y','log'); g(1,1).set_title('geom_point() with values <=0');
+g(1,2)=gramm('x',[lt ; lt],'y',lsig,'color',lsig_grp);
+g(1,2).geom_line('fill',0); g(1,2).set_scale('y','log'); g(1,2).set_title('geom_line() ''fill'' 0');
+g(1,3)=gramm('x',[lt ; lt],'y',lsig,'color',lsig_grp);
+g(1,3).geom_line('stacked',true); g(1,3).set_scale('y','log'); g(1,3).set_title('geom_line() stacked');
+g(1,4)=gramm('x',{'a','b','c','d','a','b','c','d'},'y',[1 20 300 5000 2 10 600 100],'color',{'1','1','1','1','2','2','2','2'});
+g(1,4).geom_bar('stacked',true); g(1,4).set_scale('y','log'); g(1,4).set_title('geom_bar() stacked');
+g(1,5)=gramm('x',repmat({'u';'v';'w';'z'},3,1),'y',10.^(rand(12,1)+repmat((0:3)',3,1)),'color',repelem({'A';'B';'C'},4,1));
+g(1,5).geom_bar('dodge',0.7,'width',0.6); g(1,5).set_scale('y','log'); g(1,5).set_title('geom_bar() dodged');
+
+g(2,1)=gramm('x',lx,'color',lgrp);
+g(2,1).stat_bin('edges',logspace(0,3,15),'geom','overlaid_bar','fill','transparent'); g(2,1).set_scale('x','log','y','log'); g(2,1).set_title('stat_bin() overlaid_bar');
+g(2,2)=gramm('x',lx,'color',lgrp);
+g(2,2).stat_bin('edges',logspace(0,3,15),'geom','stacked_bar'); g(2,2).set_scale('x','log','y','log'); g(2,2).set_title('stat_bin() stacked_bar');
+g(2,3)=gramm('x',lx,'color',lgrp);
+g(2,3).stat_bin('edges',logspace(0,3,15),'geom','line','fill','transparent'); g(2,3).set_scale('x','log','y','log'); g(2,3).set_title('stat_bin() line');
+g(2,4)=gramm('x',lx,'color',lgrp);
+g(2,4).stat_bin('edges',logspace(0,3,15),'geom','stairs','fill','transparent'); g(2,4).set_scale('x','log','y','log'); g(2,4).set_title('stat_bin() stairs');
+g(2,5)=gramm('x',log10(lx));
+g(2,5).stat_bin('nbins',15,'geom','point'); g(2,5).set_scale('y','log'); g(2,5).set_title('stat_bin() point, log y only');
+
+g(3,1)=gramm('x',lcat,'y',lval,'color',lgrp);
+g(3,1).stat_summary('geom',{'bar','black_errorbar'},'dodge',0.7,'width',0.6); g(3,1).set_scale('y','log'); g(3,1).set_title('stat_summary() bars');
+g(3,2)=gramm('x',lx,'y',ly,'color',lgrp);
+g(3,2).stat_fit('fun',@(a,b,x)a*x.^b,'StartPoint',[2 0.7],'intopt','functional'); g(3,2).set_scale('x','log','y','log'); g(3,2).set_title('stat_fit() power law');
+g(3,3)=gramm('x',lx,'y',ly);
+g(3,3).geom_point('alpha',0.3); g(3,3).stat_smooth(); g(3,3).set_scale('x','log'); g(3,3).set_title('stat_smooth(), log x only');
+g(3,4)=gramm('x',lx,'color',lgrp);
+g(3,4).stat_density(); g(3,4).set_scale('x','log'); g(3,4).set_title('stat_density(), log x only');
+g(3,5)=gramm('x',lx,'y',ly);
+g(3,5).geom_point('alpha',0.3); g(3,5).geom_hline('yintercept',100); g(3,5).geom_vline('xintercept',10); g(3,5).geom_abline('slope',1,'intercept',0);
+g(3,5).set_scale('x','log','y','log'); g(3,5).set_title('geom_hline/vline/abline()');
+
+g(4,1)=gramm('x',lcat,'y',lval,'ymin',lval/2,'ymax',lval*2,'color',lgrp);
+g(4,1).geom_interval('geom','black_errorbar','dodge',0.7); g(4,1).set_scale('y','log'); g(4,1).set_title('geom_interval()');
+g(4,2)=gramm('x',lx,'y',ly,'color',lgrp);
+g(4,2).geom_point(); g(4,2).axe_property('XScale','log','YScale','log'); g(4,2).set_title('axe_property(''XScale'',''log'')');
+g(4,3)=gramm('x',lx,'y',ly,'z',lx.*ly,'color',lgrp);
+g(4,3).geom_point(); g(4,3).set_scale('x','log','y','log','z','log'); g(4,3).set_title('3D, log z');
+g(4,4)=gramm('x',lcat,'y',lval);
+g(4,4).stat_summary('geom',{'bar','black_errorbar'}); g(4,4).set_scale('y','log'); g(4,4).coord_flip(); g(4,4).set_title('coord_flip()');
+g(4,5)=gramm('x',lx,'y',ly,'color',lx);
+g(4,5).geom_point(); g(4,5).set_scale('x','log','y','log'); g(4,5).set_title('Continuous color');
+g.set_title('Log axes: geoms and stats');
+g.draw();
+
+% Facets: shared log limits in 'fixed', per facet in 'independent'
+figure('Position',[50 50 1400 700]);
+clear g
+for k=1:2
+    scales={'fixed','independent'};
+    g(k,1)=gramm('x',lx.*(1+9*strcmp(lgrp,'C')),'y',ly,'color',lgrp);
+    g(k,1).facet_grid([],lgrp,'scale',scales{k});
+    g(k,1).geom_point();
+    g(k,1).set_scale('x','log','y','log');
+    g(k,1).set_title(['Facets, scale ''' scales{k} '''']);
+end
+g.draw();
+
+% update(): one to many facets, scale kept
+figure('Position',[50 50 1200 450]);
+clear g
+g=gramm('x',lx,'y',ly);
+g.geom_point('alpha',0.2);
+g.set_scale('x','log','y','log');
+g.draw();
+g.update('color',lgrp);
+g.facet_grid([],lgrp);
+g.stat_fit('fun',@(a,b,x)a*x.^b,'StartPoint',[2 0.7]);
+g.set_title('update() to facets on log axes');
+g.draw();
+
+% Polar plots don't support log axes: the error is printed
+clear g
+g=gramm('x',lx,'y',ly);
+g.geom_point();
+g.set_polar();
+g.set_scale('y','log');
+figure();
+try
+    g.draw();
+catch err
+    fprintf('Log axes in polar plots: %s\n',err.identifier);
+end
 
 %% Raw matlab code equivalent to the first figure (in paper.md)
 

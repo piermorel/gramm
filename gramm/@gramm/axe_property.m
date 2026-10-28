@@ -9,6 +9,10 @@ if mod(nargin-1,2)==0
     for obj_ind=1:numel(obj)
         for k=1:2:length(varargin)
             obj(obj_ind).axe_properties=vertcat(obj(obj_ind).axe_properties,{varargin{k},varargin{k+1}});
+            %Axis scales are also recorded for draw() (see set_scale())
+            if any(strcmpi(varargin{k},{'XScale','YScale','ZScale'}))
+                obj(obj_ind)=set_scale(obj(obj_ind),lower(varargin{k}(1)),varargin{k+1});
+            end
         end
     end
 else

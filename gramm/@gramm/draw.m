@@ -881,6 +881,7 @@ end
 %How limits are shared between facets, according to facet_scale and
 %wrapping
 [temp_xscale,temp_yscale,temp_zscale]=facet_scales(obj);
+log_lims(obj);
 
 %Set various properties on each of the subplots
 for ind_row=1:length(uni_row) %Loop over rows
@@ -939,11 +940,13 @@ for ind_row=1:length(uni_row) %Loop over rows
         else
             temp_xlim=facet_lim(obj,'x',temp_xscale,ind_row,ind_column);
             if sum(isnan(temp_xlim))==0
-                set_num_lim(ca,'X',temp_xlim+[-diff(temp_xlim)*obj.xlim_extra(1) diff(temp_xlim)*obj.xlim_extra(2)]);
+                set_num_lim(ca,'X',pad_lim(temp_xlim,obj.xlim_extra,obj.axis_scale.x));
             end
             if sum(isnan(temp_ylim))==0
-                set_num_lim(ca,'Y',temp_ylim+[-diff(temp_ylim)*obj.ylim_extra(1) diff(temp_ylim)*obj.ylim_extra(2)]);
+                set_num_lim(ca,'Y',pad_lim(temp_ylim,obj.ylim_extra,obj.axis_scale.y));
             end
+            log_ticks(ca,'X',obj.axis_scale.x);
+            log_ticks(ca,'Y',obj.axis_scale.y);
             
             %Is the axis at interesting locations for ticks/labels?
             on_left=(obj.wrap_ncols==-1 && ind_column==1) || ... %Or if we're in facet grid mode and are in the first column
@@ -957,7 +960,7 @@ for ind_row=1:length(uni_row) %Loop over rows
             if ~isempty(temp_aes.z) %Only do the Z limit stuff if we have z data
                 
                 temp_zlim=facet_lim(obj,'z',temp_zscale,ind_row,ind_column);
-                set(ca,'ZLim',temp_zlim+[-diff(temp_zlim)*obj.zlim_extra(1) diff(temp_zlim)*obj.zlim_extra(2)]);
+                set(ca,'ZLim',pad_lim(temp_zlim,obj.zlim_extra,obj.axis_scale.z));
                 
                 %Always have ticks if we have z data
                 has_xtick=true;
@@ -1031,6 +1034,11 @@ for ind_row=1:length(uni_row) %Loop over rows
                     warning(['Improper ''' obj.axe_properties{ap,1} ''' custom axe property'])
                 end
             end
+        end
+        %With flipped axes, MATLAB displays the y axis on the opposite side
+        %when x or y is log
+        if obj.is_flipped && any(strcmp({obj.axis_scale.x obj.axis_scale.y},'log')) && strcmp(ca.YAxisLocation,'left')
+            ca.YAxisLocation='right';
         end
         
         %Do the datetick (legacy, for datenum x data)
@@ -1166,6 +1174,7 @@ if obj.polar.is_polar
     ax.ThetaAxisUnits=obj.polar.unit;
 else
     ax=nexttile(obj.layout,tile,span);
+    set(ax,'XScale',obj.axis_scale.x,'YScale',obj.axis_scale.y,'ZScale',obj.axis_scale.z);
 end
 end
 
@@ -1220,6 +1229,8 @@ elseif ~isempty(obj.datetick_params)
     what='set_datetick()';
 elseif obj.polygon.on
     what='geom_polygon()';
+elseif ~all(strcmp(struct2cell(obj.axis_scale),'linear'))
+    what='log axes';
 else
     return
 end
@@ -1279,6 +1290,59 @@ switch obj.facet_scale
         xscale='per_plot';
         yscale='per_plot';
         zscale='per_plot';
+end
+end
+
+
+function log_lims(obj)
+%On log axes, lower limits at or below 0 (from data, or from stats and bars
+%starting at 0) can't be displayed: they are replaced by the power of 10
+%below the smallest positive value drawn in the facet (so that the smallest
+%bars remain visible)
+for dim='xyz'
+    if ~strcmp(obj.axis_scale.(dim),'log')
+        continue
+    end
+    mn=obj.plot_lim.(['min' dim]);
+    for k=find(~(mn>0) & isgraphics(obj.facet_axes_handles))'
+        data=get(findobj(obj.facet_axes_handles(k),'-property',[upper(dim) 'Data']),[upper(dim) 'Data']);
+        if iscell(data)
+            data=cellfun(@(v) v(:)',data,'UniformOutput',false);
+            data=[data{:}];
+        end
+        data=data(data>realmin); %Above the bar baselines (see log_base())
+        mn(k)=NaN;
+        if ~isempty(data)
+            mn(k)=10^floor(log10(min(data)));
+        end
+    end
+    obj.plot_lim.(['min' dim])=mn;
+end
+end
+
+
+function lim=pad_lim(lim,extra,scale)
+%Extend limits beyond the data by a ratio of their range, of their range in
+%log space on log axes
+if strcmp(scale,'log')
+    lim=10.^pad_lim(log10(lim),extra,'linear');
+else
+    lim=lim+[-diff(lim)*extra(1) diff(lim)*extra(2)];
+end
+end
+
+
+function log_ticks(ax,axis_name,scale)
+%On log axes spanning several decades, MATLAB sometimes places a single
+%tick: ticks are set at regularly spaced decades instead (at most 6)
+if ~strcmp(scale,'log')
+    return
+end
+lim=log10(ax.([axis_name 'Lim']));
+step=ceil(diff(lim)/6);
+decades=ceil(lim(1)/step)*step:step:floor(lim(2));
+if numel(decades)>=3
+    ax.([axis_name 'Tick'])=10.^decades;
 end
 end
 

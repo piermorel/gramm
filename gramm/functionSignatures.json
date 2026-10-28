@@ -514,6 +514,15 @@
 			{"name":"obj","kind":"required","type":"gramm"}
 		]
 },
+"gramm.set_scale":
+{
+		"inputs":[
+			{"name":"obj","kind":"required","type":"gramm"},
+            {"name":"x","kind":"namevalue","type":"choices={'linear','log'}"},
+            {"name":"y","kind":"namevalue","type":"choices={'linear','log'}"},
+            {"name":"z","kind":"namevalue","type":"choices={'linear','log'}"}
+		]
+},
 "gramm.set_datetick":
 {
 		"inputs":[

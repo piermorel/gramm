@@ -125,7 +125,7 @@ else
             end
 
             xpatch = [xline(1:end-1) ; xline(2:end) ; xline(2:end) ; xline(1:end-1)];
-            ypatch = [top(1:end-1); top(2:end) ; bottom(2:end) ; bottom(1:end-1)];
+            ypatch = log_base(obj,[top(1:end-1); top(2:end) ; bottom(2:end) ; bottom(1:end-1)]);
 
             obj.results.geom_line_fill_handle{obj.result_ind,1}=patch(xpatch,ypatch,[1 1 1],...
                 'FaceColor',draw_data.color,...

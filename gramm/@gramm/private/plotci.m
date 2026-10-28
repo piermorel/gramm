@@ -53,6 +53,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                 vertices=horzcat([tmp_xci1' ; flipud(tmp_xci2')],[tmp_yci1' ; flipud(tmp_yci2')]);
                 faces=1:2*length(x);
             end
+            vertices(:,2)=log_base(obj,vertices(:,2));
             
             %Line plot  doesn't display anything if we have NaNs around, so find
             %out which points are surrounded by NaNs and might not be
@@ -139,15 +140,15 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                     case 'bar'
                         barleft=x-bar_width/2;
                         barright=x+bar_width/2;
-                        xpatch=[barleft ; barright ; barright ; barleft];
-                        ypatch=[zeros(1,length(y)) ; zeros(1,length(y)) ; y ; y];
+                        [xpatch,ypatch]=bar_patch(barleft,barright,zeros(1,length(y)),y);
+                        ypatch=log_base(obj,ypatch);
                         [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
                         hndl.bar_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','none');
                    case 'edge_bar'
                         barleft=x-bar_width/2;
                         barright=x+bar_width/2;
-                        xpatch=[barleft ; barright ; barright ; barleft];
-                        ypatch=[zeros(1,length(y)) ; zeros(1,length(y)) ; y ; y];
+                        [xpatch,ypatch]=bar_patch(barleft,barright,zeros(1,length(y)),y);
+                        ypatch=log_base(obj,ypatch);
                         [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
                         hndl.bar_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','k');
                     case 'point'

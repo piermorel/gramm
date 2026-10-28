@@ -9,6 +9,7 @@
 % * <example_base_categorical_x_data.html Categorical X data>
 % * <example_base_dates_durations.html Dates and durations>
 % * <example_base_polar.html Polar plots>
+% * <example_base_log_axes.html Log axes>
 
 %% Distributions
 %
