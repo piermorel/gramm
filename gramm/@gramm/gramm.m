@@ -5,8 +5,16 @@ classdef gramm < matlab.mixin.Copyable
     properties (Access=public)
         legend_axe_handle %Store the handle of the legend axis
         facet_axes_handles %Stores the handles of the facet axes
-        results %Stores the results of the draw functions and statistics computations
+        results %Stores the results of the draw functions and statistics computations (datetime/duration x and y are stored as numbers, see axis_types)
         layout %tiledlayout holding the facets, titles and legend
+    end
+
+    properties (SetAccess=protected)
+        %How datetime and duration x/y data is converted to the numbers
+        %found in results: axis_types.x and axis_types.y have fields type
+        %('numeric', 'datetime' or 'duration'), ref (datetime: numbers are
+        %days since ref) and unit (duration: 's','m','h' or 'd')
+        axis_types
     end
     
     properties (Access=protected,Hidden=true)
@@ -40,6 +48,8 @@ classdef gramm < matlab.mixin.Copyable
         
         is_flipped=false; %Are the axes flipped?
         
+        cat_order %Natural order of the values of categorical/datetime/duration grouping data (see validate_aes())
+
         x_factor %Is X a categorical variable ?
         x_ticks %Store the ticks used for x
         
@@ -70,7 +80,8 @@ classdef gramm < matlab.mixin.Copyable
             'style',[],...
             'fun',[],...
             'linewidth',[],...
-            'extent',[])
+            'extent',[],...
+            'raw',[])
         
         %structure containing polygon parameters - Nicholas Schaub 2017-Mar-07
         polygon = struct('on',false,...
@@ -172,8 +183,17 @@ classdef gramm < matlab.mixin.Copyable
             %     array of size M, in which case the same abcissa will be
             %     used for every row of y.
             %   - label should be a 1D cell array of strings of length N.
+            %   - x and y (and ymin, ymax) can also be datetime or duration
+            %     arrays, which are displayed natively on the axes.
+            %   - grouping data (color, lightness, row, column...) can also
+            %     be string, categorical, datetime or duration arrays.
+            %     Categorical arrays are ordered by their categories, dates
+            %     and durations chronologically (see set_order_options()).
             
             obj.aes=parse_aes(varargin{:});
+            obj.axis_types=struct('x',axis_type(),'y',axis_type());
+            aes_fields=fieldnames(obj.aes);
+            obj.cat_order=cell2struct(repmat({{}},numel(aes_fields),1),aes_fields,1);
             
             %Run the set_xx_options() functions without arguments to set
             %defaults

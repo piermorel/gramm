@@ -4,6 +4,7 @@ function obj=stat_cornerhist(obj,varargin)
 p=inputParser;
 my_addParameter(p,'nbins',30);
 my_addParameter(p,'edges',[]);
+my_addParameter(p,'bin_width',[]); %Used by my_histplot()
 my_addParameter(p,'geom','overlaid_bar'); %line, bar, overlaid_bar, stacked_bar,stairs, point
 my_addParameter(p,'normalization','count');
 my_addParameter(p,'fill',[]); %edge,face,all,transparent

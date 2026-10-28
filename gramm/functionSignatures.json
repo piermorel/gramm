@@ -128,7 +128,8 @@
 			{"name":"setylim","kind":"namevalue","type":"choices={1,0}"},
 			{"name":"interp","kind":"namevalue","type":"choices={'linear','nearest','next','previous','pchip','makima','spline'}"},
 			{"name":"interp_in","kind":"namevalue","type":"numeric"},
-			{"name":"bin_in","kind":"namevalue","type":"numeric"},
+			{"name":"bin_in","kind":"namevalue","type":[["numeric"],["datetime"],["duration"]]},
+			{"name":"bin_width","kind":"namevalue","type":[["numeric"],["duration"],["calendarDuration"],["choices={'second','minute','hour','day','week','month','quarter','year'}"]]},
 			{"name":"width","kind":"namevalue","type":"numeric"},
 			{"name":"dodge","kind":"namevalue","type":"numeric"}
 		]
@@ -173,7 +174,8 @@
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
 			{"name":"nbins","kind":"namevalue","type":"numeric"},
-            {"name":"edges","kind":"namevalue","type":"numeric"},
+            {"name":"edges","kind":"namevalue","type":[["numeric"],["datetime"],["duration"]]},
+            {"name":"bin_width","kind":"namevalue","type":[["numeric"],["duration"],["calendarDuration"],["choices={'second','minute','hour','day','week','month','quarter','year'}"]]},
             {"name":"geom","kind":"namevalue","type":"choices={'bar','line','overlaid_bar','stacked_bars','stairs','point'}"},
             {"name":"normalization","kind":"namevalue","type":"choices={'count','countdensity','cumcount','probability','pdf','cdf'}"},
             {"name":"fill","kind":"namevalue","type":"choices={'face','edge','all','transparent'}"},
@@ -283,7 +285,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
-            {"name":"xintercept","kind":"namevalue","type":"numeric"},
+            {"name":"xintercept","kind":"namevalue","type":[["numeric"],["datetime"],["duration"]]},
             {"name":"style","kind":"namevalue","type":"char"},
             {"name":"extent","kind":"namevalue","type":"numeric"},
             {"name":"linewidth","kind":"namevalue","type":"numeric"}
@@ -293,7 +295,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
-            {"name":"yintercept","kind":"namevalue","type":"numeric"},
+            {"name":"yintercept","kind":"namevalue","type":[["numeric"],["datetime"],["duration"]]},
             {"name":"style","kind":"namevalue","type":"char"},
             {"name":"extent","kind":"namevalue","type":"numeric"},
             {"name":"linewidth","kind":"namevalue","type":"numeric"}

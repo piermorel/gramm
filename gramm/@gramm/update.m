@@ -29,6 +29,17 @@ else
     end
 end
 
+%Forget the natural order of replaced grouping data, and the date/duration
+%conversion of replaced numeric x/y data
+for f=fieldnames(new_aes)'
+    if ~isempty(new_aes.(f{1}))
+        obj.cat_order.(f{1})={};
+        if any(strcmp(f{1},{'x','y'})) && ~isdatetime(new_aes.(f{1})) && ~isduration(new_aes.(f{1}))
+            obj.axis_types.(f{1})=axis_type();
+        end
+    end
+end
+
 if ~isempty(new_aes.x) && (iscellstr(new_aes.x) || iscategorical(new_aes.x))
     warning('Updated X is categorical: plot will be valid only if the new X has exactly the same categories as the previous X (no more, no less)');
 end

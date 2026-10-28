@@ -32,8 +32,8 @@ obj.plot_lim.maxx(obj.current_row,obj.current_column)=xl(2);
 obj.plot_lim.miny(obj.current_row,obj.current_column)=yl(1);
 obj.plot_lim.maxy(obj.current_row,obj.current_column)=yl(2);
 
-xlim([obj.plot_lim.minx(obj.current_row,obj.current_column) obj.plot_lim.maxx(obj.current_row,obj.current_column)]);
-ylim([obj.plot_lim.miny(obj.current_row,obj.current_column) obj.plot_lim.maxy(obj.current_row,obj.current_column)]);
+set_num_lim(gca,'X',[obj.plot_lim.minx(obj.current_row,obj.current_column) obj.plot_lim.maxx(obj.current_row,obj.current_column)]);
+set_num_lim(gca,'Y',[obj.plot_lim.miny(obj.current_row,obj.current_column) obj.plot_lim.maxy(obj.current_row,obj.current_column)]);
 
 uni_x=unique(x);
 
@@ -89,8 +89,8 @@ r = params.point_size;
 ax.Units="points";
 ptpos = ax.Position;
 ax.Units="normalized";
-xsz = ptpos(3)/diff(ax.XLim); %Find factor between plotting units and points (unit used by MarkerSize)
-ysz = ptpos(4)/diff(ax.YLim);
+xsz = ptpos(3)/diff(ruler2num(ax.XLim,ax.XAxis)); %Find factor between plotting units and points (unit used by MarkerSize)
+ysz = ptpos(4)/diff(ruler2num(ax.YLim,ax.YAxis));
 
 ypx = y*ysz; %Convert y values to point values
 

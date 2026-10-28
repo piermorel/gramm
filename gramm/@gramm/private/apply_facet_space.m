@@ -14,16 +14,16 @@ col_w=ones(1,nc);
 
 if any(strcmp(obj.facet_space,{'free','free_x'}))
     if obj.is_flipped %x axes are along rows
-        row_w=arrayfun(@(ax)diff(ax.XLim),obj.facet_axes_handles(:,1))';
+        row_w=arrayfun(@(ax)diff(ruler2num(ax.XLim,ax.XAxis)),obj.facet_axes_handles(:,1))';
     else
-        col_w=arrayfun(@(ax)diff(ax.XLim),obj.facet_axes_handles(1,:));
+        col_w=arrayfun(@(ax)diff(ruler2num(ax.XLim,ax.XAxis)),obj.facet_axes_handles(1,:));
     end
 end
 if any(strcmp(obj.facet_space,{'free','free_y'}))
     if obj.is_flipped %y axes are along columns
-        col_w=arrayfun(@(ax)diff(ax.YLim),obj.facet_axes_handles(1,:));
+        col_w=arrayfun(@(ax)diff(ruler2num(ax.YLim,ax.YAxis)),obj.facet_axes_handles(1,:));
     else
-        row_w=arrayfun(@(ax)diff(ax.YLim),obj.facet_axes_handles(:,1))';
+        row_w=arrayfun(@(ax)diff(ruler2num(ax.YLim,ax.YAxis)),obj.facet_axes_handles(:,1))';
     end
 end
 

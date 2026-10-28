@@ -94,10 +94,10 @@ if (~obj.updater.first_draw && ~obj.updater.updated)
     return
 end
 
-obj.aes=validate_aes(obj.aes);
+[obj.aes,obj.axis_types,obj.cat_order]=validate_aes(obj.aes,obj.axis_types,obj.cat_order);
 
 %Handle multiple figures
-uni_fig=unique_and_sort(obj.aes.fig,1);
+uni_fig=unique_and_sort(obj.aes.fig,natural_order(1,obj.cat_order.fig));
 if ~iscell(uni_fig)
     uni_fig=num2cell(uni_fig);
 end
@@ -137,7 +137,7 @@ temp_aes=select_aes(obj.aes,obj.aes.subset);
 %Convert factor data to numeric
 if iscellstr(temp_aes.x)
     obj.x_factor=true;
-    obj.x_ticks=unique_and_sort(temp_aes.x,obj.order_options.x);
+    obj.x_ticks=unique_and_sort(temp_aes.x,natural_order(obj.order_options.x,obj.cat_order.x));
     tempx=zeros(length(temp_aes.x),1);
     for k=1:length(obj.x_ticks)
         tempx(strcmp(temp_aes.x,obj.x_ticks{k}))=k;
@@ -174,19 +174,19 @@ end
 
 
 %Find uniques in aesthetics and sort according to options
-uni_row=unique_and_sort(temp_aes.row,obj.order_options.row);
-uni_column=unique_and_sort(temp_aes.column,obj.order_options.column);
-uni_linestyle=unique_and_sort(temp_aes.linestyle,obj.order_options.linestyle);
-uni_marker=unique_and_sort(temp_aes.marker,obj.order_options.marker);
-uni_lightness=unique_and_sort(temp_aes.lightness,obj.order_options.lightness);
-uni_size=unique_and_sort(temp_aes.size,obj.order_options.size);
+uni_row=unique_and_sort(temp_aes.row,natural_order(obj.order_options.row,obj.cat_order.row));
+uni_column=unique_and_sort(temp_aes.column,natural_order(obj.order_options.column,obj.cat_order.column));
+uni_linestyle=unique_and_sort(temp_aes.linestyle,natural_order(obj.order_options.linestyle,obj.cat_order.linestyle));
+uni_marker=unique_and_sort(temp_aes.marker,natural_order(obj.order_options.marker,obj.cat_order.marker));
+uni_lightness=unique_and_sort(temp_aes.lightness,natural_order(obj.order_options.lightness,obj.cat_order.lightness));
+uni_size=unique_and_sort(temp_aes.size,natural_order(obj.order_options.size,obj.cat_order.size));
 
 %If the color is in a cell array of doubles, we set it as
 %continuous color
 if iscell(temp_aes.color) && ~iscellstr(temp_aes.color)
     obj.continuous_color_options.active = true;
 else
-    uni_color=unique_and_sort(temp_aes.color,obj.order_options.color);
+    uni_color=unique_and_sort(temp_aes.color,natural_order(obj.order_options.color,obj.cat_order.color));
     
     % If continous_color is not set and we have too many numerical values 
     % for the color we switch to continuous color
@@ -366,6 +366,7 @@ for ind_row=1:length(uni_row)
                 obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,facet_tile(ind_row,ind_column),...
                     [facet_row_span(ind_row) facet_col_span(ind_column)]);
             end
+            set_rulers(obj,obj.facet_axes_handles(ind_row,ind_column));
             if obj.updater.facet_updated==1
                 %Copy the content of the former single facet
                 copyobj(first_axes_children,obj.facet_axes_handles(ind_row,ind_column));
@@ -1049,7 +1050,7 @@ for ind_row=1:length(uni_row) %Loop over rows
                     temp_xlim=[obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)];
             end
             if sum(isnan(temp_xlim))==0
-                set(ca,'XLim',temp_xlim+[-diff(temp_xlim)*obj.xlim_extra(1) diff(temp_xlim)*obj.xlim_extra(2)]);
+                set_num_lim(ca,'X',temp_xlim+[-diff(temp_xlim)*obj.xlim_extra(1) diff(temp_xlim)*obj.xlim_extra(2)]);
             end
             
             switch temp_yscale
@@ -1065,7 +1066,7 @@ for ind_row=1:length(uni_row) %Loop over rows
                     temp_ylim=[obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)];
             end
             if sum(isnan(temp_ylim))==0
-                set(ca,'YLim',temp_ylim+[-diff(temp_ylim)*obj.ylim_extra(1) diff(temp_ylim)*obj.ylim_extra(2)]);
+                set_num_lim(ca,'Y',temp_ylim+[-diff(temp_ylim)*obj.ylim_extra(1) diff(temp_ylim)*obj.ylim_extra(2)]);
             end
             
             %Is the axis at interesting locations for ticks/labels?
@@ -1172,8 +1173,12 @@ for ind_row=1:length(uni_row) %Loop over rows
             end
         end
         
-        %Do the datetick
-        if ~isempty(obj.datetick_params)
+        %Do the datetick (legacy, for datenum x data)
+        if ~isempty(obj.datetick_params) && ~strcmp(obj.axis_types.x.type,'numeric')
+            if ind_row==1 && ind_column==1
+                warning('gramm:datetick','set_datetick() is ignored for datetime/duration x data, which is displayed natively');
+            end
+        elseif ~isempty(obj.datetick_params)
             for dtk=1:length(obj.datetick_params)
                 %Previously used 'keepticks' by default  which could cause a truncation of the axes
                 datetick(ca,obj.datetick_params{dtk}{:});
@@ -1183,6 +1188,16 @@ for ind_row=1:length(uni_row) %Loop over rows
         %Set ablines, hlines and vlines (after axe properties in case the limits
         %are changed there
         if obj.abline.on
+            %Datetime/duration intercepts are converted to numbers
+            for line_ind=1:length(obj.abline.raw)
+                if ~isempty(obj.abline.raw{line_ind})
+                    if isnan(obj.abline.yintercept(line_ind))
+                        obj.abline.xintercept(line_ind)=to_num(obj.axis_types.x,obj.abline.raw{line_ind});
+                    else
+                        obj.abline.yintercept(line_ind)=to_num(obj.axis_types.y,obj.abline.raw{line_ind});
+                    end
+                end
+            end
             %xl=get(ca,'xlim');
             for line_ind=1:length(obj.abline.intercept)
                 tmp_xl=[obj.var_lim.minx obj.var_lim.maxx];
@@ -1312,5 +1327,20 @@ if iscell(in)
     end
 else
     out=min(in);
+end
+end
+
+
+function opts=natural_order(opts,cat_order)
+%Ascending (1) or descending (-1) orders of categorical, datetime and
+%duration grouping data follow the natural order of their values
+%(categories, chronological order) stored in cat_order by validate_aes(),
+%given to unique_and_sort() as a custom order
+if numel(cat_order)>1 && isnumeric(opts) && isscalar(opts) && opts~=0
+    if opts==-1
+        opts=flipud(cat_order(:));
+    else
+        opts=cat_order(:);
+    end
 end
 end

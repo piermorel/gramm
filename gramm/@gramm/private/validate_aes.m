@@ -1,11 +1,53 @@
-function out=validate_aes(aes)
+function [out,axis_types,cat_order]=validate_aes(aes,axis_types,cat_order)
 %Generate useable aes structures: empty fields are replaced with arrays of
 %ones of the correct size. The size of the other fields are checked for
 %consistency. Handle special case of size parameter that can be set by the
-%user
+%user.
+%This is also where input types are normalized: datetime and duration x/y
+%data are converted to numbers (axis_types describes the conversion),
+%categorical, string, datetime and duration grouping data are converted to
+%cellstr (cat_order stores the natural order of their values)
+
+fields=fieldnames(aes);
+
+%Datetime and duration x/y data are converted to numbers
+if ~iscellstr(aes.x) && ~iscategorical(aes.x) && ~isstring(aes.x)
+    axis_types.x=axis_type(axis_types.x,{aes.x});
+    aes.x=to_num(axis_types.x,aes.x);
+end
+axis_types.y=axis_type(axis_types.y,{aes.y,aes.ymin,aes.ymax});
+for f={'y','ymin','ymax'}
+    aes.(f{1})=to_num(axis_types.y,aes.(f{1}));
+end
+if isdatetime(aes.z) || isduration(aes.z)
+    error('gramm:unsupportedType','datetime and duration are not supported for z');
+end
+
+%Grouping data: categorical, string, datetime and duration data are
+%converted to cellstr. The natural order of the values (order of the
+%categories, chronological order) is kept in cat_order
+for k=1:length(fields)
+    v=aes.(fields{k});
+    if any(strcmp(fields{k},{'y','ymin','ymax','z'})) || (strcmp(fields{k},'x') && ~iscategorical(v) && ~isstring(v))
+        continue
+    end
+    if isdatetime(v) || isduration(v)
+        if strcmp(fields{k},'color') && numel(unique(v(~ismissing(v))))>15
+            %Many different values: used as a continuous color
+            aes.(fields{k})=to_num(axis_type([],{v}),v);
+        else
+            cat_order.(fields{k})=unique(cellstr(string(unique(v(~ismissing(v))))),'stable');
+            aes.(fields{k})=cellstr(string(v));
+        end
+    elseif iscategorical(v)
+        cat_order.(fields{k})=categories(v);
+        aes.(fields{k})=cellstr(v);
+    elseif isstring(v)
+        aes.(fields{k})=cellstr(v);
+    end
+end
 
 out=aes;
-fields=fieldnames(aes);
 
 %Handle special case when Y is a matrix (convert to cell)
 out.y=process_mat(out.y);
@@ -63,17 +105,7 @@ for k=1:length(fields)
                 error('Data inputs have different lengths !')
             end
         end
-        
-        %Convert categorical data to cellstr.
-        if iscategorical(aes.(fields{k}))
-            out.(fields{k})=cellstr(out.(fields{k}));
-        end
 
-        %Convert string data to cellstr.
-        if isstring(aes.(fields{k}))
-            out.(fields{k})=cellstr(out.(fields{k}));
-        end
-        
     end
 end
 

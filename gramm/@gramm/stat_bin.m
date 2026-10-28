@@ -8,15 +8,21 @@ function obj=stat_bin(obj,varargin)
 % the bin counts (see the doc for Matlab's histcounts() ).
 % Default is 'count', for normalization to 1 use 'probability'
 % Instead of 'nbins', it is possible to directly specify bin
-% edges with 'edges'. If the specified bin widths are not
-% equal, it's recommended to use 'countdensity'
-% or 'pdf' for normalization. Aspect of the geoms can be
+% edges with 'edges' (numeric, datetime or duration values), or the
+% bin width with 'bin_width'. 'bin_width' can be numeric (in x units),
+% a duration or calendarDuration (e.g. hours(2) or calmonths(1)), or the
+% name of a time unit for datetime/duration x data ('second',
+% 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year'...),
+% in which case the bins follow calendar boundaries. If the bin
+% widths are not equal (e.g. months), it's recommended to use
+% 'countdensity' or 'pdf' for normalization. Aspect of the geoms can be
 % customized with the 'fill' option
 % ('edge','face','all','transparent')
 
 p=inputParser;
 my_addParameter(p,'nbins',30);
 my_addParameter(p,'edges',[]);
+my_addParameter(p,'bin_width',[]);
 my_addParameter(p,'geom','bar'); %line, bar, overlaid_bar, stacked_bar,stairs, point
 my_addParameter(p,'normalization','count');
 my_addParameter(p,'fill',[]); %edge,face,all,transparent

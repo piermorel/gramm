@@ -56,11 +56,7 @@ else
             binranges=params.edges;
         end
     else
-        if isempty(params.edges)
-            binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.nbins+1);
-        else
-            binranges=params.edges;
-        end
+        binranges=bin_edges(obj,params.edges,params.bin_width,params.nbins);
     end
     bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
 end
@@ -96,7 +92,7 @@ if setylim
     if obj.firstrun(obj.current_row,obj.current_column)
         obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(bincounts);
         
-        if ~isempty(params.edges) %If edges are specified we use those for x scale
+        if ~isempty(params.edges) || ~isempty(params.bin_width) %If edges or bin widths are specified we use the edges for x scale
             obj.plot_lim.minx(obj.current_row,obj.current_column)=binranges(1)-mean(diff(binranges),'omitnan');
             obj.plot_lim.maxx(obj.current_row,obj.current_column)=binranges(end)+mean(diff(binranges),'omitnan');
         end

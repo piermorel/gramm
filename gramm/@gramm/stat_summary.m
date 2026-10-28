@@ -66,7 +66,14 @@ function obj=stat_summary(obj,varargin)
 % - 'bin_in': Use to bin the input. This is intended for input
 % given as a 1-D array, creates bins over x and computes the summary
 % over the binned data. Argument corresponds to the number of
-% bins. If given as array this will be interpreted as bin edges
+% bins. If given as array (numeric, datetime or duration) this will be
+% interpreted as bin edges
+% - 'bin_width': Bin the input like 'bin_in', with bins of a given width.
+% It can be numeric (in x units), a duration or calendarDuration (e.g.
+% minutes(5) or calweeks(1)), or the name of a time unit for
+% datetime/duration x data ('second', 'minute', 'hour', 'day', 'week',
+% 'month', 'quarter', 'year'...). Bins then fall on round values
+% (calendar boundaries for dates). Takes precedence over 'bin_in'
 % - 'dodge': use to dodge the plotted elements depending on
 % color (recommended for 'bar', 'errorbar', 'black_errorbar').
 % A value of 0 deactivates dodging. Other values set the space
@@ -115,6 +122,7 @@ my_addParameter(p,'setylim',false);
 my_addParameter(p,'interp','none');
 my_addParameter(p,'interp_in',-1);
 my_addParameter(p,'bin_in',[]);
+my_addParameter(p,'bin_width',[]);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_summary(dobj,dd,p.Results)});
@@ -170,8 +178,8 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
         end
     end
     
-    if ~isempty(params.bin_in)
-        warning('bin_in in stat_summary() not supported for Matrix/Cell X/Y inputs');
+    if (~isempty(params.bin_in) || ~isempty(params.bin_width))
+        warning('bin_in/bin_width in stat_summary() not supported for Matrix/Cell X/Y inputs');
     end
     
     if (ischar(params.type) || isstring(params.type)) && ~isempty(strfind(params.type,'fit'))
@@ -197,15 +205,14 @@ else %If input was provided as 1D array
     x=comb(draw_data.x);
     y=comb(draw_data.y);
     
-    if ~isempty(params.bin_in)
+    if (~isempty(params.bin_in) || ~isempty(params.bin_width))
         %If X binning was requested we do it
-        if numel(params.bin_in)==1
-            binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.bin_in+1);
-            bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
-        else
-            binranges = params.bin_in;
-            bincenters = (params.bin_in(1:end-1)+params.bin_in(2:end))/2;
+        if isscalar(params.bin_in) %Number of bins
+            binranges=bin_edges(obj,[],params.bin_width,params.bin_in);
+        else %Bin edges
+            binranges=bin_edges(obj,params.bin_in,params.bin_width,[]);
         end
+        bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
         [~,binind]=my_histcounts(x,binranges,'count');
         uni_x=bincenters;
         sel=binind~=0; %histcounts can return zero as bin index if NaN data we remove them here
@@ -319,7 +326,7 @@ if ~strcmp(params.interp,'none')
 end
 
 %If X were modified
-if ~isempty(params.bin_in) || params.interp_in>0 || ~strcmp(params.interp,'none')
+if (~isempty(params.bin_in) || ~isempty(params.bin_width)) || params.interp_in>0 || ~strcmp(params.interp,'none')
     %We reinitialize dodging parameters for plotci to work correctly
     draw_data.dodge_avl_w=uni_x(2)-uni_x(1);
     draw_data.dodge_fallback=true;

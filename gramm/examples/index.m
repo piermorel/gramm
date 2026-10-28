@@ -7,6 +7,7 @@
 % * <example_base_input_formats.html Input formats>
 % * <example_base_continuous_xy_data.html Continuous X-Y data>
 % * <example_base_categorical_x_data.html Categorical X data>
+% * <example_base_dates_durations.html Dates and durations>
 
 %% Distributions
 %

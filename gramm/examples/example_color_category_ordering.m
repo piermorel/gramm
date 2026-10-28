@@ -59,3 +59,27 @@ g.axe_property('YLim',[0 48]);
 
 figure;
 g.draw();
+
+%% Order of categorical data
+% For categorical arrays, gramm follows the order of the categories
+% instead of the alphabetical order (set_order_options(...,-1) reverses
+% it). Dates and durations used as grouping data are similarly ordered
+% chronologically. To get the alphabetical order of a categorical, convert
+% it with cellstr()
+
+size_cat=categorical(x,{'XS' 'S' 'M' 'L' 'XL' 'XXL'});
+
+clear g
+g(1,1)=gramm('x',size_cat,'y',y,'lightness',size_cat);
+g(1,1).stat_summary('geom','bar','dodge',0);
+g(1,1).set_title('Categorical: category order');
+
+g(1,2)=gramm('x',cellstr(size_cat),'y',y,'lightness',cellstr(size_cat));
+g(1,2).stat_summary('geom','bar','dodge',0);
+g(1,2).set_title('cellstr(): alphabetical order');
+
+g.set_names('x','US size','y','EU size','lightness','US size');
+g.axe_property('YLim',[0 48]);
+
+figure('Position',[100 100 800 350]);
+g.draw();
