@@ -451,7 +451,8 @@
             {"name":"legend_title_scaling","kind":"namevalue","type":"numeric"},
 			{"name":"facet_scaling","kind":"namevalue","type":"numeric"},
             {"name":"title_scaling","kind":"namevalue","type":"numeric"},
-            {"name":"big_title_scaling","kind":"namevalue","type":"numeric"}
+            {"name":"big_title_scaling","kind":"namevalue","type":"numeric"},
+            {"name":"wrap","kind":"namevalue","type":"logical"}
 		]
 },
 "gramm.set_parent":

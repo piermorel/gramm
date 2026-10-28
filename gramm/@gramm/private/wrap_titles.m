@@ -4,18 +4,26 @@ function changed=wrap_titles(obj)
 %width of the plots, column titles over the width of their facet, and row
 %titles along the height of their facet. The layout takes the extra lines
 %into account. Titles given with explicit line breaks (cell arrays) and
-%LaTeX titles are left as they are. Returns true if a title changed
+%LaTeX titles are left as they are. When wrapping is turned off with
+%set_text_options(), wrapped titles get their original string back. Returns
+%true if a title changed
 
 changed=false;
+%Wrapping over an infinite width restores the original strings
+if obj.text_options.wrap
+    scale=1;
+else
+    scale=Inf;
+end
 %Invisible text used to measure the width of candidate lines
 probe=text(obj.facet_axes_handles(1),0,0,'','Units','pixels','Visible','off','HandleVisibility','off');
 cleanup=onCleanup(@() delete(probe));
 
 if ~isempty(obj.title_text_handle)
-    changed=wrap(obj.title_text_handle,layout_width(obj.layout,obj.legend_axe_handle),probe) || changed;
+    changed=wrap(obj.title_text_handle,scale*layout_width(obj.layout,obj.legend_axe_handle),probe) || changed;
 end
-if obj.multi.active %Title of the whole array
-    changed=wrap(obj.parent.Title,layout_width(obj.parent,[]),probe) || changed;
+if obj.multi.active && isequal(obj.parent_tile.tile,[1 1]) %Title of the whole array
+    changed=wrap(obj.parent.Title,scale*layout_width(obj.parent,[]),probe) || changed;
 end
 for k=1:numel(obj.facet_axes_handles)
     ax=obj.facet_axes_handles(k);
@@ -23,12 +31,12 @@ for k=1:numel(obj.facet_axes_handles)
         continue
     end
     box=getfield(GetLayoutInformation(ax),'PlotBox'); %#ok<GFLD>
-    changed=wrap(ax.Title,box(3),probe) || changed;
+    changed=wrap(ax.Title,scale*box(3),probe) || changed;
 end
 for r=1:numel(obj.facet_row_axes)
     if isgraphics(obj.facet_row_axes(r))
         box=getfield(GetLayoutInformation(obj.facet_axes_handles(r,end)),'PlotBox'); %#ok<GFLD>
-        changed=wrap(obj.facet_row_axes(r).YLabel,box(4),probe) || changed;
+        changed=wrap(obj.facet_row_axes(r).YLabel,scale*box(4),probe) || changed;
     end
 end
 
@@ -56,6 +64,9 @@ str=char(str);
 set(probe,'FontName',h.FontName,'FontSize',h.FontSize,'FontWeight',h.FontWeight,...
     'FontAngle',h.FontAngle,'Interpreter',h.Interpreter);
 words=strsplit(str,' ');
+if isinf(width)
+    words={str};
+end
 lines={};
 current=words{1};
 for k=2:numel(words)

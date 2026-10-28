@@ -11,6 +11,9 @@ function obj = set_text_options( obj , varargin )
 % 'title_scaling': Scaling of figure title sizes relative to base (default is 1.4)
 % 'big_title_scaling': Scaling of overarching figure title size relative to base (default is 1.4)
 % 'font': Font to use for text (Default is 'Helvetica')
+% 'wrap': Wrap long titles (overall, facet and row titles) on several lines
+% to fit the available space (default is true). The title of an array of
+% gramm plots follows the setting of its first plot
 
 
 p=inputParser;
@@ -23,6 +26,7 @@ my_addParameter(p,'title_scaling', 1.4 );
 my_addParameter(p,'big_title_scaling', 1.4 );
 my_addParameter(p,'font','Helvetica');
 my_addParameter(p,'interpreter','none');
+my_addParameter(p,'wrap',true);
 parse(p,varargin{:});
 
 for obj_ind=1:numel(obj)
