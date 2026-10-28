@@ -826,9 +826,7 @@ end
 
 %Make the tiledlayout reserve the legend width. The vertical scaling
 %(scale_legend()) is done at the end of draw(), once the layout is complete
-if strcmp(obj.layout_options.legend_position,'auto')
-    reserve_legend_width(obj);
-end
+reserve_legend_width(obj);
 
 
 
@@ -1303,7 +1301,35 @@ for k=1:numel(previous)
     end
 end
 setappdata(fig,'gramm_plots',plots);
-set(fig,'SizeChangedFcn',@(~,~)redraw(getappdata(fig,'gramm_plots')));
+set(fig,'SizeChangedFcn',@(~,~)on_resize(fig));
+end
+
+function on_resize(fig)
+%Redraw once the resizing has stopped. Until then tiledlayout handles the
+%layout alone: during the resize callback the layout still reports sizes
+%from before the resize (legend axes width, title space), so redrawing
+%there would be both slow and wrong
+t=getappdata(fig,'gramm_redraw_timer');
+if isempty(t) || ~isvalid(t)
+    t=timer('StartDelay',0.15,'ExecutionMode','singleShot','Name','gramm_redraw',...
+        'TimerFcn',@(~,~)settled_redraw(fig));
+    setappdata(fig,'gramm_redraw_timer',t);
+    addlistener(fig,'ObjectBeingDestroyed',@(~,~)delete_timer(t));
+end
+stop(t);
+start(t);
+end
+
+function delete_timer(t)
+stop(t);
+delete(t);
+end
+
+function settled_redraw(fig)
+if isgraphics(fig)
+    drawnow;
+    redraw(getappdata(fig,'gramm_plots'));
+end
 end
 
 function out=allmax(in)

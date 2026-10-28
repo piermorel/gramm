@@ -10,19 +10,11 @@ end
 legend_y_step=1;
 legend_y_additional_step=0.5;
 
-%Height in pixels, whatever the figure units. Measured with a hidden text
-%placed at the top of the axes: changing the Units of the axes itself
-%while tiledlayout resizes it can leave it collapsed to zero height, and
-%getpixelposition() is wrong for axes in nested tiledlayouts
-probe=findall(ax,'Tag','gramm_legend_probe');
-if isempty(probe)
-    probe=text(ax,0,0,'','Visible','off','HandleVisibility','off','Tag','gramm_legend_probe');
-end
-probe.Units='data';
-probe.Position=[ax.XLim(1) ax.YLim(2) 0];
-probe.Units='pixels';
-height_px=probe.Position(2);
-probe.Units='data';
+%Height in pixels, from the layout (pixel positions inside the axes are
+%slow to read in busy figures, and getpixelposition() is wrong for axes in
+%nested tiledlayouts)
+box=getfield(GetLayoutInformation(ax),'PlotBox'); %#ok<GFLD>
+height_px=box(4);
 if height_px<=0
     return;
 end
