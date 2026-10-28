@@ -21,7 +21,8 @@ if obj.continuous_color_options.active
     disp('geom_count() unsupported with continuous color')
     hndl=[];
 else
-    [x,y]=to_polar(obj,comb(draw_data.x),comb(draw_data.y));
+    x=comb(draw_data.x);
+    y=comb(draw_data.y);
     
     [C,ia,ic]=unique([shiftdim(x) shiftdim(y)],'rows');
     counts=accumarray(ic,1);

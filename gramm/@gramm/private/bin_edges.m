@@ -13,6 +13,7 @@ if ~isempty(edges)
     edges=to_num(T,edges);
 elseif ~isempty(width)
     if isnumeric(width)
+        width=to_num(T,width);
         edges=(floor(lims(1)/width):ceil(lims(2)/width))*width;
         if numel(edges)<2
             edges=[edges edges+width];

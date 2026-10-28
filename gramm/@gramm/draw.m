@@ -34,7 +34,10 @@ if numel(obj)>1
     nl=size(obj,1);
     nc=size(obj,2);
     
-    if obj(1).updater.first_draw
+    %Empty elements of the array are never drawn: the array is drawn for
+    %the first time when none of its elements has been drawn
+    first_draw=arrayfun(@(o) o.updater.first_draw,obj);
+    if all(first_draw(:))
         %The layout holding the gramm plots goes in the parent (figure,
         %panel, or tile of a tiledlayout)
         bigtile = tiledlayout(obj(1).parent,nl,nc,'Padding',obj(1).layout_options.multi_padding,'TileSpacing',obj(1).layout_options.multi_spacing);
@@ -50,6 +53,10 @@ if numel(obj)>1
         if ~isempty(obj(1).bigtitle_options)
             set(bigtile.Title,obj(1).bigtitle_options{:});
         end
+    else
+        %Later draws: elements drawn for the first time go in the layout
+        %holding the elements already drawn
+        bigtile=obj(find(~first_draw,1)).layout.Parent;
     end
 
     for l=1:nl
@@ -95,6 +102,14 @@ if (~obj.updater.first_draw && ~obj.updater.updated)
 end
 
 [obj.aes,obj.axis_types,obj.cat_order]=validate_aes(obj.aes,obj.axis_types,obj.cat_order);
+%Polar angles in degrees are converted to radians along with the other
+%angles given to gramm (see to_num())
+if obj.polar.is_polar && strcmp(obj.polar.unit,'degrees')
+    obj.axis_types.x.unit='deg';
+elseif strcmp(obj.axis_types.x.type,'numeric')
+    obj.axis_types.x.unit='';
+end
+check_polar(obj);
 
 %Handle multiple figures
 uni_fig=unique_and_sort(obj.aes.fig,natural_order(1,obj.cat_order.fig));
@@ -142,9 +157,14 @@ if iscellstr(temp_aes.x)
     for k=1:length(obj.x_ticks)
         tempx(strcmp(temp_aes.x,obj.x_ticks{k}))=k;
     end
+    if obj.polar.is_polar
+        %Categories evenly spread around the circle (radar charts)
+        tempx=(tempx-1)*2*pi/length(obj.x_ticks);
+    end
     temp_aes.x=tempx;
 else
     obj.x_factor=false;
+    temp_aes.x=to_num(obj.axis_types.x,temp_aes.x); %Degrees to radians
 end
 
 
@@ -288,7 +308,11 @@ if obj.updater.facet_updated==1
     %a figure deletes everything in it)
     tmp_f=figure('Visible','off');
     set(0,'CurrentFigure',ancestor(obj.parent,'figure'));
-    tmp_axes = axes(tmp_f);
+    if obj.polar.is_polar
+        tmp_axes = polaraxes(tmp_f);
+    else
+        tmp_axes = axes(tmp_f);
+    end
     first_axes_children = copyobj(allchild(obj.facet_axes_handles(1,1)),tmp_axes);
     obj.legend_axe_handle.Parent=tmp_f;
     delete(obj.layout);
@@ -361,9 +385,9 @@ for ind_row=1:length(uni_row)
             %First draw() call, or update() from one to many facets: the
             %facets are (re)created in the layout
             if obj.wrap_ncols>0
-                obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,ind_column);
+                obj.facet_axes_handles(ind_row,ind_column)=new_facet_axes(obj,ind_column,[1 1]);
             else
-                obj.facet_axes_handles(ind_row,ind_column)=nexttile(obj.layout,facet_tile(ind_row,ind_column),...
+                obj.facet_axes_handles(ind_row,ind_column)=new_facet_axes(obj,facet_tile(ind_row,ind_column),...
                     [facet_row_span(ind_row) facet_col_span(ind_column)]);
             end
             set_rulers(obj,obj.facet_axes_handles(ind_row,ind_column));
@@ -846,25 +870,7 @@ end
 
 %% draw() axes modifications
 
-if obj.is_flipped
-    %With flipped axes, tiledlayout doesn't reserve space for the tick
-    %labels of the horizontal axis: an empty first line keeps the label
-    %below them
-    obj.layout.XLabel.String ={'' obj.aes_names.y};
-    obj.layout.YLabel.String =obj.aes_names.x;
-else
-    obj.layout.XLabel.String =obj.aes_names.x;
-    obj.layout.YLabel.String =obj.aes_names.y;
-end
-obj.layout.YLabel.Interpreter=obj.text_options.interpreter;
-obj.layout.YLabel.FontName=obj.text_options.font;
-obj.layout.YLabel.FontSize=obj.text_options.base_size*obj.text_options.label_scaling;
-
-
-obj.layout.XLabel.Interpreter=obj.text_options.interpreter;
-obj.layout.XLabel.FontName=obj.text_options.font;
-obj.layout.XLabel.FontSize=obj.text_options.base_size*obj.text_options.label_scaling;
-
+set_axis_labels(obj);
 
 if isempty(obj.aes.z)
     axtoolbar(obj.layout,{'datacursor','pan','zoomin','zoomout','pan','restoreview'});
@@ -872,6 +878,9 @@ else
     axtoolbar(obj.layout,{'datacursor','rotate','pan','zoomin','zoomout','pan','restoreview'});
 end
 
+%How limits are shared between facets, according to facet_scale and
+%wrapping
+[temp_xscale,temp_yscale,temp_zscale]=facet_scales(obj);
 
 %Set various properties on each of the subplots
 for ind_row=1:length(uni_row) %Loop over rows
@@ -896,172 +905,41 @@ for ind_row=1:length(uni_row) %Loop over rows
         obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)=obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)+0.01;
         obj.plot_lim.maxz(obj.plot_lim.minz==obj.plot_lim.maxz)=obj.plot_lim.maxz(obj.plot_lim.minz==obj.plot_lim.maxz)+0.01;
         
-       
-        if ~obj.polar.is_polar % XY Limits are only useful for non-polar plots
-            
-            %Set axes limits logic according to facet_scale and
-            %wrapping. Also set up corresponding axis linking, using tip from
-            % http://undocumentedmatlab.com/blog/using-linkaxes-vs-linkprop#more-5928
-            if (obj.wrap_ncols>0) %in the facet_wrap case
-                switch obj.facet_scale
-                    case 'fixed'
-                        temp_xscale='global';
-                        temp_yscale='global';
-                        temp_zscale='global';
-                        
-                        %Both XLims and YLims are linked across
-                        %all plots
-                        if ind_row==1 && ind_column==1 %We only do the linking once for all plots facets
-                            obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
-                            obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
-                            obj.extra.ZLim_listeners=linkprop(obj.facet_axes_handles(:),'ZLim');
-                        end
-                    case 'free_x'
-                        temp_xscale='per_plot';
-                        temp_yscale='global';
-                        temp_zscale='global';
-                        
-                        %YLims are linked across all plots
-                        if ind_row==1 && ind_column==1
-                            obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
-                        end
-                    case 'free_y'
-                        temp_xscale='global';
-                        temp_yscale='per_plot';
-                        temp_zscale='global';
-                        
-                        %XLims are linked across all plots
-                        if ind_row==1 && ind_column==1
-                            obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
-                        end
-                    case 'free'
-                        temp_xscale='per_plot';
-                        temp_yscale='per_plot';
-                        temp_zscale='per_plot';
-                    case 'independent'
-                        temp_xscale='per_plot';
-                        temp_yscale='per_plot';
-                        temp_zscale='per_plot';
-                end
-            else %In the facet_grid case
-                switch obj.facet_scale
-                    case 'fixed'
-                        temp_xscale='global';
-                        temp_yscale='global';
-                        temp_zscale='global';
-                        
-                        %Both XLim and YLim are linked across
-                        %all plots
-                        if ind_row==1 && ind_column==1
-                            obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
-                            obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
-                            obj.extra.ZLim_listeners=linkprop(obj.facet_axes_handles(:),'ZLim');
-                        end
-                    case 'free_x'
-                        temp_xscale='per_column';
-                        temp_yscale='global';
-                        temp_zscale='global';
-                        
-                        %YLims are linked across all plots,
-                        if ind_row==1 && ind_column==1
-                            obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
-                        end
-                        if obj.is_flipped
-                            %For flipped axes, we link XLims within rows
-                            if ind_column==1
-                                obj.extra.XLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'XLim');
-                            end
-                        else
-                            %XLims are linked within columns for
-                            %non-flipped axes
-                            if ind_row==1
-                                obj.extra.XLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(:,ind_column),'XLim');
-                            end
-                        end
-                    case 'free_y'
-                        temp_xscale='global';
-                        temp_yscale='per_row';
-                        temp_zscale='global';
-                        
-                        %XLims are linked across all plots,
-                        if ind_row==1 && ind_column==1
-                            obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
-                        end
-                        if obj.is_flipped
-                            %For flipped axes, we link YLims within columns
-                            if ind_row==1
-                                obj.extra.YLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(ind_column,:),'YLim');
-                            end
-                        else
-                            %YLims are linked within rows for non-flipped
-                            %axes
-                            if ind_column==1
-                                obj.extra.YLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'YLim');
-                            end
-                        end
-                    case 'free'
-                        temp_xscale='per_column';
-                        temp_yscale='per_row';
-                        
-                        if obj.is_flipped
-                            %Flipped case
-                            %XLims are linked within rows
-                            %YLims are linked within columns
-                            if ind_row==1
-                                obj.extra.YLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(:,ind_column),'YLim');
-                            end
-                            if ind_column==1
-                                obj.extra.XLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'XLim');
-                            end
-                        else
-                            %Non flipped case
-                            %XLims are linked within columns
-                            %YLims are linked within rows
-                            if ind_row==1
-                                obj.extra.XLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(:,ind_column),'XLim');
-                            end
-                            if ind_column==1
-                                obj.extra.YLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'YLim');
-                            end
-                        end
-                    case 'independent'
-                        temp_xscale='per_plot';
-                        temp_yscale='per_plot';
-                        temp_zscale='per_plot';
-                end
+        temp_ylim=facet_lim(obj,'y',temp_yscale,ind_row,ind_column);
+        
+        if obj.polar.is_polar
+            %The radius spans from 0 (or the negative minimum) to the
+            %maximum, the angle the full circle
+            temp_ylim=[min(0,temp_ylim(1)) temp_ylim(2)+diff(temp_ylim)*obj.ylim_extra(2)];
+            if obj.polar.max_polar_y>0
+                temp_ylim(2)=obj.polar.max_polar_y;
             end
-            
-            
-            
-            %Actually set the axes scales and presence of
-            %labels depending on logic determined above
-            switch temp_xscale
-                case 'global'
-                    temp_xlim=[min(min(obj.plot_lim.minx(:,:))) max(max(obj.plot_lim.maxx(:,:)))];
-                case 'per_column'
-                    if obj.is_flipped
-                        temp_xlim=[min(obj.plot_lim.minx(ind_row,:)) max(obj.plot_lim.maxx(ind_row,:))];
-                    else
-                        temp_xlim=[min(obj.plot_lim.minx(:,ind_column)) max(obj.plot_lim.maxx(:,ind_column))];
-                    end
-                case 'per_plot'
-                    temp_xlim=[obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)];
+            if sum(isnan(temp_ylim))==0 && diff(temp_ylim)>0
+                ca.RLim=temp_ylim;
             end
+            avoid_spikes(ca);
+            %Angle ticks at the categories of categorical x, or at the
+            %angles of x when there are few of them (e.g. directions
+            %sampled at regular intervals)
+            if obj.x_factor
+                angles=(0:length(obj.x_ticks)-1)*2*pi/length(obj.x_ticks);
+            else
+                angles=uniquetol(mod(comb(temp_aes.x),2*pi),1e-9);
+            end
+            if obj.x_factor || (numel(angles)>=3 && numel(angles)<=12)
+                if strcmp(obj.polar.unit,'degrees')
+                    angles=rad2deg(angles);
+                end
+                ca.ThetaTick=angles;
+            end
+            if obj.x_factor
+                ca.ThetaTickLabel=obj.x_ticks;
+                ca.TickLabelInterpreter='none';
+            end
+        else
+            temp_xlim=facet_lim(obj,'x',temp_xscale,ind_row,ind_column);
             if sum(isnan(temp_xlim))==0
                 set_num_lim(ca,'X',temp_xlim+[-diff(temp_xlim)*obj.xlim_extra(1) diff(temp_xlim)*obj.xlim_extra(2)]);
-            end
-            
-            switch temp_yscale
-                case 'global'
-                    temp_ylim=[min(min(obj.plot_lim.miny(:,:))) max(max(obj.plot_lim.maxy(:,:)))];
-                case 'per_row'
-                    if obj.is_flipped
-                        temp_ylim=[min(obj.plot_lim.miny(:,ind_column)) max(obj.plot_lim.maxy(:,ind_column))];
-                    else
-                        temp_ylim=[min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))];
-                    end
-                case 'per_plot'
-                    temp_ylim=[obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)];
             end
             if sum(isnan(temp_ylim))==0
                 set_num_lim(ca,'Y',temp_ylim+[-diff(temp_ylim)*obj.ylim_extra(1) diff(temp_ylim)*obj.ylim_extra(2)]);
@@ -1078,12 +956,7 @@ for ind_row=1:length(uni_row) %Loop over rows
             
             if ~isempty(temp_aes.z) %Only do the Z limit stuff if we have z data
                 
-                switch temp_zscale
-                    case 'global'
-                        temp_zlim=[min(min(obj.plot_lim.minz(:,:))) max(max(obj.plot_lim.maxz(:,:)))];
-                    case 'per_plot'
-                        temp_zlim=[obj.plot_lim.minz(ind_row,ind_column) obj.plot_lim.maxz(ind_row,ind_column)];
-                end
+                temp_zlim=facet_lim(obj,'z',temp_zscale,ind_row,ind_column);
                 set(ca,'ZLim',temp_zlim+[-diff(temp_zlim)*obj.zlim_extra(1) diff(temp_zlim)*obj.zlim_extra(2)]);
                 
                 %Always have ticks if we have z data
@@ -1146,17 +1019,6 @@ for ind_row=1:length(uni_row) %Loop over rows
                 end
             end
             
-        else
-            %Make polar axes
-            if obj.polar.max_polar_y<0
-                if strcmp(obj.facet_scale,'fixed')
-                    draw_polar_axes(ca,max(max(obj.plot_lim.maxy(:,:))));
-                else
-                    draw_polar_axes(ca,obj.plot_lim.maxy(ind_row,ind_column));
-                end
-            else
-                draw_polar_axes(ca,obj.polar.max_polar_y)
-            end
         end
         
         
@@ -1186,57 +1048,20 @@ for ind_row=1:length(uni_row) %Loop over rows
         %Set ablines, hlines and vlines (after axe properties in case the limits
         %are changed there
         if obj.abline.on
-            %Datetime/duration intercepts are converted to numbers
-            for line_ind=1:length(obj.abline.raw)
-                if ~isempty(obj.abline.raw{line_ind})
-                    if isnan(obj.abline.yintercept(line_ind))
-                        obj.abline.xintercept(line_ind)=to_num(obj.axis_types.x,obj.abline.raw{line_ind});
-                    else
-                        obj.abline.yintercept(line_ind)=to_num(obj.axis_types.y,obj.abline.raw{line_ind});
-                    end
-                end
-            end
-            %xl=get(ca,'xlim');
-            for line_ind=1:length(obj.abline.intercept)
-                tmp_xl=[obj.var_lim.minx obj.var_lim.maxx];
-                tmp_extent=(tmp_xl(2)-tmp_xl(1))*obj.abline.extent(line_ind)/2;
-                xl=[mean(tmp_xl)-tmp_extent mean(tmp_xl)+tmp_extent];
-                if strcmp(ca.XScale,'log') && xl(1)<0 %Correct negative values if log axes
-                    xl(1)=1;
-                end
-                if ~isnan(obj.abline.intercept(line_ind))
-                    %draw it properly (curved) if log axes
-                    if strcmp(ca.XScale,'log') || strcmp(ca.YScale,'log')
-                        xl=xl(1):(xl(2)-xl(1))/50:xl(2);
-                    end
-                    %abline
-                    plot(xl,xl*obj.abline.slope(line_ind)+obj.abline.intercept(line_ind),obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca);
-                else
-                    if ~isnan(obj.abline.xintercept(line_ind))
-                        %vline
-                        %yl=get(ca,'ylim');
-                        if obj.var_lim.miny == obj.var_lim.maxy %We are probably in a case where y wasn't provided (histogram or raster)
-                            tmp_yl=[0 numel(temp_aes.x)]; %We scale y according to number of x elements
-                        else
-                            tmp_yl=[obj.var_lim.miny obj.var_lim.maxy];
-                        end
-                        tmp_extent=(tmp_yl(2)-tmp_yl(1))*obj.abline.extent(line_ind)/2;
-                        yl=[mean(tmp_yl)-tmp_extent mean(tmp_yl)+tmp_extent];
-                        plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca);
-                    else
-                        if ~isnan(obj.abline.yintercept(line_ind))
-                            %hline
-                            plot(xl,[obj.abline.yintercept(line_ind) obj.abline.yintercept(line_ind)],obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca);
-                        else
-                            temp_x=linspace(xl(1),xl(2),500);
-                            plot(temp_x,obj.abline.fun{line_ind}(temp_x),obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca);
-                        end
-                    end
-                end
-            end
-            
+            draw_ablines(obj,ca,temp_aes);
         end
         
+    end
+end
+
+%Link the limits of facets that share them
+if obj.polar.is_polar
+    obj.extra.YLim_listeners=link_lims(obj,'RLim',temp_yscale);
+else
+    obj.extra.XLim_listeners=link_lims(obj,'XLim',temp_xscale);
+    obj.extra.YLim_listeners=link_lims(obj,'YLim',temp_yscale);
+    if strcmp(obj.facet_scale,'fixed')
+        obj.extra.ZLim_listeners=link_lims(obj,'ZLim',temp_zscale);
     end
 end
 
@@ -1331,6 +1156,255 @@ if isgraphics(fig)
     redraw(getappdata(fig,'gramm_plots'));
 end
 end
+
+function ax=new_facet_axes(obj,tile,span)
+%Facet axes in a tile of the layout: polar axes for set_polar()
+if obj.polar.is_polar
+    ax=polaraxes(obj.layout);
+    ax.Layout.Tile=tile;
+    ax.Layout.TileSpan=span;
+    ax.ThetaAxisUnits=obj.polar.unit;
+else
+    ax=nexttile(obj.layout,tile,span);
+end
+end
+
+
+function avoid_spikes(ax)
+%MATLAB can draw spikes out of polar axes for lines going through the exact
+%center (e.g. empty histogram bins), and for patches with edges that are
+%only about a pixel wide (e.g. small histogram wedges). Points at the center
+%are moved slightly away from it, and edged polygons (patch columns without
+%NaNs, which gramm uses to separate lines) within 1% of the radius range
+%from the center are hidden
+center=ax.RLim(1);
+range=diff(ax.RLim);
+objs=findobj(ax,'Type','line','-or','Type','patch');
+for k=1:numel(objs)
+    r=objs(k).RData;
+    if isempty(r)
+        continue
+    end
+    if strcmp(objs(k).Type,'patch') && ~isequal(objs(k).EdgeColor,'none')
+        small=max(r,[],1)-center<0.01*range & ~any(isnan(r),1);
+        r(:,small)=NaN;
+    end
+    r(r==center)=center+range*1e-6;
+    if ~isequaln(r,objs(k).RData)
+        objs(k).RData=r;
+    end
+end
+end
+
+
+function check_polar(obj)
+%Error for what polar plots don't support. Geoms and stats are identified by
+%the function they register in obj.geom
+if ~obj.polar.is_polar
+    return
+end
+supported={'my_point','my_jitter','my_line','my_count','my_label','my_bar','my_ci',...
+    'my_bin','my_density','my_summary','my_smooth','my_fit','my_glm'};
+geoms=cellfun(@(f) regexp(func2str(f),'^@\([^)]*\)(\w+)','tokens','once'),obj.geom,'UniformOutput',false);
+geoms=[cell(1,0) geoms{:}];
+unsupported=setdiff(geoms,supported);
+if ~isempty(unsupported)
+    what=[strjoin(strrep(unsupported,'my_',''),', ') ' (geom/stat)'];
+elseif ~isempty(obj.aes.z)
+    what='z data';
+elseif obj.is_flipped
+    what='coord_flip()';
+elseif ~strcmp(obj.facet_space,'fixed')
+    what='facet_grid() ''space''';
+elseif ~isempty(obj.datetick_params)
+    what='set_datetick()';
+elseif obj.polygon.on
+    what='geom_polygon()';
+else
+    return
+end
+error('gramm:polarUnsupported','Not supported in polar plots: %s',what);
+end
+
+
+function set_axis_labels(obj)
+%x and y names on the shared axis labels of the layout. For polar plots too
+%(angle name below, radius name on the left): the labels of polar axes are
+%placed by MATLAB over the data and the neighboring facets
+if obj.is_flipped
+    %With flipped axes, tiledlayout doesn't reserve space for the tick
+    %labels of the horizontal axis: an empty first line keeps the label
+    %below them
+    obj.layout.XLabel.String ={'' obj.aes_names.y};
+    obj.layout.YLabel.String =obj.aes_names.x;
+else
+    obj.layout.XLabel.String =obj.aes_names.x;
+    obj.layout.YLabel.String =obj.aes_names.y;
+end
+set([obj.layout.XLabel obj.layout.YLabel],'Interpreter',obj.text_options.interpreter,...
+    'FontName',obj.text_options.font,...
+    'FontSize',obj.text_options.base_size*obj.text_options.label_scaling);
+end
+
+
+function [xscale,yscale,zscale]=facet_scales(obj)
+%How the axes limits are shared between facets: 'global' (same for all),
+%'per_column' and 'per_row' (facet_grid(), swapped for flipped axes) or
+%'per_plot', according to facet_scale
+if obj.wrap_ncols>0
+    free_x='per_plot';
+    free_y='per_plot';
+else
+    free_x='per_column';
+    free_y='per_row';
+end
+switch obj.facet_scale
+    case 'fixed'
+        xscale='global';
+        yscale='global';
+        zscale='global';
+    case 'free_x'
+        xscale=free_x;
+        yscale='global';
+        zscale='global';
+    case 'free_y'
+        xscale='global';
+        yscale=free_y;
+        zscale='global';
+    case 'free'
+        xscale=free_x;
+        yscale=free_y;
+        zscale='per_plot';
+    otherwise %'independent'
+        xscale='per_plot';
+        yscale='per_plot';
+        zscale='per_plot';
+end
+end
+
+
+function lim=facet_lim(obj,dim,scale,ind_row,ind_column)
+%Data limits along dim ('x','y' or 'z') of a facet, gathered over the
+%facets that share them (see facet_scales())
+mn=obj.plot_lim.(['min' dim]);
+mx=obj.plot_lim.(['max' dim]);
+switch facet_group(obj,scale)
+    case 'all'
+        lim=[min(mn(:)) max(mx(:))];
+    case 'row'
+        lim=[min(mn(ind_row,:)) max(mx(ind_row,:))];
+    case 'column'
+        lim=[min(mn(:,ind_column)) max(mx(:,ind_column))];
+    otherwise
+        lim=[mn(ind_row,ind_column) mx(ind_row,ind_column)];
+end
+end
+
+
+function links=link_lims(obj,prop,scale)
+%Link the limits of the facets that share them (see facet_scales())
+ax=obj.facet_axes_handles;
+switch facet_group(obj,scale)
+    case 'all'
+        groups={ax(:)};
+    case 'row'
+        groups=num2cell(ax,2);
+    case 'column'
+        groups=num2cell(ax,1);
+    otherwise
+        groups={};
+end
+links=[];
+for k=1:numel(groups)
+    g=groups{k}(isgraphics(groups{k}));
+    if numel(g)>1
+        links=[links linkprop(g,prop)]; %#ok<AGROW>
+    end
+end
+end
+
+
+function group=facet_group(obj,scale)
+%Facets sharing limits: 'all', 'row', 'column' or 'none'. x limits are
+%shared along columns, and y limits along rows, unless the axes are flipped
+switch scale
+    case 'global'
+        group='all';
+    case 'per_column'
+        group='column';
+    case 'per_row'
+        group='row';
+    otherwise
+        group='none';
+end
+if obj.is_flipped && any(strcmp(group,{'row','column'}))
+    group=setdiff({'row','column'},group);
+    group=group{1};
+end
+end
+
+
+function draw_ablines(obj,ca,temp_aes)
+%Lines from geom_abline(), geom_vline(), geom_hline() and geom_funline().
+%In polar plots they span the full circle (hlines are circles), and vlines
+%span the radius axis
+
+%Datetime/duration intercepts (and angles in degrees) are converted to
+%numbers
+for line_ind=1:length(obj.abline.raw)
+    if ~isempty(obj.abline.raw{line_ind})
+        if isnan(obj.abline.yintercept(line_ind))
+            obj.abline.xintercept(line_ind)=to_num(obj.axis_types.x,obj.abline.raw{line_ind});
+        else
+            obj.abline.yintercept(line_ind)=to_num(obj.axis_types.y,obj.abline.raw{line_ind});
+        end
+    end
+end
+is_polar=obj.polar.is_polar;
+is_log=~is_polar && (strcmp(ca.XScale,'log') || strcmp(ca.YScale,'log'));
+for line_ind=1:length(obj.abline.intercept)
+    if is_polar
+        xl=linspace(0,2*pi,100);
+    else
+        tmp_xl=[obj.var_lim.minx obj.var_lim.maxx];
+        tmp_extent=(tmp_xl(2)-tmp_xl(1))*obj.abline.extent(line_ind)/2;
+        xl=[mean(tmp_xl)-tmp_extent mean(tmp_xl)+tmp_extent];
+        if strcmp(ca.XScale,'log') && xl(1)<0 %Correct negative values if log axes
+            xl(1)=1;
+        end
+    end
+    line_opts={obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca};
+    if ~isnan(obj.abline.intercept(line_ind))
+        %draw it properly (curved) if log axes
+        if is_log
+            xl=xl(1):(xl(2)-xl(1))/50:xl(2);
+        end
+        %abline
+        plot(xl,xl*obj.abline.slope(line_ind)+obj.abline.intercept(line_ind),line_opts{:});
+    elseif ~isnan(obj.abline.xintercept(line_ind))
+        %vline
+        if is_polar
+            yl=ca.RLim;
+        else
+            if obj.var_lim.miny == obj.var_lim.maxy %We are probably in a case where y wasn't provided (histogram or raster)
+                tmp_yl=[0 numel(temp_aes.x)]; %We scale y according to number of x elements
+            else
+                tmp_yl=[obj.var_lim.miny obj.var_lim.maxy];
+            end
+            tmp_extent=(tmp_yl(2)-tmp_yl(1))*obj.abline.extent(line_ind)/2;
+            yl=[mean(tmp_yl)-tmp_extent mean(tmp_yl)+tmp_extent];
+        end
+        plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,line_opts{:});
+    elseif ~isnan(obj.abline.yintercept(line_ind))
+        %hline
+        plot(xl,xl*0+obj.abline.yintercept(line_ind),line_opts{:});
+    else
+        temp_x=linspace(xl(1),xl(end),500);
+        plot(temp_x,obj.abline.fun{line_ind}(temp_x),line_opts{:});
+    end
+end
+end
+
 
 function out=allmax(in)
 %Return maximum of an array or of a cell of arrays

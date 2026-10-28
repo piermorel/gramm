@@ -1,6 +1,6 @@
 function v=from_num(T,n)
-%Convert numbers used internally by gramm back to datetime/duration values,
-%as described by the axis type T (see axis_type())
+%Convert numbers used internally by gramm back to datetime/duration values
+%(or degrees), as described by the axis type T (see axis_type())
 switch T.type
     case 'datetime'
         v=T.ref+days(n);
@@ -16,6 +16,10 @@ switch T.type
                 v=days(n);
         end
     otherwise
-        v=n;
+        if strcmp(T.unit,'deg')
+            v=rad2deg(n);
+        else
+            v=n;
+        end
 end
 end

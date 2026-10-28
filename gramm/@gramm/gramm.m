@@ -13,7 +13,8 @@ classdef gramm < matlab.mixin.Copyable
         %How datetime and duration x/y data is converted to the numbers
         %found in results: axis_types.x and axis_types.y have fields type
         %('numeric', 'datetime' or 'duration'), ref (datetime: numbers are
-        %days since ref) and unit (duration: 's','m','h' or 'd')
+        %days since ref) and unit (duration: 's','m','h' or 'd'; 'deg' for
+        %polar x data in degrees, stored in radians)
         axis_types
     end
     
@@ -41,10 +42,12 @@ classdef gramm < matlab.mixin.Copyable
         
         %Structure containing polar-related parameters: is_polar stores
         %whether to display polar plots, is_polar_closed to  set if the
-        %polar lines must close around the circle, and max_polar_y to
-        %define the limits in radius.
+        %polar lines must close around the circle, max_polar_y to
+        %define the limits in radius, and unit the angle unit.
         polar=struct('is_polar',false,...
-            'is_polar_closed',false)
+            'is_polar_closed',false,...
+            'max_polar_y',-1,...
+            'unit','radians')
         
         is_flipped=false; %Are the axes flipped?
         

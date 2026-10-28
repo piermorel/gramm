@@ -33,12 +33,12 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
             
             x=dodger(x',draw_data,dodge)';
             
-            %Convert CIs to polar coordinates if needed
-            [tmp_xci1,tmp_yci1]=to_polar(obj,x,yci(1,:));
-            [tmp_xci2,tmp_yci2]=to_polar(obj,x,yci(2,:));
+            %Close the lines and CIs of closed polar plots
+            [tmp_xci1,tmp_yci1]=close_polar(obj,x,yci(1,:));
+            [tmp_xci2,tmp_yci2]=close_polar(obj,x,yci(2,:));
             yci=[tmp_yci1;tmp_yci2];
             xci=[tmp_xci1;tmp_xci2];
-            [x,y]=to_polar(obj,x,y);
+            [x,y]=close_polar(obj,x,y);
             
             
             if 1 %any(isnan(tmp_yci1)) || any(isnan(tmp_yci2))
@@ -141,14 +141,14 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                         barright=x+bar_width/2;
                         xpatch=[barleft ; barright ; barright ; barleft];
                         ypatch=[zeros(1,length(y)) ; zeros(1,length(y)) ; y ; y];
-                        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+                        [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
                         hndl.bar_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','none');
                    case 'edge_bar'
                         barleft=x-bar_width/2;
                         barright=x+bar_width/2;
                         xpatch=[barleft ; barright ; barright ; barleft];
                         ypatch=[zeros(1,length(y)) ; zeros(1,length(y)) ; y ; y];
-                        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+                        [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
                         hndl.bar_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','k');
                     case 'point'
                         hndl.point_handle=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',draw_data.color);

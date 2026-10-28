@@ -40,7 +40,7 @@ if obj.continuous_color_options.active
     obj.plot_lim.minc(obj.current_row,obj.current_column)=min(obj.plot_lim.minc(obj.current_row,obj.current_column),min(comb(draw_data.continuous_color)));
     
     if isempty(draw_data.z)
-        [x,y]=to_polar(obj,draw_data.x,draw_data.y);
+        [x,y]=close_polar(obj,draw_data.x,draw_data.y);
 
         %We fake continuous colors lines by creating patch objects
         %without fill. Since they need to be closed we draw the
@@ -126,7 +126,6 @@ else
 
             xpatch = [xline(1:end-1) ; xline(2:end) ; xline(2:end) ; xline(1:end-1)];
             ypatch = [top(1:end-1); top(2:end) ; bottom(2:end) ; bottom(1:end-1)];
-            [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
 
             obj.results.geom_line_fill_handle{obj.result_ind,1}=patch(xpatch,ypatch,[1 1 1],...
                 'FaceColor',draw_data.color,...
@@ -151,7 +150,7 @@ else
                 y=y(i);
             end
 
-            [x,y]=to_polar(obj,x,y);
+            [x,y]=close_polar(obj,x,y);
             hndl=patch('XData',combnan(x),'YData',combnan(y),...
                 'LineStyle',draw_data.line_style,'LineWidth',draw_data.line_size,'EdgeColor',draw_data.color);
         end

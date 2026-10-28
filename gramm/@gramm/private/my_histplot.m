@@ -40,7 +40,11 @@ if isempty(params.fill)
 end
 
 %Compute bins
-if obj.x_factor %For categorical Xs (placed at integer values), we override and make the bins 0.5 1.5 2.5 ...
+if obj.x_factor && obj.polar.is_polar %Categorical Xs evenly spread around the circle
+    step=2*pi/length(obj.x_ticks);
+    binranges=((0:length(obj.x_ticks))-0.5)*step;
+    bincenters=(0:length(obj.x_ticks)-1)*step;
+elseif obj.x_factor %For categorical Xs (placed at integer values), we override and make the bins 0.5 1.5 2.5 ...
     binranges=(0:length(obj.x_ticks))+0.5;
     bincenters=1:length(obj.x_ticks);
 else
@@ -50,10 +54,10 @@ else
         if isempty(params.edges)
             binranges=linspace(0,2*pi,params.nbins+1);
         else
-            if max(params.edges)>2*pi || min(params.edges)<0
-                warning('Bin edges exceed the polar ranges (O-2pi)')
+            binranges=to_num(obj.axis_types.x,params.edges); %Degrees to radians
+            if max(binranges)>2*pi || min(binranges)<0
+                warning('Bin edges exceed the polar range (0-360 degrees or 0-2pi)')
             end
-            binranges=params.edges;
         end
     else
         binranges=bin_edges(obj,params.edges,params.bin_width,params.nbins);
@@ -145,7 +149,7 @@ switch params.geom
         xpatch=[bar_right ; bar_left ; bar_left ; bar_right];
         ypatch=[zeros(1,length(bincounts)) ; zeros(1,length(bincounts)) ; bincounts' ; bincounts'];
         ypatch(:,bincounts==0)=NaN; %Hide empty bins (their degenerate faces can be rendered as stray lines)
-        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+        [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
         results.bar_handle=patch(xpatch,...
             ypatch,...
             [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
@@ -153,18 +157,17 @@ switch params.geom
     case 'line'
         xtemp=bar_mid;
         ytemp=bincounts(1:end)';
-        [xtemp,ytemp]=to_polar(obj,xtemp,ytemp);
+        [xtemp,ytemp]=close_polar(obj,xtemp,ytemp);
         results.line_handle=plot(xtemp,ytemp,'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.line_size);
         xpatch=[bar_mid(1:end-1) ; bar_mid(2:end) ; bar_mid(2:end);bar_mid(1:end-1)];
         ypatch=[zeros(1,length(bincounts)-1) ; zeros(1,length(bincounts)-1) ; bincounts(2:end)' ; bincounts(1:end-1)'];
-        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
         results.fill_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',face_color,'EdgeColor','none','FaceAlpha',face_alpha);
         
     case 'stacked_bar'
         xpatch=[binranges(1:end-1)+spacing ; binranges(2:end)-spacing ; binranges(2:end)-spacing ; binranges(1:end-1)+spacing];
         ypatch=[obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'];
         ypatch(:,bincounts==0)=NaN; %Hide empty bins (their degenerate faces can be rendered as stray lines)
-        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+        [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
         results.bar_handle=patch(xpatch,...
             ypatch,...
             [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
@@ -172,19 +175,18 @@ switch params.geom
     case 'stairs'
         xtemp=[binranges(1:end-1) ; binranges(2:end)];
         ytemp=[bincounts' ; bincounts'];
-        [xtemp,ytemp]=to_polar(obj,xtemp(:),ytemp(:));
+        [xtemp,ytemp]=polar_arcs(obj,xtemp(:),ytemp(:),false);
         results.line_handle=plot(xtemp,ytemp,'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.line_size);
         
         xpatch=[binranges(1:end-1) ; binranges(2:end) ; binranges(2:end) ; binranges(1:end-1)];
         ypatch=[obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height ; obj.extra.stacked_bar_height+bincounts' ; obj.extra.stacked_bar_height+bincounts'];
-        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+        [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
         
         results.fill_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',face_color,'EdgeColor','none','FaceAlpha',face_alpha);
         
     case 'point'
         xtemp=bar_mid;
         ytemp=bincounts(1:end)';
-        [xtemp,ytemp]=to_polar(obj,xtemp,ytemp);
         results.point_handle=plot(xtemp,ytemp,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',draw_data.color);
 end
 

@@ -37,7 +37,8 @@ else
     
     
     if isempty(params)
-        [x,y]=to_polar(obj,draw_data.x,draw_data.y);
+        x=draw_data.x;
+        y=draw_data.y;
         if isempty(draw_data.z)
             hndl=text(x,y,draw_data.label,'Color',draw_data.color);
         else
@@ -63,7 +64,7 @@ else
             dodge=0;
         end
         x=dodger(draw_data.x,draw_data,dodge);
-        [x,y]=to_polar(obj,x,draw_data.y);
+        y=draw_data.y;
         if isempty(draw_data.z)
             hndl=text(x,y,draw_data.label,'Color',draw_data.color,params{:});
         else

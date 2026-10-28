@@ -117,7 +117,7 @@ end
 % Hide zero-height bars (NaN faces are not drawn): their degenerate faces
 % can be rendered as a stray horizontal line extending out of the axes
 ypatch(:,ypatch(1,:)==ypatch(3,:))=NaN;
-[xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+[xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
 
 % Convert unmatched structure to cell array of name-value pairs
 args=my_struct2cell(unmatched);

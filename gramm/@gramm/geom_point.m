@@ -27,7 +27,8 @@ if obj.continuous_color_options.active
     obj.plot_lim.minc(obj.current_row,obj.current_column)=min(obj.plot_lim.maxc(obj.current_row,obj.current_column),min(comb(draw_data.continuous_color)));
     
     if isempty(draw_data.z)
-            [x,y]=to_polar(obj,draw_data.x,draw_data.y);
+            x=draw_data.x;
+            y=draw_data.y;
             if iscell(draw_data.x) && ~iscell(draw_data.continuous_color) % Case in which continuous color is given as an array while xy given as cells
                 for k=1:length(x)
                     hndl=scatter(x{k},y{k},...
@@ -75,7 +76,7 @@ else
        
         x=dodger(x,draw_data,params.dodge);
 
-        [x,y]=to_polar(obj,x,comb(draw_data.y));
+        y=comb(draw_data.y);
         hndl=scatter(x,y,draw_data.point_size^2,...
             'Marker',draw_data.marker,...
             'LineWidth',draw_data.border_width,...

@@ -13,7 +13,9 @@ fields=fieldnames(aes);
 %Datetime and duration x/y data are converted to numbers
 if ~iscellstr(aes.x) && ~iscategorical(aes.x) && ~isstring(aes.x)
     axis_types.x=axis_type(axis_types.x,{aes.x});
-    aes.x=to_num(axis_types.x,aes.x);
+    if ~strcmp(axis_types.x.type,'numeric')
+        aes.x=to_num(axis_types.x,aes.x);
+    end
 end
 axis_types.y=axis_type(axis_types.y,{aes.y,aes.ymin,aes.ymax});
 for f={'y','ymin','ymax'}

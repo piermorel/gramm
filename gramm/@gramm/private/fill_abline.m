@@ -3,11 +3,12 @@ ab.on=true;
 
 l=max(cellfun(@length,varargin(1:5)));
 
-%Datetime/duration intercepts are kept in raw, and converted to numbers in
-%draw() (the conversion is only known then). 0 marks them in x/yintercept
+%Datetime/duration intercepts, and all x intercepts (polar angles may be in
+%degrees), are kept in raw, and converted to numbers in draw() (the
+%conversion is only known then). 0 marks them in x/yintercept
 raw=cell(l,1);
 for k=3:4
-    if isdatetime(varargin{k}) || isduration(varargin{k})
+    if isdatetime(varargin{k}) || isduration(varargin{k}) || (k==3 && ~all(isnan(varargin{k})))
         raw=num2cell(shiftdim(varargin{k}));
         varargin{k}=zeros(l,1);
     end

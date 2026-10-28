@@ -366,6 +366,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+            {"name":"unit","kind":"namevalue","type":"choices={'radians','degrees'}"},
             {"name":"closed","kind":"namevalue","type":"choices={1,0}"},
             {"name":"maxy","kind":"namevalue","type":"numeric"}
 		]

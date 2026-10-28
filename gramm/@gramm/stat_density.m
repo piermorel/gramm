@@ -29,7 +29,9 @@ function hndl=my_density(obj,draw_data,params)
 if obj.polar.is_polar
     %Make x data modulo 2 pi
     draw_data.x=mod(comb(draw_data.x),2*pi);
-    warning('Polar density estimate is probably not proper for circular data, use custom bandwidth');
+    if params.bandwidth<=0
+        warning('Polar density estimate is probably not proper for circular data, use custom bandwidth');
+    end
     %Let's try to make boundaries a bit more proper by
     %repeating values below 0 and above 2 pi
     draw_data.x=[draw_data.x-2*pi;draw_data.x;draw_data.x+2*pi];
@@ -41,6 +43,7 @@ else
 end
 
 if params.bandwidth>0
+    params.bandwidth=to_num(obj.axis_types.x,params.bandwidth); %Degrees to radians
     [f,xi] = ksdensity(comb(draw_data.x),binranges,'function',params.function,'bandwidth',params.bandwidth,'kernel',params.kernel);
 else
     [f,xi] = ksdensity(comb(draw_data.x),binranges,'function',params.function,'kernel',params.kernel);
@@ -62,7 +65,7 @@ end
 obj.results.stat_density{obj.result_ind,1}.x=xi;
 obj.results.stat_density{obj.result_ind,1}.y=f;
 
-[xi,f]=to_polar(obj,xi,f);
+[xi,f]=close_polar(obj,xi,f);
 hndl=plot(xi,f,'LineStyle',draw_data.line_style,'Color',draw_data.color,'lineWidth',draw_data.line_size);
 
 obj.results.stat_density{obj.result_ind,1}.handle=hndl;
