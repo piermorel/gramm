@@ -60,12 +60,23 @@ if ~(ischar(str) && size(str,1)==1) && ~(isstring(str) && isscalar(str))
 end
 str=char(str);
 
+%Width of the title on one line. Measuring text is slow, so it is kept for
+%the next calls (it doesn't depend on the figure size)
+font={h.FontName,h.FontSize,h.FontWeight,h.FontAngle,h.Interpreter};
+if ~isempty(state) && isequal(state.original,str) && isequal(state.font,font)
+    full_width=state.full_width;
+else
+    set_font(probe,font);
+    probe.String=str;
+    full_width=probe.Extent(3);
+end
+
 %Greedy wrapping: words are added to the current line as long as it fits
-set(probe,'FontName',h.FontName,'FontSize',h.FontSize,'FontWeight',h.FontWeight,...
-    'FontAngle',h.FontAngle,'Interpreter',h.Interpreter);
 words=strsplit(str,' ');
-if isinf(width)
-    words={str};
+if full_width<=0.95*width
+    words={str}; %Fits on one line (the common case)
+else
+    set_font(probe,font);
 end
 lines={};
 current=words{1};
@@ -90,7 +101,13 @@ if ~isequal(h.String,wrapped)
     changed=true;
 end
 %Stored as returned by the text object (cell arrays come back as columns)
-setappdata(h,'gramm_wrap',struct('original',str,'wrapped',{h.String}));
+setappdata(h,'gramm_wrap',struct('original',str,'wrapped',{h.String},'font',{font},'full_width',full_width));
+end
+
+
+function set_font(probe,font)
+set(probe,'FontName',font{1},'FontSize',font{2},'FontWeight',font{3},...
+    'FontAngle',font{4},'Interpreter',font{5});
 end
 
 
