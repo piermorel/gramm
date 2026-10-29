@@ -49,6 +49,8 @@ function obj=stat_summary(obj,varargin)
 %       - 'edge_bar': displays the locations as bars with black edge
 %       - 'point': displays the locations as points
 %       - 'black_point': displays the locations as black points
+% - 'fill_alpha': Transparency of the area of the 'area' and 'area_only'
+% geoms, from 0 (transparent) to 1 (opaque) (default 0.2)
 % - 'setylim': set to true if you want the y axis limits to be
 % set by the summarized data instead of the underlying data
 % points.
@@ -123,6 +125,7 @@ my_addParameter(p,'interp','none');
 my_addParameter(p,'interp_in',-1);
 my_addParameter(p,'bin_in',[]);
 my_addParameter(p,'bin_width',[]);
+my_addParameter(p,'fill_alpha',0.2);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_summary(dobj,dd,p.Results)});
@@ -345,7 +348,7 @@ obj.results.stat_summary{obj.result_ind,1}.y=ymean;
 obj.results.stat_summary{obj.result_ind,1}.yci=yci;
 
 %Do the actual plotting
-hndl=plotci(obj,uni_x,ymean,yci,draw_data,params.geom,params.dodge,params.width);
+hndl=plotci(obj,uni_x,ymean,yci,draw_data,params.geom,params.dodge,params.width,params.fill_alpha);
 
 %Copy handles
 if isstruct(hndl)

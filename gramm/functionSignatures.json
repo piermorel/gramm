@@ -93,6 +93,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
             		{"name":"width","kind":"namevalue","type":"numeric"},
             		{"name":"dodge","kind":"namevalue","type":"numeric"},
             		{"name":"stacked","kind":"namevalue","type":"choices={1,0}"},
@@ -106,6 +107,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
             {"name":"width","kind":"namevalue","type":"numeric"},
             {"name":"dodge","kind":"namevalue","type":"numeric"}
@@ -123,6 +125,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"type","kind":"namevalue","type":"choices={'ci','bootci','sem','std','quartile','95percentile','fitnormalci','fitpoissonci','fitbinomialci'}"},
 			{"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
 			{"name":"setylim","kind":"namevalue","type":"choices={1,0}"},
@@ -138,6 +141,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"method","kind":"namevalue","type":"choices={'eilers','smoothingspline','moving','lowess','loess','sgolay','rloess','rlowess'}"},
             {"name":"lambda","kind":"namevalue","type":"numeric"},
             {"name":"npoints","kind":"namevalue","type":"numeric"},
@@ -149,6 +153,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"distribution","kind":"namevalue","type":"choices={'normal','binomial','poisson','gamma','inverse gaussian'}"},
             {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
             {"name":"fullrange","kind":"namevalue","type":"choices={1,0}"},
@@ -159,6 +164,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"fun","kind":"namevalue","type":"function_handle"},
             {"name":"StartPoint","kind":"namevalue","type":"numeric"},
             {"name":"intopt","kind":"namevalue","type":"choices={'observation','functional'}"},
@@ -173,6 +179,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"nbins","kind":"namevalue","type":"numeric"},
             {"name":"edges","kind":"namevalue","type":[["numeric"],["datetime"],["duration"]]},
             {"name":"bin_width","kind":"namevalue","type":[["numeric"],["duration"],["calendarDuration"],["choices={'second','minute','hour','day','week','month','quarter','year'}"]]},
@@ -187,6 +194,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"location","kind":"namevalue","type":"numeric"},
             {"name":"aspect","kind":"namevalue","type":"numeric"},
 			{"name":"nbins","kind":"namevalue","type":"numeric"},
@@ -221,6 +229,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
             {"name":"type","kind":"namevalue","type":"choices={'95percentile','ci'}"},
             {"name":"geom","kind":"namevalue","type":"choices={'area','line'}"},
             {"name":"patch_opts","kind":"namevalue","type":"cell"}
@@ -247,6 +256,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
             {"name":"normalization","kind":"namevalue","type":"choices={'area','count','width'}"},
             {"name":"half","kind":"namevalue","type":"choices={1,0}"},
             {"name":"bandwidth","kind":"namevalue","type":"numeric"},
@@ -315,6 +325,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
             {"name":"x","kind":"namevalue","type":"numeric"},
             {"name":"y","kind":"namevalue","type":"numeric"},
             {"name":"alpha","kind":"namevalue","type":"numeric"},

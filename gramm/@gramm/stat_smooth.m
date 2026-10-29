@@ -18,6 +18,8 @@ function obj=stat_smooth(obj,varargin)
 %            corresponding to [span degree]
 % - 'geom': how is the smooth displayed (see stat_summary()
 % documentation)
+% - 'fill_alpha': transparency of the confidence area of the 'area' and
+% 'area_only' geoms, from 0 (transparent) to 1 (opaque) (default 0.2)
 % - 'npoints': number of points over which the smooth is
 % evaluated (default is 200).
 % - 'setylim': Set to true to adjust y-axis limits based on smoothed
@@ -34,6 +36,7 @@ function obj=stat_smooth(obj,varargin)
 p=inputParser;
 my_addParameter(p,'lambda',[]);
 my_addParameter(p,'geom','area');
+my_addParameter(p,'fill_alpha',0.2);
 my_addParameter(p,'method','eilers');
 my_addParameter(p,'npoints',200);
 my_addParameter(p,'setylim',false);
@@ -287,7 +290,7 @@ else
         end
     end
     
-    hndl=plotci(obj,newx,newy,yci,draw_data,params.geom);
+    hndl=plotci(obj,newx,newy,yci,draw_data,params.geom,[],[],params.fill_alpha);
     
     %Store plotted handles
     hnames=fieldnames(hndl);

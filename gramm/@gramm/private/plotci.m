@@ -1,10 +1,13 @@
-function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
+function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha)
             
-            if nargin<7
+            if nargin<7 || isempty(dodge)
                 dodge=0;
             end
-            if nargin<8
+            if nargin<8 || isempty(width)
                 width=0.5;
+            end
+            if nargin<9
+                fill_alpha=0.2;
             end
             
             x=shiftdim(x)';
@@ -98,7 +101,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                         hndl.area_handle=patch('Vertices',vertices,...
                             'Faces',faces,...
                             'FaceColor',draw_data.color,...
-                            'FaceAlpha',0.2,...
+                            'FaceAlpha',fill_alpha,...
                             'EdgeColor','none');
                         
                         hndl.line_handle=plot(x,y,...
@@ -112,7 +115,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                             'MarkerFaceColor',draw_data.color);
                         
                     case 'area_only'
-                        hndl.area_handle=patch('Vertices',vertices,'Faces',faces,'FaceColor',draw_data.color,'FaceAlpha',0.2,'EdgeColor','none');
+                        hndl.area_handle=patch('Vertices',vertices,'Faces',faces,'FaceColor',draw_data.color,'FaceAlpha',fill_alpha,'EdgeColor','none');
                         
                     case 'solid_area'
                         %Solid area (no alpha)

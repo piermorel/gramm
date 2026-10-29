@@ -13,6 +13,8 @@ function obj=geom_bar(obj,varargin)
 % - 'FaceColor': Face color of bars, can be 'auto' to use data color (default 'auto')
 % - 'EdgeColor': Edge color of bars, can be 'auto' to use data color (default 'k')
 % - 'fill': Fill style, can be 'edge', 'face', 'all', or 'transparent' (default [])
+% - 'fill_alpha': Transparency of the bar faces, from 0 (transparent) to
+%   1 (opaque). If empty, set by the fill style (default [])
 % - 'LineWidth': Width of bar edges (default uses line_size from data)
 
 if mod(numel(varargin),2)~=0
@@ -28,6 +30,7 @@ my_addParameter(p,'dodge',0);
 my_addParameter(p,'FaceColor','auto');
 my_addParameter(p,'EdgeColor','k');
 my_addParameter(p,'fill',[]);
+my_addParameter(p,'fill_alpha',[]);
 my_addParameter(p,'LineWidth',[]);
 parse(p,varargin{:});
 
@@ -59,9 +62,12 @@ y=shiftdim(y)';
 % Check for automatic Face- and EdgeColor options
 if ~isempty(params.fill)
     %Set up colors according to fill
-    [FaceColor , FaceAlpha , EdgeColor , EdgeAlpha] = parse_fill (params.fill,draw_data.color);
+    [FaceColor , FaceAlpha , EdgeColor , EdgeAlpha] = parse_fill (params.fill,draw_data.color,params.fill_alpha);
 else
     FaceAlpha = 1;
+    if ~isempty(params.fill_alpha)
+        FaceAlpha = params.fill_alpha;
+    end
     EdgeAlpha = 1;
     if strcmp(params.FaceColor,'auto')
         FaceColor=draw_data.color;

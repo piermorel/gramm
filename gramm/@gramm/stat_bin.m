@@ -17,7 +17,9 @@ function obj=stat_bin(obj,varargin)
 % widths are not equal (e.g. months), it's recommended to use
 % 'countdensity' or 'pdf' for normalization. Aspect of the geoms can be
 % customized with the 'fill' option
-% ('edge','face','all','transparent')
+% ('edge','face','all','transparent'), and the transparency of faces with
+% 'fill_alpha', from 0 (transparent) to 1 (opaque). If empty, it is set
+% by the fill style (default [])
 
 p=inputParser;
 my_addParameter(p,'nbins',30);
@@ -26,6 +28,7 @@ my_addParameter(p,'bin_width',[]);
 my_addParameter(p,'geom','bar'); %line, bar, overlaid_bar, stacked_bar,stairs, point
 my_addParameter(p,'normalization','count');
 my_addParameter(p,'fill',[]); %edge,face,all,transparent
+my_addParameter(p,'fill_alpha',[]);
 my_addParameter(p,'width',[]);
 my_addParameter(p,'dodge',[]);
 parse(p,varargin{:});

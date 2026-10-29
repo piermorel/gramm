@@ -8,6 +8,7 @@ my_addParameter(p,'bin_width',[]); %Used by my_histplot()
 my_addParameter(p,'geom','overlaid_bar'); %line, bar, overlaid_bar, stacked_bar,stairs, point
 my_addParameter(p,'normalization','count');
 my_addParameter(p,'fill',[]); %edge,face,all,transparent
+my_addParameter(p,'fill_alpha',[]);
 my_addParameter(p,'width',[]);
 my_addParameter(p,'dodge',[]);
 my_addParameter(p,'aspect',0.3); %Aspect ratio of the inset axis

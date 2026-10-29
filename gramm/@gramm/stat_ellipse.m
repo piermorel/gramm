@@ -9,6 +9,8 @@ function obj=stat_ellipse(obj,varargin)
 % 2D means and plot the 95% ellipse around these means
 % 'geom': Sets how to display the result 'area' for a shaded
 % area or 'line' for a simple contour line.
+% 'fill_alpha': Transparency of the 'area' geom, from 0 (transparent)
+% to 1 (opaque) (default 0.2)
 % 'patch_opts': Provide additional patch properties as name-value
 % pairs in a cell array (as if those were options for Matlab's
 % built in patch() function)
@@ -16,6 +18,7 @@ function obj=stat_ellipse(obj,varargin)
 p=inputParser;
 my_addParameter(p,'type','95percentile'); %ci
 my_addParameter(p,'geom','area'); %line
+my_addParameter(p,'fill_alpha',0.2);
 my_addParameter(p,'patch_opts',{});
 parse(p,varargin{:});
 
@@ -90,7 +93,7 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         
         switch params.geom
             case 'area'
-                hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor',draw_data.color,'EdgeColor',draw_data.color,'LineWidth',2,'FaceAlpha',0.2);
+                hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor',draw_data.color,'EdgeColor',draw_data.color,'LineWidth',2,'FaceAlpha',params.fill_alpha);
                 
             case 'line'
                 hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor','none','EdgeColor',draw_data.color,'LineWidth',2);    
@@ -125,7 +128,7 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         
         conf_sphpoints=sphpoints;
         conf_sphpoints.vertices=bsxfun(@plus,sqrtm(cv)*conf_sphpoints.vertices'*k(obj.stat_options.alpha),m')';
-        hndl=patch(conf_sphpoints,'FaceColor',draw_data.color,'EdgeColor','none','LineWidth',2,'FaceAlpha',0.2);
+        hndl=patch(conf_sphpoints,'FaceColor',draw_data.color,'EdgeColor','none','LineWidth',2,'FaceAlpha',params.fill_alpha);
         
         center_hndl=plot3(m(1),m(2),m(3),'+','MarkerFaceColor',draw_data.color,'MarkerEdgeColor',draw_data.color,'MarkerSize',10);
     end

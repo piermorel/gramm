@@ -10,6 +10,8 @@ function obj=stat_glm(obj,varargin)
 %   fit. Possible values are 'normal', 'binomial', 'poisson', 'gamma', and 'inverse gaussian'
 % - 'geom': defines the way to display the confidence bouds.
 %   See the help of stat_summary().
+% - 'fill_alpha': transparency of the confidence area of the 'area' and
+%   'area_only' geoms, from 0 (transparent) to 1 (opaque) (default 0.2)
 % - 'fullrange': set to true if you want the fits to be
 %   displayed over the whole width of each subplot instead of
 %   being displayed over the range of x values used for the fit
@@ -20,6 +22,7 @@ function obj=stat_glm(obj,varargin)
 p=inputParser;
 my_addParameter(p,'distribution','normal');
 my_addParameter(p,'geom','area');
+my_addParameter(p,'fill_alpha',0.2);
 my_addParameter(p,'fullrange',false);
 my_addParameter(p,'disp_fit',false);
 parse(p,varargin{:});
@@ -49,7 +52,7 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2 %numel(combx)>2 &&
     obj.results.stat_glm{obj.result_ind,1}.yci=yci;
     obj.results.stat_glm{obj.result_ind,1}.model=mdl;
     
-    hndl=plotci(obj,newx,newy,yci,draw_data,params.geom);
+    hndl=plotci(obj,newx,newy,yci,draw_data,params.geom,[],[],params.fill_alpha);
     
     %Store plotted handles
     hnames=fieldnames(hndl);

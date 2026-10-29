@@ -15,11 +15,14 @@ function obj = geom_interval( obj,varargin )
 % - 'width': Width of the intervals when using bar geoms (the size of
 %            errorbar caps is set with set_line_options('cap_size',...)).
 %            If empty, automatically determined based on dodge setting (default [])
+% - 'fill_alpha': Transparency of the area of the 'area' geom, from 0
+%            (transparent) to 1 (opaque) (default 0.2)
 
 p=inputParser;
 my_addParameter(p,'geom','area');
 my_addParameter(p,'dodge',[]);
 my_addParameter(p,'width',[]);
+my_addParameter(p,'fill_alpha',0.2);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_ci(dobj,dd,p.Results)});
@@ -52,10 +55,10 @@ end
 
 if iscell(draw_data.x)
     for k=1:length(draw_data.x)
-        hndl = plotci(obj,draw_data.x{k},draw_data.y{k},[draw_data.ymin{k} draw_data.ymax{k}],draw_data,params.geom,params.dodge,params.width);
+        hndl = plotci(obj,draw_data.x{k},draw_data.y{k},[draw_data.ymin{k} draw_data.ymax{k}],draw_data,params.geom,params.dodge,params.width,params.fill_alpha);
     end
 else
-    hndl=plotci(obj,draw_data.x,draw_data.y,[draw_data.ymin draw_data.ymax],draw_data,params.geom,params.dodge,params.width);
+    hndl=plotci(obj,draw_data.x,draw_data.y,[draw_data.ymin draw_data.ymax],draw_data,params.geom,params.dodge,params.width,params.fill_alpha);
 end
 
 obj.results.geom_interval{obj.result_ind,1}=hndl;

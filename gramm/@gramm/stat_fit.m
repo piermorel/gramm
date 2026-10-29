@@ -19,7 +19,7 @@ function obj=stat_fit(obj,varargin)
 % - 'intopt': Option passed to predint() for the type of bounds
 % to compute, 'observation' for bounds of a new observation
 % (default), or 'functional' for bounds of the fitted curve.
-% - 'geom', 'fullrange', 'disp_fit' options: see stat_glm()
+% - 'geom', 'fill_alpha', 'fullrange', 'disp_fit' options: see stat_glm()
 % - 'fullrange': set to true if you want the fits to be
 %   displayed over the whole width of each subplot instead of
 %   being displayed over the range of x values used for the fit
@@ -35,6 +35,7 @@ my_addParameter(p,'StartPoint',[]);
 my_addParameter(p,'fit_options',[]);
 my_addParameter(p,'intopt','observation');
 my_addParameter(p,'geom','area');
+my_addParameter(p,'fill_alpha',0.2);
 my_addParameter(p,'fullrange',false);
 my_addParameter(p,'disp_fit',false);
 my_addParameter(p,'stats',false); 
@@ -115,7 +116,7 @@ obj.results.stat_fit{obj.result_ind,1}.model=mdl;
 obj.results.stat_fit{obj.result_ind,1}.gof=gof;
 
 %Plot fit
-hndl=plotci(obj,newx,newy,yci,draw_data,params.geom);
+hndl=plotci(obj,newx,newy,yci,draw_data,params.geom,[],[],params.fill_alpha);
 
 %Store plotted handles
 hnames=fieldnames(hndl);

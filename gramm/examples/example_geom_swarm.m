@@ -39,10 +39,10 @@ g(2,1).geom_swarm('point_size',2,'type','square');
 g(2,1).set_title('method ''square''');
 
 g(2,2).geom_swarm('point_size',2,'corral','gutter','alpha',0.5,'dodge',0.8,'width',0.7);
-g(2,2).set_title('corral ''gutter'' and alpha 0.3');
+g(2,2).set_title('corral ''gutter'' and alpha 0.5');
 
 g(2,3).geom_swarm('point_size',2,'corral','omit','alpha',0.5,'dodge',0.8,'width',0.7);
-g(2,3).set_title('corral ''omit'' and alpha 0.3');
+g(2,3).set_title('corral ''omit'' and alpha 0.5');
 
 g.set_title('Options for geom_swarm()');
 g.draw();

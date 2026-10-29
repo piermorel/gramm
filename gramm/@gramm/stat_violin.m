@@ -11,7 +11,7 @@ function obj = stat_violin(obj,varargin)
 % - 'half': If set to true, only half violins are drawn, and the color
 % index determines if the left half or right hald is drawn. Useful for
 % comparing distributions across two colors.
-% - 'fill' see stat_bin()
+% - 'fill' and 'fill_alpha' see stat_bin()
 % - 'width' and 'dodge' see stat_summary()
 %
 % See also stat_summary(), stat_bin(), stat_density()
@@ -24,6 +24,7 @@ my_addParameter(p,'npoints',100)
 my_addParameter(p,'extra_y',0)
 my_addParameter(p,'normalization','area') %'count' 'width'
 my_addParameter(p,'fill','face')
+my_addParameter(p,'fill_alpha',[])
 my_addParameter(p,'width',0.6)
 my_addParameter(p,'dodge',0.7)
 my_addParameter(p,'half',false)
@@ -57,7 +58,7 @@ end
 boxmid=dodger(uni_x,draw_data,params.dodge);
 
 
-[face_color , face_alpha , edge_color , ~] = parse_fill (params.fill,draw_data.color);
+[face_color , face_alpha , edge_color , ~] = parse_fill (params.fill,draw_data.color,params.fill_alpha);
 temp_line_params={'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',1};
 
 %Maximum area

@@ -21,7 +21,9 @@ function obj=geom_polygon(obj,varargin)
 % Optional inputs (defaults) can be specified for all polygons in the call 
 % at once or specifically for each polygon:
 %
-% 'alpha' (0.2)             fill alpha (length 1  or n_polygons)
+% 'fill_alpha' (0.2)        fill transparency, from 0 (transparent) to 1
+%                           (opaque) (length 1  or n_polygons). 'alpha' is
+%                           accepted as well
 % 'color' ([0 0 0])         RGB fill color of the polygon ( 1 x 3 or
 %                           n_polygons x 3 ). Or color index  with automatic colors (1 x
 %                           1 or n_polygons x 1 integers)
@@ -46,6 +48,7 @@ p=inputParser;
 my_addParameter(p,'x',{});
 my_addParameter(p,'y',{});
 my_addParameter(p,'alpha',0.2);
+my_addParameter(p,'fill_alpha',[]);
 my_addParameter(p,'color',[0 0 0]);
 my_addParameter(p,'line_color',[0 0 0]);
 my_addParameter(p,'line_style',{'none'});
@@ -53,6 +56,11 @@ my_addParameter(p,'extent',2);
 parse(p,varargin{:});
 
 temp_results=p.Results;
+%'fill_alpha' is the name used by the other geoms
+if ~isempty(temp_results.fill_alpha)
+    temp_results.alpha=temp_results.fill_alpha;
+end
+temp_results=rmfield(temp_results,'fill_alpha');
 
 
 % Check inputs

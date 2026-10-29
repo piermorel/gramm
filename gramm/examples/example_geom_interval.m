@@ -35,8 +35,8 @@ g(1,2).set_color_options('map','matlab');
 g(1,2).geom_point('dodge',0.2);
 g(1,2).geom_interval('geom','errorbar','dodge',0.2,'width',0.8);
 
-%Shaded area
-g(1,3).geom_interval('geom','area');
+%Shaded area, with its transparency set by 'fill_alpha' (default is 0.2)
+g(1,3).geom_interval('geom','area','fill_alpha',0.2);
 
 figure;
 g.axe_property('YLim',[-10 190]);
