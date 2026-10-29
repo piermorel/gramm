@@ -288,7 +288,7 @@
             {"name":"slope","kind":"namevalue","type":"numeric"},
             {"name":"style","kind":"namevalue","type":"char"},
             {"name":"extent","kind":"namevalue","type":"numeric"},
-            {"name":"linewidth","kind":"namevalue","type":"numeric"}
+            {"name":"line_width","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_vline":
@@ -298,7 +298,7 @@
             {"name":"xintercept","kind":"namevalue","type":[["numeric"],["datetime"],["duration"]]},
             {"name":"style","kind":"namevalue","type":"char"},
             {"name":"extent","kind":"namevalue","type":"numeric"},
-            {"name":"linewidth","kind":"namevalue","type":"numeric"}
+            {"name":"line_width","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_hline":
@@ -308,7 +308,7 @@
             {"name":"yintercept","kind":"namevalue","type":[["numeric"],["datetime"],["duration"]]},
             {"name":"style","kind":"namevalue","type":"char"},
             {"name":"extent","kind":"namevalue","type":"numeric"},
-            {"name":"linewidth","kind":"namevalue","type":"numeric"}
+            {"name":"line_width","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_funline":
@@ -318,7 +318,7 @@
             {"name":"fun","kind":"namevalue","type":"function_handle"},
             {"name":"style","kind":"namevalue","type":"char"},
             {"name":"extent","kind":"namevalue","type":"numeric"},
-            {"name":"linewidth","kind":"namevalue","type":"numeric"}
+            {"name":"line_width","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_polygon":
