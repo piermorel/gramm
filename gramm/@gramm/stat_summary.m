@@ -78,8 +78,8 @@ function obj=stat_summary(obj,varargin)
 % color (recommended for 'bar', 'errorbar', 'black_errorbar').
 % A value of 0 deactivates dodging. Other values set the space
 % between the dodged elements as ratio of the x intervals.
-% - 'width': use to set the width of bars and error bars (error
-% bars are 1/4 th the width of bars).
+% - 'width': use to set the width of bars. The size of error bar caps
+% is set with set_line_options('cap_size',...).
 %
 % A setting of 'dodge',1,'width',1 will create bars that are
 % fully dodged (ie don't overlap, but are not separated) and where

@@ -132,10 +132,10 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                             'MarkerFaceColor',draw_data.color);
                         
                     case 'errorbar'
-                        hndl.errorbar_handle=my_errorbar(x,yci(1,:),yci(2,:),bar_width/4,draw_data.color,draw_data.line_size);
+                        hndl.errorbar_handle=my_errorbar(obj,x,yci(1,:),yci(2,:),draw_data.color,draw_data.line_size);
                         
                     case 'black_errorbar'
-                        hndl.errorbar_handle=my_errorbar(x,yci(1,:),yci(2,:),bar_width/4,'k',draw_data.line_size);
+                        hndl.errorbar_handle=my_errorbar(obj,x,yci(1,:),yci(2,:),'k',draw_data.line_size);
                         
                     case 'bar'
                         barleft=x-bar_width/2;

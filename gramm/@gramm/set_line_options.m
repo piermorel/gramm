@@ -11,6 +11,7 @@ function obj = set_line_options( obj , varargin )
 % values in actual sizes when 'use_input' is set to true. Default is
 % identity
 % 'styles': Provide order for line style categories. Default is {'-' '--' ':' '-.'}
+% 'cap_size': Size of the caps of error bars, in points. Default is 6
 
 
 p=inputParser;
@@ -19,6 +20,7 @@ my_addParameter(p, 'step_size', 1 );
 my_addParameter(p, 'use_input', false );
 my_addParameter(p, 'input_fun', @(v)v );
 my_addParameter(p, 'styles', {'-' '--' ':' '-.'} );
+my_addParameter(p, 'cap_size', 6 );
 parse(p,varargin{:});
 
 for obj_ind=1:numel(obj)

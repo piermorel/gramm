@@ -27,6 +27,7 @@ end
 h=findall(parents(isgraphics(parents)));
 
 set(findobj(h,'flat','Type','line','Color',[0 0 0]),'ColorMode','auto','SeriesIndex','none');
+set(findobj(h,'flat','Type','errorbar','Color',[0 0 0]),'ColorMode','auto','SeriesIndex','none');
 set(findobj(h,'flat','Type','scatter','CData',[0 0 0]),'CDataMode','auto','SeriesIndex','none');
 %Patch color modes are not documented, but behave like the others
 set(findobj(h,'flat','Type','patch','EdgeColor',[0 0 0]),'EdgeColorMode','auto','SeriesIndex','none');

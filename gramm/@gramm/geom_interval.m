@@ -12,7 +12,8 @@ function obj = geom_interval( obj,varargin )
 % - 'dodge': Spacing between intervals of different colors within an 
 %            unique x value. If empty, automatic dodging is applied
 %            for bar geoms when multiple colors are present (default [])
-% - 'width': Width of the intervals when using bar or errorbar geoms.
+% - 'width': Width of the intervals when using bar geoms (the size of
+%            errorbar caps is set with set_line_options('cap_size',...)).
 %            If empty, automatically determined based on dodge setting (default [])
 
 p=inputParser;

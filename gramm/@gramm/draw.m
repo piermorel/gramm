@@ -294,8 +294,10 @@ if obj.updater.first_draw
     obj.facet_axes_handles=gobjects(length(uni_row),length(uni_column));
 end
 
-%Set the dodge width across all facets
-draw_data.dodge_avl_w=min(diff(unique(comb(temp_aes.x))));
+%Set the dodge width across all facets (x values closer than rounding
+%errors count as the same value, as in dodger())
+x_gaps=diff(unique(comb(temp_aes.x)));
+draw_data.dodge_avl_w=min(x_gaps(x_gaps>1e-10));
 if isempty(draw_data.dodge_avl_w) || draw_data.dodge_avl_w==0
     draw_data.dodge_avl_w=1;
 end

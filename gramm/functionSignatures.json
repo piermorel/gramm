@@ -415,7 +415,8 @@
 			{"name":"base_size","kind":"namevalue","type":"numeric"},
             {"name":"step_size","kind":"namevalue","type":"numeric"},
             {"name":"use_input","kind":"namevalue","type":"choices={1,0}"},
-            {"name":"input_fun","kind":"namevalue","type":"numeric"}
+            {"name":"input_fun","kind":"namevalue","type":"numeric"},
+            {"name":"cap_size","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.set_order_options":
