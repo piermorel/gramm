@@ -19,9 +19,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha)
                 yci=yci';
             end
             
-            if ~iscellstr(geom)
-                geom={geom};
-            end
+            geom=cellstr(geom); %char, string, cell or string array
             
             if isempty(x) || isempty(y)
                 hndl=NaN;

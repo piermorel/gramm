@@ -16,10 +16,10 @@ function obj=stat_ellipse(obj,varargin)
 % built in patch() function)
 
 p=inputParser;
-my_addParameter(p,'type','95percentile'); %ci
-my_addParameter(p,'geom','area'); %line
-my_addParameter(p,'fill_alpha',0.2);
-my_addParameter(p,'patch_opts',{});
+addParameter(p,'type','95percentile',@(v) valid_choice(v,{'95percentile','ci'})); %ci
+addParameter(p,'geom','area',@(v) valid_choice(v,{'area','line'})); %line
+addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'patch_opts',{});
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_ellipse(dobj,dd,p.Results)});

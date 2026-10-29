@@ -8,10 +8,10 @@ function obj=facet_wrap(obj,col,varargin)
 % 'space' option.
 
 p=inputParser;
-my_addParameter(p,'ncols',4);
-my_addParameter(p,'scale','fixed'); %options 'free' 'free_x' 'free_y'
-my_addParameter(p,'force_ticks',false);
-my_addParameter(p,'column_labels',true);
+addParameter(p,'ncols',4);
+addParameter(p,'scale','fixed',@(v) valid_choice(v,{'fixed','free_x','free_y','free','independent'}));
+addParameter(p,'force_ticks',false);
+addParameter(p,'column_labels',true);
 parse(p,varargin{:});
 
 obj.facet_scale=p.Results.scale;

@@ -19,8 +19,8 @@ function obj=set_parent(obj,parent,varargin)
 is_layout=isa(parent,'matlab.graphics.layout.TiledChartLayout');
 
 p=inputParser;
-my_addParameter(p,'tile',1);
-my_addParameter(p,'span',[1 1]);
+addParameter(p,'tile',1);
+addParameter(p,'span',[1 1]);
 parse(p,varargin{:});
 tile=p.Results.tile;
 span=p.Results.span;

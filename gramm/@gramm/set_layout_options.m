@@ -37,13 +37,13 @@ if any(is_removed)
 end
 
 p=inputParser;
-my_addParameter(p,'legend', true );
-my_addParameter(p,'legend_position', 'auto' );
-my_addParameter(p,'redraw',true);
-my_addParameter(p,'multi_padding','compact'); 
-my_addParameter(p,'multi_spacing','compact'); 
-my_addParameter(p,'padding','compact'); 
-my_addParameter(p,'spacing','compact'); 
+addParameter(p,'legend', true );
+addParameter(p,'legend_position', 'auto' );
+addParameter(p,'redraw',true);
+addParameter(p,'multi_padding','compact'); 
+addParameter(p,'multi_spacing','compact'); 
+addParameter(p,'padding','compact'); 
+addParameter(p,'spacing','compact'); 
 parse(p,varargin{:});
 
 for obj_ind=1:numel(obj)

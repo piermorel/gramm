@@ -30,12 +30,12 @@ function obj = geom_swarm(obj,varargin)
 %            (opaque) (default 1)
 
 p = inputParser;
-addOptional(p,'type','up')
-addOptional(p,'corral','none')
-addOptional(p,'point_size',3)
-addOptional(p,'dodge',0.7);
-addOptional(p,'width',0.9);
-my_addParameter(p,'alpha',1);
+addParameter(p,'type','up',@(v) valid_choice(v,{'up','down','fan','hex','square'}));
+addParameter(p,'corral','none',@(v) valid_choice(v,{'none','gutter','omit','wrap','random'}));
+addParameter(p,'point_size',3,@(v) valid_range(v,0,Inf));
+addParameter(p,'dodge',0.7,@(v) valid_range(v,0,Inf));
+addParameter(p,'width',0.9,@(v) valid_range(v,0,Inf));
+addParameter(p,'alpha',1,@(v) valid_range(v,0,1));
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_swarm(dobj,dd,p.Results)});

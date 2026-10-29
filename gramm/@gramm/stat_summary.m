@@ -116,16 +116,16 @@ function obj=stat_summary(obj,varargin)
 
 
 p=inputParser;
-my_addParameter(p,'type','ci'); %'95percentile'
-my_addParameter(p,'geom','area');
-my_addParameter(p,'dodge',[]);
-my_addParameter(p,'width',[]);
-my_addParameter(p,'setylim',false);
-my_addParameter(p,'interp','none');
-my_addParameter(p,'interp_in',-1);
-my_addParameter(p,'bin_in',[]);
-my_addParameter(p,'bin_width',[]);
-my_addParameter(p,'fill_alpha',0.2);
+addParameter(p,'type','ci',@(v) isa(v,'function_handle') || valid_choice(v,{'ci','bootci','sem','std','quartile','95percentile','fitnormalci','fitpoissonci','fitnegbinomialci','fitbinomialci','fitgammaci','fitinvgaussianci','fit95percentile'})); %'95percentile'
+addParameter(p,'geom','area',@(v) valid_choice(v,{'line','lines','area','area_only','solid_area','errorbar','black_errorbar','bar','edge_bar','point','black_point'},true));
+addParameter(p,'dodge',[],@(v) valid_range(v,0,Inf,true));
+addParameter(p,'width',[],@(v) valid_range(v,0,Inf,true));
+addParameter(p,'setylim',false);
+addParameter(p,'interp','none');
+addParameter(p,'interp_in',-1);
+addParameter(p,'bin_in',[]);
+addParameter(p,'bin_width',[]);
+addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_summary(dobj,dd,p.Results)});
@@ -136,6 +136,8 @@ end
 
 
 function hndl=my_summary(obj,draw_data,params)
+
+params.geom=cellstr(params.geom); %char, string, cell or string array
 
 %Advanced defaults
 if isempty(params.dodge)

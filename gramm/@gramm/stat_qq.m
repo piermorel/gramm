@@ -8,7 +8,7 @@ function obj=stat_qq(obj,varargin)
 % distribution of x
 
 p=inputParser;
-my_addParameter(p,'distribution',makedist('Normal',0,1));
+addParameter(p,'distribution',makedist('Normal',0,1));
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_qq(dobj,dd,p.Results)});

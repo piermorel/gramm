@@ -15,12 +15,12 @@ function obj = set_line_options( obj , varargin )
 
 
 p=inputParser;
-my_addParameter(p, 'base_size', 1.5 );
-my_addParameter(p, 'step_size', 1 );
-my_addParameter(p, 'use_input', false );
-my_addParameter(p, 'input_fun', @(v)v );
-my_addParameter(p, 'styles', {'-' '--' ':' '-.'} );
-my_addParameter(p, 'cap_size', 6 );
+addParameter(p, 'base_size', 1.5 );
+addParameter(p, 'step_size', 1 );
+addParameter(p, 'use_input', false );
+addParameter(p, 'input_fun', @(v)v );
+addParameter(p, 'styles', {'-' '--' ':' '-.'} );
+addParameter(p, 'cap_size', 6 ,@(v) valid_range(v,0,Inf));
 parse(p,varargin{:});
 
 for obj_ind=1:numel(obj)

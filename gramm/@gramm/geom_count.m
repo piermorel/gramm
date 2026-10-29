@@ -8,8 +8,8 @@ function obj=geom_count(obj,varargin)
 % 'all'
 
 p=inputParser;
-my_addParameter(p,'scale',20);
-my_addParameter(p,'point_color','all'); %edge,face,all
+addParameter(p,'scale',20);
+addParameter(p,'point_color','all',@(v) valid_choice(v,{'all','face','edge'})); %edge,face,all
 parse(p,varargin{:});
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_count(dobj,dd,p.Results)});
 obj.results.geom_count_handle={};

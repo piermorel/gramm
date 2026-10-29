@@ -20,11 +20,11 @@ function obj=stat_glm(obj,varargin)
 
 %Accepted distributions: 'normal' (default) | 'binomial' | 'poisson' | 'gamma' | 'inverse gaussian'
 p=inputParser;
-my_addParameter(p,'distribution','normal');
-my_addParameter(p,'geom','area');
-my_addParameter(p,'fill_alpha',0.2);
-my_addParameter(p,'fullrange',false);
-my_addParameter(p,'disp_fit',false);
+addParameter(p,'distribution','normal',@(v) valid_choice(v,{'normal','binomial','poisson','gamma','inverse gaussian'}));
+addParameter(p,'geom','area',@(v) valid_choice(v,{'line','lines','area','area_only','solid_area','errorbar','black_errorbar','bar','edge_bar','point','black_point'},true));
+addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'fullrange',false);
+addParameter(p,'disp_fit',false);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_glm(dobj,dd,p.Results)});

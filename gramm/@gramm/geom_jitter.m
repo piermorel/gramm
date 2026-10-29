@@ -7,11 +7,11 @@ function obj=geom_jitter(obj,varargin)
 % 'width' and height 'height' using this function.
 
 p=inputParser;
-my_addParameter(p,'width',0.2);
-my_addParameter(p,'height',0);
-my_addParameter(p,'dodge',0);
-my_addParameter(p,'alpha',1);
-my_addParameter(p,'raw_width',false);
+addParameter(p,'width',0.2,@(v) valid_range(v,0,Inf));
+addParameter(p,'height',0,@(v) valid_range(v,0,Inf));
+addParameter(p,'dodge',0,@(v) valid_range(v,0,Inf));
+addParameter(p,'alpha',1,@(v) valid_range(v,0,1));
+addParameter(p,'raw_width',false);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_jitter(dobj,dd,p.Results)});

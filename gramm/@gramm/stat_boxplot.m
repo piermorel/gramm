@@ -19,10 +19,10 @@ function obj=stat_boxplot(obj,varargin)
 % 'dodge' and 'width'
 
 p=inputParser;
-my_addParameter(p,'width',0.6);
-my_addParameter(p,'dodge',0.7);
-my_addParameter(p,'notch',false);
-my_addParameter(p,'outliers',true);
+addParameter(p,'width',0.6,@(v) valid_range(v,0,Inf));
+addParameter(p,'dodge',0.7,@(v) valid_range(v,0,Inf));
+addParameter(p,'notch',false);
+addParameter(p,'outliers',true);
 
 parse(p,varargin{:});
 

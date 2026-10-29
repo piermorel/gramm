@@ -19,10 +19,10 @@ function obj = geom_interval( obj,varargin )
 %            (transparent) to 1 (opaque) (default 0.2)
 
 p=inputParser;
-my_addParameter(p,'geom','area');
-my_addParameter(p,'dodge',[]);
-my_addParameter(p,'width',[]);
-my_addParameter(p,'fill_alpha',0.2);
+addParameter(p,'geom','area',@(v) valid_choice(v,{'line','lines','area','area_only','solid_area','errorbar','black_errorbar','bar','edge_bar','point','black_point'},true));
+addParameter(p,'dodge',[],@(v) valid_range(v,0,Inf,true));
+addParameter(p,'width',[],@(v) valid_range(v,0,Inf,true));
+addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_ci(dobj,dd,p.Results)});
@@ -31,6 +31,8 @@ obj.results.geom_interval={};
 end
 
 function hndl=my_ci(obj,draw_data,params)
+
+params.geom=cellstr(params.geom); %char, string, cell or string array
 
 if isempty(draw_data.ymin) || isempty(draw_data.ymax)
     error('No ymin or ymax data for geom_ci');

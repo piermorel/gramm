@@ -17,12 +17,12 @@ function obj=geom_line(obj,varargin)
 % - 'ordered': Set to true to order line nodes along x axis for simple arrays (default false)
 
 p=inputParser;
-my_addParameter(p,'dodge',0);
-my_addParameter(p,'alpha',1);
-my_addParameter(p,'stacked',false);
-my_addParameter(p,'fill',[]); 
-my_addParameter(p,'fill_alpha',0.4);
-my_addParameter(p,'ordered',false);
+addParameter(p,'dodge',0,@(v) valid_range(v,0,Inf));
+addParameter(p,'alpha',1,@(v) valid_range(v,0,1));
+addParameter(p,'stacked',false);
+addParameter(p,'fill',[]); 
+addParameter(p,'fill_alpha',0.4,@(v) valid_range(v,0,1));
+addParameter(p,'ordered',false);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_line(dobj,dd,p.Results)});

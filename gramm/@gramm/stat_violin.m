@@ -18,16 +18,16 @@ function obj = stat_violin(obj,varargin)
 
 
 p=inputParser;
-my_addParameter(p,'bandwidth',-1);
-my_addParameter(p,'kernel','normal')
-my_addParameter(p,'npoints',100)
-my_addParameter(p,'extra_y',0)
-my_addParameter(p,'normalization','area') %'count' 'width'
-my_addParameter(p,'fill','face')
-my_addParameter(p,'fill_alpha',[])
-my_addParameter(p,'width',0.6)
-my_addParameter(p,'dodge',0.7)
-my_addParameter(p,'half',false)
+addParameter(p,'bandwidth',-1);
+addParameter(p,'kernel','normal')
+addParameter(p,'npoints',100)
+addParameter(p,'extra_y',0)
+addParameter(p,'normalization','area',@(v) valid_choice(v,{'area','count','width'}));
+addParameter(p,'fill','face',@(v) valid_choice(v,{'edge','face','all','transparent'}));
+addParameter(p,'fill_alpha',[],@(v) valid_range(v,0,1,true));
+addParameter(p,'width',0.6,@(v) valid_range(v,0,Inf));
+addParameter(p,'dodge',0.7,@(v) valid_range(v,0,Inf));
+addParameter(p,'half',false)
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_violin(dobj,dd,p.Results)});

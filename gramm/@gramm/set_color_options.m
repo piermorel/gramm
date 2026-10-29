@@ -60,15 +60,15 @@ function obj=set_color_options(obj,varargin)
 
 p=inputParser;
 % matlab, brewer1,brewer2,brewer3,brewer_pastel,brewer_dark, brewer_paired, d3_10, d3_20, d3_20b, d3_20c
-my_addParameter(p,'map','lch'); 
-my_addParameter(p,'lightness_range',[85 15]);
-my_addParameter(p,'chroma_range',[30 90]);
-my_addParameter(p,'hue_range',[25 385]);
-my_addParameter(p,'lightness',65);
-my_addParameter(p,'chroma',75);
-my_addParameter(p,'legend','separate_gray'); % 'separate' 'merge' , 'expand' 'grid'
-my_addParameter(p,'n_color',[]);
-my_addParameter(p,'n_lightness',[]);
+addParameter(p,'map','lch'); 
+addParameter(p,'lightness_range',[85 15]);
+addParameter(p,'chroma_range',[30 90]);
+addParameter(p,'hue_range',[25 385]);
+addParameter(p,'lightness',65);
+addParameter(p,'chroma',75);
+addParameter(p,'legend','separate_gray'); % 'separate' 'merge' , 'expand' 'grid'
+addParameter(p,'n_color',[]);
+addParameter(p,'n_lightness',[]);
 parse(p,varargin{:});
 
 for obj_ind=1:numel(obj)

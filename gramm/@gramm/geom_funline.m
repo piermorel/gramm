@@ -6,11 +6,11 @@ function obj=geom_funline(obj,varargin)
 % plot. 'style', 'line_width' and 'extent': see geom_abline
 
 p=inputParser;
-my_addParameter(p,'fun',@(x)x);
-my_addParameter(p,'style','k--');
-my_addParameter(p,'extent',2);
-my_addParameter(p,'line_width',1);
-my_addParameter(p,'linewidth',[]); %Former name of 'line_width'
+addParameter(p,'fun',@(x)x);
+addParameter(p,'style','k--');
+addParameter(p,'extent',2);
+addParameter(p,'line_width',1,@(v) valid_range(v,0,Inf));
+addParameter(p,'linewidth',[],@(v) valid_range(v,0,Inf,true)); %Former name of 'line_width'
 parse(p,varargin{:});
 
 line_width=p.Results.line_width;

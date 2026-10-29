@@ -45,14 +45,14 @@ function obj=geom_polygon(obj,varargin)
 
 p=inputParser;
 
-my_addParameter(p,'x',{});
-my_addParameter(p,'y',{});
-my_addParameter(p,'alpha',0.2);
-my_addParameter(p,'fill_alpha',[]);
-my_addParameter(p,'color',[0 0 0]);
-my_addParameter(p,'line_color',[0 0 0]);
-my_addParameter(p,'line_style',{'none'});
-my_addParameter(p,'extent',2);
+addParameter(p,'x',{});
+addParameter(p,'y',{});
+addParameter(p,'alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'fill_alpha',[],@(v) valid_range(v,0,1,true));
+addParameter(p,'color',[0 0 0]);
+addParameter(p,'line_color',[0 0 0]);
+addParameter(p,'line_style',{'none'});
+addParameter(p,'extent',2);
 parse(p,varargin{:});
 
 temp_results=p.Results;

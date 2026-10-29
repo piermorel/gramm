@@ -17,16 +17,16 @@ function obj = set_text_options( obj , varargin )
 
 
 p=inputParser;
-my_addParameter(p,'base_size' , 10 );
-my_addParameter(p,'label_scaling', 1 );
-my_addParameter(p,'legend_scaling', 1 );
-my_addParameter(p,'legend_title_scaling', 1.2 );
-my_addParameter(p,'facet_scaling', 1.2 );
-my_addParameter(p,'title_scaling', 1.4 );
-my_addParameter(p,'big_title_scaling', 1.4 );
-my_addParameter(p,'font','Helvetica');
-my_addParameter(p,'interpreter','none');
-my_addParameter(p,'wrap',true);
+addParameter(p,'base_size' , 10 );
+addParameter(p,'label_scaling', 1 );
+addParameter(p,'legend_scaling', 1 );
+addParameter(p,'legend_title_scaling', 1.2 );
+addParameter(p,'facet_scaling', 1.2 );
+addParameter(p,'title_scaling', 1.4 );
+addParameter(p,'big_title_scaling', 1.4 );
+addParameter(p,'font','Helvetica');
+addParameter(p,'interpreter','none');
+addParameter(p,'wrap',true);
 parse(p,varargin{:});
 
 for obj_ind=1:numel(obj)

@@ -22,15 +22,15 @@ function obj=stat_bin(obj,varargin)
 % by the fill style (default [])
 
 p=inputParser;
-my_addParameter(p,'nbins',30);
-my_addParameter(p,'edges',[]);
-my_addParameter(p,'bin_width',[]);
-my_addParameter(p,'geom','bar'); %line, bar, overlaid_bar, stacked_bar,stairs, point
-my_addParameter(p,'normalization','count');
-my_addParameter(p,'fill',[]); %edge,face,all,transparent
-my_addParameter(p,'fill_alpha',[]);
-my_addParameter(p,'width',[]);
-my_addParameter(p,'dodge',[]);
+addParameter(p,'nbins',30);
+addParameter(p,'edges',[]);
+addParameter(p,'bin_width',[]);
+addParameter(p,'geom','bar',@(v) valid_choice(v,{'bar','overlaid_bar','stacked_bar','line','stairs','point'}));
+addParameter(p,'normalization','count',@(v) valid_choice(v,{'count','probability','countdensity','pdf','cumcount','cdf'}));
+addParameter(p,'fill',[],@(v) isempty(v) || valid_choice(v,{'edge','face','all','transparent'}));
+addParameter(p,'fill_alpha',[],@(v) valid_range(v,0,1,true));
+addParameter(p,'width',[],@(v) valid_range(v,0,Inf,true));
+addParameter(p,'dodge',[],@(v) valid_range(v,0,Inf,true));
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_bin(dobj,dd,p.Results)});

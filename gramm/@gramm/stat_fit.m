@@ -30,15 +30,15 @@ function obj=stat_fit(obj,varargin)
 % using 'stats',true
 
 p=inputParser;
-my_addParameter(p,'fun',@(a,b,x)a*x+b);
-my_addParameter(p,'StartPoint',[]);
-my_addParameter(p,'fit_options',[]);
-my_addParameter(p,'intopt','observation');
-my_addParameter(p,'geom','area');
-my_addParameter(p,'fill_alpha',0.2);
-my_addParameter(p,'fullrange',false);
-my_addParameter(p,'disp_fit',false);
-my_addParameter(p,'stats',false); 
+addParameter(p,'fun',@(a,b,x)a*x+b);
+addParameter(p,'StartPoint',[]);
+addParameter(p,'fit_options',[]);
+addParameter(p,'intopt','observation');
+addParameter(p,'geom','area',@(v) valid_choice(v,{'line','lines','area','area_only','solid_area','errorbar','black_errorbar','bar','edge_bar','point','black_point'},true));
+addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'fullrange',false);
+addParameter(p,'disp_fit',false);
+addParameter(p,'stats',false); 
 
 p.KeepUnmatched=true;
 parse(p,varargin{:});

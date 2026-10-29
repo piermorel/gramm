@@ -31,13 +31,13 @@ height_fig = fig_pos(4)/resolution;
 
 % parse arguments and set defaults
 p=inputParser;
-my_addParameter(p,'file_name','gramm_export');
-my_addParameter(p,'export_path','');
-my_addParameter(p,'file_type', 'svg');
-my_addParameter(p,'width', width_fig);
-my_addParameter(p,'height', height_fig);
-my_addParameter(p,'units', 'centimeters');
-my_addParameter(p,'resolution', 0);
+addParameter(p,'file_name','gramm_export');
+addParameter(p,'export_path','');
+addParameter(p,'file_type', 'svg');
+addParameter(p,'width', width_fig);
+addParameter(p,'height', height_fig);
+addParameter(p,'units', 'centimeters');
+addParameter(p,'resolution', 0);
 parse(p,varargin{:});
 
 % Turn off warning due to a custom defined figure resize function called on save

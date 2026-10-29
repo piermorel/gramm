@@ -34,12 +34,12 @@ function obj=stat_smooth(obj,varargin)
 % http://pubs.acs.org/doi/abs/10.1021/ac034173t
 
 p=inputParser;
-my_addParameter(p,'lambda',[]);
-my_addParameter(p,'geom','area');
-my_addParameter(p,'fill_alpha',0.2);
-my_addParameter(p,'method','eilers');
-my_addParameter(p,'npoints',200);
-my_addParameter(p,'setylim',false);
+addParameter(p,'lambda',[]);
+addParameter(p,'geom','area',@(v) valid_choice(v,{'line','lines','area','area_only','solid_area','errorbar','black_errorbar','bar','edge_bar','point','black_point'},true));
+addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'method','eilers',@(v) valid_choice(v,{'eilers','smoothingspline','moving','lowess','loess','sgolay','rlowess','rloess'}));
+addParameter(p,'npoints',200);
+addParameter(p,'setylim',false);
 parse(p,varargin{:});
 
 %Set default lambdas

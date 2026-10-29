@@ -2,26 +2,23 @@ function obj=stat_cornerhist(obj,varargin)
 
 
 p=inputParser;
-my_addParameter(p,'nbins',30);
-my_addParameter(p,'edges',[]);
-my_addParameter(p,'bin_width',[]); %Used by my_histplot()
-my_addParameter(p,'geom','overlaid_bar'); %line, bar, overlaid_bar, stacked_bar,stairs, point
-my_addParameter(p,'normalization','count');
-my_addParameter(p,'fill',[]); %edge,face,all,transparent
-my_addParameter(p,'fill_alpha',[]);
-my_addParameter(p,'width',[]);
-my_addParameter(p,'dodge',[]);
-my_addParameter(p,'aspect',0.3); %Aspect ratio of the inset axis
-my_addParameter(p,'location',[]); %X/Y location in the main axis of the inset axis
+addParameter(p,'nbins',30);
+addParameter(p,'edges',[]);
+addParameter(p,'bin_width',[]); %Used by my_histplot()
+addParameter(p,'geom','overlaid_bar',@(v) valid_choice(v,{'bar','overlaid_bar','line','stairs','point'}));
+addParameter(p,'normalization','count',@(v) valid_choice(v,{'count','probability','countdensity','pdf','cumcount','cdf'}));
+addParameter(p,'fill',[],@(v) isempty(v) || valid_choice(v,{'edge','face','all','transparent'}));
+addParameter(p,'fill_alpha',[],@(v) valid_range(v,0,1,true));
+addParameter(p,'width',[],@(v) valid_range(v,0,Inf,true));
+addParameter(p,'dodge',[],@(v) valid_range(v,0,Inf,true));
+addParameter(p,'aspect',0.3); %Aspect ratio of the inset axis
+addParameter(p,'location',[]); %X/Y location in the main axis of the inset axis
 parse(p,varargin{:});
 
 if isempty(p.Results.edges)
     warning('Specifying ''edges'' is recommended with stat_cornerhist()')
 end
 
-if strcmp('geom','stacked_bar')
-    error('stacked_bar unsupported in stat_cornerhist()')
-end
     
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_cornerhist(dobj,dd,p.Results)});
 obj.results.stat_cornerhist={};

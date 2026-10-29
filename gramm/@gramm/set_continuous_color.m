@@ -13,10 +13,10 @@ function obj=set_continuous_color(obj,varargin)
 %                   color limits by default.
 
 p=inputParser;
-my_addParameter(p,'colormap','viridis');
-my_addParameter(p,'active',true);
-my_addParameter(p,'LCH_colormap',[]);
-my_addParameter(p,'CLim',[]);
+addParameter(p,'colormap','viridis');
+addParameter(p,'active',true);
+addParameter(p,'LCH_colormap',[]);
+addParameter(p,'CLim',[]);
 parse(p,varargin{:});
 
 obj.continuous_color_options.active = p.Results.active;

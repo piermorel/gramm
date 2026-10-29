@@ -17,13 +17,13 @@ function obj = set_point_options( obj , varargin )
 
 
 p=inputParser;
-my_addParameter(p, 'base_size', 5 );
-my_addParameter(p, 'step_size', 2 );
-my_addParameter(p, 'use_input', false );
-my_addParameter(p, 'input_fun', @(v)v );
-my_addParameter(p, 'border_width', 0.5);
-my_addParameter(p, 'border_color', 'none');
-my_addParameter(p, 'markers', {'o' 's' 'd' '^' 'v' '>' '<' 'p' 'h' '*' '+' 'x'} );
+addParameter(p, 'base_size', 5 );
+addParameter(p, 'step_size', 2 );
+addParameter(p, 'use_input', false );
+addParameter(p, 'input_fun', @(v)v );
+addParameter(p, 'border_width', 0.5);
+addParameter(p, 'border_color', 'none');
+addParameter(p, 'markers', {'o' 's' 'd' '^' 'v' '>' '<' 'p' 'h' '*' '+' 'x'} );
 parse(p,varargin{:});
 
             

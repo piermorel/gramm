@@ -24,14 +24,14 @@ end
 
 p=inputParser;
 p.KeepUnmatched=true;
-my_addParameter(p,'width',0.6);
-my_addParameter(p,'stacked',false);
-my_addParameter(p,'dodge',0);
-my_addParameter(p,'FaceColor','auto');
-my_addParameter(p,'EdgeColor','k');
-my_addParameter(p,'fill',[]);
-my_addParameter(p,'fill_alpha',[]);
-my_addParameter(p,'LineWidth',[]);
+addParameter(p,'width',0.6,@(v) valid_range(v,0,Inf));
+addParameter(p,'stacked',false);
+addParameter(p,'dodge',0,@(v) valid_range(v,0,Inf));
+addParameter(p,'FaceColor','auto');
+addParameter(p,'EdgeColor','k');
+addParameter(p,'fill',[],@(v) isempty(v) || valid_choice(v,{'edge','face','all','transparent'}));
+addParameter(p,'fill_alpha',[],@(v) valid_range(v,0,1,true));
+addParameter(p,'LineWidth',[]);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_bar(dobj,dd,p.Results,p.Unmatched)});

@@ -11,9 +11,9 @@ function obj=stat_bin2d(obj,varargin)
 % uses circles of varying size.
 
 p=inputParser;
-my_addParameter(p,'nbins',[30 30]);
-my_addParameter(p,'edges',{});
-my_addParameter(p,'geom','image'); %contour
+addParameter(p,'nbins',[30 30]);
+addParameter(p,'edges',{});
+addParameter(p,'geom','image',@(v) valid_choice(v,{'image','contour','point'})); %contour
 
 parse(p,varargin{:});
 

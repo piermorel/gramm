@@ -12,11 +12,11 @@ function obj=stat_density(obj,varargin)
 % times the range of x data.
 
 p=inputParser;
-my_addParameter(p,'bandwidth',-1);
-my_addParameter(p,'function','pdf')
-my_addParameter(p,'kernel','normal')
-my_addParameter(p,'npoints',100)
-my_addParameter(p,'extra_x',0.1)
+addParameter(p,'bandwidth',-1);
+addParameter(p,'function','pdf')
+addParameter(p,'kernel','normal')
+addParameter(p,'npoints',100)
+addParameter(p,'extra_x',0.1)
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_density(dobj,dd,p.Results)});

@@ -23,11 +23,11 @@ function obj=facet_grid(obj,row,col,varargin)
 %   effect only if the corresponding 'scale' parameter is set.
 
 p=inputParser;
-my_addParameter(p,'scale','fixed'); %options 'free' 'free_x' 'free_y' 'independent'
-my_addParameter(p,'space','fixed'); %'free_x','free_y','free'
-my_addParameter(p,'force_ticks',false);
-my_addParameter(p,'column_labels',true);
-my_addParameter(p,'row_labels',true);
+addParameter(p,'scale','fixed',@(v) valid_choice(v,{'fixed','free_x','free_y','free','independent'})); %options 'free' 'free_x' 'free_y' 'independent'
+addParameter(p,'space','fixed',@(v) valid_choice(v,{'fixed','free_x','free_y','free'})); %'free_x','free_y','free'
+addParameter(p,'force_ticks',false);
+addParameter(p,'column_labels',true);
+addParameter(p,'row_labels',true);
 parse(p,varargin{:});
 
 obj.facet_scale=p.Results.scale;

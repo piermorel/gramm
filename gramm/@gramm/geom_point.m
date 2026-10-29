@@ -10,8 +10,8 @@ function obj=geom_point(obj,varargin)
 % - 'alpha': Transparency of points, from 0 (transparent) to 1 (opaque) (default 1)
 
 p=inputParser;
-my_addParameter(p,'dodge',0);
-my_addParameter(p,'alpha',1);
+addParameter(p,'dodge',0,@(v) valid_range(v,0,Inf));
+addParameter(p,'alpha',1,@(v) valid_range(v,0,1));
 parse(p,varargin{:});
 
 

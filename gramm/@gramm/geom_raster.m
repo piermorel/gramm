@@ -4,7 +4,7 @@ function obj=geom_raster(obj,varargin)
 % Option 'geom': 'line' or 'point'
 
 p=inputParser;
-my_addParameter(p,'geom','line');
+addParameter(p,'geom','line',@(v) valid_choice(v,{'line','point'}));
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_raster(dobj,dd,p.Results)});

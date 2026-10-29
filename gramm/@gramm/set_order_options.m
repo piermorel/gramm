@@ -34,14 +34,14 @@ function obj=set_order_options(obj,varargin)
 % between 1 and the number of unique values.
 
 p=inputParser;
-my_addParameter(p,'x',1);
-my_addParameter(p,'color',1);
-my_addParameter(p,'marker',1);
-my_addParameter(p,'size',1);
-my_addParameter(p,'linestyle',1);
-my_addParameter(p,'row',1);
-my_addParameter(p,'column',1);
-my_addParameter(p,'lightness',1);
+addParameter(p,'x',1);
+addParameter(p,'color',1);
+addParameter(p,'marker',1);
+addParameter(p,'size',1);
+addParameter(p,'linestyle',1);
+addParameter(p,'row',1);
+addParameter(p,'column',1);
+addParameter(p,'lightness',1);
 parse(p,varargin{:});
 
 %Custom orders given as categorical, string, datetime or duration arrays are

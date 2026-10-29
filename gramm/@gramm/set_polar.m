@@ -29,9 +29,9 @@ if isMATLABReleaseOlderThan("R2025a")
 end
 
 p=inputParser;
-my_addParameter(p,'unit','radians');
-my_addParameter(p,'closed',false);
-my_addParameter(p,'maxy',-1)
+addParameter(p,'unit','radians',@(v) valid_choice(v,{'radians','degrees'}));
+addParameter(p,'closed',false);
+addParameter(p,'maxy',-1)
 parse(p,varargin{:});
 
 unit=validatestring(p.Results.unit,{'radians','degrees'});
