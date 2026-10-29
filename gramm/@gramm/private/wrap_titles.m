@@ -22,7 +22,7 @@ cleanup=onCleanup(@() delete(probe));
 if ~isempty(obj.title_text_handle)
     changed=wrap(obj.title_text_handle,scale*layout_width(obj.layout,obj.legend_axe_handle),probe) || changed;
 end
-if obj.multi.active && isequal(obj.parent_tile.tile,[1 1]) %Title of the whole array
+if obj.multi.active && obj.parent_tile.tile==1 %Title of the whole array (once, from its first plot)
     changed=wrap(obj.parent.Title,scale*layout_width(obj.parent,[]),probe) || changed;
 end
 for k=1:numel(obj.facet_axes_handles)
