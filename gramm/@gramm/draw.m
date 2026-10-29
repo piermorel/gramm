@@ -25,6 +25,16 @@ if isempty(obj(1).parent)
     end
 end
 
+%Drawing relies on the current figure and axes. Figures with hidden handles,
+%like the uifigure of an App Designer app, can't be current: their handle
+%is made visible while drawing
+fig=ancestor(obj(1).parent,'figure');
+if ~strcmp(fig.HandleVisibility,'on')
+    handle_visibility=fig.HandleVisibility;
+    fig.HandleVisibility='on';
+    restore_visibility=onCleanup(@() set(fig(isvalid(fig)),'HandleVisibility',handle_visibility)); %Also restored on error
+end
+
 
 
 %Handle call of draw() on array of gramm objects by dividing the figure
@@ -1136,7 +1146,11 @@ for k=1:numel(previous)
     end
 end
 setappdata(fig,'gramm_plots',plots);
-set(fig,'SizeChangedFcn',@(~,~)on_resize(fig));
+%uifigures resize their children themselves and never call SizeChangedFcn:
+%there the app can call redraw() itself
+if ~strcmp(fig.AutoResizeChildren,'on')
+    set(fig,'SizeChangedFcn',@(~,~)on_resize(fig));
+end
 end
 
 function on_resize(fig)

@@ -15,6 +15,9 @@ function obj=set_parent(obj,parent,varargin)
 %   g.set_parent(t,'tile',1,'span',[2 2]);
 % When called on an array of gramm objects, the whole array is drawn in
 % the given parent/tile.
+% The parent can be in a uifigure, e.g. a panel of an App Designer app.
+% uifigures don't redraw gramm plots when resized: call redraw() on the
+% gramm object if needed (e.g. from a SizeChangedFcn of the app).
 
 is_layout=isa(parent,'matlab.graphics.layout.TiledChartLayout');
 

@@ -1376,6 +1376,28 @@ g2.set_names('x','MPG','color','Origin');
 g2.set_title('Single plot');
 g2.draw();
 
+%% gramm plots in an app (uifigure)
+% gramm plots can be drawn in uifigures, like the ones of App Designer apps,
+% by giving a container of the app (figure, panel, tab, grid layout cell)
+% to set_parent(). uifigures don't redraw gramm plots when resized: call
+% redraw() on the gramm object from the app if needed
+
+app_fig=uifigure('Name','gramm in an app','Position',[100 100 1000 450]);
+grid=uigridlayout(app_fig,[1 2],'ColumnWidth',{'2x','1x'});
+
+p=uipanel(grid,'Title','gramm plot');
+g=gramm('x',cars.Model_Year,'y',cars.MPG,'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
+g.facet_grid([],cars.Origin_Region);
+g.geom_point();
+g.stat_glm();
+g.set_names('x','Year of production','y','Fuel economy (MPG)','color','# Cylinders','column','');
+g.set_parent(p);
+g.draw();
+
+[origin,~,ind]=unique(cars.Origin_Region);
+uitable(grid,'Data',table(origin,accumarray(ind,cars.MPG,[],@(v) mean(v,'omitnan')),...
+    'VariableNames',{'Origin','Mean MPG'}));
+
 %% Plot one variable against many others
 %Inspired by: https://drsimonj.svbtle.com/plot-some-variables-against-many-others
 
