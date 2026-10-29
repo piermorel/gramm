@@ -1,4 +1,33 @@
 function obj = geom_swarm(obj,varargin)
+% geom_swarm Display data as swarms of non-overlapping points
+%
+% Example syntax: gramm_object.geom_swarm('type','fan','point_size',2)
+% Points with the same x value are spread horizontally so that they don't
+% overlap (beeswarm plot). The layout depends on the size of the axes and
+% is computed again when the figure is resized.
+%
+% Parameters given as 'name',value pairs:
+% - 'type': How points are spread (default 'up'):
+%       - 'up': points placed from the lowest to the highest y value
+%       - 'down': points placed from the highest to the lowest y value
+%       - 'fan': points placed from the mean outwards
+%       - 'hex': y values rounded to rows of points on a hexagonal grid
+%       - 'square': y values rounded to rows of points on a square grid
+% - 'corral': What to do with points spreading beyond 'width' (default
+%            'none'):
+%       - 'none': points are left where they are
+%       - 'gutter': points are stacked at the edges of the width
+%       - 'omit': points are not displayed
+%       - 'wrap': points are folded back inside the width
+%       - 'random': points are placed randomly inside the width
+% - 'point_size': Radius of the points, in points (default 3). The swarm
+%            layout uses it, so set_point_options() and the size aesthetic
+%            don't change the size of swarm points
+% - 'dodge': Spacing between swarms of different colors within an unique
+%            x value (default 0.7), see stat_summary()
+% - 'width': Width available to each swarm, used by 'corral' (default 0.9)
+% - 'alpha': Transparency of the points, from 0 (transparent) to 1
+%            (opaque) (default 1)
 
 p = inputParser;
 addOptional(p,'type','up')
