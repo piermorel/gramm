@@ -1,6 +1,12 @@
 function obj=set_continuous_color(obj,varargin)
-%set_continuous_color Force the use of a continuous color
-%scheme
+%set_continuous_color Use a continuous color scale
+%
+% By default, 'color' values are categories: one group (line, fit,
+% violin...) per value, with a categorical palette. With
+% set_continuous_color(), numeric color values are shown with a continuous
+% color scale and a gradient legend instead: each point gets the color of
+% its value, and lines are colored along their length (they are not split
+% by color: use 'group' to separate them).
 %
 % Parameters as name,value pairs:
 % 'colormap'        set continuous colormap by

@@ -1,4 +1,4 @@
-function [out,axis_types,cat_order]=validate_aes(aes,axis_types,cat_order)
+function [out,axis_types,cat_order]=validate_aes(aes,axis_types,cat_order,continuous_color)
 %Generate useable aes structures: empty fields are replaced with arrays of
 %ones of the correct size. The size of the other fields are checked for
 %consistency. Handle special case of size parameter that can be set by the
@@ -34,8 +34,8 @@ for k=1:length(fields)
         continue
     end
     if isdatetime(v) || isduration(v)
-        if strcmp(fields{k},'color') && numel(unique(v(~ismissing(v))))>15
-            %Many different values: used as a continuous color
+        if strcmp(fields{k},'color') && continuous_color
+            %Continuous color requested with set_continuous_color()
             aes.(fields{k})=to_num(axis_type([],{v}),v);
         else
             cat_order.(fields{k})=unique(cellstr(string(unique(v(~ismissing(v))))),'stable');

@@ -1549,9 +1549,10 @@ figure;
 g.draw();
 
 %% Using a continuous color scale
-% When the variable provided as 'color' contains too many different values
-% (>15), or when set_continuous_color is used, gramm switches from a
-% categorical color scale to a gradient-based continuous color scale.
+% By default, gramm uses a categorical color scale, with one group per
+% color value. With set_continuous_color(), numeric color values are shown
+% with a gradient-based continuous color scale: each point gets the color
+% of its value, and lines can be colored along their length.
 
 load example_spectra.mat
 
@@ -1563,6 +1564,59 @@ g18.set_continuous_color('colormap','hot');
 g18.geom_line;
 figure;
 g18.draw();
+
+%% Numeric colors with many values
+% Numeric 'color' values are categories: one group per value, with a
+% categorical palette (gramm warns above 15 values, where colors get hard
+% to tell apart). set_continuous_color() gives a continuous color scale:
+% each point gets the color of its value, and lines are colored along their
+% length and not split by color, so 'group' is needed for one line per value
+
+rng(1);
+n_subjects=30;
+session=repmat((1:6)',n_subjects,1);
+subject=repelem((1:n_subjects)',6);
+score=subject/5+0.3*session+0.5*randn(size(session));
+
+t=(1:60)'; %Time in s
+a=t/60*4*pi;
+
+clear g
+g(1,1)=gramm('x',session,'y',score,'color',subject,'subset',subject<=15);
+g(1,1).geom_line();
+g(1,1).set_title('15 subjects');
+
+g(1,2)=gramm('x',session,'y',score,'color',subject,'subset',subject<=16);
+g(1,2).geom_line();
+g(1,2).set_title('16 subjects (warning)');
+
+g(1,3)=gramm('x',session,'y',score,'color',subject,'group',subject);
+g(1,3).geom_line();
+g(1,3).set_continuous_color();
+g(1,3).set_title('30 subjects, continuous, ''group''');
+
+g(2,1)=gramm('x',session,'y',score,'color',subject);
+g(2,1).geom_line();
+g(2,1).set_continuous_color();
+g(2,1).set_title('Continuous without ''group'': one line');
+
+g(2,2)=gramm('x',a.*cos(a),'y',a.*sin(a),'color',t);
+g(2,2).geom_line();
+g(2,2).set_continuous_color();
+g(2,2).set_title('Color along a line');
+
+g(2,3)=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Weight);
+g(2,3).geom_point();
+g(2,3).set_continuous_color();
+g(2,3).set_title('Colored points');
+
+g(1,:).set_names('x','Session','y','Score','color','Subject');
+g(2,1).set_names('x','Session','y','Score','color','Subject');
+g(2,2).set_names('x','x','y','y','color','Time');
+g(2,3).set_names('x','Horsepower','y','MPG','color','Weight');
+g.set_title('Numeric colors with many values');
+figure('Position',[100 100 1200 750]);
+g.draw();
 
 %% Changing the order of elements with set_order_options()
 % By default, gramm uses grouping data in increasing order of the group

@@ -6,9 +6,10 @@
 load example_data;
 
 %% Using a continuous color scale
-% When the variable provided as 'color' contains too many different values
-% (>15), or when set_continuous_color is used, gramm switches from a
-% categorical color scale to a gradient-based continuous color scale.
+% By default, gramm uses a categorical color scale, with one group per
+% color value. With set_continuous_color(), numeric color values are shown
+% with a gradient-based continuous color scale: each point gets the color
+% of its value, and lines can be colored along their length.
 
 load example_spectra.mat
 

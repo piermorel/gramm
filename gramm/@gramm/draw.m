@@ -111,7 +111,7 @@ if (~obj.updater.first_draw && ~obj.updater.updated)
     return
 end
 
-[obj.aes,obj.axis_types,obj.cat_order]=validate_aes(obj.aes,obj.axis_types,obj.cat_order);
+[obj.aes,obj.axis_types,obj.cat_order]=validate_aes(obj.aes,obj.axis_types,obj.cat_order,obj.continuous_color_options.active);
 %Polar angles in degrees are converted to radians along with the other
 %angles given to gramm (see to_num())
 if obj.polar.is_polar && strcmp(obj.polar.unit,'degrees')
@@ -218,16 +218,12 @@ if iscell(temp_aes.color) && ~iscellstr(temp_aes.color)
 else
     uni_color=unique_and_sort(temp_aes.color,natural_order(obj.order_options.color,obj.cat_order.color));
     
-    % If continous_color is not set and we have too many numerical values 
-    % for the color we switch to continuous color
-    if isnan(obj.continuous_color_options.active)
-        if length(uni_color)>15 && ~iscellstr(uni_color)
-            obj.continuous_color_options.active = true;
-        else
-            obj.continuous_color_options.active = false;
-        end
-    elseif iscellstr(uni_color) %We can't have continuous color for cellstr input
+    if iscellstr(uni_color) %We can't have continuous color for cellstr input
         obj.continuous_color_options.active = false;
+    elseif ~obj.continuous_color_options.active && isnumeric(uni_color) && length(uni_color)>15
+        %Colors are categories unless set_continuous_color() is called
+        warning('gramm:manyColors',['''color'' has %d different numeric values, each drawn as a separate category. ' ...
+            'Use set_continuous_color() for a continuous color scale.'],length(uni_color));
     end
 end
 if obj.continuous_color_options.active
@@ -658,6 +654,9 @@ end
 if obj.continuous_color_options.active
     if isempty(obj.continuous_color_options.CLim)
         obj.continuous_color_options.CLim = [min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))];
+        if any(isnan(obj.continuous_color_options.CLim)) %Only geoms that don't use continuous colors (stats)
+            obj.continuous_color_options.CLim = [min(comb(temp_aes.color)) max(comb(temp_aes.color))];
+        end
     end
     if obj.continuous_color_options.CLim(1) == obj.continuous_color_options.CLim(2)
         if obj.continuous_color_options.CLim(1) == 0
