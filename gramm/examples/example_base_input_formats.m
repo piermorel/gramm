@@ -1,5 +1,5 @@
 %% Input formats
-% <matlab:edit('example_base_input_formats.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_base_input_formats.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#constructor Constructor in the cheat sheet>
 %
 % Using different input formats for x and y 
 

@@ -1,5 +1,5 @@
 %% Continuous colormap
-% <matlab:edit('example_color_continuous_colormap.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_color_continuous_colormap.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#set_continuous_color set_continuous_color() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

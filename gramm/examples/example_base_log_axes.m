@@ -1,5 +1,5 @@
 %% Log axes
-% <matlab:edit('example_base_log_axes.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_base_log_axes.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#set_scale set_scale() in the cheat sheet>
 %
 
 %% Log axes: scatter plots

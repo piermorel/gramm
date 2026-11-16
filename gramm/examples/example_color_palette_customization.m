@@ -1,5 +1,5 @@
 %% Palette customization
-% <matlab:edit('example_color_palette_customization.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_color_palette_customization.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#set_color_options set_color_options() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

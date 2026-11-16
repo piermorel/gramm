@@ -1,5 +1,6 @@
 %% gramm Examples
-% A curated gallery of gramm usage examples organized by topic.
+% A curated gallery of gramm usage examples organized by topic. All methods
+% and their options are listed in the <../gramm_cheat_sheet.html gramm cheat sheet>.
 %
 % <html><h2>Basics</h2></html>
 %

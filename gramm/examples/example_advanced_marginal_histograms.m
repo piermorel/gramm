@@ -1,5 +1,5 @@
 %% Marginal histograms
-% <matlab:edit('example_advanced_marginal_histograms.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_advanced_marginal_histograms.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#set_parent set_parent() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

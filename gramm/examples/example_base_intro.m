@@ -1,5 +1,5 @@
 %% Introduction to gramm
-% <matlab:edit('example_base_intro.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_base_intro.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#constructor Constructor in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

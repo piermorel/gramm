@@ -1,5 +1,5 @@
 %% Grid and scale options
-% <matlab:edit('example_facet_grid_scale_options.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_facet_grid_scale_options.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#facet_grid facet_grid() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

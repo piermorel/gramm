@@ -1,5 +1,5 @@
 %% Point and line styles
-% <matlab:edit('example_geom_point_and_line_styles.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_geom_point_and_line_styles.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#set_point_options set_point_options() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

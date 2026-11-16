@@ -1,5 +1,5 @@
 %% Polygons
-% <matlab:edit('example_geom_polygon.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_geom_polygon.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#geom_polygon geom_polygon() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

@@ -1,5 +1,5 @@
 %% Continuous X-Y data
-% <matlab:edit('example_base_continuous_xy_data.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_base_continuous_xy_data.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#stats Statistics in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

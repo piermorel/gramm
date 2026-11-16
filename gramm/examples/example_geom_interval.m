@@ -1,5 +1,5 @@
 %% Intervals
-% <matlab:edit('example_geom_interval.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_geom_interval.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#geom_interval geom_interval() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

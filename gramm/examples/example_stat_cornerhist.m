@@ -1,5 +1,5 @@
 %% Corner histograms
-% <matlab:edit('example_stat_cornerhist.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_stat_cornerhist.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#stat_cornerhist stat_cornerhist() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

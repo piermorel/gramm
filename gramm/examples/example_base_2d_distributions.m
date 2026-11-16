@@ -1,5 +1,5 @@
 %% 2D distributions
-% <matlab:edit('example_base_2d_distributions.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_base_2d_distributions.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#stat_bin2d stat_bin2d() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

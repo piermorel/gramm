@@ -1,5 +1,5 @@
 %% Binning
-% <matlab:edit('example_stat_bin.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_stat_bin.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#stat_bin stat_bin() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

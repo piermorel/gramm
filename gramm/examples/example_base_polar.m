@@ -1,5 +1,5 @@
 %% Polar plots
-% <matlab:edit('example_base_polar.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_base_polar.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#set_polar set_polar() in the cheat sheet>
 %
 
 %% Polar plots: tuning curves

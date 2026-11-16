@@ -1,5 +1,5 @@
 %% Broken axis
-% <matlab:edit('example_advanced_broken_axis.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_advanced_broken_axis.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#facet_grid facet_grid() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

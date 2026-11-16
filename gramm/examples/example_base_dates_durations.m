@@ -1,5 +1,5 @@
 %% Dates and durations
-% <matlab:edit('example_base_dates_durations.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_base_dates_durations.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#constructor Constructor in the cheat sheet>
 %
 
 %% Dates and durations

@@ -30,6 +30,9 @@
                      image="HelpIcon.EXAMPLES">Online Table data</tocitem>
         </tocitem>
 
+        <tocitem target="gramm_cheat_sheet.html" 
+                 image="HelpIcon.USER_GUIDE"> Cheat sheet </tocitem>
+
         <tocitem target="examples/index.html" image="HelpIcon.EXAMPLES">Examples gallery
             <tocitem target="examples/index.html">Basics
                 <tocitem target="examples/example_base_intro.html">Introduction to gramm</tocitem>
@@ -79,9 +82,6 @@
                 <tocitem target="examples/example_advanced_post_draw_customization.html">Post-draw customization</tocitem>
             </tocitem>
         </tocitem>
-
-        <tocitem target="gramm_cheat_sheet.html" 
-                 image="HelpIcon.USER_GUIDE"> Cheat sheet </tocitem>
 
         <tocitem target="https://github.com/piermorel/gramm"
                  image="$toolbox/matlab/icons/webicon.gif">

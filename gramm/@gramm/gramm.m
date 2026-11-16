@@ -1,6 +1,8 @@
 classdef gramm < matlab.mixin.Copyable
     %GRAMM Implementation of the features from R's ggplot2 (GRAMmar of graphics plots) in Matlab
     % Pierre Morel 2015
+    %
+    % All methods and their options are listed in the <a href="matlab:web(fullfile(fileparts(fileparts(which('gramm'))),'html','gramm_cheat_sheet.html'))">gramm cheat sheet</a>
     
     properties (Access=public)
         legend_axe_handle %Store the handle of the legend axis

@@ -13,7 +13,7 @@
   --mono:Menlo, Consolas, 'DejaVu Sans Mono', monospace;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --bg:#16181c; --side:#1c1f24; --fg:#e8eaed; --text:#c9ccd2; --muted:#8f96a3; --line:#2c3036;
     --accent:#7fb2ff; --str:#f08cc0; --num:#7fb2ff; --kw:#e7b85a; --arg:#6fd49a;
     --tint-l:22%; --tint-s:25%; --dot-l:62%;
@@ -102,6 +102,11 @@ pre { font-family:var(--mono); font-size:12px; background:var(--side); border-ra
 .hidden { display:none !important; }
 .no-match { color:var(--muted); margin-top:40px; }
 
+/* MATLAB's help browser shows the page in a frame as tall as the page (see the
+   script): no heights relative to the window, the script places the sidebar */
+.framed .layout { min-height:0; }
+.framed aside { position:relative; height:auto; }
+
 /* Narrow windows: the sidebar becomes a menu */
 .topbar { display:none; }
 @media screen and (max-width:820px) {
@@ -116,6 +121,7 @@ pre { font-family:var(--mono); font-size:12px; background:var(--side); border-ra
   body.menu-open aside { transform:none; }
   main { padding:20px 16px 60px; }
   .group, .method { scroll-margin-top:60px; }
+  .framed aside { position:fixed; }
   td.val { white-space:normal; }
   td, main p, .method h3 code { overflow-wrap:anywhere; }
   td.arg { white-space:normal; }
@@ -142,6 +148,22 @@ pre { font-family:var(--mono); font-size:12px; background:var(--side); border-ra
   tr.choice td.val { padding-left:8px !important; }
 }
 </style>
+<script>
+// MATLAB's help browser shows the page in a frame (see the script at the end
+// of the page): the colours then follow the help page instead of the system
+try {
+  var helpFrame = window.frameElement;
+  if (helpFrame) {
+    document.documentElement.classList.add('framed');
+    var hostWindow = helpFrame.ownerDocument.defaultView;
+    var rgba = hostWindow.getComputedStyle(helpFrame.ownerDocument.body).backgroundColor.match(/[\d.]+/g);
+    var opaque = rgba && (rgba.length < 4 || Number(rgba[3]) > 0);
+    if (!opaque || 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2] > 128) {
+      document.documentElement.classList.add('light');
+    }
+  }
+} catch (e) { /* Frame from another origin: the page works on its own */ }
+</script>
 </head>
 <body>
 <div class="topbar">
@@ -229,6 +251,86 @@ pre { font-family:var(--mono); font-size:12px; background:var(--side); border-ra
     if (e.target.tagName === 'A') { document.body.classList.remove('menu-open'); }
   });
 
+  // MATLAB's help browser shows the page in a frame that it makes as tall as
+  // the page, and scrolls the help page instead. The sidebar can't be sticky
+  // there: it is placed in the visible part of the frame when the help page
+  // scrolls. The frame is only accessible from the same origin, otherwise
+  // (and outside of frames) frame is null and the page works on its own
+  var frame = null;
+  try { frame = window.frameElement; } catch (e) { frame = null; }
+  var host = frame ? window.parent : null;
+  var aside = document.querySelector('aside');
+
+  // Height of the header staying at the top of the help page
+  function hostInset() {
+    var header = host.document.querySelector('.section_header');
+    if (header && /fixed|sticky/.test(host.getComputedStyle(header).position)) {
+      return Math.max(0, header.getBoundingClientRect().bottom);
+    }
+    return 0;
+  }
+
+  // Visible part of the page, in page coordinates
+  function visible() {
+    if (!frame) { return {top: 0, height: window.innerHeight}; }
+    var fr = frame.getBoundingClientRect();
+    var top = Math.max(0, hostInset() - fr.top);
+    var bottom = Math.min(fr.height, host.innerHeight - fr.top);
+    return {top: top, height: Math.max(0, bottom - top)};
+  }
+
+  function placeSidebar() {
+    var v = visible();
+    var maxTop = Math.max(0, document.body.offsetHeight - v.height);
+    aside.style.height = v.height + 'px';
+    aside.style.top = Math.min(v.top, maxTop) + 'px';
+  }
+
+  // Scrolls to an element of the page (in the help browser, the help page)
+  function scrollToTarget(target, behavior) {
+    if (!frame) {
+      target.scrollIntoView({behavior: behavior});
+      return;
+    }
+    var margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+    host.scrollBy({top: frame.getBoundingClientRect().top + target.getBoundingClientRect().top -
+      hostInset() - margin, behavior: behavior});
+  }
+
+  if (frame) {
+    // The help browser only sizes the frame when it loads or is resized:
+    // follow the page height when filtering or opening details
+    new ResizeObserver(function () {
+      frame.style.height = (document.body.offsetHeight + 10) + 'px';
+      placeSidebar();
+    }).observe(document.querySelector('.layout'));
+    // Links within the page scroll the help page (the frame doesn't scroll)
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('a[href^="#"]');
+      var target = a && document.getElementById(a.getAttribute('href').slice(1));
+      if (!target) { return; }
+      e.preventDefault();
+      scrollToTarget(target, 'smooth');
+    });
+  }
+
+  // Links from other pages to a method (gramm_cheat_sheet.html#name): in the
+  // help browser, the help page gets #name in its address but only scrolls
+  // to <a name="..."> anchors. Elsewhere this is a fallback for browsers
+  // that don't scroll to the method by themselves
+  window.addEventListener('load', function () {
+    var id = ((frame && host.location.hash) || window.location.hash).slice(1);
+    var target = id && document.getElementById(decodeURIComponent(id));
+    if (target) {
+      setTimeout(function () {
+        var margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+        if (frame || Math.abs(target.getBoundingClientRect().top - margin) > 2) {
+          scrollToTarget(target, 'auto');
+        }
+      }, 50);
+    }
+  });
+
   // Sidebar follows the reading position
   var current = null;
   function setActive(id) {
@@ -236,14 +338,13 @@ pre { font-family:var(--mono); font-size:12px; background:var(--side); border-ra
     if (current && links[current]) { links[current].classList.remove('active'); }
     current = id;
     links[id].classList.add('active');
-    var aside = document.querySelector('aside');
     var r = links[id].getBoundingClientRect(), ar = aside.getBoundingClientRect();
     if (r.top < ar.top + 80 || r.bottom > ar.bottom - 20) {
       aside.scrollTop += r.top - ar.top - ar.height / 3;
     }
   }
   function onScroll() {
-    var line = window.innerHeight * 0.25, best = null;
+    var v = visible(), line = v.top + v.height * 0.25, best = null;
     for (var i = 0; i < methods.length; i++) {
       if (methods[i].classList.contains('hidden')) { continue; }
       if (methods[i].getBoundingClientRect().top <= line) { best = methods[i]; } else { break; }
@@ -251,13 +352,22 @@ pre { font-family:var(--mono); font-size:12px; background:var(--side); border-ra
     if (best) { setActive(best.id); }
   }
   var ticking = false;
-  window.addEventListener('scroll', function () {
+  function update() {
     if (!ticking) {
       ticking = true;
-      window.requestAnimationFrame(function () { onScroll(); ticking = false; });
+      window.requestAnimationFrame(function () {
+        if (frame) { placeSidebar(); }
+        onScroll();
+        ticking = false;
+      });
     }
-  });
-  onScroll();
+  }
+  window.addEventListener('scroll', update);
+  if (frame) {
+    host.addEventListener('scroll', update);
+    host.addEventListener('resize', update);
+  }
+  update();
 })();
 </script>
 </body>

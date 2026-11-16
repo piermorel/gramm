@@ -1,5 +1,5 @@
 %% Category ordering
-% <matlab:edit('example_color_category_ordering.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_color_category_ordering.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#set_order_options set_order_options() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

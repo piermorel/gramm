@@ -1,5 +1,5 @@
 %% Repeated measurements
-% <matlab:edit('example_base_repeated_measurements.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_base_repeated_measurements.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#stat_summary stat_summary() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)

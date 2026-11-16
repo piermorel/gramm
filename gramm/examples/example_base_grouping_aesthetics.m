@@ -1,5 +1,5 @@
 %% Grouping aesthetics
-% <matlab:edit('example_base_grouping_aesthetics.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_base_grouping_aesthetics.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#constructor Constructor in the cheat sheet>
 %
 % This example demonstrates the different ways *grouping variables* can be
 % mapped to visual properties and subplots in *gramm*.

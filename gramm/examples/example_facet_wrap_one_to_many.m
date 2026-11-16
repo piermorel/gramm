@@ -1,5 +1,5 @@
 %% Wrap (one-to-many)
-% <matlab:edit('example_facet_wrap_one_to_many.m') Open this example in the editor> - <index.html All gramm examples>
+% <matlab:edit('example_facet_wrap_one_to_many.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#facet_wrap facet_wrap() in the cheat sheet>
 %
 % We start by loading the sample data (structure created from the carbig
 % dataset)
