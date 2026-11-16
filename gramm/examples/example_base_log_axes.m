@@ -1,4 +1,6 @@
-% gramm examples and how-tos
+%% Log axes
+% <matlab:edit('example_base_log_axes.m') Open this example in the editor> - <index.html All gramm examples>
+%
 
 %% Log axes: scatter plots
 % set_scale() makes axes logarithmic, here y with set_scale('y','log'), or
@@ -29,7 +31,7 @@ g(2,1).set_scale('y','log');
 g(2,1).set_title('Log y axis');
 g(2,2).set_scale('x','log','y','log');
 g(2,2).set_title('Log x and y axes');
-figure('Position',[100 100 1000 800]);
+figure('Position',[100 100 1100 660]);
 g.draw();
 
 %% Log axes: histograms
@@ -61,5 +63,5 @@ g(2,2).stat_bin('edges',logspace(-3.5,4.5,33),'geom','overlaid_bar','fill','tran
 g(2,2).set_scale('x','log','y','log');
 g(2,2).set_title('Log x and y axes');
 g.set_names('x','Outage duration (days)','y','Outages','color','Cause');
-figure('Position',[100 100 1000 750]);
+figure('Position',[100 100 1100 660]);
 g.draw();

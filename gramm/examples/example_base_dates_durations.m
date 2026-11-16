@@ -1,4 +1,6 @@
-% gramm examples and how-tos
+%% Dates and durations
+% <matlab:edit('example_base_dates_durations.m') Open this example in the editor> - <index.html All gramm examples>
+%
 
 %% Dates and durations
 % x and y data can be given as datetime or duration arrays. Axes then
@@ -19,7 +21,7 @@ g.geom_point('alpha',0.4);
 g.stat_smooth();
 g.set_names('x','Date','y','Temperature (°C)','color','Site');
 g.set_title('Datetime x data');
-figure('Position',[100 100 800 450]);
+figure('Position',[100 100 1100 450]);
 g.draw();
 
 %% Calendar binning
@@ -44,7 +46,7 @@ g(1,2).stat_summary('bin_width',calweeks(2),'geom','area');
 g(1,2).set_names('x','Date','y','Temperature (°C)','color','Site');
 g(1,2).set_title('stat_summary(''bin_width'',calweeks(2))');
 
-figure('Position',[100 100 900 400]);
+figure('Position',[100 100 1100 450]);
 g.draw();
 
 %% Durations
@@ -61,7 +63,7 @@ g.stat_boxplot();
 g.geom_hline('yintercept',milliseconds(500));
 g.set_names('x','Condition','y','Reaction time','color','Condition');
 g.set_title('Duration y data');
-figure('Position',[100 100 500 400]);
+figure('Position',[100 100 750 450]);
 g.draw();
 
 %% Dates as grouping data and tick formats
@@ -78,7 +80,7 @@ g.facet_wrap(quarter,'ncols',4,'scale','free_x');
 g.geom_line();
 g.set_names('x','','y','Temperature (°C)','color','Site','column','');
 g.set_title('Facets by quarter');
-figure('Position',[100 100 1000 350]);
+figure('Position',[100 100 1100 450]);
 g.draw();
 for ax=g.facet_axes_handles(:)'
     xtickformat(ax,'MMM d');

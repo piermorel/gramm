@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Smoothing
+% <matlab:edit('example_stat_smooth.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Smooth continuous data with stat_smooth()
@@ -12,7 +13,7 @@ y=sin(exp(x-5)/12);
 y(x<2)=y(x<2)+randn(1,sum(x<2))/2;
 y(x>=2)=y(x>=2)+randn(1,sum(x>=2))/8;
 
-figure;
+figure('Position',[100 100 1100 660]);
 clear g
 g=gramm('x',x,'y',y);
 g.geom_funline('fun',@(x)sin(exp(x-5)/12));

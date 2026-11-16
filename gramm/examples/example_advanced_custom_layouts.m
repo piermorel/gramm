@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Custom layouts
+% <matlab:edit('example_advanced_custom_layouts.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 
@@ -13,7 +14,7 @@ load example_data;
 % given as [row column]) and span is the number of [rows columns] covered
 % by the plot.
 
-figure('Position',[100 100 1000 600]);
+figure('Position',[100 100 1100 660]);
 t=tiledlayout(2,3);
 
 %Large plot on the left, spanning 2 rows and 2 columns
@@ -46,7 +47,7 @@ g_bottom.draw();
 % The other tiles of the tiledlayout can hold any Matlab plot, created with
 % nexttile() as usual
 
-figure('Position',[100 100 900 400]);
+figure('Position',[100 100 1100 450]);
 t=tiledlayout(1,2);
 
 g=gramm('x',cars.Weight,'y',cars.Acceleration,'color',cars.Origin_Region);
@@ -70,7 +71,7 @@ title(ax,'Regular Matlab axes (correlations)');
 % An array of gramm plots can itself be drawn in a tile: give the tile to
 % the whole array with set_parent()
 
-figure('Position',[100 100 1000 600]);
+figure('Position',[100 100 1100 660]);
 t=tiledlayout(1,3);
 
 clear g

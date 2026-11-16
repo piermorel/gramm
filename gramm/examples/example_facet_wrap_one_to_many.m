@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Wrap (one-to-many)
+% <matlab:edit('example_facet_wrap_one_to_many.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 %% Plot one variable against many others
 %Inspired by: https://drsimonj.svbtle.com/plot-some-variables-against-many-others
@@ -21,5 +22,5 @@ g.set_names('y','MPG','x','Value','column','','color','HP','marker','# Cylinders
 g.geom_point();
 
 g.axe_property('TickDir','out','XGrid','on','Ygrid','on','GridColor',[0.5 0.5 0.5]);
-figure;
+figure('Position',[100 100 1100 450]);
 g.draw();

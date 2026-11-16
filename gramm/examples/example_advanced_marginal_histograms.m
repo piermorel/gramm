@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Marginal histograms
+% <matlab:edit('example_advanced_marginal_histograms.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 
@@ -14,7 +15,7 @@ load example_data;
 
 load fisheriris.mat
 
-figure('Position',[100 100 600 550]);
+figure('Position',[100 100 700 650]);
 t=tiledlayout(4,4,'TileSpacing','compact','Padding','compact');
 
 %Create x data histogram on top (first row, first 3 columns)

@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Polygons
+% <matlab:edit('example_geom_polygon.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Decorate plot backgrounds with geom_polygon()
@@ -41,6 +42,6 @@ g(2,2).geom_polygon('x',{[72 80 76]},'y',{[22 22 28]}); %Default is grey
 
 g.set_title('Decorate plot backgrounds with geom_polygon()');
 
-figure;
+figure('Position',[100 100 1100 660]);
 g.draw();
 

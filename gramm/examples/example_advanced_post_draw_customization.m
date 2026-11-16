@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Post-draw customization
+% <matlab:edit('example_advanced_post_draw_customization.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Advanced customization of gramm figures
@@ -17,16 +18,16 @@ load example_data;
 % * A vertical line and text is added to only one of the facets by using
 % the |facet_axes_handles| public property of gramm objects
 % * All points are made smaller by using their handles 
-% |results.grom_point_handle| in the |set()| function
+% |results.geom_point_handle| in the |set()| function
 % * Similarly, all confidence areas are made grey |g.results.stat_glm.area_handle|
 % * A subset of the glm lines are made thicker by calling |set()| on a
-% subset teir handles |g.results.stat_glm(g.results.color==4).line_handle]
+% subset of their handles |g.results.stat_glm(g.results.color==4).line_handle|
 % 
 % It is also possible to set where the gramm
 % axes are drawn by using the |set_parent(parent_handle)| function, which receives the
 % handle of a figure/uipanel/uitab object to use as parent as argument.
 
-f=figure;
+f=figure('Position',[100 100 1100 450]);
 %Create fake button
 c=uicontrol('Style','pushbutton','String','Dummy','Units','normalized','Position',[0.8 0.45 0.15 0.1]);
 %Create uipanel to put our gramm plots

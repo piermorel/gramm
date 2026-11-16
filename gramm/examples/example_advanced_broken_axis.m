@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Broken axis
+% <matlab:edit('example_advanced_broken_axis.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Create a broken axis
@@ -18,7 +19,7 @@ g(2,1)=gramm('x',x,'y',y);
 g(2,1).facet_grid([],x>20,"scale","free_x","space","free_x","column_labels",false);
 g(2,1).geom_point();
 g(2,1).set_title('With broken axis');
-figure;
+figure('Position',[100 100 1100 660]);
 g.draw();
 g(2,1).facet_axes_handles(2).YAxis.Visible='off';
 g(2,1).facet_axes_handles(1).XLim=[-5 6];

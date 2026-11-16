@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% 2D distributions
+% <matlab:edit('example_base_2d_distributions.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Methods for visualizing 2D densities
@@ -58,5 +59,5 @@ g(2,2).set_title('geom_point(''alpha'',0.05)');
 
 g.set_title('Visualization of 2D densities');
 
-figure
+figure('Position',[100 100 1100 660])
 g.draw();

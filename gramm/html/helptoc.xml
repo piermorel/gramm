@@ -18,7 +18,7 @@
 
 
     <tocitem target="gramm_landing.html">Gramm toolbox
-        <tocitem target="gramm_landing.html">Example live scripts
+        <tocitem target="gramm_landing.html">Tutorials (live scripts)
             <tocitem target="GettingStarted.html" image="HelpIcon.GETTING_STARTED">Getting Started example</tocitem>
             <tocitem target="Groups.html"
                      image="HelpIcon.EXAMPLES">Grouped data (ANOVA)</tocitem>
@@ -28,10 +28,58 @@
                      image="HelpIcon.EXAMPLES">Time series</tocitem>
             <tocitem target="OnlineTable.html"
                      image="HelpIcon.EXAMPLES">Online Table data</tocitem>
-            <tocitem target="examples.html"
-                     image="HelpIcon.EXAMPLES">More advanced examples for gramm</tocitem>
         </tocitem>
-        
+
+        <tocitem target="examples/index.html" image="HelpIcon.EXAMPLES">Examples gallery
+            <tocitem target="examples/index.html">Basics
+                <tocitem target="examples/example_base_intro.html">Introduction to gramm</tocitem>
+                <tocitem target="examples/example_base_input_formats.html">Input formats</tocitem>
+                <tocitem target="examples/example_base_continuous_xy_data.html">Continuous X-Y data</tocitem>
+                <tocitem target="examples/example_base_categorical_x_data.html">Categorical X data</tocitem>
+                <tocitem target="examples/example_base_dates_durations.html">Dates and durations</tocitem>
+                <tocitem target="examples/example_base_polar.html">Polar plots</tocitem>
+                <tocitem target="examples/example_base_log_axes.html">Log axes</tocitem>
+            </tocitem>
+            <tocitem target="examples/index.html">Distributions
+                <tocitem target="examples/example_base_1d_distributions.html">1D distributions</tocitem>
+                <tocitem target="examples/example_base_2d_distributions.html">2D distributions</tocitem>
+            </tocitem>
+            <tocitem target="examples/index.html">Grouping and Layout
+                <tocitem target="examples/example_base_grouping_aesthetics.html">Grouping aesthetics</tocitem>
+                <tocitem target="examples/example_base_group_spacing.html">Group spacing</tocitem>
+                <tocitem target="examples/example_base_repeated_measurements.html">Repeated measurements</tocitem>
+            </tocitem>
+            <tocitem target="examples/index.html">Faceting
+                <tocitem target="examples/example_facet_grid_scale_options.html">Grid and scale options</tocitem>
+                <tocitem target="examples/example_facet_wrap_one_to_many.html">Wrap (one-to-many)</tocitem>
+            </tocitem>
+            <tocitem target="examples/index.html">Colors
+                <tocitem target="examples/example_color_palette_customization.html">Palette customization</tocitem>
+                <tocitem target="examples/example_color_category_ordering.html">Category ordering</tocitem>
+                <tocitem target="examples/example_color_continuous_colormap.html">Continuous colormap</tocitem>
+            </tocitem>
+            <tocitem target="examples/index.html">Geom Layers
+                <tocitem target="examples/example_geom_point_and_line_styles.html">Point and line styles</tocitem>
+                <tocitem target="examples/example_geom_interval.html">Intervals</tocitem>
+                <tocitem target="examples/example_geom_label.html">Labels</tocitem>
+                <tocitem target="examples/example_geom_polygon.html">Polygons</tocitem>
+                <tocitem target="examples/example_geom_swarm.html">Swarm plots</tocitem>
+            </tocitem>
+            <tocitem target="examples/index.html">Stat Layers
+                <tocitem target="examples/example_stat_smooth.html">Smoothing</tocitem>
+                <tocitem target="examples/example_stat_bin.html">Binning</tocitem>
+                <tocitem target="examples/example_stat_violin.html">Violin plots</tocitem>
+                <tocitem target="examples/example_stat_cornerhist.html">Corner histograms</tocitem>
+            </tocitem>
+            <tocitem target="examples/index.html">Advanced
+                <tocitem target="examples/example_advanced_marginal_histograms.html">Marginal histograms</tocitem>
+                <tocitem target="examples/example_advanced_custom_layouts.html">Custom layouts</tocitem>
+                <tocitem target="examples/example_advanced_superimposed_plots.html">Superimposed plots</tocitem>
+                <tocitem target="examples/example_advanced_broken_axis.html">Broken axis</tocitem>
+                <tocitem target="examples/example_advanced_post_draw_customization.html">Post-draw customization</tocitem>
+            </tocitem>
+        </tocitem>
+
         <tocitem target="gramm_cheat_sheet.html" 
                  image="HelpIcon.USER_GUIDE"> Cheat sheet </tocitem>
 

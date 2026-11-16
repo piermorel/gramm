@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% 1D distributions
+% <matlab:edit('example_base_1d_distributions.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Methods for visualizing X densities
@@ -41,6 +42,6 @@ g(2,2).set_title('stat_qq()');
 
 g.set_names('x','Horsepower','color','# Cyl','row','','y','');
 g.set_title('Visualization of X densities');
-figure;
+figure('Position',[100 100 1100 660]);
 g.draw();
 

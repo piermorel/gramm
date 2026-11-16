@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Categorical X data
+% <matlab:edit('example_base_categorical_x_data.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Methods for visualizing Y~X relationships with X as categorical variable
@@ -53,10 +54,10 @@ g.set_title('Visualization of Y~X relationships with X as categorical variable')
 
 gf = copy(g);
 
-figure;
+figure('Position',[100 100 1100 660]);
 g.draw();
 
 gf.set_title('Visualization of Y~X relationships with X as categorical variable and flipped coordinates');
-figure;
+figure('Position',[100 100 1100 660]);
 gf.coord_flip();
 gf.draw();

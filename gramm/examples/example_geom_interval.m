@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Intervals
+% <matlab:edit('example_geom_interval.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Methods for visualizing custom confidence intervals
@@ -38,7 +39,7 @@ g(1,2).geom_interval('geom','errorbar','dodge',0.2,'width',0.8);
 %Shaded area, with its transparency set by 'fill_alpha' (default is 0.2)
 g(1,3).geom_interval('geom','area','fill_alpha',0.2);
 
-figure;
+figure('Position',[100 100 1100 450]);
 g.axe_property('YLim',[-10 190]);
 g.draw();
 

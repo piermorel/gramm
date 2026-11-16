@@ -1,4 +1,6 @@
-% gramm examples and how-tos
+%% Polar plots
+% <matlab:edit('example_base_polar.m') Open this example in the editor> - <index.html All gramm examples>
+%
 
 %% Polar plots: tuning curves
 % set_polar() draws on polar axes: x is the angle and y the radius. Angles
@@ -38,7 +40,7 @@ g.geom_hline('yintercept',4,'style','k:');
 g.set_order_options('color',{'Before','After'});
 g.set_names('x','Movement direction','y','Firing rate (Hz)','color','','column','');
 g.set_title('Tuning curves');
-figure('Position',[100 100 900 400]);
+figure('Position',[100 100 1100 450]);
 g.draw();
 
 %% Polar histograms: wind rose
@@ -62,7 +64,7 @@ g.axe_property('ThetaZeroLocation','top','ThetaDir','clockwise');
 g.set_color_options('map','d3_10');
 g.set_names('x','Wind direction','y','Count','color','Wind speed (m/s)','column','');
 g.set_title('Wind rose');
-figure('Position',[100 100 900 450]);
+figure('Position',[100 100 1100 450]);
 g.draw();
 
 %% Radar charts
@@ -89,5 +91,5 @@ g.stat_summary('geom',{'area','line','point'});
 g.axe_property('ThetaZeroLocation','top','ThetaDir','clockwise');
 g.set_names('x','','y','Rescaled value','color','Origin');
 g.set_title('Car attributes by region of origin');
-figure('Position',[100 100 600 500]);
+figure('Position',[100 100 700 650]);
 g.draw();

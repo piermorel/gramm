@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Point and line styles
+% <matlab:edit('example_geom_point_and_line_styles.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Customize the size and style of graphic elements with set_line_options() and set_point_options()
@@ -50,5 +51,5 @@ g(2,3).set_title('Size according to value');
 
 g.set_title('Customization of line and point options');
 
-figure;
+figure('Position',[100 100 1100 660]);
 g.draw();

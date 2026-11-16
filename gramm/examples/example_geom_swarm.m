@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Swarm plots
+% <matlab:edit('example_geom_swarm.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Options for geom_swarm()
@@ -16,7 +17,7 @@ c=categorical(c);
 x=categorical(x);
 c(x=="0" & c=="0") = "2";
 
-figure;
+figure('Position',[100 100 1100 660]);
 clear g
 g(1,1)=gramm('x',x,'y',y,'color',c);
 g(1,2) = copy(g(1,1));

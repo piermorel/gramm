@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Category ordering
+% <matlab:edit('example_color_category_ordering.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Changing the order of elements with set_order_options()
@@ -57,7 +58,7 @@ g(2,3).set_title({'x in input order' 'lightness in custom order'});
 g.set_names('x','US size','y','EU size','lightness','US size');
 g.axe_property('YLim',[0 48]);
 
-figure;
+figure('Position',[100 100 1100 660]);
 g.draw();
 
 %% Order of categorical data
@@ -81,5 +82,5 @@ g(1,2).set_title('cellstr(): alphabetical order');
 g.set_names('x','US size','y','EU size','lightness','US size');
 g.axe_property('YLim',[0 48]);
 
-figure('Position',[100 100 800 350]);
+figure('Position',[100 100 1100 450]);
 g.draw();

@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Grid and scale options
+% <matlab:edit('example_facet_grid_scale_options.m') Open this example in the editor> - <index.html All gramm examples>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Options for separating groups across subplots with facet_grid()
@@ -52,27 +53,32 @@ g(1,1).geom_point();
 g(1,1).set_title('No facets');
 
 g(1,2).facet_grid(r,c);
+g(1,2).set_layout_options('spacing','none'); %No gaps between facets
 g(1,2).geom_point();
 g(1,2).no_legend();
 g(1,2).set_title('facet_grid()');
 
 
 g(2,1).facet_grid(r,c,'scale','free');
+g(2,1).set_layout_options('spacing','none');
 g(2,1).geom_point();
 g(2,1).no_legend();
 g(2,1).set_title('facet_grid(''scale'',''free'')');
 
 g(2,2).facet_grid(r,c,'scale','free','space','free');
+g(2,2).set_layout_options('spacing','none');
 g(2,2).geom_point();
 g(2,2).no_legend();
 g(2,2).set_title('facet_grid(''scale'',''free'',''space'',''free'')');
 
 g(3,1).facet_grid(r,c,'scale','free_x');
+g(3,1).set_layout_options('spacing','none');
 g(3,1).geom_point();
 g(3,1).no_legend();
 g(3,1).set_title('facet_grid(''scale'',''free_x'')');
 
 g(3,2).facet_grid(r,c,'scale','independent');
+g(3,2).set_layout_options('spacing','tight'); %Room for the tick labels of each facet
 g(3,2).geom_point();
 g(3,2).no_legend();
 g(3,2).set_title('facet_grid(''scale'',''independent'')');
@@ -83,11 +89,11 @@ g.set_names('column','','row','');
 
 gf = copy(g);
 
-figure;
+figure('Position',[100 100 1100 900]);
 g.set_title('facet_grid() options');
 g.draw();
 
-figure;
+figure('Position',[100 100 1100 900]);
 gf.set_title({'facet_grid() options' 'work together with coord_flip()'});
 gf.coord_flip();
 gf.draw();
