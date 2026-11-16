@@ -114,11 +114,13 @@ function [x,y] = gen_swarm(y,params,ax)
 
 r = params.point_size;
 
-ax.Units="points";
-ptpos = ax.Position;
-ax.Units="normalized";
-xsz = ptpos(3)/diff(ruler2num(ax.XLim,ax.XAxis)); %Find factor between plotting units and points (unit used by MarkerSize)
-ysz = ptpos(4)/diff(ruler2num(ax.YLim,ax.YAxis));
+%Size of the axes in points (unit used by MarkerSize), from the layout:
+%changing the axes units instead takes axes out of their tiledlayout when
+%the layout is not computed yet
+box = getfield(GetLayoutInformation(ax),'PlotBox'); %In pixels
+ptsz = box(3:4)*72/get(groot,'ScreenPixelsPerInch');
+xsz = ptsz(1)/diff(ruler2num(ax.XLim,ax.XAxis)); %Find factor between plotting units and points
+ysz = ptsz(2)/diff(ruler2num(ax.YLim,ax.YAxis));
 
 ypx = y*ysz; %Convert y values to point values
 

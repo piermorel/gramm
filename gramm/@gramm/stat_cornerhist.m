@@ -53,7 +53,11 @@ if isa(obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column),'matla
 
     %If first run, create inset axis(weird, if cha is not used as intermediary
     %variable, the resize callback doesn't seem to work properly)
-    cha=axes('Position',[parent_axe_pos(1) parent_axe_pos(2) parent_axe_pos(3) parent_axe_pos(4)],...
+    %The inset goes in the container of the plot (figure, or panel/tab given
+    %to set_parent()): its position is computed from the plot box, which
+    %GetLayoutInformation() gives relative to that container
+    container=ancestor(parent_axe,{'uipanel','uitab','figure'});
+    cha=axes(container,'Position',[parent_axe_pos(1) parent_axe_pos(2) parent_axe_pos(3) parent_axe_pos(4)],...
          'Clipping','off','NextPlot','add');
     
     obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column)=cha;
