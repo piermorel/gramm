@@ -8,7 +8,9 @@ function obj = geom_interval( obj,varargin )
 %
 % Parameters given as 'name',value pairs:
 % - 'geom': How the intervals are displayed. Options include 'area',
-%           'errorbar', 'line', 'bar' (default 'area')
+%           'errorbar', 'line', 'bar' (default 'area'). Error bars are
+%           drawn with MATLAB's errorbar(): their handles in results are
+%           ErrorBar objects
 % - 'dodge': Spacing between intervals of different colors within an 
 %            unique x value. If empty, automatic dodging is applied
 %            for bar geoms when multiple colors are present (default [])

@@ -146,9 +146,7 @@ end
 
 switch params.geom
     case 'bar'
-        [xpatch,ypatch]=bar_patch(bar_left,bar_right,zeros(1,length(bincounts)),bincounts');
-        ypatch(:,bincounts==0)=NaN; %Hide empty bins (their degenerate faces can be rendered as stray lines)
-        ypatch=log_base(obj,ypatch);
+        [xpatch,ypatch]=bar_patch(obj,bar_left,bar_right,zeros(1,length(bincounts)),bincounts');
         [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
         results.bar_handle=patch(xpatch,...
             ypatch,...
@@ -164,9 +162,7 @@ switch params.geom
         results.fill_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',face_color,'EdgeColor','none','FaceAlpha',face_alpha);
         
     case 'stacked_bar'
-        [xpatch,ypatch]=bar_patch(binranges(1:end-1)+spacing,binranges(2:end)-spacing,obj.extra.stacked_bar_height,obj.extra.stacked_bar_height+bincounts');
-        ypatch(:,bincounts==0)=NaN; %Hide empty bins (their degenerate faces can be rendered as stray lines)
-        ypatch=log_base(obj,ypatch);
+        [xpatch,ypatch]=bar_patch(obj,binranges(1:end-1)+spacing,binranges(2:end)-spacing,obj.extra.stacked_bar_height,obj.extra.stacked_bar_height+bincounts');
         [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
         results.bar_handle=patch(xpatch,...
             ypatch,...

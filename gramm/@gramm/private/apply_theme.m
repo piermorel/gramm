@@ -27,6 +27,13 @@ end
 h=findall(parents(isgraphics(parents)));
 
 set(findobj(h,'flat','Type','line','Color',[0 0 0]),'ColorMode','auto','SeriesIndex','none');
+%Filled markers of lines have no automatic color mode: black ones get the
+%(automatic) line color, and are updated when the theme changes
+black_markers=findobj(h,'flat','Type','line','MarkerFaceColor',[0 0 0]);
+for k=1:numel(black_markers)
+    setappdata(black_markers(k),'gramm_black_marker',true);
+end
+match_markers(black_markers);
 set(findobj(h,'flat','Type','errorbar','Color',[0 0 0]),'ColorMode','auto','SeriesIndex','none');
 set(findobj(h,'flat','Type','scatter','CData',[0 0 0]),'CDataMode','auto','SeriesIndex','none');
 %Patch color modes are not documented, but behave like the others
@@ -41,6 +48,14 @@ function theme_changed(fig)
 containers=findall(fig,'-function',@(c) isappdata(c,'gramm_axes'));
 for k=1:numel(containers)
     match_background(containers(k));
+end
+match_markers(findall(fig,'Type','line','-function',@(l) isappdata(l,'gramm_black_marker')));
+end
+
+
+function match_markers(lines)
+for k=1:numel(lines)
+    lines(k).MarkerFaceColor=lines(k).Color;
 end
 end
 

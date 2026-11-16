@@ -141,22 +141,20 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha)
                     case 'bar'
                         barleft=x-bar_width/2;
                         barright=x+bar_width/2;
-                        [xpatch,ypatch]=bar_patch(barleft,barright,zeros(1,length(y)),y);
-                        ypatch=log_base(obj,ypatch);
+                        [xpatch,ypatch]=bar_patch(obj,barleft,barright,zeros(1,length(y)),y);
                         [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
                         hndl.bar_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','none');
                    case 'edge_bar'
                         barleft=x-bar_width/2;
                         barright=x+bar_width/2;
-                        [xpatch,ypatch]=bar_patch(barleft,barright,zeros(1,length(y)),y);
-                        ypatch=log_base(obj,ypatch);
+                        [xpatch,ypatch]=bar_patch(obj,barleft,barright,zeros(1,length(y)),y);
                         [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
                         hndl.bar_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','k');
                     case 'point'
                         hndl.point_handle=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',draw_data.color);
                     case 'black_point'
-                        %scatter() so that black can follow the figure theme
-                        hndl.point_handle=scatter(x,y,draw_data.point_size^2,[0 0 0],draw_data.marker,'filled');
+                        %Black follows the figure theme (see apply_theme)
+                        hndl.point_handle=plot(x,y,draw_data.marker,'Color',[0 0 0],'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',[0 0 0]);
                 end
                 
             end

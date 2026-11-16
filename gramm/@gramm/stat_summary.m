@@ -45,6 +45,9 @@ function obj=stat_summary(obj,varargin)
 %       export to vector output.
 %       - 'errorbar': displays error bars for variabilities.
 %       - 'black_errorbar': displays black error bars for variabilities.
+%       Error bars are drawn with MATLAB's errorbar(): their handles in
+%       results are ErrorBar objects (cap size set with
+%       set_line_options('cap_size',...))
 %       - 'bar': displays the locations as bars
 %       - 'edge_bar': displays the locations as bars with black edge
 %       - 'point': displays the locations as points
