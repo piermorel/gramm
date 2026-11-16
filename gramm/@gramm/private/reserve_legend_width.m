@@ -39,7 +39,15 @@ char_width=text_width(ax,'M',txt(1));
 right_edge=0;
 for k=1:numel(txt)
     w=text_width(ax,txt(k).String,txt(k));
-    left=(txt(k).Position(1)-ax.XLim(1))/diff(ax.XLim)*axes_width;
+    if ~isempty(obj.legend_transform) && isvalid(obj.legend_transform) && ...
+            isequal(ancestor(txt(k),'hgtransform'),obj.legend_transform)
+        %Legend entries: scale_legend() makes legend units 8 pixels wide.
+        %Using that directly (and not the current scaling) keeps the
+        %reserved width independent of the axes width
+        left=(txt(k).Position(1)-ax.XLim(1))*8;
+    else
+        left=(txt(k).Position(1)-ax.XLim(1))/diff(ax.XLim)*axes_width;
+    end
     switch txt(k).HorizontalAlignment
         case 'center'
             left=left-w/2;
