@@ -1,16 +1,26 @@
-# Release workflow - creates GitHub releases with toolbox binaries
-# Triggered when you push a version tag (e.g., v3.0.2)
+# Release workflow - creates GitHub releases with toolbox binaries and updates the website
+# Triggered when you push a version tag (e.g., v4.0.0)
+# Can also be run manually (Actions > Release > Run workflow) to test the build:
+# the toolbox and the documentation are then uploaded as artifacts, without release
 
 name: Release
 
 on:
   push:
     tags:
-      - 'v*'  # Triggers on version tags like v3.0.2
+      - 'v*'  # Triggers on version tags like v4.0.0
+  workflow_dispatch:
+    inputs:
+      deploy_site:
+        description: 'Also deploy the website'
+        type: boolean
+        default: false
 
 jobs:
   release:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
 
     steps:
       - name: Check out repository
@@ -32,31 +42,88 @@ jobs:
             openProject('gramm.prj');
             installAddOn(fileExchangeId, addonReleaseVersion);
 
-      - name: Check for code issues
-        uses: matlab-actions/run-build@v2
-        with:
-          tasks: check
-
-      - name: Run examples as test
-        uses: matlab-actions/run-build@v2
-        with:
-          tasks: runExample
-
-      - name: Publish the documents
-        uses: matlab-actions/run-build@v2
-        with:
-          tasks: publish
-
-      - name: Package toolbox
+      # package depends on check, runExample, docs and publish, which all run once
+      - name: Check, test, build the documentation and package the toolbox
         uses: matlab-actions/run-build@v2
         env:
-          CI_COMMIT_TAG: ${{ github.ref_name }}
+          CI_COMMIT_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         with:
           tasks: package
 
+      - name: Upload toolbox
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolbox
+          path: gramm*.mltbx
+
+      - name: Upload documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs
+          path: gramm/html/
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test-report/
+            coverage-report/
+
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v3
         with:
           files: gramm*.mltbx
           draft: true
           generate_release_notes: true
+
+  website:
+    needs: release
+    if: github.ref_type == 'tag' || inputs.deploy_site
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download documentation
+        uses: actions/download-artifact@v4
+        with:
+          name: docs
+          path: site/docs
+
+      # Site main page and Jekyll configuration are in website/
+      - name: Assemble site
+        run: |
+          cp website/* site/
+          cp README.md site/
+          cp -r images site/images
+          cp -r paper site/paper
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./site
+          destination: ./_site
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
