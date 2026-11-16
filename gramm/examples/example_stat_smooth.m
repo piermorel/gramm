@@ -17,7 +17,7 @@ figure('Position',[100 100 1100 660]);
 clear g
 g=gramm('x',x,'y',y);
 g.geom_funline('fun',@(x)sin(exp(x-5)/12));
-g.geom_vline('xintercept',2)
+g.geom_vline('xintercept',2);
 g.axe_property('XLim',[0 9.8]);
 g(1,2)=copy(g(1));
 g(1,3)=copy(g(1));

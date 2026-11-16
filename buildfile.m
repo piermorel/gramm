@@ -67,6 +67,7 @@ opts.format = 'html';
 opts.outputDir = htmlDir;
 opts.showCode = true;
 opts.figureSnapMethod = 'print';
+opts.useNewFigure = false; % The examples open their own figures
 mFiles = dir(fullfile(examplesDir, "example_*.m"));
 for i = 1:numel(mFiles)
     fprintf("  %s\n", mFiles(i).name);

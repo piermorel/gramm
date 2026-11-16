@@ -45,7 +45,7 @@ else
     if obj.result_ind==1
         obj.aes_names.y=[obj.aes_names.x ' quantiles'];
         dist_params=num2str(params.distribution.ParameterValues,'%g,');
-        obj.aes_names.x=['Theroretical ' params.distribution.DistributionName '(' dist_params(1:end-1) ') quantiles'];
+        obj.aes_names.x=['Theoretical ' params.distribution.DistributionName '(' dist_params(1:end-1) ') quantiles'];
     end
     
 end

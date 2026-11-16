@@ -10,6 +10,8 @@ load example_data;
 
 x=[randn(1,50)*2 randn(1,50)*8+70];
 y=-x;
+
+clear g
 g(1,1)=gramm('x',x,'y',y);
 g(1,1).geom_point();
 g(1,1).set_title('Without broken axis');

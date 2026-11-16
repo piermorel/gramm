@@ -26,7 +26,8 @@ g(1,1).set_title('geom_raster()');
 
 %Histogram
 g(1,2).facet_grid(cars.Origin_Region,[]);
-g(1,2).stat_bin('nbins',8);
+%Common bin edges for all colors, bars of different colors overlaid
+g(1,2).stat_bin('edges',40:20:240,'geom','overlaid_bar');
 g(1,2).set_title('stat_bin()');
 
 %Kernel smoothing density estimate
@@ -42,6 +43,6 @@ g(2,2).set_title('stat_qq()');
 
 g.set_names('x','Horsepower','color','# Cyl','row','','y','');
 g.set_title('Visualization of X densities');
-figure('Position',[100 100 1100 660]);
+figure('Position',[100 100 1100 900]);
 g.draw();
 
