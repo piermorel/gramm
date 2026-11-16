@@ -1,19 +1,20 @@
 function obj=stat_ellipse(obj,varargin)
-%stat_ellipse() Create confidence ellipses around 2D groups of
-% points
+% stat_ellipse Display confidence ellipses around 2D groups of points
 %
-% Parameters:
-% 'type': The default '95percentile' displays an ellipse that
-% contains 95% of the points (assuming a bivariate normal
-% distribution). The option 'ci' will first compute boostrapped
-% 2D means and plot the 95% ellipse around these means
-% 'geom': Sets how to display the result 'area' for a shaded
-% area or 'line' for a simple contour line.
-% 'fill_alpha': Transparency of the 'area' geom, from 0 (transparent)
-% to 1 (opaque) (default 0.2)
-% 'patch_opts': Provide additional patch properties as name-value
-% pairs in a cell array (as if those were options for Matlab's
-% built in patch() function)
+% Example syntax (default arguments): gramm_object.stat_ellipse('type','95percentile','geom','area')
+%
+% Parameters given as 'name',value pairs:
+% - 'type': What the ellipse contains (default '95percentile'):
+%       - '95percentile': 95% of the points (assuming a bivariate normal
+%            distribution)
+%       - 'ci': 95% of the bootstrapped 2D means
+% - 'geom': How the ellipse is displayed (default 'area'):
+%       - 'area': shaded area with outline
+%       - 'line': outline only
+% - 'fill_alpha': Transparency of the 'area' geom, from 0 (transparent)
+%            to 1 (opaque) (default 0.2)
+% - 'patch_opts': Additional patch() properties, as a cell of 'name',value
+%            pairs (default {})
 
 p=inputParser;
 addParameter(p,'type','95percentile',@(v) valid_choice(v,{'95percentile','ci'})); %ci

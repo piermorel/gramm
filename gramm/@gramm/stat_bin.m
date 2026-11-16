@@ -2,24 +2,46 @@ function obj=stat_bin(obj,varargin)
 % stat_bin Displays an histogram of the data in x
 %
 % Example syntax (default arguments): gramm_object.stat_bin('nbins',30,'geom','bar')
-% Options can be given as 'name',value pairs:
-% - 'geom' can be 'bar', 'overlaid_bar', 'line', 'stairs', 'point' or 'stacked_bar'
-% The 'normalization' argument allows to optionally normalize
-% the bin counts (see the doc for Matlab's histcounts() ).
-% Default is 'count', for normalization to 1 use 'probability'
-% Instead of 'nbins', it is possible to directly specify bin
-% edges with 'edges' (numeric, datetime or duration values), or the
-% bin width with 'bin_width'. 'bin_width' can be numeric (in x units),
-% a duration or calendarDuration (e.g. hours(2) or calmonths(1)), or the
-% name of a time unit for datetime/duration x data ('second',
-% 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year'...),
-% in which case the bins follow calendar boundaries. If the bin
-% widths are not equal (e.g. months), it's recommended to use
-% 'countdensity' or 'pdf' for normalization. Aspect of the geoms can be
-% customized with the 'fill' option
-% ('edge','face','all','transparent'), and the transparency of faces with
-% 'fill_alpha', from 0 (transparent) to 1 (opaque). If empty, it is set
-% by the fill style (default [])
+% Bins are given by 'edges' if set, otherwise by 'bin_width' if set,
+% otherwise by 'nbins'. If the bin widths are not equal (e.g. months), it's
+% recommended to use 'countdensity' or 'pdf' for normalization.
+%
+% Parameters given as 'name',value pairs:
+% - 'nbins': Number of bins of equal width spanning the x data (default 30)
+% - 'edges': Bin edges, as numeric, datetime or duration values
+% - 'bin_width': Bin width, numeric (in x units), a duration or
+%            calendarDuration (e.g. hours(2) or calmonths(1)), or the name
+%            of a time unit for datetime/duration x data ('second',
+%            'minute', 'hour', 'day', 'week', 'month', 'quarter',
+%            'year'...), in which case the bins follow calendar boundaries
+% - 'geom': How the bin counts are displayed (default 'bar'):
+%       - 'bar': dodged bars
+%       - 'overlaid_bar': overlaid bars (use transparency)
+%       - 'stacked_bar': stacked bars
+%       - 'line': counts connected by a line
+%       - 'stairs': stair line
+%       - 'point': counts as points
+% - 'normalization': Normalization of the bin counts, same as the
+%            'Normalization' argument of histcounts() (default 'count'):
+%       - 'count': number of points in each bin
+%       - 'probability': counts divided by the number of points (sum to 1)
+%       - 'countdensity': counts divided by the bin widths
+%       - 'pdf': probability density estimate (integrates to 1)
+%       - 'cumcount': cumulative counts
+%       - 'cdf': cumulative distribution (ends at 1)
+% - 'fill': Aspect of the geom (default [], set by the
+%            geom: 'face' for bars, 'transparent' for 'overlaid_bar',
+%            'edge' otherwise):
+%       - 'face': colored faces with black edges
+%       - 'edge': colored edges, no faces
+%       - 'all': colored faces, no edges
+%       - 'transparent': colored edges and transparent colored faces
+% - 'fill_alpha': Transparency of the faces, from 0 (transparent) to 1
+%            (opaque) (default [], set by 'fill')
+% - 'width': Width of the bars, relative to the bin width (default [],
+%            same as 'dodge' if dodging, 1 otherwise)
+% - 'dodge': Spacing between bars of different colors within a bin
+%            (default [], 0.8 for 'bar' with several colors, 0 otherwise)
 
 p=inputParser;
 addParameter(p,'nbins',30);

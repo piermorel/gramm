@@ -16,9 +16,12 @@ plan("docs").Outputs = "gramm/html/" + liveScripts() + ".html";
 plan("publish").Inputs = "gramm/examples/*.m";
 plan("publish").Outputs = "gramm/html/examples/**";
 
+plan("cheatsheet").Inputs = ["gramm/@gramm/**/*.m" "gramm/examples/example_*.m" "buildutils/makeCheatSheet.m" "buildutils/cheatsheet_template.html"];
+plan("cheatsheet").Outputs = "gramm/html/gramm_cheat_sheet.html";
+
 plan("readmeImages").Dependencies = "publish";
 
-plan("package").Dependencies = ["check" "runExample" "docs" "publish"];
+plan("package").Dependencies = ["check" "runExample" "docs" "publish" "cheatsheet"];
 
 plan.DefaultTasks = ["check" "runExample"];
 end
@@ -81,6 +84,19 @@ end
 
 opts.showCode = false;
 publish(fullfile(examplesDir, "index.m"), opts);
+end
+
+function cheatsheetTask(~)
+% Generate the cheat sheet from the help headers and inputParser options of
+% the methods. Differences between the code and the help headers are
+% reported as warnings
+addpath("buildutils");
+cleanup = onCleanup(@() rmpath("buildutils"));
+issues = makeCheatSheet(fullfile("gramm", "html", "gramm_cheat_sheet.html"));
+if ~isempty(issues)
+    warning("buildfile:cheatsheet", "%d differences between the code and the help headers:\n%s", ...
+        numel(issues), strjoin("  " + issues, newline));
+end
 end
 
 function readmeImagesTask(~)

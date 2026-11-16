@@ -1,14 +1,16 @@
 function obj=stat_bin2d(obj,varargin)
-% stat_bin2d() Makes 2D bins of X and Y data and displays count
+% stat_bin2d Make 2D bins of x and y data and display the counts
 %
-% Parameters as 'name',value pairs:
-% - 'nbins': Array in the form of [nxbins nybins] to set the
-% number of bins in each dimension
-% - 'edges': Cell in the form of {[x__edges] [y_edges]} to set
-% custom bin edges for each dimension
-% - 'geom': Set how results are displayed. 'image' uses a
-% heatmap (default), 'contour' uses a contour plot. 'point'
-% uses circles of varying size.
+% Example syntax (default arguments): gramm_object.stat_bin2d('nbins',[30 30],'geom','image')
+%
+% Parameters given as 'name',value pairs:
+% - 'nbins': Number of bins [n_xbins n_ybins] (default [30 30])
+% - 'edges': Custom bin edges {x_edges y_edges}, override 'nbins'
+%            (default {})
+% - 'geom': How the counts are displayed (default 'image'):
+%       - 'image': heatmap
+%       - 'contour': contour plot
+%       - 'point': circles of varying size
 
 p=inputParser;
 addParameter(p,'nbins',[30 30]);

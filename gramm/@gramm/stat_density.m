@@ -1,15 +1,20 @@
 function obj=stat_density(obj,varargin)
-% geom_point Displays an smooth density estimate of the data in x
+% stat_density Display a smooth density estimate of the data in x
 %
 % Example syntax (default arguments): gramm_object.stat_density('function','pdf','kernel','normal','npoints',100)
-% the 'function','kernel', and 'bandwidth' arguments are the
-% ones used by the underlying matlab function ksdensity
-% 'npoints' is used to set how many x values are used to
-% display the density estimates.
-% 'extra_x' is used to increase the range of x values over
-% which the estimated density function is displayed. Values
-% will be extended to the right and to the left by extra_x
-% times the range of x data.
+% Uses ksdensity() from the Statistics Toolbox.
+%
+% Parameters given as 'name',value pairs:
+% - 'bandwidth': Bandwidth of the kernel, as in ksdensity(). Values <= 0
+%            for the automatic bandwidth (default -1)
+% - 'function': Function estimated, as in ksdensity(): 'pdf', 'cdf',
+%            'survivor'... (default 'pdf')
+% - 'kernel': Kernel, as in ksdensity(): 'normal', 'box', 'triangle',
+%            'epanechnikov' (default 'normal')
+% - 'npoints': Number of x values over which the density is evaluated
+%            (default 100)
+% - 'extra_x': Extension of the evaluation range on each side of the x
+%            data, as a ratio of the x data range (default 0.1)
 
 p=inputParser;
 addParameter(p,'bandwidth',-1);

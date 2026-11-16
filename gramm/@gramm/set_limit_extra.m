@@ -1,11 +1,16 @@
 function obj=set_limit_extra(obj,x_extra,y_extra,z_extra)
-%set_limit_extra Add some breathing room around data in plots
+% set_limit_extra Add some breathing room around the data in the axes
 %
-% Example syntax gramm_object.set_limit_extra([0.05 0.2],0.05)
-% first argument is XLim extra, second is YLim extra, extra
-% room is expressed as ratio to original limits. It is possible to set
-% extra room separately for upper and lower limits by giving a 2x1 array.
-% If not, the lower and uupper limit extra will be the same
+% Example syntax: gramm_object.set_limit_extra([0.05 0.2],0.05)
+% The extra room is a ratio of the data range: with data from 0 to 10,
+% 0.05 extends the axis by 0.5 on each side, giving limits from -0.5 to
+% 10.5.
+%
+% Arguments:
+% - x_extra: Extra room on the x axis, a single ratio for both sides, or
+%            [lower upper] to set each side separately
+% - y_extra: Extra room on the y axis, same format as x_extra
+% - z_extra: Optional, extra room on the z axis, same format as x_extra
 
 if nargin<4
     z_extra=0;

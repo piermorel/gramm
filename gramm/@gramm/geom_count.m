@@ -1,11 +1,14 @@
 function obj=geom_count(obj,varargin)
-%geom_count Display data as points which size vary with with
-%count
+% geom_count Display data as points which size varies with the number of overlapping points
 %
-% Parameters:
-% 'scale': set the scaling factor between count and area
-% 'point_color': set how the points are colored 'edge', 'face',
-% 'all'
+% Example syntax: gramm_object.geom_count('scale',20)
+%
+% Parameters given as 'name',value pairs:
+% - 'scale': Scaling factor between count and point area (default 20)
+% - 'point_color': How the points are colored (default 'all'):
+%       - 'all': colored faces, no edges
+%       - 'face': colored faces with black edges
+%       - 'edge': colored edges, no faces
 
 p=inputParser;
 addParameter(p,'scale',20);

@@ -1,22 +1,20 @@
 function obj=stat_glm(obj,varargin)
-% stat_glm Display a generalized linear model fit of the data
+% stat_glm Display a generalized linear model fit of the data with 95% confidence bounds
 %
-% Example syntax (default arguments): gramm_object.stat_glm('distribution','normal','geom','lines','fullrange','false')
-% This will fit a generalized linear model to the data, display
-% the fit results with 95% confidence bounds. The optional
-% 'name',value pairs are the following.
-% - 'distribution' corresponds to the distribution of the data.
-%   'normal', the default value leads to a standard linear model
-%   fit. Possible values are 'normal', 'binomial', 'poisson', 'gamma', and 'inverse gaussian'
-% - 'geom': defines the way to display the confidence bouds.
-%   See the help of stat_summary().
-% - 'fill_alpha': transparency of the confidence area of the 'area' and
-%   'area_only' geoms, from 0 (transparent) to 1 (opaque) (default 0.2)
-% - 'fullrange': set to true if you want the fits to be
-%   displayed over the whole width of each subplot instead of
-%   being displayed over the range of x values used for the fit
-% - 'disp_fit': set to true to display the fitted parameters and
-% corresponding p-value stars.
+% Example syntax (default arguments): gramm_object.stat_glm('distribution','normal','geom','area','fullrange',false)
+% Uses fitglm() from the Statistics Toolbox.
+%
+% Parameters given as 'name',value pairs:
+% - 'distribution': Distribution of the data, as in fitglm(). 'normal'
+%            gives a standard linear model (default 'normal')
+% - 'geom': How the fit is displayed, same as stat_summary() (default
+%            'area')
+% - 'fill_alpha': Transparency of the 'area' and 'area_only' geoms, from
+%            0 (transparent) to 1 (opaque) (default 0.2)
+% - 'fullrange': Display the fit over the whole x axis instead of the
+%            range of x values used for the fit (default false)
+% - 'disp_fit': Display the fitted parameters and p-value stars
+%            (default false)
 
 %Accepted distributions: 'normal' (default) | 'binomial' | 'poisson' | 'gamma' | 'inverse gaussian'
 p=inputParser;

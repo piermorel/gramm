@@ -150,50 +150,56 @@ classdef gramm < matlab.mixin.Copyable
         
         % Constructor
         function obj=gramm(varargin)
-            % gramm Constructor for the class
+            % gramm Constructor for the class: creates a gramm object with the data to plot
             %
-            % Example syntax (default arguments): gramm_object=gramm('x',x_variable,'y',y_variable,'color',color_variable)
-            % This function is used to create a gramm object, and provide
-            % it with the data that will be plotted. Arguments are given as
-            % 'name',value pairs. The possible arguments are:
+            % Example syntax: gramm_object=gramm('x',x_variable,'y',y_variable,'color',color_variable)
+            % The data can be given in two layouts:
             %
-            %   - 'x' for the data to plot as abcissa, or the data that
-            %      will be used to construct histograms/density estimates
-            %   - 'y' for the data to plot as ordinate
-            %   - 'label' for the label text
-            %   - 'color' for the data that determines color (hue)
-            %   - 'lightness' for the data that determines lightness
-            %   - 'linestyle' for the data that determines line style
-            %   - 'size' for the data that determines line/point size
-            %   - 'marker' for the data that determines point shape
-            %   - 'group' for the data that determines groups
+            % One row per observation: x, y and the grouping variables are 1D arrays
+            % of the same length N (like the columns of a table). Points with the same
+            % grouping values form a group, e.g. a line for geom_line() or a
+            % summary for stat_summary().
             %
-            % The arguments can be of the following type, N being te number
-            % of observations:
-            %   - color, lightness, linestyle, size or marker can be 1D numerical arrays
-            %     or 1D cell arrays of strings of length N. Note that they are used to
-            %     represent categories.
-            %   - y can be a 1D numerical array of length N. It can also be
-            %     a 2D numerical array of size N*M, or a 1D cell array of
-            %     length N containing arrays of various sizes. In the last
-            %     two cases, all the points from each row of the array/each
-            %     array from the cell will be colored/shaped/etc similarly
-            %     and according to the other aesthetics.
-            %   - x can be a 1D numerical array or a 1D cell array of
-            %     strings of size N (if y is a 1D numerical array). If y is
-            %     a 1D cell array of numerical arrays or a 2D numerical
-            %     array, x can be either a 1D cell array containing
-            %     numerical arrays of the same size, or a 2D numerical
-            %     array of the same size (N*M). It can also be a 1D numerical
-            %     array of size M, in which case the same abcissa will be
-            %     used for every row of y.
-            %   - label should be a 1D cell array of strings of length N.
-            %   - x and y (and ymin, ymax) can also be datetime or duration
-            %     arrays, which are displayed natively on the axes.
-            %   - grouping data (color, lightness, row, column...) can also
-            %     be string, categorical, datetime or duration arrays.
-            %     Categorical arrays are ordered by their categories, dates
-            %     and durations chronologically (see set_order_options()).
+            % One row per repeated measurement (trajectories, time series...): y is
+            % a N x M matrix, or a N x 1 cell of arrays (possibly of different
+            % lengths), each row/cell being one curve. x is then a 1D array of
+            % length M shared by all curves, or a matrix/cell with the same size as
+            % y. The grouping variables still have one value per row (length N), so
+            % each curve gets the color, marker... of its row.
+            %
+            % Grouping variables (color, lightness, row, column...) represent
+            % categories, and can be numerical arrays, cellstr, string, categorical,
+            % datetime or duration arrays. Categorical arrays are ordered by their
+            % categories, dates and durations chronologically (see
+            % set_order_options()). x and y (and ymin, ymax) can also be datetime or
+            % duration arrays, which are displayed natively on the axes.
+            %
+            % Parameters given as 'name',value pairs:
+            % - 'x': Data plotted as abscissa, or used for histograms/densities.
+            %            1D array or cellstr of length N, or for repeated
+            %            measurements a 1D array of length M, or a matrix/cell
+            %            with the same size as y
+            % - 'y': Data plotted as ordinate. 1D array of length N, or for
+            %            repeated measurements a N x M matrix or N x 1 cell of
+            %            arrays (one curve per row/cell)
+            % - 'ymin': Lower bound of y intervals (absolute), same format as y, see
+            %            geom_interval()
+            % - 'ymax': Upper bound of y intervals (absolute), same format as y
+            % - 'z': Data plotted along z, same format as y
+            % - 'label': Label text, cellstr of length N, see geom_label()
+            % - 'color': Grouping variable for colors (hue), or continuous color data
+            %            (see set_continuous_color())
+            % - 'lightness': Grouping variable for color lightness
+            % - 'group': Grouping variable without visual change (e.g. one line per
+            %            subject)
+            % - 'linestyle': Grouping variable for line styles
+            % - 'size': Grouping variable for line/point sizes
+            % - 'marker': Grouping variable for point shapes
+            % - 'subset': Logical array of length N selecting the data to plot
+            % - 'row': Grouping variable for rows of subplots, same as facet_grid()
+            % - 'column': Grouping variable for columns of subplots, same as
+            %            facet_grid()
+            % - 'fig': Grouping variable for separate figures, same as fig()
             
             obj.aes=parse_aes(varargin{:});
             obj.axis_types=struct('x',axis_type(),'y',axis_type());
@@ -221,7 +227,7 @@ classdef gramm < matlab.mixin.Copyable
         obj=fig(obj,fig)
         
         obj=redraw(obj,src,event)
-        obj=draw(obj,do_redraw)
+        obj=draw(obj)
 		obj=export(obj,varargin)
            
         % Customization methods

@@ -2,8 +2,15 @@ function obj=geom_hline(obj,varargin)
 % geom_hline Display horizontal reference lines in each facet
 %
 % Example syntax: gramm_object.geom_hline('yintercept',1,'style','k--')
-% 'yintercept' can also be datetime or duration values when the data is.
-% See geom_abline for details
+%
+% Parameters given as 'name',value pairs:
+% - 'yintercept': y position of the lines, single value or 1D array. Can
+%            be datetime or duration values when the data is (default 0)
+% - 'style': Line specification or cell of line specifications, same as
+%            geom_abline() (default 'k--')
+% - 'extent': Length of the lines, same as geom_abline() (default 2)
+% - 'line_width': Width of the lines (default 1)
+% - 'linewidth': Former name of 'line_width' (default [])
 
 p=inputParser;
 addParameter(p,'yintercept',0);

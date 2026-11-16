@@ -1,9 +1,9 @@
 function obj=axe_property(obj,varargin)
-% axe_property Add a matlab axes property to apply to all subplots
+% axe_property Set MATLAB axes properties on all subplots
 %
-% Example syntax: gramm_object.axe_property('ylim',[0 1])
-% Arguments are given as a name,value pairs. The accepted
-% arguments are the same as in matlab's own set(gca,'propertyname',propertyvalue)
+% Example syntax: gramm_object.axe_property('YLim',[0 1],'XGrid','on')
+% Takes any 'name',value pairs accepted by set(gca,...) (XLim, XGrid,
+% DataAspectRatio...).
 
 if mod(nargin-1,2)==0
     for obj_ind=1:numel(obj)

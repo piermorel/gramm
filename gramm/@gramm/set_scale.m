@@ -2,8 +2,6 @@ function obj=set_scale(obj,varargin)
 % set_scale Set linear or logarithmic axes
 %
 % Example syntax: gramm_object.set_scale('x','log','y','log')
-% Arguments are given as name,value pairs, the names being the axes
-% ('x', 'y' or 'z') and the values 'linear' (default) or 'log'.
 % On log axes, the limits extend proportionally beyond the data, and
 % exclude values at or below 0, which can't be displayed. Bars (geom_bar,
 % stat_bin, stat_summary bars) start from the bottom of the axis.
@@ -12,6 +10,11 @@ function obj=set_scale(obj,varargin)
 % 'edges',logspace(0,3,20). Not supported in polar plots.
 % axe_property('XScale','log') (and 'YScale', 'ZScale') has the same
 % effect.
+%
+% Parameters given as 'name',value pairs:
+% - 'x': Scale of the x axis, 'linear' or 'log' (default 'linear')
+% - 'y': Scale of the y axis, 'linear' or 'log' (default 'linear')
+% - 'z': Scale of the z axis, 'linear' or 'log' (default 'linear')
 
 if mod(numel(varargin),2)~=0
     error('Arguments of set_scale() must be given as ''name'',value pairs')

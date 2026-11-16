@@ -1,11 +1,12 @@
 function obj=stat_qq(obj,varargin)
-% stat_qq Makes a quantile-quantile plot from the data in x
+% stat_qq Make a quantile-quantile plot from the data in x
 %
-% 'distribution' is used to provide a custom distribution
-% constructed with Matlab's makedist(). Default is
-% makedist('Normal',0,1). Use 'y' instead of a custom
-% distrubution to plot the distribution of y against the
-% distribution of x
+% Example syntax (default arguments): gramm_object.stat_qq('distribution',makedist('Normal',0,1))
+%
+% Parameters given as 'name',value pairs:
+% - 'distribution': Theoretical distribution against which x is plotted,
+%            created with makedist(), or 'y' to plot the distribution of x
+%            against the distribution of y (default makedist('Normal',0,1))
 
 p=inputParser;
 addParameter(p,'distribution',makedist('Normal',0,1));

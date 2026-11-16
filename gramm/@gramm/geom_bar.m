@@ -2,20 +2,29 @@ function obj=geom_bar(obj,varargin)
 % geom_bar Display data as bars
 %
 % Example syntax (default arguments): gramm_object.geom_bar('width',0.6)
-% This will add a layer that will display data as bars. When
-% data in several colors has to be displayed, the bars of
-% different colors are dodged.
+% When data in several colors has to be displayed, the bars of different
+% colors are dodged or stacked.
 %
 % Parameters given as 'name',value pairs:
 % - 'width': Width of the bars (default 0.6)
-% - 'stacked': Set to true to stack bars instead of dodging them (default false)
-% - 'dodge': Spacing between bars of different colors within an unique x value (default 0)
-% - 'FaceColor': Face color of bars, can be 'auto' to use data color (default 'auto')
-% - 'EdgeColor': Edge color of bars, can be 'auto' to use data color (default 'k')
-% - 'fill': Fill style, can be 'edge', 'face', 'all', or 'transparent' (default [])
+% - 'stacked': Stack the bars of different colors instead of dodging them
+%            (default false)
+% - 'dodge': Spacing between bars of different colors within an unique x
+%            value (default 0)
+% - 'FaceColor': Face color of the bars, or 'auto' for the gramm color
+%            (default 'auto')
+% - 'EdgeColor': Edge color of the bars, or 'auto' for the gramm color
+%            (default 'k')
+% - 'fill': Fill style, replaces 'FaceColor' and 'EdgeColor' when set
+%            (default []):
+%       - 'face': colored faces with black edges
+%       - 'edge': colored edges, no faces
+%       - 'all': colored faces, no edges
+%       - 'transparent': colored edges and transparent colored faces
 % - 'fill_alpha': Transparency of the bar faces, from 0 (transparent) to
-%   1 (opaque). If empty, set by the fill style (default [])
-% - 'LineWidth': Width of bar edges (default uses line_size from data)
+%            1 (opaque) (default [], set by the fill style)
+% - 'LineWidth': Width of the bar edges (default [], line size of the
+%            data, see set_line_options())
 
 if mod(numel(varargin),2)~=0
     error('Improper number of ''name'',value argument pairs')

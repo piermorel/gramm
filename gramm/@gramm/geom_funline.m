@@ -2,8 +2,15 @@ function obj=geom_funline(obj,varargin)
 % geom_funline Display a custom curve in each facet
 %
 % Example syntax: gramm_object.geom_funline('fun',@(x)3*sin(x),'style','k--')
-% The 'fun' argument allows to pass an anonymous function to
-% plot. 'style', 'line_width' and 'extent': see geom_abline
+%
+% Parameters given as 'name',value pairs:
+% - 'fun': Anonymous function of x, or cell of anonymous functions
+%            (default @(x)x)
+% - 'style': Line specification or cell of line specifications, same as
+%            geom_abline() (default 'k--')
+% - 'extent': Length of the curves, same as geom_abline() (default 2)
+% - 'line_width': Width of the lines (default 1)
+% - 'linewidth': Former name of 'line_width' (default [])
 
 p=inputParser;
 addParameter(p,'fun',@(x)x);

@@ -1,15 +1,20 @@
 function obj = geom_label(obj,varargin)
-% geom_label Display data as labels
+% geom_label Display the label data as text
 %
 % Example syntax: gramm_object.geom_label('Color','auto','dodge',0.6)
-% Geom label displays text (provided as 'label' in the constructor call
-% gramm()). At the X and Y locations provided in the constructor call.
-% Appearance of the text can be customized with any text property given as
-% 'name',value pair in the arguments. The color-related arguments
-% ('Color','EdgeColor','BackgroundColor') can also be set to 'auto' in
-% order for the corresponding element to be colored according the the
-% color groups provided in the constructor. geom_label() also accepts a
-% 'dodge' argument.
+% Displays the text given as 'label' to gramm(), at the x and y locations.
+% Appearance of the text can be customized with any text() property given
+% as 'name',value pair.
+%
+% Parameters given as 'name',value pairs:
+% - 'dodge': Spacing between labels of different colors within an unique
+%            x value (default 0)
+% - 'Color': Color of the text, or 'auto' for the gramm color (default
+%            'auto')
+% - 'EdgeColor': Color of the text box edge, can be 'auto' for the gramm
+%            color
+% - 'BackgroundColor': Color of the text box, can be 'auto' for the gramm
+%            color
 
 
 

@@ -1,22 +1,15 @@
-function obj=draw(obj,do_redraw)
-% draw Draws the plot in the current figure
+function obj=draw(obj)
+% draw Draws the plot in the current figure, or in the parent given to set_parent()
 %
-% syntax: gramm_object.draw()
-% Call draw on an array of gramm objects in order to have
-% multiple gramms on a single figure.
-% An optional logical argument can be given. Use
-% gramm_object.draw(false) in order to allow the nex gramm plot to be
-% superimposed on the same figure (useful for plotting with
-% different grouping aesthetics). When using superimposed
-% plots, the last draw() should be given without this false
-% argument. Giving false as argument deactivates the automatic
-% call for the redraw() function when the figure is resized.
-% To draw a gramm plot in a tile of a tiledlayout, see set_parent().
+% Example syntax: gramm_object.draw()
+% Call draw() on an array of gramm objects in order to have multiple gramm
+% plots in a single figure, placed according to their indices in the array
+% (g(row,column)). Call draw() again after update() to draw the new layers
+% on the same plot. The plot is redrawn when the figure is resized, unless
+% deactivated with set_layout_options('redraw',false).
 
-%We set redraw() as resize callback by default
-if nargin<2
-    do_redraw=obj(1).layout_options.redraw;
-end
+%We set redraw() as resize callback unless deactivated
+do_redraw=obj(1).layout_options.redraw;
 
 %If no parent was given we use the current figure
 if isempty(obj(1).parent)

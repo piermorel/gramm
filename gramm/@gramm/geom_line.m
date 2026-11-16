@@ -2,19 +2,25 @@ function obj=geom_line(obj,varargin)
 % geom_line Display data as lines
 %
 % Example syntax: gramm_object.geom_line('ordered',false,'alpha',1)
-% This will add a layer that will display data as lines
-% If the data is not properly grouped/ordered things can look weird.
-% In simple cases without cell array inputs, setting the 'ordered'
-% parameter to true will order line nodes along the x axis
+% Supports color, lightness, linestyle and size groups. If x and y are 1D
+% arrays, all the points within a group are connected: if the data is not
+% properly grouped/ordered things can look weird.
 %
 % Parameters given as 'name',value pairs:
-% - 'dodge': Spacing between lines of different colors within an 
+% - 'dodge': Spacing between lines of different colors within an
 %            unique x value (default 0)
-% - 'alpha': Transparency of lines, from 0 (transparent) to 1 (opaque) (default 1)
-% - 'stacked': Set to true to create stacked area plot (default false)
-% - 'fill': Y value to fill from (creates filled area plot) (default [])
-% - 'fill_alpha': Transparency of fill area, from 0 to 1 (default 0.4)
-% - 'ordered': Set to true to order line nodes along x axis for simple arrays (default false)
+% - 'alpha': Transparency of lines, from 0 (transparent) to 1 (opaque)
+%            (default 1)
+% - 'stacked': Stack the lines of the different groups and shade the
+%            areas between them (only with 1D arrays for x and y)
+%            (default false)
+% - 'fill': If set to a y value, shade the area between the lines and
+%            this value (default [])
+% - 'fill_alpha': Transparency of the shaded areas, from 0 to 1
+%            (default 0.4)
+% - 'ordered': Order the points of each line along x, so that the line
+%            doesn't go back on itself (only with 1D arrays for x and y)
+%            (default false)
 
 p=inputParser;
 addParameter(p,'dodge',0,@(v) valid_range(v,0,Inf));

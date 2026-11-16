@@ -1,19 +1,28 @@
 function obj = set_text_options( obj , varargin )
-% set_text_options Provide text size and font options
+% set_text_options Set text size and font options
 %
-% 'name',value pairs:
-% 'base_size': Base text size, corresponds to axis ticks text size (default is 10)
-% 'interpreter': 'none'(default), 'tex' or 'latex'
-% 'label_scaling': Scaling of axis label sizes relative to base (default is 1)
-% 'legend_scaling': Scaling of legend label sizes relative to base (default is 1)
-% 'legend_title_scaling': Scaling of legend title sizes relative to base (default is 1.2)
-% 'facet_scaling': Scaling of facet title sizes relative to base (default is 1.2)
-% 'title_scaling': Scaling of figure title sizes relative to base (default is 1.4)
-% 'big_title_scaling': Scaling of overarching figure title size relative to base (default is 1.4)
-% 'font': Font to use for text (Default is 'Helvetica')
-% 'wrap': Wrap long titles (overall, facet and row titles) on several lines
-% to fit the available space (default is true). The title of an array of
-% gramm plots follows the setting of its first plot
+% Example syntax (default arguments): gramm_object.set_text_options('base_size',10,'font','Helvetica')
+%
+% Parameters given as 'name',value pairs:
+% - 'base_size': Base text size, the size of axis tick labels (default 10)
+% - 'label_scaling': Size of axis labels, relative to base (default 1)
+% - 'legend_scaling': Size of legend labels, relative to base (default 1)
+% - 'legend_title_scaling': Size of legend titles, relative to base
+%            (default 1.2)
+% - 'facet_scaling': Size of facet titles, relative to base (default 1.2)
+% - 'title_scaling': Size of the plot title, relative to base (default
+%            1.4)
+% - 'big_title_scaling': Size of the title of an array of gramm plots,
+%            relative to base (default 1.4)
+% - 'font': Font of all text (default 'Helvetica')
+% - 'interpreter': Interpretation of text characters (default 'none'):
+%       - 'none'
+%       - 'tex'
+%       - 'latex'
+% - 'wrap': Wrap long titles (overall, facet and row titles) on several
+%            lines to fit the available space. The title of an array of
+%            gramm plots follows the setting of its first plot (default
+%            true)
 
 
 p=inputParser;

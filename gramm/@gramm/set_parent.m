@@ -1,14 +1,7 @@
 function obj=set_parent(obj,parent,varargin)
-% set_parent Set where the gramm plot is drawn
+% set_parent Set where the gramm plot is drawn (figure, panel or tile of a tiledlayout)
 %
 % Example syntax: gramm_object.set_parent(parent,'tile',1,'span',[1 1])
-% parent can be a figure, a panel or a tiledlayout. When it is a
-% tiledlayout, the gramm plot is drawn in a tile of the layout, set with
-% the following 'name',value pairs (as with nexttile()):
-% - 'tile': tile number (counted row by row, default 1), or [row column]
-%    of the tile
-% - 'span': number of tiles [rows columns] covered by the plot (default
-%    [1 1])
 % This allows to combine gramm plots of different sizes and regular Matlab
 % axes in a single figure:
 %   t=tiledlayout(2,3);
@@ -18,6 +11,16 @@ function obj=set_parent(obj,parent,varargin)
 % The parent can be in a uifigure, e.g. a panel of an App Designer app.
 % uifigures don't redraw gramm plots when resized: call redraw() on the
 % gramm object if needed (e.g. from a SizeChangedFcn of the app).
+%
+% Arguments:
+% - parent: Figure, panel or tiledlayout in which the plot is drawn
+%
+% Parameters given as 'name',value pairs, only when parent is a
+% tiledlayout (as with nexttile()):
+% - 'tile': Tile number, counted row by row, or [row column] of the tile
+%            (default 1)
+% - 'span': Number of tiles [rows columns] covered by the plot (default
+%            [1 1])
 
 is_layout=isa(parent,'matlab.graphics.layout.TiledChartLayout');
 

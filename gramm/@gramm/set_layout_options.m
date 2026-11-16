@@ -1,24 +1,25 @@
 function obj = set_layout_options( obj , varargin )
 % set_layout_options Change figure layout options
 %
-% 'name',value pairs:
-% 'legend':         specify (true/false) whether the side legend will be
-%                   displayed. set_layout_options('legend',false)
-%                   replaces no_legend()
-% 'legend_position':Separates the legend from the gramm plot and puts in a 
-%                   custom position in the figure (normalized coordinates).
-% 'redraw'          true (default) / false. Specify whether the figure gets
-%                   automatically updated on resize (see redraw()). Must be
-%                   set on the first element when using an array of gramm
-%                   objects
-% 'spacing'         Corresponds to 'TileSpacing' option in tiledlayout()
-%                   within a gramm plot
-% 'padding'         Corresponds to 'Padding' option in tiledlayout()
-%                   within a gramm plot
-% 'multi_spacing'   Corrseponds to 'TileSpacing' option in tiledlayout()
-%                   between multiple gramm plots 
-% 'multi_padding'   Corresponds to 'Padding' option in tiledlayout()
-%                   between multiple gramm plots 
+% Example syntax (default arguments): gramm_object.set_layout_options('legend',true,'spacing','compact')
+%
+% Parameters given as 'name',value pairs:
+% - 'legend': Display the side legend (colors, markers...) (default true).
+%            set_layout_options('legend',false) replaces no_legend()
+% - 'legend_position': Separates the legend from the gramm plot and puts it
+%            at a custom [left bottom width height] position in the figure
+%            (normalized coordinates) (default 'auto')
+% - 'redraw': Update the figure automatically on resize, see redraw()
+%            (default true). Must be set on the first element when using an
+%            array of gramm objects
+% - 'spacing': 'TileSpacing' option of tiledlayout() within a gramm plot
+%            (default 'compact')
+% - 'padding': 'Padding' option of tiledlayout() within a gramm plot
+%            (default 'compact')
+% - 'multi_spacing': 'TileSpacing' option of tiledlayout() between
+%            multiple gramm plots (default 'compact')
+% - 'multi_padding': 'Padding' option of tiledlayout() between multiple
+%            gramm plots (default 'compact')
 %
 % The position and size of gramm plots are set by tiledlayout. In order to
 % create custom layouts (plots of different sizes, combination with

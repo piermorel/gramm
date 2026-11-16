@@ -2,21 +2,27 @@ function obj = export(obj, varargin)
 % export Export gramm plot to vector or bitmap image
 %
 % Example syntax: gramm_object.export('file_name','my_figure','export_path','./test/','file_type','pdf')
-% export() must be called after a draw() call and will save the plot to
-% file using the specified 'name',value options:
-% - 'file_name' Desired name for the file. Extension will be added
-%   according to 'file_type'
-% - 'export_path' Path of the destination folder (absolute or relative). 
-    %By default the file is saved in the current folder 
-% - 'file_type': supports 'svg','pdf' and 'eps' for vector output, and
-%   'png' and 'jpg' for high-resolution bitmap output. The default is 'svg'.
-% - 'width' and 'height' allow to set the desired size of the exported
-%   figure. By default (recommended), the exported figure will look the same as the on-screen
-%   plot. Setting this manually is tricky.
-% - 'units' allows to set the units used for the 'width' and 'height'
-%   input. Supports 'centimeters' and 'inches'. Default is 'centimeters'.
-% - 'resolution' set the resolution in dpi with an integer. Use 0 for
-% screen resolution
+% export() must be called after draw().
+%
+% Parameters given as 'name',value pairs:
+% - 'file_name': Name of the file, the extension is added according to
+%            'file_type' (default 'gramm_export')
+% - 'export_path': Path of the destination folder, absolute or relative
+%            (default '', current folder)
+% - 'file_type': Format of the file (default 'svg'):
+%       - 'svg': vector
+%       - 'pdf': vector
+%       - 'eps': vector
+%       - 'png': bitmap
+%       - 'jpg': bitmap
+% - 'width': Width of the exported figure in 'units'. By default
+%            (recommended), the exported figure looks the same as the
+%            on-screen plot. Setting it manually is tricky
+% - 'height': Height of the exported figure in 'units', see 'width'
+% - 'units': Units of 'width' and 'height' (default 'centimeters'):
+%       - 'centimeters'
+%       - 'inches'
+% - 'resolution': Resolution in dpi, 0 for screen resolution (default 0)
 
 % Retrieve figure handle (all are the same so only the first is ok)
 h_fig = ancestor(obj(1).parent,'figure');

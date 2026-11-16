@@ -1,8 +1,14 @@
 function obj=update(obj,varargin)
-% update update grouping factors in order to superimpose layers in the same
-% figure.
-% Update takes the same arguments as the constructor gramm(). Only provide
-% the data you want to replace.
+% update Change the data of the next layers, with the same arguments as gramm()
+%
+% Example syntax: gramm_object.update('color',new_color_variable)
+% Provide only the variables to change or add: the others stay as given to
+% gramm(). If the new x or y have a different size, all the data is
+% replaced. Call update() after draw() (it calls draw() if needed), then
+% add layers (geom_, stat_) and call draw() again to superimpose them.
+% After update(), facet_grid() or facet_wrap() can only go from one facet
+% to several (the layers drawn on the single facet are copied to the
+% others), or from several facets to one.
 
 if numel(obj)>1
     error('update() can only be called on a single gramm object');

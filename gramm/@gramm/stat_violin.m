@@ -1,20 +1,26 @@
 function obj = stat_violin(obj,varargin)
-% stat_violin display violin plots of y data for unique x
+% stat_violin Display violin plots of y for each unique value of x
 %
-% Options can be given as 'name',value pairs:
-% - all options from see stat_density() are present:
-% 'bandwidth', 'kernel', 'npoints', 'extra_y'
-% - 'normalization': 'area' (default) all violins have the same
-% areas. With 'count', the violin areas are proportional to the number of
-% points in each category. With 'width', the maximum widths of all violins
-% are matched
-% - 'half': If set to true, only half violins are drawn, and the color
-% index determines if the left half or right hald is drawn. Useful for
-% comparing distributions across two colors.
-% - 'fill' and 'fill_alpha' see stat_bin()
-% - 'width' and 'dodge' see stat_summary()
+% Example syntax (default arguments): gramm_object.stat_violin('normalization','area','fill','face')
 %
-% See also stat_summary(), stat_bin(), stat_density()
+% Parameters given as 'name',value pairs:
+% - 'normalization': How violins are scaled (default 'area'):
+%       - 'area': all violins have the same area
+%       - 'count': areas proportional to the number of points
+%       - 'width': all violins have the same maximum width
+% - 'half': Draw half violins, left or right depending on the color index.
+%            Useful to compare distributions between two colors (default
+%            false)
+% - 'bandwidth': Same as stat_density() (default -1)
+% - 'kernel': Same as stat_density() (default 'normal')
+% - 'npoints': Same as stat_density() (default 100)
+% - 'extra_y': Same as 'extra_x' in stat_density() (default 0)
+% - 'fill': Aspect of the violins, same as stat_bin() (default 'face')
+% - 'fill_alpha': Transparency of the faces, same as stat_bin() (default
+%            [], set by 'fill')
+% - 'width': Width of the violins, see stat_summary() (default 0.6)
+% - 'dodge': Spacing between violins of different colors, see
+%            stat_summary() (default 0.7)
 
 
 p=inputParser;

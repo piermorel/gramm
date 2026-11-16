@@ -2,8 +2,15 @@ function obj=geom_vline(obj,varargin)
 % geom_vline Display vertical reference lines in each facet
 %
 % Example syntax: gramm_object.geom_vline('xintercept',1,'style','k--')
-% 'xintercept' can also be datetime or duration values when the data is.
-% See geom_abline for details
+%
+% Parameters given as 'name',value pairs:
+% - 'xintercept': x position of the lines, single value or 1D array. Can
+%            be datetime or duration values when the data is (default 0)
+% - 'style': Line specification or cell of line specifications, same as
+%            geom_abline() (default 'k--')
+% - 'extent': Length of the lines, same as geom_abline() (default 2)
+% - 'line_width': Width of the lines (default 1)
+% - 'linewidth': Former name of 'line_width' (default [])
 
 p=inputParser;
 addParameter(p,'xintercept',0);

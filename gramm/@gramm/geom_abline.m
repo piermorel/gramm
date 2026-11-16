@@ -2,20 +2,20 @@ function obj=geom_abline(obj,varargin)
 % geom_abline Display y=ax+b reference lines in each facet
 %
 % Example syntax: gramm_object.geom_abline('slope',1,'intercept',0,'style','k--')
-% 'slope' and 'intercept' can be 1D arrays of the same size in
-% order to draw multiple lines. In that case, 'style' can
-% either be a single style string (all lines will have the same
-% style), or a cell array of strings to define one style per
-% line.
+% 'slope' and 'intercept' can be 1D arrays of the same size in order to
+% draw multiple lines. In that case, 'style' can either be a single style
+% (all lines have the same style), or a cell of styles, one per line.
 %
-% Other parameters, also used by geom_hline(), geom_vline() and
-% geom_funline():
-% - 'style': MATLAB line specification giving the line style and color
-%   (default 'k--')
-% - 'line_width': width of the lines (default 1). 'linewidth' is accepted
-%   as well
-% - 'extent': length of the lines, as a ratio of the axis range (default
-%   2: lines cross the whole axis)
+% Parameters given as 'name',value pairs:
+% - 'slope': Slope of the lines, single value or 1D array (default 1)
+% - 'intercept': Intercept of the lines, single value or 1D array
+%            (default 0)
+% - 'style': MATLAB line specification giving the line style and color,
+%            or cell of line specifications (default 'k--')
+% - 'extent': Length of the lines, as a ratio of the axis range (default
+%            2: lines cross the whole axis)
+% - 'line_width': Width of the lines (default 1)
+% - 'linewidth': Former name of 'line_width' (default [])
 
 p=inputParser;
 addParameter(p,'slope',1);

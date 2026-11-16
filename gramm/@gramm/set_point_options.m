@@ -1,19 +1,25 @@
 function obj = set_point_options( obj , varargin )
 % set_point_options Set point size and marker options
 %
-% 'name',value pairs:
-% 'base_size': Default/starting point size for geoms that take in account size
-% aesthetics. Default is 5
-% 'step_size': Increment in point size for 'size' categories. Default is 2
-% 'use_input': Set to true if a size aesthetic is given as numbers in order
-% to use the given size values as point size values. Default is false
-% 'input_fun': Provide a function handle to transform the 'size' aesthetic
-% values in actual sizes when 'use_input' is set to true. Default is
-% identity
-% 'border_width': Width of point borders/edges. Default is 0.5
-% 'border_color': Color of point borders/edges. Default is 'none'
-% 'markers': Cell array defining order for marker style categories. 
-% Default is {'o' 's' 'd' '^' 'v' '>' '<' 'p' 'h' '*' '+' 'x'}
+% Example syntax (default arguments): gramm_object.set_point_options('base_size',5,'step_size',2)
+% Without a 'size' grouping variable, all points have the size
+% 'base_size'. With one, the first size group has 'base_size' and each
+% next group is 'step_size' larger. With 'use_input', numeric size data is
+% used directly as point sizes instead of as groups.
+%
+% Parameters given as 'name',value pairs:
+% - 'base_size': Size of the points, or of the first size group
+%            (default 5)
+% - 'step_size': Size difference between successive size groups
+%            (default 2)
+% - 'use_input': Use the numeric values of the 'size' data as point
+%            sizes, instead of size groups (default false)
+% - 'input_fun': Function converting the 'size' data into point sizes
+%            when 'use_input' is true, e.g. @(v)v*2 (default @(v)v)
+% - 'border_width': Width of the point edges (default 0.5)
+% - 'border_color': Color of the point edges (default 'none')
+% - 'markers': Markers of the marker groups, in order (default {'o' 's'
+%            'd' '^' 'v' '>' '<' 'p' 'h' '*' '+' 'x'})
 
 
 p=inputParser;

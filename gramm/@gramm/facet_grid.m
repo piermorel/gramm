@@ -1,26 +1,37 @@
 function obj=facet_grid(obj,row,col,varargin)
 % facet_grid Create subplots according to factors for rows and columns
 %
-% Example syntax (default arguments): gramm_object.facet_grid(row_variable_column_variable,'scale','fixed')
-% This function has two mandatory arguments: the variable used
-% to separate data by rows of subplots, and the variable used to
-% separate data by columns of subplots. To separate data by
-% rows or columns of subplots only, set the other
-% argument to [] (empty array). These arguments can be 1D numerical arrays or
-% 1D cell arrays of strings of length N.
-% This function can receive other arguments as a name value
-% pair.
-% - 'scale' can be set to either 'fixed', 'free_x',
-%   'free_y', 'free', or 'independent' so that the scale of the subplots is respectively
-%    the same over all subplots, only x adjusted per columns of subplots ,
-%    only y adjusted per rows of subplots, x adjusted per columns and y per rows,
-%    or x and y adjusted independently per subplot
-% - 'space' can be set to either 'fixed' (default), 'free_x','free_y' or 'free'.
-%   'free_x' makes the width of the facets proportional to the
-%   extent of the x axis limits, while 'free_y' makes the height of
-%   the facets proportional to the extent of the y axis limits. 'free'
-%   changes both the width and the height. This option has an
-%   effect only if the corresponding 'scale' parameter is set.
+% Example syntax (default arguments): gramm_object.facet_grid(row_variable,column_variable,'scale','fixed')
+% To separate data by rows or columns of subplots only, set the other
+% argument to [] (empty array).
+%
+% Arguments:
+% - row: Variable separating data by rows of subplots, 1D numerical array
+%            or cellstr of length N
+% - col: Variable separating data by columns of subplots, 1D numerical
+%            array or cellstr of length N
+%
+% Parameters given as 'name',value pairs:
+% - 'scale': Axis limits shared between subplots (default 'fixed'):
+%       - 'fixed': same x and y limits on all subplots
+%       - 'free_x': same y limits on all subplots, x limits adjusted to the
+%            data of each column
+%       - 'free_y': same x limits on all subplots, y limits adjusted to the
+%            data of each row
+%       - 'free': x limits per column, y limits per row
+%       - 'independent': independent limits on each subplot (forces
+%            'force_ticks')
+% - 'space': Subplot sizes. Used with free scales, so that one x (or y)
+%            unit has the same length in all subplots (default 'fixed'):
+%       - 'fixed': all subplots have the same size
+%       - 'free_x': column widths proportional to their x range (needs
+%            'scale' 'free_x' or 'free')
+%       - 'free_y': row heights proportional to their y range (needs
+%            'scale' 'free_y' or 'free')
+%       - 'free': both (needs 'scale' 'free')
+% - 'force_ticks': Show tick labels on all subplots (default false)
+% - 'column_labels': Label the columns of subplots (default true)
+% - 'row_labels': Label the rows of subplots (default true)
 
 p=inputParser;
 addParameter(p,'scale','fixed',@(v) valid_choice(v,{'fixed','free_x','free_y','free','independent'})); %options 'free' 'free_x' 'free_y' 'independent'

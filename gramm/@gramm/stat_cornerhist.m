@@ -1,4 +1,28 @@
 function obj=stat_cornerhist(obj,varargin)
+% stat_cornerhist Display a histogram of the x-y differences in an inset axis at a corner of the plot
+%
+% Example syntax: gramm_object.stat_cornerhist('edges',-5:0.5:5,'aspect',0.3)
+% The inset axis is placed on the unity line (y=x) of the parent axis,
+% perpendicular to it. Useful to compare paired data, e.g. a measure before
+% (x) and after (y) a treatment. Specifying 'edges' is recommended.
+%
+% Parameters given as 'name',value pairs:
+% - 'location': x (and y) location of the inset axis on the unity line of
+%            the parent axis (default [], the maximum of the x and y data)
+% - 'aspect': Aspect ratio (y/x) of the inset axis (default 0.3)
+% - 'nbins': Number of bins, same as stat_bin() (default 30)
+% - 'edges': Bin edges, same as stat_bin() (default [])
+% - 'bin_width': Bin width, same as stat_bin() (default [])
+% - 'geom': How the counts are displayed, same as stat_bin() except
+%            'stacked_bar' (default 'overlaid_bar')
+% - 'normalization': Normalization of the counts, same as stat_bin()
+%            (default 'count')
+% - 'fill': Aspect of the geom, same as stat_bin() (default [])
+% - 'fill_alpha': Transparency of the faces, same as stat_bin() (default
+%            [])
+% - 'width': Width of the bars, same as stat_bin() (default [])
+% - 'dodge': Spacing between bars of different colors, same as stat_bin()
+%            (default [])
 
 
 p=inputParser;

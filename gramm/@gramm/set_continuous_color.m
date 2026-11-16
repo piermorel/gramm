@@ -1,6 +1,7 @@
 function obj=set_continuous_color(obj,varargin)
-%set_continuous_color Use a continuous color scale
+% set_continuous_color Show numeric color values with a continuous color scale
 %
+% Example syntax: gramm_object.set_continuous_color('colormap','viridis')
 % By default, 'color' values are categories: one group (line, fit,
 % violin...) per value, with a categorical palette. With
 % set_continuous_color(), numeric color values are shown with a continuous
@@ -8,15 +9,15 @@ function obj=set_continuous_color(obj,varargin)
 % its value, and lines are colored along their length (they are not split
 % by color: use 'group' to separate them).
 %
-% Parameters as name,value pairs:
-% 'colormap'        set continuous colormap by
-%                   name: 'hot,'cool', or any built-in colormap by name
-% 'LCH_colormap'    set colormap by Lightness-Chroma-Hue values
-%                   using a matrix organized this way:
-%                   [L_start L_end; C_start C_end ; H_start H_end]
-% 'CLim'            Force color limits for all facets (sets CLim axe
-%                   property) and generates correct legend. Automatic
-%                   color limits by default.
+% Parameters given as 'name',value pairs:
+% - 'colormap': Name of a MATLAB colormap ('hot', 'cool'...) (default
+%            'viridis')
+% - 'active': Set to false to go back to categorical colors (default
+%            true)
+% - 'LCH_colormap': Colormap from Lightness-Chroma-Hue values, as
+%            [L_start L_end ; C_start C_end ; H_start H_end] (default [])
+% - 'CLim': Color limits [color_min color_max] for all facets, automatic
+%            by default (default [])
 
 p=inputParser;
 addParameter(p,'colormap','viridis');
