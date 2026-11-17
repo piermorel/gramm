@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Labels
+% <matlab:edit('example_geom_label.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#geom_label geom_label() in the cheat sheet>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Plotting text or labeling with geom_label()
@@ -12,7 +13,7 @@ load example_data;
 %Create short version of model names by removing manufacturer
 cars.ModelShort=cellfun(@(ma,mo)mo(length(ma)+1:end),cars.Manufacturer,cars.Model,'UniformOutput',false);
 
-figure;
+figure('Position',[100 100 750 450]);
 clear g
 %Provide 'label' as data
 g=gramm('x',cars.Horsepower,'y',cars.Acceleration,...
@@ -26,7 +27,7 @@ g.set_color_options('map','brewer2');
 g.draw();
 
 % geom_label works when 3D data is provided
-figure;
+figure('Position',[100 100 750 450]);
 g=gramm('x',cars.Horsepower,'y',cars.Acceleration,'z',cars.MPG,...
     'label',cars.ModelShort,'color',cars.Manufacturer,'subset',strcmp(cars.Origin_Region,'Japan'));
 g.geom_label('VerticalAlignment','middle','HorizontalAlignment','center','BackgroundColor','auto','Color','k');
@@ -36,7 +37,7 @@ g.set_color_options('map','brewer2');
 g.draw();
 
 
-figure;
+figure('Position',[100 100 750 450]);
 clear g
 %Compute number of models outside of gramm so that the output can be used
 %as label

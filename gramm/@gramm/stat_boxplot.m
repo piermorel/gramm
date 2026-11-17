@@ -1,28 +1,27 @@
 
 function obj=stat_boxplot(obj,varargin)
-%stat_boxplot() Create box and whiskers plots
+% stat_boxplot Display box and whisker plots of y for each unique value of x
 %
-% stat_boxplot() will create box and whisker plots of Y values for
-%unique values of X. The box is drawn between the 25 and 75
-%percentiles, with a line indicating the median. The wiskers
-%extend above and below the box to the most extreme data points that are within
-% a distance to the box equal to 1.5 times the interquartile
-% range (Tukey boxplot).
-% Points outside the whiskers ranges are plotted.
-% - 'notch', set to true to display notches at median ± 1.58*IQR/sqrt(N)
-% - 'dodge' allows to set the spacing between boxes of
-%   different colors within an unique value of x.
-% - 'width' allows to set the width of the individual boxes.
-% - 'outliers' set to false to hide outliers. If the value is not set,
-% outliers are not plotted when geom_point() or geom_jitter() are used.
-% See the documentation of stat_summary() for the behavior of
-% 'dodge' and 'width'
+% Example syntax (default arguments): gramm_object.stat_boxplot('width',0.6,'dodge',0.7)
+% The box is drawn between the 25 and 75 percentiles, with a line at the
+% median. The whiskers extend to the most extreme data points within 1.5
+% times the interquartile range from the box (Tukey boxplot). Points
+% outside the whiskers are plotted as outliers.
+%
+% Parameters given as 'name',value pairs:
+% - 'width': Width of the boxes, see stat_summary() (default 0.6)
+% - 'dodge': Spacing between boxes of different colors within an unique
+%            x value, see stat_summary() (default 0.7)
+% - 'notch': Display notches at median +/- 1.58*IQR/sqrt(N) (default
+%            false)
+% - 'outliers': Display the outliers. If not set, outliers are hidden when
+%            geom_point() or geom_jitter() are used (default true)
 
 p=inputParser;
-my_addParameter(p,'width',0.6);
-my_addParameter(p,'dodge',0.7);
-my_addParameter(p,'notch',false);
-my_addParameter(p,'outliers',true);
+addParameter(p,'width',0.6,@(v) valid_range(v,0,Inf));
+addParameter(p,'dodge',0.7,@(v) valid_range(v,0,Inf));
+addParameter(p,'notch',false);
+addParameter(p,'outliers',true);
 
 parse(p,varargin{:});
 

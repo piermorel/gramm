@@ -1,22 +1,29 @@
 function obj=set_continuous_color(obj,varargin)
-%set_continuous_color Force the use of a continuous color
-%scheme
+% set_continuous_color Show numeric color values with a continuous color scale
 %
-% Parameters as name,value pairs:
-% 'colormap'        set continuous colormap by
-%                   name: 'hot,'cool', or any built-in colormap by name
-% 'LCH_colormap'    set colormap by Lightness-Chroma-Hue values
-%                   using a matrix organized this way:
-%                   [L_start L_end; C_start C_end ; H_start H_end]
-% 'CLim'            Force color limits for all facets (sets CLim axe
-%                   property) and generates correct legend. Automatic
-%                   color limits by default.
+% Example syntax: gramm_object.set_continuous_color('colormap','viridis')
+% By default, 'color' values are categories: one group (line, fit,
+% violin...) per value, with a categorical palette. With
+% set_continuous_color(), numeric color values are shown with a continuous
+% color scale and a gradient legend instead: each point gets the color of
+% its value, and lines are colored along their length (they are not split
+% by color: use 'group' to separate them).
+%
+% Parameters given as 'name',value pairs:
+% - 'colormap': Name of a MATLAB colormap ('hot', 'cool'...) (default
+%            'viridis')
+% - 'active': Set to false to go back to categorical colors (default
+%            true)
+% - 'LCH_colormap': Colormap from Lightness-Chroma-Hue values, as
+%            [L_start L_end ; C_start C_end ; H_start H_end] (default [])
+% - 'CLim': Color limits [color_min color_max] for all facets, automatic
+%            by default (default [])
 
 p=inputParser;
-my_addParameter(p,'colormap','viridis');
-my_addParameter(p,'active',true);
-my_addParameter(p,'LCH_colormap',[]);
-my_addParameter(p,'CLim',[]);
+addParameter(p,'colormap','viridis');
+addParameter(p,'active',true);
+addParameter(p,'LCH_colormap',[]);
+addParameter(p,'CLim',[]);
 parse(p,varargin{:});
 
 obj.continuous_color_options.active = p.Results.active;

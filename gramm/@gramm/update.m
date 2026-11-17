@@ -1,8 +1,14 @@
 function obj=update(obj,varargin)
-% update update grouping factors in order to superimpose layers in the same
-% figure.
-% Update takes the same arguments as the constructor gramm(). Only provide
-% the data you want to replace.
+% update Change the data of the next layers, with the same arguments as gramm()
+%
+% Example syntax: gramm_object.update('color',new_color_variable)
+% Provide only the variables to change or add: the others stay as given to
+% gramm(). If the new x or y have a different size, all the data is
+% replaced. Call update() after draw() (it calls draw() if needed), then
+% add layers (geom_, stat_) and call draw() again to superimpose them.
+% After update(), facet_grid() or facet_wrap() can only go from one facet
+% to several (the layers drawn on the single facet are copied to the
+% others), or from several facets to one.
 
 if numel(obj)>1
     error('update() can only be called on a single gramm object');
@@ -26,6 +32,17 @@ else
     new_fields=varargin(1:2:end);
     for k=1:length(new_fields)
         obj.aes.(new_fields{k})=new_aes.(new_fields{k});
+    end
+end
+
+%Forget the natural order of replaced grouping data, and the date/duration
+%conversion of replaced numeric x/y data
+for f=fieldnames(new_aes)'
+    if ~isempty(new_aes.(f{1}))
+        obj.cat_order.(f{1})={};
+        if any(strcmp(f{1},{'x','y'})) && ~isdatetime(new_aes.(f{1})) && ~isduration(new_aes.(f{1}))
+            obj.axis_types.(f{1})=axis_type();
+        end
     end
 end
 
@@ -54,9 +71,6 @@ for k = 1:length(temp_fields)
     obj.polygon.(temp_fields{k})=[];
 end
 obj.polygon.on=false;
-
-%Remove cache
-obj.redraw_cache=[];
 
 %Reinitialize results
 obj.results=[];

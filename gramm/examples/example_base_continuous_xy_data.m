@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Continuous X-Y data
+% <matlab:edit('example_base_continuous_xy_data.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#stats Statistics in the cheat sheet>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Methods for visualizing Y~X relationship with both X and Y as continuous variables
@@ -47,5 +48,5 @@ g(2,3).set_title('stat_cornerhist()');
 g(2,3).set_names('x','z(Horsepower)','y','-z(Acceleration)');
 
 g.set_title('Visualization of Y~X relationship with both X and Y as continuous variables');
-figure;
+figure('Position',[100 100 1100 660]);
 g.draw();

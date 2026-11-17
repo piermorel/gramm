@@ -1,0 +1,39 @@
+# Jekyll configuration for Gramm GitHub Pages
+title: "Gramm - Grammar of Graphics for MATLAB"
+description: "Data visualization toolbox for MATLAB inspired by ggplot2"
+url: "https://piermorel.github.io/gramm"
+
+# GitHub Pages settings
+remote_theme: pages-themes/minimal@v0.2.0
+plugins:
+  - jekyll-optional-front-matter
+  - jekyll-default-layout
+  - jekyll-titles-from-headings
+
+# Keep HTML files as-is, don't process them
+keep_files:
+  - docs
+
+# Only exclude files we definitely don't want
+exclude:
+  - "*.m"
+  - "*.mat" 
+  - "*.prj"
+  - "*.mltbx"
+  - "*.numbers"
+  - ".DS_Store"
+  - "CLAUDE.md"
+  - "gramm cheat sheet.numbers"
+  - resources
+
+# Process markdown files
+markdown: kramdown
+highlighter: rouge
+
+# Default layouts for different file types  
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"

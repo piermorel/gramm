@@ -2,24 +2,30 @@ function obj = export(obj, varargin)
 % export Export gramm plot to vector or bitmap image
 %
 % Example syntax: gramm_object.export('file_name','my_figure','export_path','./test/','file_type','pdf')
-% export() must be called after a draw() call and will save the plot to
-% file using the specified 'name',value options:
-% - 'file_name' Desired name for the file. Extension will be added
-%   according to 'file_type'
-% - 'export_path' Path of the destination folder (absolute or relative). 
-    %By default the file is saved in the current folder 
-% - 'file_type': supports 'svg','pdf' and 'eps' for vector output, and
-%   'png' and 'jpg' for high-resolution bitmap output. The default is 'svg'.
-% - 'width' and 'height' allow to set the desired size of the exported
-%   figure. By default (recommended), the exported figure will look the same as the on-screen
-%   plot. Setting this manually is tricky.
-% - 'units' allows to set the units used for the 'width' and 'height'
-%   input. Supports 'centimeters' and 'inches'. Default is 'centimeters'.
-% - 'resolution' set the resolution in dpi with an integer. Use 0 for
-% screen resolution
+% export() must be called after draw().
+%
+% Parameters given as 'name',value pairs:
+% - 'file_name': Name of the file, the extension is added according to
+%            'file_type' (default 'gramm_export')
+% - 'export_path': Path of the destination folder, absolute or relative
+%            (default '', current folder)
+% - 'file_type': Format of the file (default 'svg'):
+%       - 'svg': vector
+%       - 'pdf': vector
+%       - 'eps': vector
+%       - 'png': bitmap
+%       - 'jpg': bitmap
+% - 'width': Width of the exported figure in 'units'. By default
+%            (recommended), the exported figure looks the same as the
+%            on-screen plot. Setting it manually is tricky
+% - 'height': Height of the exported figure in 'units', see 'width'
+% - 'units': Units of 'width' and 'height' (default 'centimeters'):
+%       - 'centimeters'
+%       - 'inches'
+% - 'resolution': Resolution in dpi, 0 for screen resolution (default 0)
 
 % Retrieve figure handle (all are the same so only the first is ok)
-h_fig = obj(1).parent;
+h_fig = ancestor(obj(1).parent,'figure');
 
 % calculating defaults
 fig_pos = getpixelposition(h_fig);
@@ -31,13 +37,13 @@ height_fig = fig_pos(4)/resolution;
 
 % parse arguments and set defaults
 p=inputParser;
-my_addParameter(p,'file_name','gramm_export');
-my_addParameter(p,'export_path','');
-my_addParameter(p,'file_type', 'svg');
-my_addParameter(p,'width', width_fig);
-my_addParameter(p,'height', height_fig);
-my_addParameter(p,'units', 'centimeters');
-my_addParameter(p,'resolution', 0);
+addParameter(p,'file_name','gramm_export');
+addParameter(p,'export_path','');
+addParameter(p,'file_type', 'svg');
+addParameter(p,'width', width_fig);
+addParameter(p,'height', height_fig);
+addParameter(p,'units', 'centimeters');
+addParameter(p,'resolution', 0);
 parse(p,varargin{:});
 
 % Turn off warning due to a custom defined figure resize function called on save
@@ -59,6 +65,7 @@ if ~isa(h_fig, 'matlab.ui.Figure')
     error('Parent gramm object is not a matlab.ui.Figure.');
 end
 
+
 % In case units are inches, we rescale to cm
 if strcmp(p.Results.units, 'inches')
 	if ~any(strcmp(p.UsingDefaults, 'width'))
@@ -70,8 +77,22 @@ if strcmp(p.Results.units, 'inches')
 	end
 end
 
-% Cropping paper to fit the figure
+% Lay the figure out at the export size so that what gramm scales itself
+% (legend spacing, stat_cornerhist() insets) is correct in the file: print()
+% resizes the figure to the paper size without calling SizeChangedFcn
+old_units = h_fig.Units;
+old_position = h_fig.Position;
 set(h_fig, 'Units', 'centimeters');
+if any(abs(h_fig.Position(3:4) - [width height]) > 0.01)
+    h_fig.Position(3:4) = [width height];
+    drawnow;
+    redraw(obj);
+    restore = onCleanup(@()restore_figure(obj, h_fig, old_position, old_units));
+else
+    restore = onCleanup(@()set(h_fig, 'Units', old_units));
+end
+
+% Cropping paper to fit the figure
 set(h_fig, 'PaperUnits', 'centimeters');
 set(h_fig, 'PaperSize', [width, height]);
 set(h_fig, 'PaperPosition', [0, 0, width, height]);
@@ -101,4 +122,14 @@ end
 % Turn warning back on
 warning('on', 'MATLAB:print:CustomResizeFcnInPrint');
 
+end
+
+function restore_figure(obj, h_fig, old_position, old_units)
+% Give the figure back its on-screen size and units after export
+if isvalid(h_fig)
+    set(h_fig, 'Units', old_units);
+    h_fig.Position = old_position;
+    drawnow;
+    redraw(obj);
+end
 end

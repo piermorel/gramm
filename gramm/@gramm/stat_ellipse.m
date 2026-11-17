@@ -1,22 +1,26 @@
 function obj=stat_ellipse(obj,varargin)
-%stat_ellipse() Create confidence ellipses around 2D groups of
-% points
+% stat_ellipse Display confidence ellipses around 2D groups of points
 %
-% Parameters:
-% 'type': The default '95percentile' displays an ellipse that
-% contains 95% of the points (assuming a bivariate normal
-% distribution). The option 'ci' will first compute boostrapped
-% 2D means and plot the 95% ellipse around these means
-% 'geom': Sets how to display the result 'area' for a shaded
-% area or 'line' for a simple contour line.
-% 'patch_opts': Provide additional patch properties as name-value
-% pairs in a cell array (as if those were options for Matlab's
-% built in patch() function)
+% Example syntax (default arguments): gramm_object.stat_ellipse('type','95percentile','geom','area')
+%
+% Parameters given as 'name',value pairs:
+% - 'type': What the ellipse contains (default '95percentile'):
+%       - '95percentile': 95% of the points (assuming a bivariate normal
+%            distribution)
+%       - 'ci': 95% of the bootstrapped 2D means
+% - 'geom': How the ellipse is displayed (default 'area'):
+%       - 'area': shaded area with outline
+%       - 'line': outline only
+% - 'fill_alpha': Transparency of the 'area' geom, from 0 (transparent)
+%            to 1 (opaque) (default 0.2)
+% - 'patch_opts': Additional patch() properties, as a cell of 'name',value
+%            pairs (default {})
 
 p=inputParser;
-my_addParameter(p,'type','95percentile'); %ci
-my_addParameter(p,'geom','area'); %line
-my_addParameter(p,'patch_opts',{});
+addParameter(p,'type','95percentile',@(v) valid_choice(v,{'95percentile','ci'})); %ci
+addParameter(p,'geom','area',@(v) valid_choice(v,{'area','line'})); %line
+addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'patch_opts',{});
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_ellipse(dobj,dd,p.Results)});
@@ -90,7 +94,7 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         
         switch params.geom
             case 'area'
-                hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor',draw_data.color,'EdgeColor',draw_data.color,'LineWidth',2,'FaceAlpha',0.2);
+                hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor',draw_data.color,'EdgeColor',draw_data.color,'LineWidth',2,'FaceAlpha',params.fill_alpha);
                 
             case 'line'
                 hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor','none','EdgeColor',draw_data.color,'LineWidth',2);    
@@ -125,7 +129,7 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         
         conf_sphpoints=sphpoints;
         conf_sphpoints.vertices=bsxfun(@plus,sqrtm(cv)*conf_sphpoints.vertices'*k(obj.stat_options.alpha),m')';
-        hndl=patch(conf_sphpoints,'FaceColor',draw_data.color,'EdgeColor','none','LineWidth',2,'FaceAlpha',0.2);
+        hndl=patch(conf_sphpoints,'FaceColor',draw_data.color,'EdgeColor','none','LineWidth',2,'FaceAlpha',params.fill_alpha);
         
         center_hndl=plot3(m(1),m(2),m(3),'+','MarkerFaceColor',draw_data.color,'MarkerEdgeColor',draw_data.color,'MarkerSize',10);
     end

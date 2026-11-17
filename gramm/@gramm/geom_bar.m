@@ -2,18 +2,29 @@ function obj=geom_bar(obj,varargin)
 % geom_bar Display data as bars
 %
 % Example syntax (default arguments): gramm_object.geom_bar('width',0.6)
-% This will add a layer that will display data as bars. When
-% data in several colors has to be displayed, the bars of
-% different colors are dodged.
+% When data in several colors has to be displayed, the bars of different
+% colors are dodged or stacked.
 %
 % Parameters given as 'name',value pairs:
 % - 'width': Width of the bars (default 0.6)
-% - 'stacked': Set to true to stack bars instead of dodging them (default false)
-% - 'dodge': Spacing between bars of different colors within an unique x value (default 0)
-% - 'FaceColor': Face color of bars, can be 'auto' to use data color (default 'auto')
-% - 'EdgeColor': Edge color of bars, can be 'auto' to use data color (default 'k')
-% - 'fill': Fill style, can be 'edge', 'face', 'all', or 'transparent' (default [])
-% - 'LineWidth': Width of bar edges (default uses line_size from data)
+% - 'stacked': Stack the bars of different colors instead of dodging them
+%            (default false)
+% - 'dodge': Spacing between bars of different colors within an unique x
+%            value (default 0)
+% - 'FaceColor': Face color of the bars, or 'auto' for the gramm color
+%            (default 'auto')
+% - 'EdgeColor': Edge color of the bars, or 'auto' for the gramm color
+%            (default 'k')
+% - 'fill': Fill style, replaces 'FaceColor' and 'EdgeColor' when set
+%            (default []):
+%       - 'face': colored faces with black edges
+%       - 'edge': colored edges, no faces
+%       - 'all': colored faces, no edges
+%       - 'transparent': colored edges and transparent colored faces
+% - 'fill_alpha': Transparency of the bar faces, from 0 (transparent) to
+%            1 (opaque) (default [], set by the fill style)
+% - 'LineWidth': Width of the bar edges (default [], line size of the
+%            data, see set_line_options())
 
 if mod(numel(varargin),2)~=0
     error('Improper number of ''name'',value argument pairs')
@@ -22,13 +33,14 @@ end
 
 p=inputParser;
 p.KeepUnmatched=true;
-my_addParameter(p,'width',0.6);
-my_addParameter(p,'stacked',false);
-my_addParameter(p,'dodge',0);
-my_addParameter(p,'FaceColor','auto');
-my_addParameter(p,'EdgeColor','k');
-my_addParameter(p,'fill',[]);
-my_addParameter(p,'LineWidth',[]);
+addParameter(p,'width',0.6,@(v) valid_range(v,0,Inf));
+addParameter(p,'stacked',false);
+addParameter(p,'dodge',0,@(v) valid_range(v,0,Inf));
+addParameter(p,'FaceColor','auto');
+addParameter(p,'EdgeColor','k');
+addParameter(p,'fill',[],@(v) isempty(v) || valid_choice(v,{'edge','face','all','transparent'}));
+addParameter(p,'fill_alpha',[],@(v) valid_range(v,0,1,true));
+addParameter(p,'LineWidth',[]);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_bar(dobj,dd,p.Results,p.Unmatched)});
@@ -59,9 +71,12 @@ y=shiftdim(y)';
 % Check for automatic Face- and EdgeColor options
 if ~isempty(params.fill)
     %Set up colors according to fill
-    [FaceColor , FaceAlpha , EdgeColor , EdgeAlpha] = parse_fill (params.fill,draw_data.color);
+    [FaceColor , FaceAlpha , EdgeColor , EdgeAlpha] = parse_fill (params.fill,draw_data.color,params.fill_alpha);
 else
     FaceAlpha = 1;
+    if ~isempty(params.fill_alpha)
+        FaceAlpha = params.fill_alpha;
+    end
     EdgeAlpha = 1;
     if strcmp(params.FaceColor,'auto')
         FaceColor=draw_data.color;
@@ -89,8 +104,7 @@ if params.stacked
     barleft=bar_x-width/2;
     barright=bar_x+width/2;
 
-    xpatch=[barleft ; barright ; barright ; barleft];
-    ypatch=[barbottom ; barbottom ; bartop ; bartop];
+    [xpatch,ypatch]=bar_patch(obj,barleft,barright,barbottom,bartop);
 
     if obj.plot_lim.maxy(obj.current_row,obj.current_column)<max(bartop)
         obj.plot_lim.maxy(obj.current_row,obj.current_column)=max(bartop);
@@ -109,15 +123,11 @@ else
     % Calculate bar patch coordinates
     barleft=x-bar_width/2;
     barright=x+bar_width/2;
-    xpatch=[barleft ; barright ; barright ; barleft];
-    ypatch=[zeros(1,length(y)) ; zeros(1,length(y)) ; y ; y];
+    [xpatch,ypatch]=bar_patch(obj,barleft,barright,zeros(1,length(y)),y);
 
 end
 
-% Hide zero-height bars (NaN faces are not drawn): their degenerate faces
-% can be rendered as a stray horizontal line extending out of the axes
-ypatch(:,ypatch(1,:)==ypatch(3,:))=NaN;
-[xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+[xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
 
 % Convert unmatched structure to cell array of name-value pairs
 args=my_struct2cell(unmatched);

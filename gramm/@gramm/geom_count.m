@@ -1,15 +1,18 @@
 function obj=geom_count(obj,varargin)
-%geom_count Display data as points which size vary with with
-%count
+% geom_count Display data as points which size varies with the number of overlapping points
 %
-% Parameters:
-% 'scale': set the scaling factor between count and area
-% 'point_color': set how the points are colored 'edge', 'face',
-% 'all'
+% Example syntax: gramm_object.geom_count('scale',20)
+%
+% Parameters given as 'name',value pairs:
+% - 'scale': Scaling factor between count and point area (default 20)
+% - 'point_color': How the points are colored (default 'all'):
+%       - 'all': colored faces, no edges
+%       - 'face': colored faces with black edges
+%       - 'edge': colored edges, no faces
 
 p=inputParser;
-my_addParameter(p,'scale',20);
-my_addParameter(p,'point_color','all'); %edge,face,all
+addParameter(p,'scale',20);
+addParameter(p,'point_color','all',@(v) valid_choice(v,{'all','face','edge'})); %edge,face,all
 parse(p,varargin{:});
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_count(dobj,dd,p.Results)});
 obj.results.geom_count_handle={};
@@ -21,7 +24,8 @@ if obj.continuous_color_options.active
     disp('geom_count() unsupported with continuous color')
     hndl=[];
 else
-    [x,y]=to_polar(obj,comb(draw_data.x),comb(draw_data.y));
+    x=comb(draw_data.x);
+    y=comb(draw_data.y);
     
     [C,ia,ic]=unique([shiftdim(x) shiftdim(y)],'rows');
     counts=accumarray(ic,1);

@@ -1,32 +1,39 @@
 function obj = stat_violin(obj,varargin)
-% stat_violin display violin plots of y data for unique x
+% stat_violin Display violin plots of y for each unique value of x
 %
-% Options can be given as 'name',value pairs:
-% - all options from see stat_density() are present:
-% 'bandwidth', 'kernel', 'npoints', 'extra_y'
-% - 'normalization': 'area' (default) all violins have the same
-% areas. With 'count', the violin areas are proportional to the number of
-% points in each category. With 'width', the maximum widths of all violins
-% are matched
-% - 'half': If set to true, only half violins are drawn, and the color
-% index determines if the left half or right hald is drawn. Useful for
-% comparing distributions across two colors.
-% - 'fill' see stat_bin()
-% - 'width' and 'dodge' see stat_summary()
+% Example syntax (default arguments): gramm_object.stat_violin('normalization','area','fill','face')
 %
-% See also stat_summary(), stat_bin(), stat_density()
+% Parameters given as 'name',value pairs:
+% - 'normalization': How violins are scaled (default 'area'):
+%       - 'area': all violins have the same area
+%       - 'count': areas proportional to the number of points
+%       - 'width': all violins have the same maximum width
+% - 'half': Draw half violins, left or right depending on the color index.
+%            Useful to compare distributions between two colors (default
+%            false)
+% - 'bandwidth': Same as stat_density() (default -1)
+% - 'kernel': Same as stat_density() (default 'normal')
+% - 'npoints': Same as stat_density() (default 100)
+% - 'extra_y': Same as 'extra_x' in stat_density() (default 0)
+% - 'fill': Aspect of the violins, same as stat_bin() (default 'face')
+% - 'fill_alpha': Transparency of the faces, same as stat_bin() (default
+%            [], set by 'fill')
+% - 'width': Width of the violins, see stat_summary() (default 0.6)
+% - 'dodge': Spacing between violins of different colors, see
+%            stat_summary() (default 0.7)
 
 
 p=inputParser;
-my_addParameter(p,'bandwidth',-1);
-my_addParameter(p,'kernel','normal')
-my_addParameter(p,'npoints',100)
-my_addParameter(p,'extra_y',0)
-my_addParameter(p,'normalization','area') %'count' 'width'
-my_addParameter(p,'fill','face')
-my_addParameter(p,'width',0.6)
-my_addParameter(p,'dodge',0.7)
-my_addParameter(p,'half',false)
+addParameter(p,'bandwidth',-1);
+addParameter(p,'kernel','normal')
+addParameter(p,'npoints',100)
+addParameter(p,'extra_y',0)
+addParameter(p,'normalization','area',@(v) valid_choice(v,{'area','count','width'}));
+addParameter(p,'fill','face',@(v) valid_choice(v,{'edge','face','all','transparent'}));
+addParameter(p,'fill_alpha',[],@(v) valid_range(v,0,1,true));
+addParameter(p,'width',0.6,@(v) valid_range(v,0,Inf));
+addParameter(p,'dodge',0.7,@(v) valid_range(v,0,Inf));
+addParameter(p,'half',false)
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_violin(dobj,dd,p.Results)});
@@ -57,7 +64,7 @@ end
 boxmid=dodger(uni_x,draw_data,params.dodge);
 
 
-[face_color , face_alpha , edge_color , ~] = parse_fill (params.fill,draw_data.color);
+[face_color , face_alpha , edge_color , ~] = parse_fill (params.fill,draw_data.color,params.fill_alpha);
 temp_line_params={'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',1};
 
 %Maximum area

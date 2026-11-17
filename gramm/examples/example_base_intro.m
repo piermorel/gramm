@@ -1,13 +1,14 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Introduction to gramm
+% <matlab:edit('example_base_intro.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#constructor Constructor in the cheat sheet>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 
 %% Example from the readme
-% Here we plot the evolution of fuel economy of new cars bewteen 1970 and 1980 (carbig
+% Here we plot the evolution of fuel economy of new cars between 1970 and 1980 (carbig
 % dataset). Gramm is used to easily separate groups on the basis of the number of
 % cylinders of the cars (color), and on the basis of the region of origin of
 % the cars (subplot columns). Both the raw data (points) and a glm fit with
@@ -36,7 +37,7 @@ g.set_names('column','Origin','x','Year of production','y','Fuel economy (MPG)',
 g.set_title('Fuel economy of new cars between 1970 and 1982');
 %%%
 % Do the actual drawing
-figure;
+figure('Position',[100 100 1100 450]);
 g.draw();
 
 
@@ -44,7 +45,7 @@ g.draw();
 % The following code produces a similar figure using raw MATLAB, to
 % illustrate how gramm simplifies the process
 
-figure('Color',[1 1 1]);
+figure('Position',[100 100 1100 450]);
 
 % Define groups
 cyl = [4 6 8]; % Manually

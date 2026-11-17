@@ -1,17 +1,28 @@
 function obj=facet_wrap(obj,col,varargin)
-% facet_grid Create subplots according to one factor, with wrap
+% facet_wrap Create subplots according to one factor, with wrap
 %
 % Example syntax (default arguments): gramm_object.facet_wrap(variable,'ncols',4,'scale','fixed')
-% This is similar to faced_grid except that only one variable
-% is given, and subplots are arranged by column, with a wrap
-% around to the next row after 'ncols' columns. There is no
-% 'space' option.
+% Similar to facet_grid() with a single variable: subplots are arranged
+% by column, wrapping around to the next row after 'ncols' columns. There
+% is no 'space' option.
+%
+% Arguments:
+% - col: Variable separating data by subplots, 1D numerical array or
+%            cellstr of length N
+%
+% Parameters given as 'name',value pairs:
+% - 'ncols': Number of columns after which a new row of subplots is
+%            created (default 4)
+% - 'scale': Axis limits shared between subplots, same as in facet_grid()
+%            (default 'fixed')
+% - 'force_ticks': Show tick labels on all subplots (default false)
+% - 'column_labels': Label the subplots (default true)
 
 p=inputParser;
-my_addParameter(p,'ncols',4);
-my_addParameter(p,'scale','fixed'); %options 'free' 'free_x' 'free_y'
-my_addParameter(p,'force_ticks',false);
-my_addParameter(p,'column_labels',true);
+addParameter(p,'ncols',4);
+addParameter(p,'scale','fixed',@(v) valid_choice(v,{'fixed','free_x','free_y','free','independent'}));
+addParameter(p,'force_ticks',false);
+addParameter(p,'column_labels',true);
 parse(p,varargin{:});
 
 obj.facet_scale=p.Results.scale;

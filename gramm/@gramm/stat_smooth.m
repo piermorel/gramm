@@ -1,42 +1,48 @@
 function obj=stat_smooth(obj,varargin)
-% stat_smooth Display a smoothed estimate of the data with
-% optional 95% bootstrapped confidence interval
+% stat_smooth Display a smoothed estimate of the data with 95% bootstrapped confidence interval
 %
-% Arguments given as 'name,value pairs:
-% - 'method': Which method to use for the smoothing. Available methods are:
-%             - 'eilers' (method from Eilers 2003, default),
-%             - 'smoothingspline' (uses fit() from the curve fitting toolbox),
-%             - 'moving','lowess','loess','sgolay','rlowess','rloess' (use smooth() from
-%               the curve fitting toolbox).
-% - 'lambda': generic smoothing parameter, depends on method
-%            - Corresponds to lambda in 'eilers' method (possibility to
-%            set to 'auto' find optimal smoothing parameter by cross-validation, separately for
-%            each for each group)
-%            - Corresponds to 'SmoothingParam' in 'smoothingspline' method
-%            - Corresponds to span in other methods using smooth(), for
-%            'sgolay' it is possible to give a 2-element array,
-%            corresponding to [span degree]
-% - 'geom': how is the smooth displayed (see stat_summary()
-% documentation)
-% - 'npoints': number of points over which the smooth is
-% evaluated (default is 200).
-% - 'setylim': Set to true to adjust y-axis limits based on smoothed
-% curves rather than original data (default false).
+% Example syntax (default arguments): gramm_object.stat_smooth('method','eilers','geom','area')
+% If used with repeated data (y given as a matrix or cell), each
+% trajectory is smoothed and displayed individually, without confidence
+% interval. The 'eilers' smoother is described in Eilers, P. H. C. (2003).
+% A Perfect Smoother. Analytical Chemistry, 75(14), 3631-3636.
+% http://doi.org/10.1021/ac034173t
 %
-% If used with repeated data (ie when y is given as 2D
-% array or cell array), each trajectory will be smoothed and
-% displayed individually (without confidence interval computation)
-%
-% The smoothing algorithm for whittaker is described in:
-% Eilers, P. H. C. (2003). A Perfect Smoother. Analytical Chemistry, 75(14), 3631?3636. http://doi.org/10.1021/ac034173t
-% http://pubs.acs.org/doi/abs/10.1021/ac034173t
+% Parameters given as 'name',value pairs:
+% - 'method': Smoothing method (default 'eilers'):
+%       - 'eilers': Eilers 2003 smoother (fast)
+%       - 'smoothingspline': smoothing spline, uses fit() from the Curve
+%            Fitting Toolbox
+%       - 'moving': moving average, uses smooth() from the Curve Fitting
+%            Toolbox, like the following methods
+%       - 'lowess': local linear regression
+%       - 'loess': local quadratic regression
+%       - 'sgolay': Savitzky-Golay filter
+%       - 'rlowess': robust 'lowess', less sensitive to outliers
+%       - 'rloess': robust 'loess', less sensitive to outliers
+% - 'lambda': Amount of smoothing, whose meaning depends on the method.
+%            With 'eilers', the lambda of the method (1000 if empty), or
+%            'auto' to find the best one by cross-validation, separately
+%            for each group. With 'smoothingspline', the 'SmoothingParam'
+%            of fit() (0 to 1). With the smooth() methods, the span (number
+%            or fraction of points), or [span degree] for 'sgolay'
+%            (default [])
+% - 'geom': How the smooth is displayed, same as stat_summary() (default
+%            'area')
+% - 'fill_alpha': Transparency of the 'area' and 'area_only' geoms, from
+%            0 (transparent) to 1 (opaque) (default 0.2)
+% - 'npoints': Number of points over which the smooth is evaluated
+%            (default 200)
+% - 'setylim': Set the y axis limits from the smooth instead of the data
+%            (default false)
 
 p=inputParser;
-my_addParameter(p,'lambda',[]);
-my_addParameter(p,'geom','area');
-my_addParameter(p,'method','eilers');
-my_addParameter(p,'npoints',200);
-my_addParameter(p,'setylim',false);
+addParameter(p,'lambda',[]);
+addParameter(p,'geom','area',@(v) valid_choice(v,{'line','lines','area','area_only','solid_area','errorbar','black_errorbar','bar','edge_bar','point','black_point'},true));
+addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'method','eilers',@(v) valid_choice(v,{'eilers','smoothingspline','moving','lowess','loess','sgolay','rlowess','rloess'}));
+addParameter(p,'npoints',200);
+addParameter(p,'setylim',false);
 parse(p,varargin{:});
 
 %Set default lambdas
@@ -287,7 +293,7 @@ else
         end
     end
     
-    hndl=plotci(obj,newx,newy,yci,draw_data,params.geom);
+    hndl=plotci(obj,newx,newy,yci,draw_data,params.geom,[],[],params.fill_alpha);
     
     %Store plotted handles
     hnames=fieldnames(hndl);

@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Palette customization
+% <matlab:edit('example_color_palette_customization.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#set_color_options set_color_options() in the cheat sheet>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Customizing color maps with set_color_options()
@@ -50,7 +51,7 @@ g.axe_property('XTickLabelRotation',60); %Should work for recent Matlab versions
 g.set_names('x','Origin','y','Horsepower','color','Origin','lightness','Origin');
 g.set_title('Colormap customizations examples');
 
-figure
+figure('Position',[100 100 1100 660])
 g.draw();
 
 
@@ -108,5 +109,5 @@ g.axe_property('XTickLabelRotation',60); %Should work for recent Matlab versions
 g.set_names('x','Origin','y','Horsepower','color','Origin','marker','Origin','lightness','# Cyl');
 g.set_title('Color/Lightness maps and legend customizations examples');
 
-figure;
+figure('Position',[100 100 1100 660]);
 g.draw();

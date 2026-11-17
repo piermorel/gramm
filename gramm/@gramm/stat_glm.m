@@ -1,27 +1,28 @@
 function obj=stat_glm(obj,varargin)
-% stat_glm Display a generalized linear model fit of the data
+% stat_glm Display a generalized linear model fit of the data with 95% confidence bounds
 %
-% Example syntax (default arguments): gramm_object.stat_glm('distribution','normal','geom','lines','fullrange','false')
-% This will fit a generalized linear model to the data, display
-% the fit results with 95% confidence bounds. The optional
-% 'name',value pairs are the following.
-% - 'distribution' corresponds to the distribution of the data.
-%   'normal', the default value leads to a standard linear model
-%   fit. Possible values are 'normal', 'binomial', 'poisson', 'gamma', and 'inverse gaussian'
-% - 'geom': defines the way to display the confidence bouds.
-%   See the help of stat_summary().
-% - 'fullrange': set to true if you want the fits to be
-%   displayed over the whole width of each subplot instead of
-%   being displayed over the range of x values used for the fit
-% - 'disp_fit': set to true to display the fitted parameters and
-% corresponding p-value stars.
+% Example syntax (default arguments): gramm_object.stat_glm('distribution','normal','geom','area','fullrange',false)
+% Uses fitglm() from the Statistics Toolbox.
+%
+% Parameters given as 'name',value pairs:
+% - 'distribution': Distribution of the data, as in fitglm(). 'normal'
+%            gives a standard linear model (default 'normal')
+% - 'geom': How the fit is displayed, same as stat_summary() (default
+%            'area')
+% - 'fill_alpha': Transparency of the 'area' and 'area_only' geoms, from
+%            0 (transparent) to 1 (opaque) (default 0.2)
+% - 'fullrange': Display the fit over the whole x axis instead of the
+%            range of x values used for the fit (default false)
+% - 'disp_fit': Display the fitted parameters and p-value stars
+%            (default false)
 
 %Accepted distributions: 'normal' (default) | 'binomial' | 'poisson' | 'gamma' | 'inverse gaussian'
 p=inputParser;
-my_addParameter(p,'distribution','normal');
-my_addParameter(p,'geom','area');
-my_addParameter(p,'fullrange',false);
-my_addParameter(p,'disp_fit',false);
+addParameter(p,'distribution','normal',@(v) valid_choice(v,{'normal','binomial','poisson','gamma','inverse gaussian'}));
+addParameter(p,'geom','area',@(v) valid_choice(v,{'line','lines','area','area_only','solid_area','errorbar','black_errorbar','bar','edge_bar','point','black_point'},true));
+addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'fullrange',false);
+addParameter(p,'disp_fit',false);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_glm(dobj,dd,p.Results)});
@@ -49,7 +50,7 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2 %numel(combx)>2 &&
     obj.results.stat_glm{obj.result_ind,1}.yci=yci;
     obj.results.stat_glm{obj.result_ind,1}.model=mdl;
     
-    hndl=plotci(obj,newx,newy,yci,draw_data,params.geom);
+    hndl=plotci(obj,newx,newy,yci,draw_data,params.geom,[],[],params.fill_alpha);
     
     %Store plotted handles
     hnames=fieldnames(hndl);

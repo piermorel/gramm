@@ -1,17 +1,26 @@
 function obj=geom_jitter(obj,varargin)
-% geom_jitter Display data as jittered points
+% geom_jitter Display data as randomly jittered points
 %
-% Example syntax (default arguments): gramm_object.geom_jitter('width',0.2,'height',0.2)
-% In case datapoints are grouped together and are hard to see,
-% it's possible to randomly jitter them in an area of width
-% 'width' and height 'height' using this function.
+% Example syntax (default arguments): gramm_object.geom_jitter('width',0.2,'height',0)
+% Useful when points overlap a lot, e.g. with discrete x or y values.
+% Supports color, lightness, marker and size groups.
+%
+% Parameters given as 'name',value pairs:
+% - 'width': Horizontal extent of the jitter, relative to the space
+%            available for each x value (default 0.2)
+% - 'height': Vertical extent of the jitter, in y units (default 0)
+% - 'dodge': Spacing between points of different colors within an
+%            unique x value (default 0)
+% - 'alpha': Transparency of points, from 0 (transparent) to 1 (opaque)
+%            (default 1)
+% - 'raw_width': Set to true to give 'width' in x units (default false)
 
 p=inputParser;
-my_addParameter(p,'width',0.2);
-my_addParameter(p,'height',0);
-my_addParameter(p,'dodge',0);
-my_addParameter(p,'alpha',1);
-my_addParameter(p,'raw_width',false);
+addParameter(p,'width',0.2,@(v) valid_range(v,0,Inf));
+addParameter(p,'height',0,@(v) valid_range(v,0,Inf));
+addParameter(p,'dodge',0,@(v) valid_range(v,0,Inf));
+addParameter(p,'alpha',1,@(v) valid_range(v,0,1));
+addParameter(p,'raw_width',false);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_jitter(dobj,dd,p.Results)});

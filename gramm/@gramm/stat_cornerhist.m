@@ -1,25 +1,48 @@
 function obj=stat_cornerhist(obj,varargin)
+% stat_cornerhist Display a histogram of the x-y differences in an inset axis at a corner of the plot
+%
+% Example syntax: gramm_object.stat_cornerhist('edges',-5:0.5:5,'aspect',0.3)
+% The inset axis is placed on the unity line (y=x) of the parent axis,
+% perpendicular to it. Useful to compare paired data, e.g. a measure before
+% (x) and after (y) a treatment. Specifying 'edges' is recommended.
+%
+% Parameters given as 'name',value pairs:
+% - 'location': x (and y) location of the inset axis on the unity line of
+%            the parent axis (default [], the maximum of the x and y data)
+% - 'aspect': Aspect ratio (y/x) of the inset axis (default 0.3)
+% - 'nbins': Number of bins, same as stat_bin() (default 30)
+% - 'edges': Bin edges, same as stat_bin() (default [])
+% - 'bin_width': Bin width, same as stat_bin() (default [])
+% - 'geom': How the counts are displayed, same as stat_bin() except
+%            'stacked_bar' (default 'overlaid_bar')
+% - 'normalization': Normalization of the counts, same as stat_bin()
+%            (default 'count')
+% - 'fill': Aspect of the geom, same as stat_bin() (default [])
+% - 'fill_alpha': Transparency of the faces, same as stat_bin() (default
+%            [])
+% - 'width': Width of the bars, same as stat_bin() (default [])
+% - 'dodge': Spacing between bars of different colors, same as stat_bin()
+%            (default [])
 
 
 p=inputParser;
-my_addParameter(p,'nbins',30);
-my_addParameter(p,'edges',[]);
-my_addParameter(p,'geom','overlaid_bar'); %line, bar, overlaid_bar, stacked_bar,stairs, point
-my_addParameter(p,'normalization','count');
-my_addParameter(p,'fill',[]); %edge,face,all,transparent
-my_addParameter(p,'width',[]);
-my_addParameter(p,'dodge',[]);
-my_addParameter(p,'aspect',0.3); %Aspect ratio of the inset axis
-my_addParameter(p,'location',[]); %X/Y location in the main axis of the inset axis
+addParameter(p,'nbins',30);
+addParameter(p,'edges',[]);
+addParameter(p,'bin_width',[]); %Used by my_histplot()
+addParameter(p,'geom','overlaid_bar',@(v) valid_choice(v,{'bar','overlaid_bar','line','stairs','point'}));
+addParameter(p,'normalization','count',@(v) valid_choice(v,{'count','probability','countdensity','pdf','cumcount','cdf'}));
+addParameter(p,'fill',[],@(v) isempty(v) || valid_choice(v,{'edge','face','all','transparent'}));
+addParameter(p,'fill_alpha',[],@(v) valid_range(v,0,1,true));
+addParameter(p,'width',[],@(v) valid_range(v,0,Inf,true));
+addParameter(p,'dodge',[],@(v) valid_range(v,0,Inf,true));
+addParameter(p,'aspect',0.3); %Aspect ratio of the inset axis
+addParameter(p,'location',[]); %X/Y location in the main axis of the inset axis
 parse(p,varargin{:});
 
 if isempty(p.Results.edges)
     warning('Specifying ''edges'' is recommended with stat_cornerhist()')
 end
 
-if strcmp('geom','stacked_bar')
-    error('stacked_bar unsupported in stat_cornerhist()')
-end
     
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_cornerhist(dobj,dd,p.Results)});
 obj.results.stat_cornerhist={};
@@ -40,7 +63,7 @@ end
 %Get parent axis
 parent_axe=obj.facet_axes_handles(obj.current_row,obj.current_column);
 parent_axe_pos=get(parent_axe,'Position');
-set(parent_axe,'color','none')
+fig=ancestor(parent_axe,'figure');
 
 %Compute default location of the child axis if needed
 if isempty(params.location)
@@ -54,7 +77,11 @@ if isa(obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column),'matla
 
     %If first run, create inset axis(weird, if cha is not used as intermediary
     %variable, the resize callback doesn't seem to work properly)
-    cha=axes('Position',[parent_axe_pos(1) parent_axe_pos(2) parent_axe_pos(3) parent_axe_pos(4)],...
+    %The inset goes in the container of the plot (figure, or panel/tab given
+    %to set_parent()): its position is computed from the plot box, which
+    %GetLayoutInformation() gives relative to that container
+    container=ancestor(parent_axe,{'uipanel','uitab','figure'});
+    cha=axes(container,'Position',[parent_axe_pos(1) parent_axe_pos(2) parent_axe_pos(3) parent_axe_pos(4)],...
          'Clipping','off','NextPlot','add');
     
     obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column)=cha;
@@ -70,8 +97,9 @@ if isa(obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column),'matla
     
    new_child=true;
 else
-    %If inset already created, just make it active axis
-   axes(obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column)); 
+    %If inset already created, just make it active axis (setting
+    %CurrentAxes instead of calling axes() keeps the inset on top)
+   set(fig,'CurrentAxes',obj.extra.cornerhist_child_axe(obj.current_row,obj.current_column));
 end
 
 %Draw data is x-y
@@ -108,18 +136,19 @@ if new_child
     end  
 end
 
-axes(parent_axe);
+set(fig,'CurrentAxes',parent_axe);
 
 
 end
 
 function cornerhist_redraw(parent_axe,child_axe,x_pos,aspect_ratio)
 
-
-%Get info about updated parent axis
-set(parent_axe,'Units','Pixels')
-%pa_pos=get(parent_axe,'Position');
-pa_pos=plotboxpos(parent_axe);
+%Get info about updated parent axis: plot box in figure pixels. The
+%position properties of axes in (nested) tiled layouts are not in figure
+%coordinates, the undocumented GetLayoutInformation() gives the actual
+%plot box
+layout_info=GetLayoutInformation(parent_axe);
+pa_pos=layout_info.PlotBox;
 pa_xlim=get(parent_axe,'XLim');
 pa_ylim=get(parent_axe,'YLim');
 
@@ -179,100 +208,4 @@ set(child_axe,'Position',ch_newpos,...
     'DataAspectRatio',dar,...
     'PlotBoxAspectRatio',[1/aspect_ratio 1 1]);
 
-%Set parent axes back in normalized coordinates
-set(parent_axe,'Units','Normalized')
-
-end
-
-function pos = plotboxpos(h)
-%PLOTBOXPOS Returns the position of the plotted axis region
-%
-% pos = plotboxpos(h)
-%
-% This function returns the position of the plotted region of an axis,
-% which may differ from the actual axis position, depending on the axis
-% limits, data aspect ratio, and plot box aspect ratio.  The position is
-% returned in the same units as the those used to define the axis itself.
-% This function can only be used for a 2D plot.  
-%
-% Input variables:
-%
-%   h:      axis handle of a 2D axis (if ommitted, current axis is used).
-%
-% Output variables:
-%
-%   pos:    four-element position vector, in same units as h
-
-% Copyright 2010 Kelly Kearney
-
-% Check input
-
-if nargin < 1
-    h = gca;
-end
-
-if ~ishandle(h) || ~strcmp(get(h,'type'), 'axes')
-    error('Input must be an axis handle');
-end
-
-% Get position of axis in pixels
-
-currunit = get(h, 'units');
-set(h, 'units', 'pixels');
-axisPos = get(h, 'Position');
-set(h, 'Units', currunit);
-
-% Calculate box position based axis limits and aspect ratios
-
-darismanual  = strcmpi(get(h, 'DataAspectRatioMode'),    'manual');
-pbarismanual = strcmpi(get(h, 'PlotBoxAspectRatioMode'), 'manual');
-
-if ~darismanual && ~pbarismanual
-    
-    pos = axisPos;
-    
-else
-
-    dx = diff(get(h, 'XLim'));
-    dy = diff(get(h, 'YLim'));
-    dar = get(h, 'DataAspectRatio');
-    pbar = get(h, 'PlotBoxAspectRatio');
-
-    limDarRatio = (dx/dar(1))/(dy/dar(2));
-    pbarRatio = pbar(1)/pbar(2);
-    axisRatio = axisPos(3)/axisPos(4);
-
-    if darismanual
-        if limDarRatio > axisRatio
-            pos(1) = axisPos(1);
-            pos(3) = axisPos(3);
-            pos(4) = axisPos(3)/limDarRatio;
-            pos(2) = (axisPos(4) - pos(4))/2 + axisPos(2);
-        else
-            pos(2) = axisPos(2);
-            pos(4) = axisPos(4);
-            pos(3) = axisPos(4) * limDarRatio;
-            pos(1) = (axisPos(3) - pos(3))/2 + axisPos(1);
-        end
-    elseif pbarismanual
-        if pbarRatio > axisRatio
-            pos(1) = axisPos(1);
-            pos(3) = axisPos(3);
-            pos(4) = axisPos(3)/pbarRatio;
-            pos(2) = (axisPos(4) - pos(4))/2 + axisPos(2);
-        else
-            pos(2) = axisPos(2);
-            pos(4) = axisPos(4);
-            pos(3) = axisPos(4) * pbarRatio;
-            pos(1) = (axisPos(3) - pos(3))/2 + axisPos(1);
-        end
-    end
-end
-
-% Convert plot box position to the units used by the axis
-
-temp = axes('Units', 'Pixels', 'Position', pos, 'Visible', 'off', 'parent', get(h, 'parent'));
-set(temp, 'Units', currunit);
-pos = get(temp, 'position');
-delete(temp);
 end

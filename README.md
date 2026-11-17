@@ -25,28 +25,28 @@ To run the files in Matlab online, you will need to add the gramm folder to your
 
 - **Getting Started:**
 
-<img src="images/gettingstarted_export.png" width="300"> &emsp; [👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/master/gramm/html/GettingStarted.html)&emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/GettingStarted.mlx)
+<img src="images/gettingstarted_export.png" width="300"> &emsp; [👀 View](https://www.mathworks.com/matlabcentral/fileexchange/54465-gramm-data-visualization-toolbox/files/gramm/doc/GettingStarted.mlx)&emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/GettingStarted.mlx)
 
 - **Explore grouped data:**
 
-<img src="images/groups_export.png" width="300">&emsp; [👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/master/gramm/html/Groups.html)&emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/Groups.mlx)
+<img src="images/groups_export.png" width="300">&emsp; [👀 View](https://www.mathworks.com/matlabcentral/fileexchange/54465-gramm-data-visualization-toolbox/files/gramm/doc/Groups.mlx)&emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/Groups.mlx)
 
 - **Explore X/Y data:**
 
- <img src="images/xy_export.png" width="300">&emsp;[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/master/gramm/html/XY.html) &emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/XY.mlx)
+ <img src="images/xy_export.png" width="300">&emsp;[👀 View](https://www.mathworks.com/matlabcentral/fileexchange/54465-gramm-data-visualization-toolbox/files/gramm/doc/XY.mlx) &emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/XY.mlx)
 
 
 - **Explore Time Series data:**
 
-<img src="images/timeseries_export.png" width="300">&emsp;[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/master/gramm/html/TimeSeries.html) &emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/TimeSeries.mlx)
+<img src="images/timeseries_export.png" width="300">&emsp;[👀 View](https://www.mathworks.com/matlabcentral/fileexchange/54465-gramm-data-visualization-toolbox/files/gramm/doc/TimeSeries.mlx) &emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/TimeSeries.mlx)
 
 - **Explore table data from an open dataset hosted on S3:**
 
-<img src="images/stacked_export.png" width="300">&emsp;[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/master/gramm/html/OnlineTable.html) &emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/OnlineTable.mlx)
+<img src="images/stacked_export.png" width="300">&emsp;[👀 View](https://www.mathworks.com/matlabcentral/fileexchange/54465-gramm-data-visualization-toolbox/files/gramm/doc/OnlineTable.mlx) &emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/OnlineTable.mlx)
 
-- **Advanced examples:**
+- **Examples gallery** (one page per gramm feature, from basic use to advanced customizations):
 
-<img src="images/overlaid_export.png" width="300">&emsp;[👀 Preview](http://htmlpreview.github.io/?https://github.com/piermorel/gramm/blob/master/gramm/html/examples.html)&emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/doc/examples.mlx)
+<img src="images/overlaid_export.png" width="300">&emsp;[👀 Browse](https://piermorel.github.io/gramm/docs/examples/index.html)&emsp;[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=piermorel/gramm&file=gramm/examples/example_advanced_superimposed_plots.m)
 
 
 
@@ -112,7 +112,7 @@ Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open So
 
 ### Compatibility ###
 
- Recent versions of gramm (3.0 and above) target MATLAB above R2018b. Older releases work in older MATLAB versions. The statistics toolbox is required for some methods: <code>stat_glm()</code>, <code>stat_qq()</code>, <code>stat_density()</code>, <code>stat_violin()</code>, <code>stat_bin2d()</code>, <code>stat_ellipse()</code>, <code>geom_swarm()</code>, and <code>stat_summary()</code> except for the <code>'std'</code> and <code>'sem'</code> types. The curve fitting toolbox is required for <code>stat_smooth()</code> methods other than the default <code>'eilers'</code>. The curve fitting toolbox or the statistics toolbox is required for <code>stat_fit()</code>.
+ Recent versions of gramm (3.0 and above) target MATLAB above R2018b, and versions using MATLAB's tiledlayout for figure layouts require R2022b or later. Older releases work in older MATLAB versions. The statistics toolbox is required for some methods: <code>stat_glm()</code>, <code>stat_qq()</code>, <code>stat_density()</code>, <code>stat_violin()</code>, <code>stat_bin2d()</code>, <code>stat_ellipse()</code>, <code>geom_swarm()</code>, and <code>stat_summary()</code> except for the <code>'std'</code> and <code>'sem'</code> types. The curve fitting toolbox is required for <code>stat_smooth()</code> methods other than the default <code>'eilers'</code>. The curve fitting toolbox or the statistics toolbox is required for <code>stat_fit()</code>.
 
 
 ## Main Features
@@ -150,6 +150,7 @@ Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open So
 - All visualizations have plenty of options accessible through arguments, from computational to esthetic ones.
 - Representation of groupings can be fully customized (colormaps, ordering)
 - Multiple gramm plots can be combined in the same figure by creating a matrix of gramm objects and calling the <code>draw()</code> method on the whole matrix.
+- Custom layouts (plots of different sizes, marginal plots, combination with regular MATLAB axes) by drawing gramm plots in tiles of a tiledlayout with <code>set_parent(layout,'tile',tile,'span',span)</code>.
 - MATLABs axes properties are modifiable through the method <code>axe_property()</code>
 - Non-data graphical elements can be added such as reference lines or polygons (<code>geom_abline()</code>, <code>geom_vline()</code>,<code>geom_hline()</code>,<code>geom_polygon()</code>)
 - For advanced customization, handles of all graphic elements and computation results are easily available after the <code>draw()</code> through the <code>results</code> structure of the gramm object
@@ -157,7 +158,7 @@ Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open So
 
 ## Gallery
 
-All these examples are from the [advanced examples live scripts](#demo-live-scripts)
+All these examples are from the [examples gallery](https://piermorel.github.io/gramm/docs/examples/index.html)
 
 ### Superimposition of gramm objects on the same axes
 

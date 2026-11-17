@@ -1,10 +1,13 @@
-function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
+function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha)
             
-            if nargin<7
+            if nargin<7 || isempty(dodge)
                 dodge=0;
             end
-            if nargin<8
+            if nargin<8 || isempty(width)
                 width=0.5;
+            end
+            if nargin<9
+                fill_alpha=0.2;
             end
             
             x=shiftdim(x)';
@@ -16,9 +19,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                 yci=yci';
             end
             
-            if ~iscellstr(geom)
-                geom={geom};
-            end
+            geom=cellstr(geom); %char, string, cell or string array
             
             if isempty(x) || isempty(y)
                 hndl=NaN;
@@ -33,12 +34,12 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
             
             x=dodger(x',draw_data,dodge)';
             
-            %Convert CIs to polar coordinates if needed
-            [tmp_xci1,tmp_yci1]=to_polar(obj,x,yci(1,:));
-            [tmp_xci2,tmp_yci2]=to_polar(obj,x,yci(2,:));
+            %Close the lines and CIs of closed polar plots
+            [tmp_xci1,tmp_yci1]=close_polar(obj,x,yci(1,:));
+            [tmp_xci2,tmp_yci2]=close_polar(obj,x,yci(2,:));
             yci=[tmp_yci1;tmp_yci2];
             xci=[tmp_xci1;tmp_xci2];
-            [x,y]=to_polar(obj,x,y);
+            [x,y]=close_polar(obj,x,y);
             
             
             if 1 %any(isnan(tmp_yci1)) || any(isnan(tmp_yci2))
@@ -53,6 +54,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                 vertices=horzcat([tmp_xci1' ; flipud(tmp_xci2')],[tmp_yci1' ; flipud(tmp_yci2')]);
                 faces=1:2*length(x);
             end
+            vertices(:,2)=log_base(obj,vertices(:,2));
             
             %Line plot  doesn't display anything if we have NaNs around, so find
             %out which points are surrounded by NaNs and might not be
@@ -97,7 +99,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                         hndl.area_handle=patch('Vertices',vertices,...
                             'Faces',faces,...
                             'FaceColor',draw_data.color,...
-                            'FaceAlpha',0.2,...
+                            'FaceAlpha',fill_alpha,...
                             'EdgeColor','none');
                         
                         hndl.line_handle=plot(x,y,...
@@ -111,7 +113,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                             'MarkerFaceColor',draw_data.color);
                         
                     case 'area_only'
-                        hndl.area_handle=patch('Vertices',vertices,'Faces',faces,'FaceColor',draw_data.color,'FaceAlpha',0.2,'EdgeColor','none');
+                        hndl.area_handle=patch('Vertices',vertices,'Faces',faces,'FaceColor',draw_data.color,'FaceAlpha',fill_alpha,'EdgeColor','none');
                         
                     case 'solid_area'
                         %Solid area (no alpha)
@@ -131,29 +133,28 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width)
                             'MarkerFaceColor',draw_data.color);
                         
                     case 'errorbar'
-                        hndl.errorbar_handle=my_errorbar(x,yci(1,:),yci(2,:),bar_width/4,draw_data.color,draw_data.line_size);
+                        hndl.errorbar_handle=my_errorbar(obj,x,yci(1,:),yci(2,:),draw_data.color,draw_data.line_size);
                         
                     case 'black_errorbar'
-                        hndl.errorbar_handle=my_errorbar(x,yci(1,:),yci(2,:),bar_width/4,'k',draw_data.line_size);
+                        hndl.errorbar_handle=my_errorbar(obj,x,yci(1,:),yci(2,:),'k',draw_data.line_size);
                         
                     case 'bar'
                         barleft=x-bar_width/2;
                         barright=x+bar_width/2;
-                        xpatch=[barleft ; barright ; barright ; barleft];
-                        ypatch=[zeros(1,length(y)) ; zeros(1,length(y)) ; y ; y];
-                        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+                        [xpatch,ypatch]=bar_patch(obj,barleft,barright,zeros(1,length(y)),y);
+                        [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
                         hndl.bar_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','none');
                    case 'edge_bar'
                         barleft=x-bar_width/2;
                         barright=x+bar_width/2;
-                        xpatch=[barleft ; barright ; barright ; barleft];
-                        ypatch=[zeros(1,length(y)) ; zeros(1,length(y)) ; y ; y];
-                        [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+                        [xpatch,ypatch]=bar_patch(obj,barleft,barright,zeros(1,length(y)),y);
+                        [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
                         hndl.bar_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','k');
                     case 'point'
                         hndl.point_handle=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',draw_data.color);
                     case 'black_point'
-                        hndl.point_handle=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',[0 0 0]);
+                        %Black follows the figure theme (see apply_theme)
+                        hndl.point_handle=plot(x,y,draw_data.marker,'Color',[0 0 0],'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',[0 0 0]);
                 end
                 
             end

@@ -1,12 +1,41 @@
 function obj = geom_swarm(obj,varargin)
+% geom_swarm Display data as swarms of non-overlapping points
+%
+% Example syntax: gramm_object.geom_swarm('type','fan','point_size',2)
+% Points with the same x value are spread horizontally so that they don't
+% overlap (beeswarm plot). The layout depends on the size of the axes and
+% is computed again when the figure is resized.
+%
+% Parameters given as 'name',value pairs:
+% - 'type': How points are spread (default 'up'):
+%       - 'up': points placed from the lowest to the highest y value
+%       - 'down': points placed from the highest to the lowest y value
+%       - 'fan': points placed from the mean outwards
+%       - 'hex': y values rounded to rows of points on a hexagonal grid
+%       - 'square': y values rounded to rows of points on a square grid
+% - 'corral': What to do with points spreading beyond 'width' (default
+%            'none'):
+%       - 'none': points are left where they are
+%       - 'gutter': points are stacked at the edges of the width
+%       - 'omit': points are not displayed
+%       - 'wrap': points are folded back inside the width
+%       - 'random': points are placed randomly inside the width
+% - 'point_size': Radius of the points, in points (default 3). The swarm
+%            layout uses it, so set_point_options() and the size aesthetic
+%            don't change the size of swarm points
+% - 'dodge': Spacing between swarms of different colors within an unique
+%            x value (default 0.7), see stat_summary()
+% - 'width': Width available to each swarm, used by 'corral' (default 0.9)
+% - 'alpha': Transparency of the points, from 0 (transparent) to 1
+%            (opaque) (default 1)
 
 p = inputParser;
-addOptional(p,'type','up')
-addOptional(p,'corral','none')
-addOptional(p,'point_size',3)
-addOptional(p,'dodge',0.7);
-addOptional(p,'width',0.9);
-my_addParameter(p,'alpha',1);
+addParameter(p,'type','up',@(v) valid_choice(v,{'up','down','fan','hex','square'}));
+addParameter(p,'corral','none',@(v) valid_choice(v,{'none','gutter','omit','wrap','random'}));
+addParameter(p,'point_size',3,@(v) valid_range(v,0,Inf));
+addParameter(p,'dodge',0.7,@(v) valid_range(v,0,Inf));
+addParameter(p,'width',0.9,@(v) valid_range(v,0,Inf));
+addParameter(p,'alpha',1,@(v) valid_range(v,0,1));
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_swarm(dobj,dd,p.Results)});
@@ -32,8 +61,8 @@ obj.plot_lim.maxx(obj.current_row,obj.current_column)=xl(2);
 obj.plot_lim.miny(obj.current_row,obj.current_column)=yl(1);
 obj.plot_lim.maxy(obj.current_row,obj.current_column)=yl(2);
 
-xlim([obj.plot_lim.minx(obj.current_row,obj.current_column) obj.plot_lim.maxx(obj.current_row,obj.current_column)]);
-ylim([obj.plot_lim.miny(obj.current_row,obj.current_column) obj.plot_lim.maxy(obj.current_row,obj.current_column)]);
+set_num_lim(gca,'X',[obj.plot_lim.minx(obj.current_row,obj.current_column) obj.plot_lim.maxx(obj.current_row,obj.current_column)]);
+set_num_lim(gca,'Y',[obj.plot_lim.miny(obj.current_row,obj.current_column) obj.plot_lim.maxy(obj.current_row,obj.current_column)]);
 
 uni_x=unique(x);
 
@@ -50,32 +79,31 @@ else
 end
 
 hndl = gobjects(length(uni_x),1);
+y_orig = cell(length(uni_x),1);
 for ind_x=1:length(uni_x)
 
     ysel=y(abs(x-uni_x(ind_x))<1e-10);
-    y_orig = ysel;
+    y_orig{ind_x} = ysel;
 
     [xsel,ysel] = gen_swarm(ysel,params,parent_axe);
 
     xsel = xsel + dodge_uni_x(ind_x);
 
     hndl(ind_x) = scatter(xsel,ysel,(params.point_size*2)^2,'filled','MarkerFaceColor',draw_data.color,'MarkerFaceAlpha',params.alpha);
-    hndl(ind_x).UserData.x_offset = dodge_uni_x(ind_x);
-    hndl(ind_x).UserData.y_orig = y_orig;
 end
 
-obj.redraw_fun=vertcat(obj.redraw_fun,{@()swarm_redraw(parent_axe,hndl,params)});
+obj.redraw_fun=vertcat(obj.redraw_fun,{@()swarm_redraw(parent_axe,hndl,y_orig,dodge_uni_x,params)});
 
 obj.results.geom_swarm{obj.result_ind,1}.scatter_handle = hndl;
 
 end
 
-function swarm_redraw(ax,hndl,params)
+function swarm_redraw(ax,hndl,y_orig,x_offset,params)
 for k=1:length(hndl)
 
-    [x,y] = gen_swarm(hndl(k).UserData.y_orig,params,ax) ;
+    [x,y] = gen_swarm(y_orig{k},params,ax) ;
 
-    hndl(k).XData  = x + hndl(k).UserData.x_offset;
+    hndl(k).XData  = x + x_offset(k);
     hndl(k).YData  = y ;
 end
 end
@@ -86,11 +114,13 @@ function [x,y] = gen_swarm(y,params,ax)
 
 r = params.point_size;
 
-ax.Units="points";
-ptpos = ax.Position;
-ax.Units="normalized";
-xsz = ptpos(3)/diff(ax.XLim); %Find factor between plotting units and points (unit used by MarkerSize)
-ysz = ptpos(4)/diff(ax.YLim);
+%Size of the axes in points (unit used by MarkerSize), from the layout:
+%changing the axes units instead takes axes out of their tiledlayout when
+%the layout is not computed yet
+box = getfield(GetLayoutInformation(ax),'PlotBox'); %In pixels
+ptsz = box(3:4)*72/get(groot,'ScreenPixelsPerInch');
+xsz = ptsz(1)/diff(ruler2num(ax.XLim,ax.XAxis)); %Find factor between plotting units and points
+ysz = ptsz(2)/diff(ruler2num(ax.YLim,ax.YAxis));
 
 ypx = y*ysz; %Convert y values to point values
 

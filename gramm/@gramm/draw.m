@@ -1,22 +1,15 @@
-function obj=draw(obj,do_redraw)
-% draw Draws the plot in the current figure
+function obj=draw(obj)
+% draw Draws the plot in the current figure, or in the parent given to set_parent()
 %
-% syntax: gramm_object.draw()
-% Call draw on an array of gramm objects in order to have
-% multiple gramms on a single figure.
-% An optional logical argument can be given. Use
-% gramm_object.draw(false) in order to allow the nex gramm plot to be
-% superimposed on the same figure (useful for plotting with
-% different grouping aesthetics). When using superimposed
-% plots, the last draw() should be given without this false
-% argument. Giving false as argument deactivates the automatic
-% call for the redraw() function, i.e. deactivates the fancy
-% axis placement.
+% Example syntax: gramm_object.draw()
+% Call draw() on an array of gramm objects in order to have multiple gramm
+% plots in a single figure, placed according to their indices in the array
+% (g(row,column)). Call draw() again after update() to draw the new layers
+% on the same plot. The plot is redrawn when the figure is resized, unless
+% deactivated with set_layout_options('redraw',false).
 
-%We set redraw() as resize callback by default
-if nargin<2
-    do_redraw=obj(1).layout_options.redraw;
-end
+%We set redraw() as resize callback unless deactivated
+do_redraw=obj(1).layout_options.redraw;
 
 %If no parent was given we use the current figure
 if isempty(obj(1).parent)
@@ -25,51 +18,74 @@ if isempty(obj(1).parent)
     end
 end
 
+%Drawing relies on the current figure and axes. Figures with hidden handles,
+%like the uifigure of an App Designer app, can't be current: their handle
+%is made visible while drawing
+fig=ancestor(obj(1).parent,'figure');
+if ~strcmp(fig.HandleVisibility,'on')
+    handle_visibility=fig.HandleVisibility;
+    fig.HandleVisibility='on';
+    restore_visibility=onCleanup(@() set(fig(isvalid(fig)),'HandleVisibility',handle_visibility)); %Also restored on error
+end
+
+
+
 %Handle call of draw() on array of gramm objects by dividing the figure
 %up and launching the individual draw functions of each object
 if numel(obj)>1
-    %Take care of the big title
-    if isempty(obj(1).bigtitle)
-        maxh=1;
-    else
-        maxh=0.94;
-        tmp=axes('Position',[0.1 0.965 0.8 0.01],'Parent',obj(1).parent);
-        set(tmp,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
-        tmp=text(0,0,obj(1).bigtitle,...
-            'FontWeight','bold',...
-            'Interpreter',obj(1).text_options.interpreter,...
-            'FontName',obj(1).text_options.font,...
-            'FontSize',obj(1).text_options.base_size*obj(1).text_options.big_title_scaling,...
-            'HorizontalAlignment','center');
-        
-        if ~isempty(obj(1).bigtitle_options)
-            set(tmp,obj(1).bigtitle_options{:});
-        end
-    end
-    
-    
+
     nl=size(obj,1);
     nc=size(obj,2);
+    
+    %Empty elements of the array are never drawn: the array is drawn for
+    %the first time when none of its elements has been drawn
+    first_draw=arrayfun(@(o) o.updater.first_draw,obj);
+    if all(first_draw(:))
+        %The layout holding the gramm plots goes in the parent (figure,
+        %panel, or tile of a tiledlayout)
+        bigtile = tiledlayout(obj(1).parent,nl,nc,'Padding',obj(1).layout_options.multi_padding,'TileSpacing',obj(1).layout_options.multi_spacing);
+        if isa(obj(1).parent,'matlab.graphics.layout.TiledChartLayout')
+            bigtile.Layout.Tile=obj(1).parent_tile.tile;
+            bigtile.Layout.TileSpan=obj(1).parent_tile.span;
+        end
+
+        bigtile.Title.String = obj(1).bigtitle;
+        bigtile.Title.FontWeight='bold';
+        bigtile.Title.FontSize= obj(1).text_options.base_size*obj(1).text_options.big_title_scaling;
+        bigtile.Title.Interpreter=obj(1).text_options.interpreter;
+        if ~isempty(obj(1).bigtitle_options)
+            set(bigtile.Title,obj(1).bigtitle_options{:});
+        end
+    else
+        %Later draws: elements drawn for the first time go in the layout
+        %holding the elements already drawn
+        bigtile=obj(find(~first_draw,1)).layout.Parent;
+    end
+
     for l=1:nl
         for c=1:nc
-            if strcmp(obj(l,c).layout_options.position,'auto')
-                obj(l,c).multi.orig=[(nl-l)*maxh/nl (c-1)/nc];
-                obj(l,c).multi.size=[maxh/nl 1/nc];
-            else
-                obj(l,c).multi.orig=[obj(l,c).layout_options.position(2)*maxh obj(l,c).layout_options.position(1)];
-                obj(l,c).multi.size=[obj(l,c).layout_options.position(4)*maxh obj(l,c).layout_options.position(3)];
+            if obj(l,c).updater.first_draw
+                obj(l,c).multi.active=true;
+                obj(l,c).set_parent(bigtile,'tile',[l c]);
             end
-            obj(l,c).layout_options.redraw_gap=obj(l,c).layout_options.redraw_gap/max(nl,nc);
-            obj(l,c).multi.active=true;
             draw(obj(l,c));
         end
     end
     
-    %Set up tight redrawing for multiple plots
-    if do_redraw
-        redraw(obj);
-        set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
+    %Legend vertical scaling, once the whole layout is known
+    for k=1:numel(obj)
+        scale_legend(obj(k));
     end
+
+    %Set up redrawing on resize for multiple plots
+    if do_redraw
+        register_redraw(obj);
+    end
+
+    %Redraw once the layout is computed (positions of the elements handled
+    %by redraw() and title widths are only known then)
+    drawnow;
+    redraw(obj);
     return;
 end
 
@@ -79,21 +95,32 @@ if isempty(obj.aes.x)
 end
 
 %If draw() is called a second time without update() having been
-%called we skip
+%called we skip (silently for the elements of an array of gramm plots that
+%were not updated when the array is drawn again)
 if (~obj.updater.first_draw && ~obj.updater.updated)
-    warning('Multiple draw() calls need update() calls')
+    if ~obj.multi.active
+        warning('Multiple draw() calls need update() calls')
+    end
     return
 end
 
-obj.aes=validate_aes(obj.aes);
+[obj.aes,obj.axis_types,obj.cat_order]=validate_aes(obj.aes,obj.axis_types,obj.cat_order,obj.continuous_color_options.active);
+%Polar angles in degrees are converted to radians along with the other
+%angles given to gramm (see to_num())
+if obj.polar.is_polar && strcmp(obj.polar.unit,'degrees')
+    obj.axis_types.x.unit='deg';
+elseif strcmp(obj.axis_types.x.type,'numeric')
+    obj.axis_types.x.unit='';
+end
+check_polar(obj);
 
 %Handle multiple figures
-uni_fig=unique_and_sort(obj.aes.fig,1);
+uni_fig=unique_and_sort(obj.aes.fig,natural_order(1,obj.cat_order.fig));
 if ~iscell(uni_fig)
     uni_fig=num2cell(uni_fig);
 end
 if numel(uni_fig)>1 %if multiple figures
-    fig_pos=get(obj.parent,'Position'); %We'll create them with the same location and size as the current figure
+    fig_pos=get(ancestor(obj.parent,'figure'),'Position'); %We'll create them with the same location and size as the current figure
     %Convert to a cell
     obj={obj};
     for ind_fig=2:numel(uni_fig) %Make shallow copy of original object
@@ -128,14 +155,19 @@ temp_aes=select_aes(obj.aes,obj.aes.subset);
 %Convert factor data to numeric
 if iscellstr(temp_aes.x)
     obj.x_factor=true;
-    obj.x_ticks=unique_and_sort(temp_aes.x,obj.order_options.x);
+    obj.x_ticks=unique_and_sort(temp_aes.x,natural_order(obj.order_options.x,obj.cat_order.x));
     tempx=zeros(length(temp_aes.x),1);
     for k=1:length(obj.x_ticks)
         tempx(strcmp(temp_aes.x,obj.x_ticks{k}))=k;
     end
+    if obj.polar.is_polar
+        %Categories evenly spread around the circle (radar charts)
+        tempx=(tempx-1)*2*pi/length(obj.x_ticks);
+    end
     temp_aes.x=tempx;
 else
     obj.x_factor=false;
+    temp_aes.x=to_num(obj.axis_types.x,temp_aes.x); %Degrees to radians
 end
 
 
@@ -164,58 +196,27 @@ if ~isempty(temp_aes.z)
 end
 
 
-%Handles the multiple gramm case: we set up subtightplot so
-%that it restricts the drawing (using margins) to a portion of
-%the figure
-mysubtightplot=@(m,n,p,gap,marg_h,marg_w)my_tightplot(m,n,p,...
-    [gap(2)*obj.multi.size(1) gap(1)*obj.multi.size(2)],...
-    [obj.multi.orig(1)+obj.multi.size(1)*marg_h(1) 1-obj.multi.orig(1)-obj.multi.size(1)*(1-marg_h(2))],...
-    [obj.multi.orig(2)+obj.multi.size(2)*marg_w(1) 1-obj.multi.orig(2)-obj.multi.size(2)*(1-marg_w(2))],'Parent',obj.parent);
-
-%Set subplot generation parameters and functions
-if strcmp(obj.layout_options.gap,'auto')
-    if obj.force_ticks  %Independent scales require more space between subplots for ticks
-        mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.06 0.06],obj.layout_options.margin_height,obj.layout_options.margin_width);  
-    else
-        mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,[0.02 0.02],obj.layout_options.margin_height,obj.layout_options.margin_width);
-    end
-else
-    mysubplot=@(nrow,ncol,row,col)mysubtightplot(nrow,ncol,(row-1)*ncol+col,obj.layout_options.gap,obj.layout_options.margin_height,obj.layout_options.margin_width);
-end
-
-%Subplots for wraps leave more space above axes for column
-%legend
-if strcmp(obj.layout_options.gap,'auto')
-    mysubplot_wrap=@(ncol,col)mysubtightplot(ceil(ncol/obj.wrap_ncols),obj.wrap_ncols,col,[0.03 0.09],obj.layout_options.margin_height,obj.layout_options.margin_width);
-else
-    mysubplot_wrap=@(ncol,col)mysubtightplot(ceil(ncol/obj.wrap_ncols),obj.wrap_ncols,col,obj.layout_options.gap,obj.layout_options.margin_height,obj.layout_options.margin_width);
-end
-
 %Find uniques in aesthetics and sort according to options
-uni_row=unique_and_sort(temp_aes.row,obj.order_options.row);
-uni_column=unique_and_sort(temp_aes.column,obj.order_options.column);
-uni_linestyle=unique_and_sort(temp_aes.linestyle,obj.order_options.linestyle);
-uni_marker=unique_and_sort(temp_aes.marker,obj.order_options.marker);
-uni_lightness=unique_and_sort(temp_aes.lightness,obj.order_options.lightness);
-uni_size=unique_and_sort(temp_aes.size,obj.order_options.size);
+uni_row=unique_and_sort(temp_aes.row,natural_order(obj.order_options.row,obj.cat_order.row));
+uni_column=unique_and_sort(temp_aes.column,natural_order(obj.order_options.column,obj.cat_order.column));
+uni_linestyle=unique_and_sort(temp_aes.linestyle,natural_order(obj.order_options.linestyle,obj.cat_order.linestyle));
+uni_marker=unique_and_sort(temp_aes.marker,natural_order(obj.order_options.marker,obj.cat_order.marker));
+uni_lightness=unique_and_sort(temp_aes.lightness,natural_order(obj.order_options.lightness,obj.cat_order.lightness));
+uni_size=unique_and_sort(temp_aes.size,natural_order(obj.order_options.size,obj.cat_order.size));
 
 %If the color is in a cell array of doubles, we set it as
 %continuous color
 if iscell(temp_aes.color) && ~iscellstr(temp_aes.color)
     obj.continuous_color_options.active = true;
 else
-    uni_color=unique_and_sort(temp_aes.color,obj.order_options.color);
+    uni_color=unique_and_sort(temp_aes.color,natural_order(obj.order_options.color,obj.cat_order.color));
     
-    % If continous_color is not set and we have too many numerical values 
-    % for the color we switch to continuous color
-    if isnan(obj.continuous_color_options.active)
-        if length(uni_color)>15 && ~iscellstr(uni_color)
-            obj.continuous_color_options.active = true;
-        else
-            obj.continuous_color_options.active = false;
-        end
-    elseif iscellstr(uni_color) %We can't have continuous color for cellstr input
+    if iscellstr(uni_color) %We can't have continuous color for cellstr input
         obj.continuous_color_options.active = false;
+    elseif ~obj.continuous_color_options.active && isnumeric(uni_color) && length(uni_color)>15
+        %Colors are categories unless set_continuous_color() is called
+        warning('gramm:manyColors',['''color'' has %d different numeric values, each drawn as a separate category. ' ...
+            'Use set_continuous_color() for a continuous color scale.'],length(uni_color));
     end
 end
 if obj.continuous_color_options.active
@@ -286,15 +287,53 @@ obj.firstrun=ones(n_rows,n_columns);
 %Index in the loops
 obj.result_ind=1;
 
-%Initialize facet axes handles
+%Initialize facet axes handles (when going from one to many facets after
+%update() this is done once the content of the first facet is copied)
 if obj.updater.first_draw
     obj.facet_axes_handles=gobjects(length(uni_row),length(uni_column));
 end
 
-%Set the dodge width across all facets
-draw_data.dodge_avl_w=min(diff(unique(comb(temp_aes.x))));
+%Set the dodge width across all facets (x values closer than rounding
+%errors count as the same value, as in dodger())
+x_gaps=diff(unique(comb(temp_aes.x)));
+draw_data.dodge_avl_w=min(x_gaps(x_gaps>1e-10));
 if isempty(draw_data.dodge_avl_w) || draw_data.dodge_avl_w==0
     draw_data.dodge_avl_w=1;
+end
+
+%Initialize tiled layout object. After update() the existing layout is
+%reused, unless we go from one to many facets
+if obj.updater.facet_updated==1
+    %The content of the single facet and the legend axes are set aside in
+    %a hidden figure while the layout is rebuilt (creating a tiledlayout in
+    %a figure deletes everything in it)
+    tmp_f=figure('Visible','off');
+    set(0,'CurrentFigure',ancestor(obj.parent,'figure'));
+    if obj.polar.is_polar
+        tmp_axes = polaraxes(tmp_f);
+    else
+        tmp_axes = axes(tmp_f);
+    end
+    first_axes_children = copyobj(allchild(obj.facet_axes_handles(1,1)),tmp_axes);
+    obj.legend_axe_handle.Parent=tmp_f;
+    delete(obj.layout);
+    obj.facet_axes_handles=gobjects(length(uni_row),length(uni_column));
+end
+if obj.updater.first_draw || obj.updater.facet_updated==1
+    if obj.wrap_ncols>0
+        grid=[ceil(length(uni_column)/obj.wrap_ncols) obj.wrap_ncols];
+    else
+        %Facets may span several tiles (facet_grid() 'space' option)
+        [grid,facet_tile,facet_row_span,facet_col_span]=facet_layout(obj,length(uni_row),length(uni_column));
+    end
+    obj.layout = tiledlayout(obj.parent,grid(1),grid(2));
+    if isa(obj.parent,'matlab.graphics.layout.TiledChartLayout')
+        obj.layout.Layout.Tile=obj.parent_tile.tile;
+        obj.layout.Layout.TileSpan=obj.parent_tile.span;
+    end
+    obj.facet_row_axes=gobjects(1,0);
+    obj.layout.TileSpacing = obj.layout_options.spacing;
+    obj.layout.Padding = obj.layout_options.padding;
 end
 
 obj.data_size=numel(temp_aes.x);
@@ -343,48 +382,31 @@ for ind_row=1:length(uni_row)
         
         %Create subplot (much faster to do it here at the most upper level: changing subplot takes a
         %long time in Matlab)
-        if obj.updater.first_draw %If we are in the normal case (first draw() call)
+        if obj.updater.first_draw || obj.updater.facet_updated==1
+            %First draw() call, or update() from one to many facets: the
+            %facets are (re)created in the layout
             if obj.wrap_ncols>0
-                obj.facet_axes_handles(ind_row,ind_column)=mysubplot_wrap(length(uni_column),ind_column);
+                obj.facet_axes_handles(ind_row,ind_column)=new_facet_axes(obj,ind_column,[1 1]);
             else
-                obj.facet_axes_handles(ind_row,ind_column)=mysubplot(length(uni_row),length(uni_column),ind_row,ind_column);
-            end            
-        else %If we are in a draw() call after an update() call
-            if obj.updater.facet_updated==1 %If faceting was updated from one to multiple facets
-                if ind_column==1 && ind_row==1 %If we are in the first facet
-                    %We don't need to create it again, it exists
-                    %axes(obj.facet_axes_handles(ind_row,ind_column));
-                    %Store content of first facet for copying it on the other facets !
-                    first_axes_children=allchild(obj.facet_axes_handles(ind_row,ind_column));
-                    axes(obj.facet_axes_handles(ind_row,ind_column));
-                else
-                    %We need to create the next facets because they don't exist
-                    if obj.wrap_ncols>0
-                        obj.facet_axes_handles(ind_row,ind_column)=mysubplot_wrap(length(uni_column),ind_column);
-                    else
-                        obj.facet_axes_handles(ind_row,ind_column)=mysubplot(length(uni_row),length(uni_column),ind_row,ind_column);
-                    end
-                    %And we copy the contents of the first facet in the new ones
-                    copyobj(first_axes_children,obj.facet_axes_handles(ind_row,ind_column));
-                end
-            elseif obj.updater.facet_updated==-1 %If facets were updated from many to one facets
-                if ind_column==1 && ind_row==1
-                    %We store the current content of the first
-                    %facet so that we can check which new
-                    %things are going to be drawn in
-                    first_axes_children=allchild(obj.facet_axes_handles(ind_row,ind_column));
-                end
-            else
-                %In other cases (same facets or multiple to
-                %one facet), the facets already exist
-                axes(obj.facet_axes_handles(ind_row,ind_column));
+                obj.facet_axes_handles(ind_row,ind_column)=new_facet_axes(obj,facet_tile(ind_row,ind_column),...
+                    [facet_row_span(ind_row) facet_col_span(ind_column)]);
             end
+            set_rulers(obj,obj.facet_axes_handles(ind_row,ind_column));
+            if obj.updater.facet_updated==1
+                %Copy the content of the former single facet
+                copyobj(first_axes_children,obj.facet_axes_handles(ind_row,ind_column));
+            end
+        elseif obj.updater.facet_updated==-1 && ind_column==1 && ind_row==1
+            %update() from many to one facet: new content is drawn in the
+            %first facet only, and copied to the others at the end of
+            %draw(). Store what is already there to know what is new.
+            first_axes_children=allchild(obj.facet_axes_handles(1,1));
         end
         
-        %Make axes current
-        %Was making figure visible even when visibility was set to off
-        %axes(obj.facet_axes_handles(ind_row,ind_column)); 
-        groot.CurrentFigure.CurrentAxes=obj.facet_axes_handles(ind_row,ind_column);
+        %Make axes current (axes() would make an invisible figure visible;
+        %groot can't be used here: the assignment would make it a variable)
+        set(0,'CurrentFigure',ancestor(obj.facet_axes_handles(ind_row,ind_column),'figure'));
+        set(gcf,'CurrentAxes',obj.facet_axes_handles(ind_row,ind_column));
         
         hold on
         
@@ -564,17 +586,8 @@ for ind_row=1:length(uni_row)
                 end
                 
                 if ind_row==1
-                    obj.facet_text_handles=[obj.facet_text_handles ...
-                        text('Interpreter',obj.text_options.interpreter,'String',column_string,'Rotation',0,...
-                        'Units','normalized',...
-                        'Position',[0.5 1.05 2],...
-                        'BackgroundColor','none',...
-                        'HorizontalAlignment','Center',...
-                        'VerticalAlignment','bottom',...
-                        'FontWeight','bold',...
-                        'FontName',obj.text_options.font,...
-                        'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
-                        'Parent',obj.facet_axes_handles(ind_row,ind_column))];
+                    obj.facet_axes_handles(ind_row,ind_column).Title.String = column_string;
+                    obj.facet_text_handles=[obj.facet_text_handles obj.facet_axes_handles(ind_row,ind_column).Title];
                 end
             end
             if length(uni_row)>1  && obj.row_labels
@@ -585,17 +598,25 @@ for ind_row=1:length(uni_row)
                 end
                 
                 if ind_column==length(uni_column)
-                    obj.facet_text_handles=[obj.facet_text_handles ...
-                        text('Interpreter',obj.text_options.interpreter,'String',row_string,'Rotation',-90,...
-                        'Units','normalized',...
-                        'Position',[1.05 0.5 2],...
-                        'BackgroundColor','none',...
-                        'HorizontalAlignment','Center',...
-                        'VerticalAlignment','bottom',...
-                        'FontWeight','bold',...
+                    
+                    %Row titles are the right-side YLabel of an empty axes
+                    %placed in the same tile as the facet, so that
+                    %tiledlayout reserves their space without touching
+                    %the facet axes themselves
+                    ca=obj.facet_axes_handles(ind_row,ind_column);
+                    row_axe=axes(obj.layout);
+                    row_axe.Layout.Tile=ca.Layout.Tile;
+                    row_axe.Layout.TileSpan=ca.Layout.TileSpan;
+                    set(row_axe,'Visible','off','YAxisLocation','right',...
+                        'HitTest','off','PickableParts','none','HandleVisibility','off');
+                    row_axe.YLabel.String=row_string;
+                    set(row_axe.YLabel,'Interpreter',obj.text_options.interpreter,...
                         'FontName',obj.text_options.font,...
                         'FontSize',obj.text_options.base_size*obj.text_options.facet_scaling,...
-                        'Parent',obj.facet_axes_handles(ind_row,ind_column))];
+                        'FontWeight','bold',...
+                        'Rotation',-90,'VerticalAlignment','bottom','Visible','on');
+                    obj.facet_text_handles=[obj.facet_text_handles row_axe.YLabel];
+                    obj.facet_row_axes(ind_row)=row_axe;
                 end
             end
         end
@@ -606,27 +627,19 @@ end
 
 %% draw() Title
 if ~isempty(obj.title)
-    if obj.updater.first_draw
-        obj.title_axe_handle=axes('Position',[obj.multi.orig(2)+0.1*obj.multi.size(2)...
-            obj.multi.orig(1)+0.90*obj.multi.size(1) 0.8*obj.multi.size(2) 0.05*obj.multi.size(1)],...
-            'Parent',obj.parent);
+    if obj.updater.first_draw || obj.updater.facet_updated==1
+
+        obj.layout.Title.String = obj.title;
+        obj.layout.Title.FontWeight='bold';
+        obj.layout.Title.FontSize=obj.text_options.base_size*obj.text_options.title_scaling;
+        obj.layout.Title.Interpreter=obj.text_options.interpreter;
+        obj.title_text_handle = obj.layout.Title;
         
-        set(obj.title_axe_handle,'Visible','off','XLim',[-1 1],'YLim',[-1 1]);
-        obj.title_axe_handle.Toolbar.Visible='off';
-        obj.title_axe_handle.Interactions=[];
-        obj.title_text_handle=text(0,0,obj.title,...
-            'FontWeight','bold',...
-            'Interpreter',obj.text_options.interpreter,...
-            'FontName',obj.text_options.font,...
-            'FontSize',obj.text_options.base_size*obj.text_options.title_scaling,...
-            'HorizontalAlignment','center',...
-            'Parent',obj.title_axe_handle);
         if ~isempty(obj.title_options)
             set(obj.title_text_handle,obj.title_options{:});
         end
     end
 else
-    obj.title_axe_handle=[];
 end
 
 %% Compute continuous colormap limits
@@ -634,6 +647,9 @@ end
 if obj.continuous_color_options.active
     if isempty(obj.continuous_color_options.CLim)
         obj.continuous_color_options.CLim = [min(min(obj.plot_lim.minc)) max(max(obj.plot_lim.maxc))];
+        if any(isnan(obj.continuous_color_options.CLim)) %Only geoms that don't use continuous colors (stats)
+            obj.continuous_color_options.CLim = [min(comb(temp_aes.color)) max(comb(temp_aes.color))];
+        end
     end
     if obj.continuous_color_options.CLim(1) == obj.continuous_color_options.CLim(2)
         if obj.continuous_color_options.CLim(1) == 0
@@ -655,29 +671,29 @@ str_uni_size = cellfun(@num2str,uni_size,'UniformOutput',false);
 str_uni_marker = cellfun(@num2str,uni_marker,'UniformOutput',false);
 
 
-%Create axes for legends
+%Create axes for legends (after update() the same legend axes is reused and
+%the new entries are added below the existing ones)
 if obj.updater.first_draw
     if strcmp(obj.layout_options.legend_position,'auto')
-        if strcmp(obj.layout_options.legend_width,'auto')
-            obj.legend_axe_handle=axes('Position',[obj.multi.orig(2)+0.85*obj.multi.size(2)...
-                obj.multi.orig(1)+0.1*obj.multi.size(1) 0.15*obj.multi.size(2) 0.8*obj.multi.size(1)],...
-                'Parent',obj.parent);
-        else
-            obj.legend_axe_handle=axes('Position',[obj.multi.orig(2)+(1-obj.layout_options.legend_width)*obj.multi.size(2)...
-                obj.multi.orig(1)+0.1*obj.multi.size(1) 0.15*obj.multi.size(2) 0.8*obj.multi.size(1)],...
-                'Parent',obj.parent);
-        end
+        obj.legend_axe_handle=axes(obj.layout);
+        obj.legend_axe_handle.Layout.Tile='east';
     else
         obj.legend_axe_handle=axes('Position',obj.layout_options.legend_position,...
-                'Parent',obj.parent);
+                'Parent',ancestor(obj.parent,'figure'));
     end
     hold on
     set(obj.legend_axe_handle,'Visible','off','NextPlot','add');
     obj.legend_axe_handle.Toolbar.Visible = 'off';
     obj.legend_axe_handle.Interactions = [];
-    %set(obj.legend_axe_handle,'PlotBoxAspectRatio',[1 1 1]);
-else
-    axes(obj.legend_axe_handle)
+elseif obj.updater.facet_updated==1
+    %Bring back the legend axes set aside while the layout was rebuilt
+    if strcmp(obj.layout_options.legend_position,'auto')
+        obj.legend_axe_handle.Parent=obj.layout;
+        obj.legend_axe_handle.Layout.Tile='east';
+    else
+        obj.legend_axe_handle.Parent=ancestor(obj.parent,'figure');
+    end
+    close(tmp_f);
 end
 
 legend_y_step=1;
@@ -712,9 +728,6 @@ if obj.layout_options.legend
             lightness_legend_map=pa_LCH2RGB([linspace(obj.color_options.lightness_range(1),obj.color_options.lightness_range(2),length(uni_lightness))' ...
                 zeros(length(uni_lightness),1)...
                 zeros(length(uni_lightness),1)]);
-            if strcmp(my_theme(gcf), "Dark Theme")
-                lightness_legend_map = fliplightness(lightness_legend_map);
-            end
         else
             %Make a colormap with the first color
             lightness_legend_map=get_colormap(1,length(str_uni_lightness),obj.color_options);
@@ -786,9 +799,9 @@ if obj.layout_options.legend
         
         fill_legend(obj,obj.aes_names.linestyle,...
             str_uni_linestyle,...
-            'line',...
+            'linestyle',...
             color_legend_map,...
-            'o',obj.line_options.styles,3,0);
+            'o',obj.line_options.styles,obj.line_options.base_size,0);
     end
     
     %Size legend
@@ -823,14 +836,27 @@ if obj.layout_options.legend
     end
 end
 
+%Group legend objects
+tmp = obj.legend_axe_handle.Children;
+if isempty(obj.legend_transform) || ~isvalid(obj.legend_transform)
+    obj.legend_transform = hgtransform('Parent',obj.legend_axe_handle);
+end
+tmp(tmp==obj.legend_transform)=[];
+set(tmp,'Parent',obj.legend_transform);
+%Like the texts, symbols stay visible outside of the axes limits
+set(findobj(tmp,'Type','line'),'Clipping','off');
+
 %Set size of legend axes
 set(obj.legend_axe_handle,'XLim',[1 8]);
-%xlim([1 8])
 if obj.legend_y<0
-    set(obj.legend_axe_handle,'YLim',[obj.legend_y 1]);
-    %ylim([obj.legend_y 1])
+    set(obj.legend_axe_handle,'YLim',[obj.legend_y -obj.legend_y]/2);
 end
-%set(obj.legend_axe_handle,'DataAspectRatio',[1 1 1]);
+
+%Make the tiledlayout reserve the legend width. The vertical scaling
+%(scale_legend()) is done at the end of draw(), once the layout is complete
+reserve_legend_width(obj);
+
+
 
 %If we go from many to one facet, the new content is drawn only
 %on the first facet so needs to be copied in the other one
@@ -848,6 +874,19 @@ end
 
 %% draw() axes modifications
 
+set_axis_labels(obj);
+
+if isempty(obj.aes.z)
+    axtoolbar(obj.layout,{'datacursor','pan','zoomin','zoomout','pan','restoreview'});
+else
+    axtoolbar(obj.layout,{'datacursor','rotate','pan','zoomin','zoomout','pan','restoreview'});
+end
+
+%How limits are shared between facets, according to facet_scale and
+%wrapping
+[temp_xscale,temp_yscale,temp_zscale]=facet_scales(obj);
+log_lims(obj);
+
 %Set various properties on each of the subplots
 for ind_row=1:length(uni_row) %Loop over rows
     
@@ -858,12 +897,7 @@ for ind_row=1:length(uni_row) %Loop over rows
         
         set(ca,'FontName',obj.text_options.font,...
             'FontSize',obj.text_options.base_size)
-        
-        if isempty(obj.aes.z)
-            axtoolbar(ca,{'datacursor','pan','zoomin','zoomout','pan','restoreview'});
-        else
-            axtoolbar(ca,{'datacursor','rotate','pan','zoomin','zoomout','pan','restoreview'});
-        end
+       
         
         if obj.continuous_color_options.active
             %Set color limits the same way on each plot
@@ -876,176 +910,47 @@ for ind_row=1:length(uni_row) %Loop over rows
         obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)=obj.plot_lim.maxx(obj.plot_lim.minx==obj.plot_lim.maxx)+0.01;
         obj.plot_lim.maxz(obj.plot_lim.minz==obj.plot_lim.maxz)=obj.plot_lim.maxz(obj.plot_lim.minz==obj.plot_lim.maxz)+0.01;
         
-       
-        if ~obj.polar.is_polar % XY Limits are only useful for non-polar plots
-            
-            %Set axes limits logic according to facet_scale and
-            %wrapping. Also set up corresponding axis linking, using tip from
-            % http://undocumentedmatlab.com/blog/using-linkaxes-vs-linkprop#more-5928
-            if (obj.wrap_ncols>0) %in the facet_wrap case
-                switch obj.facet_scale
-                    case 'fixed'
-                        temp_xscale='global';
-                        temp_yscale='global';
-                        temp_zscale='global';
-                        
-                        %Both XLims and YLims are linked across
-                        %all plots
-                        if ind_row==1 && ind_column==1 %We only do the linking once for all plots facets
-                            obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
-                            obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
-                            obj.extra.ZLim_listeners=linkprop(obj.facet_axes_handles(:),'ZLim');
-                        end
-                    case 'free_x'
-                        temp_xscale='per_plot';
-                        temp_yscale='global';
-                        temp_zscale='global';
-                        
-                        %YLims are linked across all plots
-                        if ind_row==1 && ind_column==1
-                            obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
-                        end
-                    case 'free_y'
-                        temp_xscale='global';
-                        temp_yscale='per_plot';
-                        temp_zscale='global';
-                        
-                        %XLims are linked across all plots
-                        if ind_row==1 && ind_column==1
-                            obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
-                        end
-                    case 'free'
-                        temp_xscale='per_plot';
-                        temp_yscale='per_plot';
-                        temp_zscale='per_plot';
-                    case 'independent'
-                        temp_xscale='per_plot';
-                        temp_yscale='per_plot';
-                        temp_zscale='per_plot';
-                end
-            else %In the facet_grid case
-                switch obj.facet_scale
-                    case 'fixed'
-                        temp_xscale='global';
-                        temp_yscale='global';
-                        temp_zscale='global';
-                        
-                        %Both XLim and YLim are linked across
-                        %all plots
-                        if ind_row==1 && ind_column==1
-                            obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
-                            obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
-                            obj.extra.ZLim_listeners=linkprop(obj.facet_axes_handles(:),'ZLim');
-                        end
-                    case 'free_x'
-                        temp_xscale='per_column';
-                        temp_yscale='global';
-                        temp_zscale='global';
-                        
-                        %YLims are linked across all plots,
-                        if ind_row==1 && ind_column==1
-                            obj.extra.YLim_listeners=linkprop(obj.facet_axes_handles(:),'YLim');
-                        end
-                        if obj.is_flipped
-                            %For flipped axes, we link XLims within rows
-                            if ind_column==1
-                                obj.extra.XLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'XLim');
-                            end
-                        else
-                            %XLims are linked within columns for
-                            %non-flipped axes
-                            if ind_row==1
-                                obj.extra.XLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(:,ind_column),'XLim');
-                            end
-                        end
-                    case 'free_y'
-                        temp_xscale='global';
-                        temp_yscale='per_row';
-                        temp_zscale='global';
-                        
-                        %XLims are linked across all plots,
-                        if ind_row==1 && ind_column==1
-                            obj.extra.XLim_listeners=linkprop(obj.facet_axes_handles(:),'XLim');
-                        end
-                        if obj.is_flipped
-                            %For flipped axes, we link YLims within columns
-                            if ind_row==1
-                                obj.extra.YLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(ind_column,:),'YLim');
-                            end
-                        else
-                            %YLims are linked within rows for non-flipped
-                            %axes
-                            if ind_column==1
-                                obj.extra.YLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'YLim');
-                            end
-                        end
-                    case 'free'
-                        temp_xscale='per_column';
-                        temp_yscale='per_row';
-                        
-                        if obj.is_flipped
-                            %Flipped case
-                            %XLims are linked within rows
-                            %YLims are linked within columns
-                            if ind_row==1
-                                obj.extra.YLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(:,ind_column),'YLim');
-                            end
-                            if ind_column==1
-                                obj.extra.XLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'XLim');
-                            end
-                        else
-                            %Non flipped case
-                            %XLims are linked within columns
-                            %YLims are linked within rows
-                            if ind_row==1
-                                obj.extra.XLim_listeners(ind_column)=linkprop(obj.facet_axes_handles(:,ind_column),'XLim');
-                            end
-                            if ind_column==1
-                                obj.extra.YLim_listeners(ind_row)=linkprop(obj.facet_axes_handles(ind_row,:),'YLim');
-                            end
-                        end
-                    case 'independent'
-                        temp_xscale='per_plot';
-                        temp_yscale='per_plot';
-                        temp_zscale='per_plot';
-                end
+        temp_ylim=facet_lim(obj,'y',temp_yscale,ind_row,ind_column);
+        
+        if obj.polar.is_polar
+            %The radius spans from 0 (or the negative minimum) to the
+            %maximum, the angle the full circle
+            temp_ylim=[min(0,temp_ylim(1)) temp_ylim(2)+diff(temp_ylim)*obj.ylim_extra(2)];
+            if obj.polar.max_polar_y>0
+                temp_ylim(2)=obj.polar.max_polar_y;
             end
-            
-            
-            
-            %Actually set the axes scales and presence of
-            %labels depending on logic determined above
-            switch temp_xscale
-                case 'global'
-                    temp_xlim=[min(min(obj.plot_lim.minx(:,:))) max(max(obj.plot_lim.maxx(:,:)))];
-                case 'per_column'
-                    if obj.is_flipped
-                        temp_xlim=[min(obj.plot_lim.minx(ind_row,:)) max(obj.plot_lim.maxx(ind_row,:))];
-                    else
-                        temp_xlim=[min(obj.plot_lim.minx(:,ind_column)) max(obj.plot_lim.maxx(:,ind_column))];
-                    end
-                case 'per_plot'
-                    temp_xlim=[obj.plot_lim.minx(ind_row,ind_column) obj.plot_lim.maxx(ind_row,ind_column)];
+            if sum(isnan(temp_ylim))==0 && diff(temp_ylim)>0
+                ca.RLim=temp_ylim;
             end
+            avoid_spikes(ca);
+            %Angle ticks at the categories of categorical x, or at the
+            %angles of x when there are few of them (e.g. directions
+            %sampled at regular intervals)
+            if obj.x_factor
+                angles=(0:length(obj.x_ticks)-1)*2*pi/length(obj.x_ticks);
+            else
+                angles=uniquetol(mod(comb(temp_aes.x),2*pi),1e-9);
+            end
+            if obj.x_factor || (numel(angles)>=3 && numel(angles)<=12)
+                if strcmp(obj.polar.unit,'degrees')
+                    angles=rad2deg(angles);
+                end
+                ca.ThetaTick=angles;
+            end
+            if obj.x_factor
+                ca.ThetaTickLabel=obj.x_ticks;
+                ca.TickLabelInterpreter='none';
+            end
+        else
+            temp_xlim=facet_lim(obj,'x',temp_xscale,ind_row,ind_column);
             if sum(isnan(temp_xlim))==0
-                set(ca,'XLim',temp_xlim+[-diff(temp_xlim)*obj.xlim_extra(1) diff(temp_xlim)*obj.xlim_extra(2)]);
-            end
-            
-            switch temp_yscale
-                case 'global'
-                    temp_ylim=[min(min(obj.plot_lim.miny(:,:))) max(max(obj.plot_lim.maxy(:,:)))];
-                case 'per_row'
-                    if obj.is_flipped
-                        temp_ylim=[min(obj.plot_lim.miny(:,ind_column)) max(obj.plot_lim.maxy(:,ind_column))];
-                    else
-                        temp_ylim=[min(obj.plot_lim.miny(ind_row,:)) max(obj.plot_lim.maxy(ind_row,:))];
-                    end
-                case 'per_plot'
-                    temp_ylim=[obj.plot_lim.miny(ind_row,ind_column) obj.plot_lim.maxy(ind_row,ind_column)];
+                set_num_lim(ca,'X',pad_lim(temp_xlim,obj.xlim_extra,obj.axis_scale.x));
             end
             if sum(isnan(temp_ylim))==0
-                set(ca,'YLim',temp_ylim+[-diff(temp_ylim)*obj.ylim_extra(1) diff(temp_ylim)*obj.ylim_extra(2)]);
+                set_num_lim(ca,'Y',pad_lim(temp_ylim,obj.ylim_extra,obj.axis_scale.y));
             end
+            log_ticks(ca,'X',obj.axis_scale.x);
+            log_ticks(ca,'Y',obj.axis_scale.y);
             
             %Is the axis at interesting locations for ticks/labels?
             on_left=(obj.wrap_ncols==-1 && ind_column==1) || ... %Or if we're in facet grid mode and are in the first column
@@ -1058,13 +963,8 @@ for ind_row=1:length(uni_row) %Loop over rows
             
             if ~isempty(temp_aes.z) %Only do the Z limit stuff if we have z data
                 
-                switch temp_zscale
-                    case 'global'
-                        temp_zlim=[min(min(obj.plot_lim.minz(:,:))) max(max(obj.plot_lim.maxz(:,:)))];
-                    case 'per_plot'
-                        temp_zlim=[obj.plot_lim.minz(ind_row,ind_column) obj.plot_lim.maxz(ind_row,ind_column)];
-                end
-                set(ca,'ZLim',temp_zlim+[-diff(temp_zlim)*obj.zlim_extra(1) diff(temp_zlim)*obj.zlim_extra(2)]);
+                temp_zlim=facet_lim(obj,'z',temp_zscale,ind_row,ind_column);
+                set(ca,'ZLim',pad_lim(temp_zlim,obj.zlim_extra,obj.axis_scale.z));
                 
                 %Always have ticks if we have z data
                 has_xtick=true;
@@ -1110,21 +1010,6 @@ for ind_row=1:length(uni_row) %Loop over rows
                 end
             end
             
-            %Add axes labels on right and botttom graphs only
-            if (~obj.is_flipped && on_left) || ~isempty(temp_aes.z) || ...
-               (obj.is_flipped && on_bottom)   %If coord flipped do it the other way around (y like x)
-                ylabel(ca,obj.aes_names.y,...
-                    'Interpreter',obj.text_options.interpreter,...
-                    'FontName',obj.text_options.font,...
-                    'FontSize',obj.text_options.base_size*obj.text_options.label_scaling); %,'Units','normalized','position',[-0.2 0.5 1]
-            end
-            if (~obj.is_flipped && on_bottom) || ~isempty(temp_aes.z) ||...
-                (obj.is_flipped && on_left) %If coord flipped do it the other way around (x like y)
-                xlabel(ca,obj.aes_names.x,...
-                    'Interpreter',obj.text_options.interpreter,...
-                    'FontName',obj.text_options.font,...
-                    'FontSize',obj.text_options.base_size*obj.text_options.label_scaling)
-            end
             %If we have z data
             if ~isempty(temp_aes.z)
                 zlabel(ca,obj.aes_names.z,...
@@ -1141,17 +1026,6 @@ for ind_row=1:length(uni_row) %Loop over rows
                 end
             end
             
-        else
-            %Make polar axes
-            if obj.polar.max_polar_y<0
-                if strcmp(obj.facet_scale,'fixed')
-                    draw_polar_axes(ca,max(max(obj.plot_lim.maxy(:,:))));
-                else
-                    draw_polar_axes(ca,obj.plot_lim.maxy(ind_row,ind_column));
-                end
-            else
-                draw_polar_axes(ca,obj.polar.max_polar_y)
-            end
         end
         
         
@@ -1165,9 +1039,18 @@ for ind_row=1:length(uni_row) %Loop over rows
                 end
             end
         end
+        %With flipped axes, MATLAB displays the y axis on the opposite side
+        %when x or y is log
+        if obj.is_flipped && any(strcmp({obj.axis_scale.x obj.axis_scale.y},'log')) && strcmp(ca.YAxisLocation,'left')
+            ca.YAxisLocation='right';
+        end
         
-        %Do the datetick
-        if ~isempty(obj.datetick_params)
+        %Do the datetick (legacy, for datenum x data)
+        if ~isempty(obj.datetick_params) && ~strcmp(obj.axis_types.x.type,'numeric')
+            if ind_row==1 && ind_column==1
+                warning('gramm:datetick','set_datetick() is ignored for datetime/duration x data, which is displayed natively');
+            end
+        elseif ~isempty(obj.datetick_params)
             for dtk=1:length(obj.datetick_params)
                 %Previously used 'keepticks' by default  which could cause a truncation of the axes
                 datetick(ca,obj.datetick_params{dtk}{:});
@@ -1177,76 +1060,50 @@ for ind_row=1:length(uni_row) %Loop over rows
         %Set ablines, hlines and vlines (after axe properties in case the limits
         %are changed there
         if obj.abline.on
-            %xl=get(ca,'xlim');
-            for line_ind=1:length(obj.abline.intercept)
-                tmp_xl=[obj.var_lim.minx obj.var_lim.maxx];
-                tmp_extent=(tmp_xl(2)-tmp_xl(1))*obj.abline.extent(line_ind)/2;
-                xl=[mean(tmp_xl)-tmp_extent mean(tmp_xl)+tmp_extent];
-                if strcmp(ca.XScale,'log') && xl(1)<0 %Correct negative values if log axes
-                    xl(1)=1;
-                end
-                if ~isnan(obj.abline.intercept(line_ind))
-                    %draw it properly (curved) if log axes
-                    if strcmp(ca.XScale,'log') || strcmp(ca.YScale,'log')
-                        xl=xl(1):(xl(2)-xl(1))/50:xl(2);
-                    end
-                    %abline
-                    plot(xl,xl*obj.abline.slope(line_ind)+obj.abline.intercept(line_ind),obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca);
-                else
-                    if ~isnan(obj.abline.xintercept(line_ind))
-                        %vline
-                        %yl=get(ca,'ylim');
-                        if obj.var_lim.miny == obj.var_lim.maxy %We are probably in a case where y wasn't provided (histogram or raster)
-                            tmp_yl=[0 numel(temp_aes.x)]; %We scale y according to number of x elements
-                        else
-                            tmp_yl=[obj.var_lim.miny obj.var_lim.maxy];
-                        end
-                        tmp_extent=(tmp_yl(2)-tmp_yl(1))*obj.abline.extent(line_ind)/2;
-                        yl=[mean(tmp_yl)-tmp_extent mean(tmp_yl)+tmp_extent];
-                        plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca);
-                    else
-                        if ~isnan(obj.abline.yintercept(line_ind))
-                            %hline
-                            plot(xl,[obj.abline.yintercept(line_ind) obj.abline.yintercept(line_ind)],obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca);
-                        else
-                            temp_x=linspace(xl(1),xl(2),500);
-                            plot(temp_x,obj.abline.fun{line_ind}(temp_x),obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca);
-                        end
-                    end
-                end
-            end
-            
+            draw_ablines(obj,ca,temp_aes);
         end
         
     end
 end
 
-
-%Background !
-if strcmp(my_theme(gcf), 'Light Theme')
-    set(gcf,'color',[1 1 1],'PaperPositionMode','auto');
+%Link the limits of facets that share them
+if obj.polar.is_polar
+    obj.extra.YLim_listeners=link_lims(obj,'RLim',temp_yscale);
 else
-    set(gcf,'color',[0.0706    0.0706    0.0706],'PaperPositionMode','auto');
-    %Handle black lines and markers : we assume that pure black should
-    %become white
-    h=findall(gcf,'Color',[0 0 0]);
-    set(h,'Color',fliplightness([0 0 0]));
-    h=findall(gcf,'EdgeColor',[0 0 0]);
-    set(h,'EdgeColor',fliplightness([0 0 0]));
-    h=findall(gcf,'MarkerEdgeColor',[0 0 0]);
-    set(h,'MarkerEdgeColor',fliplightness([0 0 0]));
-    h=findall(gcf,'MarkerFaceColor',[0 0 0]);
-    set(h,'MarkerFaceColor',fliplightness([0 0 0]));
+    obj.extra.XLim_listeners=link_lims(obj,'XLim',temp_xscale);
+    obj.extra.YLim_listeners=link_lims(obj,'YLim',temp_yscale);
+    if strcmp(obj.facet_scale,'fixed')
+        obj.extra.ZLim_listeners=link_lims(obj,'ZLim',temp_zscale);
+    end
 end
 
 
+%Background matching the axes, and black elements following the theme
+apply_theme(obj);
 
 
 
-% Make everything tight and set the resize function so that it stays so
-if do_redraw  && ~obj.multi.active %Redrawing for multiple plots is handled at the beginning of draw()
+
+
+%Facet sizes proportional to axes limits (facet_grid() 'space' option)
+apply_facet_space(obj);
+
+%Legend vertical scaling (for multiple plots it's done once all are drawn)
+if ~obj.multi.active
+    scale_legend(obj);
+end
+
+%Redrawing for multiple plots is handled at the beginning of draw()
+if ~obj.multi.active
+    % Set the resize function
+    if do_redraw
+        register_redraw(obj);
+    end
+
+    %Redraw once the layout is computed (positions of the elements handled
+    %by redraw() and title widths are only known then)
+    drawnow;
     redraw(obj);
-    set(gcf,'SizeChangedFcn',@(a,b)redraw(obj));
 end
 
 
@@ -1269,6 +1126,358 @@ end
 obj.updater.first_draw=false;
 end
 
+function register_redraw(obj)
+%All the gramm plots of a figure (arrays, or plots drawn in tiles of a
+%tiledlayout with set_parent()) are redrawn when it is resized
+fig=ancestor(obj(1).parent,'figure');
+plots=reshape(obj,1,[]);
+previous=getappdata(fig,'gramm_plots');
+for k=1:numel(previous)
+    if ~any(previous(k)==plots)
+        plots=[plots previous(k)];
+    end
+end
+setappdata(fig,'gramm_plots',plots);
+%uifigures resize their children themselves and never call SizeChangedFcn:
+%there the app can call redraw() itself
+if ~strcmp(fig.AutoResizeChildren,'on')
+    set(fig,'SizeChangedFcn',@(~,~)on_resize(fig));
+end
+end
+
+function on_resize(fig)
+%Redraw once the resizing has stopped. Until then tiledlayout handles the
+%layout alone: during the resize callback the layout still reports sizes
+%from before the resize (legend axes width, title space), so redrawing
+%there would be both slow and wrong
+t=getappdata(fig,'gramm_redraw_timer');
+if isempty(t) || ~isvalid(t)
+    t=timer('StartDelay',0.15,'ExecutionMode','singleShot','Name','gramm_redraw',...
+        'TimerFcn',@(~,~)settled_redraw(fig));
+    setappdata(fig,'gramm_redraw_timer',t);
+    addlistener(fig,'ObjectBeingDestroyed',@(~,~)delete_timer(t));
+end
+stop(t);
+start(t);
+end
+
+function delete_timer(t)
+stop(t);
+delete(t);
+end
+
+function settled_redraw(fig)
+if isgraphics(fig)
+    drawnow;
+    redraw(getappdata(fig,'gramm_plots'));
+end
+end
+
+function ax=new_facet_axes(obj,tile,span)
+%Facet axes in a tile of the layout: polar axes for set_polar()
+if obj.polar.is_polar
+    ax=polaraxes(obj.layout);
+    ax.Layout.Tile=tile;
+    ax.Layout.TileSpan=span;
+    ax.ThetaAxisUnits=obj.polar.unit;
+else
+    ax=nexttile(obj.layout,tile,span);
+    set(ax,'XScale',obj.axis_scale.x,'YScale',obj.axis_scale.y,'ZScale',obj.axis_scale.z);
+end
+end
+
+
+function avoid_spikes(ax)
+%MATLAB can draw spikes out of polar axes for lines going through the exact
+%center (e.g. empty histogram bins), and for patches with edges that are
+%only about a pixel wide (e.g. small histogram wedges). Points at the center
+%are moved slightly away from it, and edged polygons (patch columns without
+%NaNs, which gramm uses to separate lines) within 1% of the radius range
+%from the center are hidden
+center=ax.RLim(1);
+range=diff(ax.RLim);
+objs=findobj(ax,'Type','line','-or','Type','patch');
+for k=1:numel(objs)
+    r=objs(k).RData;
+    if isempty(r)
+        continue
+    end
+    if strcmp(objs(k).Type,'patch') && ~isequal(objs(k).EdgeColor,'none')
+        small=max(r,[],1)-center<0.01*range & ~any(isnan(r),1);
+        r(:,small)=NaN;
+    end
+    r(r==center)=center+range*1e-6;
+    if ~isequaln(r,objs(k).RData)
+        objs(k).RData=r;
+    end
+end
+end
+
+
+function check_polar(obj)
+%Error for what polar plots don't support. Geoms and stats are identified by
+%the function they register in obj.geom
+if ~obj.polar.is_polar
+    return
+end
+supported={'my_point','my_jitter','my_line','my_count','my_label','my_bar','my_ci',...
+    'my_bin','my_density','my_summary','my_smooth','my_fit','my_glm'};
+geoms=cellfun(@(f) regexp(func2str(f),'^@\([^)]*\)(\w+)','tokens','once'),obj.geom,'UniformOutput',false);
+geoms=[cell(1,0) geoms{:}];
+unsupported=setdiff(geoms,supported);
+if ~isempty(unsupported)
+    what=[strjoin(strrep(unsupported,'my_',''),', ') ' (geom/stat)'];
+elseif ~isempty(obj.aes.z)
+    what='z data';
+elseif obj.is_flipped
+    what='coord_flip()';
+elseif ~strcmp(obj.facet_space,'fixed')
+    what='facet_grid() ''space''';
+elseif ~isempty(obj.datetick_params)
+    what='set_datetick()';
+elseif obj.polygon.on
+    what='geom_polygon()';
+elseif ~all(strcmp(struct2cell(obj.axis_scale),'linear'))
+    what='log axes';
+else
+    return
+end
+error('gramm:polarUnsupported','Not supported in polar plots: %s',what);
+end
+
+
+function set_axis_labels(obj)
+%x and y names on the shared axis labels of the layout. For polar plots too
+%(angle name below, radius name on the left): the labels of polar axes are
+%placed by MATLAB over the data and the neighboring facets
+if obj.is_flipped
+    %With flipped axes, tiledlayout doesn't reserve space for the tick
+    %labels of the horizontal axis: an empty first line keeps the label
+    %below them
+    obj.layout.XLabel.String ={'' obj.aes_names.y};
+    obj.layout.YLabel.String =obj.aes_names.x;
+else
+    obj.layout.XLabel.String =obj.aes_names.x;
+    obj.layout.YLabel.String =obj.aes_names.y;
+end
+set([obj.layout.XLabel obj.layout.YLabel],'Interpreter',obj.text_options.interpreter,...
+    'FontName',obj.text_options.font,...
+    'FontSize',obj.text_options.base_size*obj.text_options.label_scaling);
+end
+
+
+function [xscale,yscale,zscale]=facet_scales(obj)
+%How the axes limits are shared between facets: 'global' (same for all),
+%'per_column' and 'per_row' (facet_grid(), swapped for flipped axes) or
+%'per_plot', according to facet_scale
+if obj.wrap_ncols>0
+    free_x='per_plot';
+    free_y='per_plot';
+else
+    free_x='per_column';
+    free_y='per_row';
+end
+switch obj.facet_scale
+    case 'fixed'
+        xscale='global';
+        yscale='global';
+        zscale='global';
+    case 'free_x'
+        xscale=free_x;
+        yscale='global';
+        zscale='global';
+    case 'free_y'
+        xscale='global';
+        yscale=free_y;
+        zscale='global';
+    case 'free'
+        xscale=free_x;
+        yscale=free_y;
+        zscale='per_plot';
+    otherwise %'independent'
+        xscale='per_plot';
+        yscale='per_plot';
+        zscale='per_plot';
+end
+end
+
+
+function log_lims(obj)
+%On log axes, lower limits at or below 0 (from data, or from stats and bars
+%starting at 0) can't be displayed: they are replaced by the power of 10
+%below the smallest positive value drawn in the facet (so that the smallest
+%bars remain visible)
+for dim='xyz'
+    if ~strcmp(obj.axis_scale.(dim),'log')
+        continue
+    end
+    mn=obj.plot_lim.(['min' dim]);
+    for k=find(~(mn>0) & isgraphics(obj.facet_axes_handles))'
+        data=get(findobj(obj.facet_axes_handles(k),'-property',[upper(dim) 'Data']),[upper(dim) 'Data']);
+        if iscell(data)
+            data=cellfun(@(v) v(:)',data,'UniformOutput',false);
+            data=[data{:}];
+        end
+        data=data(data>realmin); %Above the bar baselines (see log_base())
+        mn(k)=NaN;
+        if ~isempty(data)
+            mn(k)=10^floor(log10(min(data)));
+        end
+    end
+    obj.plot_lim.(['min' dim])=mn;
+end
+end
+
+
+function lim=pad_lim(lim,extra,scale)
+%Extend limits beyond the data by a ratio of their range, of their range in
+%log space on log axes
+if strcmp(scale,'log')
+    lim=10.^pad_lim(log10(lim),extra,'linear');
+else
+    lim=lim+[-diff(lim)*extra(1) diff(lim)*extra(2)];
+end
+end
+
+
+function log_ticks(ax,axis_name,scale)
+%On log axes spanning several decades, MATLAB sometimes places a single
+%tick: ticks are set at regularly spaced decades instead (at most 6)
+if ~strcmp(scale,'log')
+    return
+end
+lim=log10(ax.([axis_name 'Lim']));
+step=ceil(diff(lim)/6);
+decades=ceil(lim(1)/step)*step:step:floor(lim(2));
+if numel(decades)>=3
+    ax.([axis_name 'Tick'])=10.^decades;
+end
+end
+
+
+function lim=facet_lim(obj,dim,scale,ind_row,ind_column)
+%Data limits along dim ('x','y' or 'z') of a facet, gathered over the
+%facets that share them (see facet_scales())
+mn=obj.plot_lim.(['min' dim]);
+mx=obj.plot_lim.(['max' dim]);
+switch facet_group(obj,scale)
+    case 'all'
+        lim=[min(mn(:)) max(mx(:))];
+    case 'row'
+        lim=[min(mn(ind_row,:)) max(mx(ind_row,:))];
+    case 'column'
+        lim=[min(mn(:,ind_column)) max(mx(:,ind_column))];
+    otherwise
+        lim=[mn(ind_row,ind_column) mx(ind_row,ind_column)];
+end
+end
+
+
+function links=link_lims(obj,prop,scale)
+%Link the limits of the facets that share them (see facet_scales())
+ax=obj.facet_axes_handles;
+switch facet_group(obj,scale)
+    case 'all'
+        groups={ax(:)};
+    case 'row'
+        groups=num2cell(ax,2);
+    case 'column'
+        groups=num2cell(ax,1);
+    otherwise
+        groups={};
+end
+links=[];
+for k=1:numel(groups)
+    g=groups{k}(isgraphics(groups{k}));
+    if numel(g)>1
+        links=[links linkprop(g,prop)]; %#ok<AGROW>
+    end
+end
+end
+
+
+function group=facet_group(obj,scale)
+%Facets sharing limits: 'all', 'row', 'column' or 'none'. x limits are
+%shared along columns, and y limits along rows, unless the axes are flipped
+switch scale
+    case 'global'
+        group='all';
+    case 'per_column'
+        group='column';
+    case 'per_row'
+        group='row';
+    otherwise
+        group='none';
+end
+if obj.is_flipped && any(strcmp(group,{'row','column'}))
+    group=setdiff({'row','column'},group);
+    group=group{1};
+end
+end
+
+
+function draw_ablines(obj,ca,temp_aes)
+%Lines from geom_abline(), geom_vline(), geom_hline() and geom_funline().
+%In polar plots they span the full circle (hlines are circles), and vlines
+%span the radius axis
+
+%Datetime/duration intercepts (and angles in degrees) are converted to
+%numbers
+for line_ind=1:length(obj.abline.raw)
+    if ~isempty(obj.abline.raw{line_ind})
+        if isnan(obj.abline.yintercept(line_ind))
+            obj.abline.xintercept(line_ind)=to_num(obj.axis_types.x,obj.abline.raw{line_ind});
+        else
+            obj.abline.yintercept(line_ind)=to_num(obj.axis_types.y,obj.abline.raw{line_ind});
+        end
+    end
+end
+is_polar=obj.polar.is_polar;
+is_log=~is_polar && (strcmp(ca.XScale,'log') || strcmp(ca.YScale,'log'));
+for line_ind=1:length(obj.abline.intercept)
+    if is_polar
+        xl=linspace(0,2*pi,100);
+    else
+        tmp_xl=[obj.var_lim.minx obj.var_lim.maxx];
+        tmp_extent=(tmp_xl(2)-tmp_xl(1))*obj.abline.extent(line_ind)/2;
+        xl=[mean(tmp_xl)-tmp_extent mean(tmp_xl)+tmp_extent];
+        if strcmp(ca.XScale,'log') && xl(1)<0 %Correct negative values if log axes
+            xl(1)=1;
+        end
+    end
+    line_opts={obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca};
+    if ~isnan(obj.abline.intercept(line_ind))
+        %draw it properly (curved) if log axes
+        if is_log
+            xl=xl(1):(xl(2)-xl(1))/50:xl(2);
+        end
+        %abline
+        plot(xl,xl*obj.abline.slope(line_ind)+obj.abline.intercept(line_ind),line_opts{:});
+    elseif ~isnan(obj.abline.xintercept(line_ind))
+        %vline
+        if is_polar
+            yl=ca.RLim;
+        else
+            if obj.var_lim.miny == obj.var_lim.maxy %We are probably in a case where y wasn't provided (histogram or raster)
+                tmp_yl=[0 numel(temp_aes.x)]; %We scale y according to number of x elements
+            else
+                tmp_yl=[obj.var_lim.miny obj.var_lim.maxy];
+            end
+            tmp_extent=(tmp_yl(2)-tmp_yl(1))*obj.abline.extent(line_ind)/2;
+            yl=[mean(tmp_yl)-tmp_extent mean(tmp_yl)+tmp_extent];
+        end
+        plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,line_opts{:});
+    elseif ~isnan(obj.abline.yintercept(line_ind))
+        %hline
+        plot(xl,xl*0+obj.abline.yintercept(line_ind),line_opts{:});
+    else
+        temp_x=linspace(xl(1),xl(end),500);
+        plot(temp_x,obj.abline.fun{line_ind}(temp_x),line_opts{:});
+    end
+end
+end
+
+
 function out=allmax(in)
 %Return maximum of an array or of a cell of arrays
 if iscell(in)
@@ -1290,5 +1499,20 @@ if iscell(in)
     end
 else
     out=min(in);
+end
+end
+
+
+function opts=natural_order(opts,cat_order)
+%Ascending (1) or descending (-1) orders of categorical, datetime and
+%duration grouping data follow the natural order of their values
+%(categories, chronological order) stored in cat_order by validate_aes(),
+%given to unique_and_sort() as a custom order
+if numel(cat_order)>1 && isnumeric(opts) && isscalar(opts) && opts~=0
+    if opts==-1
+        opts=flipud(cat_order(:));
+    else
+        opts=cat_order(:);
+    end
 end
 end

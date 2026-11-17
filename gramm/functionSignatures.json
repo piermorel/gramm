@@ -93,6 +93,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
             		{"name":"width","kind":"namevalue","type":"numeric"},
             		{"name":"dodge","kind":"namevalue","type":"numeric"},
             		{"name":"stacked","kind":"namevalue","type":"choices={1,0}"},
@@ -106,6 +107,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
             {"name":"width","kind":"namevalue","type":"numeric"},
             {"name":"dodge","kind":"namevalue","type":"numeric"}
@@ -123,12 +125,14 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"type","kind":"namevalue","type":"choices={'ci','bootci','sem','std','quartile','95percentile','fitnormalci','fitpoissonci','fitbinomialci'}"},
 			{"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
 			{"name":"setylim","kind":"namevalue","type":"choices={1,0}"},
 			{"name":"interp","kind":"namevalue","type":"choices={'linear','nearest','next','previous','pchip','makima','spline'}"},
 			{"name":"interp_in","kind":"namevalue","type":"numeric"},
-			{"name":"bin_in","kind":"namevalue","type":"numeric"},
+			{"name":"bin_in","kind":"namevalue","type":[["numeric"],["datetime"],["duration"]]},
+			{"name":"bin_width","kind":"namevalue","type":[["numeric"],["duration"],["calendarDuration"],["choices={'second','minute','hour','day','week','month','quarter','year'}"]]},
 			{"name":"width","kind":"namevalue","type":"numeric"},
 			{"name":"dodge","kind":"namevalue","type":"numeric"}
 		]
@@ -137,6 +141,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"method","kind":"namevalue","type":"choices={'eilers','smoothingspline','moving','lowess','loess','sgolay','rloess','rlowess'}"},
             {"name":"lambda","kind":"namevalue","type":"numeric"},
             {"name":"npoints","kind":"namevalue","type":"numeric"},
@@ -148,6 +153,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"distribution","kind":"namevalue","type":"choices={'normal','binomial','poisson','gamma','inverse gaussian'}"},
             {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
             {"name":"fullrange","kind":"namevalue","type":"choices={1,0}"},
@@ -158,6 +164,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"fun","kind":"namevalue","type":"function_handle"},
             {"name":"StartPoint","kind":"namevalue","type":"numeric"},
             {"name":"intopt","kind":"namevalue","type":"choices={'observation','functional'}"},
@@ -172,8 +179,10 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"nbins","kind":"namevalue","type":"numeric"},
-            {"name":"edges","kind":"namevalue","type":"numeric"},
+            {"name":"edges","kind":"namevalue","type":[["numeric"],["datetime"],["duration"]]},
+            {"name":"bin_width","kind":"namevalue","type":[["numeric"],["duration"],["calendarDuration"],["choices={'second','minute','hour','day','week','month','quarter','year'}"]]},
             {"name":"geom","kind":"namevalue","type":"choices={'bar','line','overlaid_bar','stacked_bars','stairs','point'}"},
             {"name":"normalization","kind":"namevalue","type":"choices={'count','countdensity','cumcount','probability','pdf','cdf'}"},
             {"name":"fill","kind":"namevalue","type":"choices={'face','edge','all','transparent'}"},
@@ -185,6 +194,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
 			{"name":"location","kind":"namevalue","type":"numeric"},
             {"name":"aspect","kind":"namevalue","type":"numeric"},
 			{"name":"nbins","kind":"namevalue","type":"numeric"},
@@ -219,6 +229,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
             {"name":"type","kind":"namevalue","type":"choices={'95percentile','ci'}"},
             {"name":"geom","kind":"namevalue","type":"choices={'area','line'}"},
             {"name":"patch_opts","kind":"namevalue","type":"cell"}
@@ -245,6 +256,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
             {"name":"normalization","kind":"namevalue","type":"choices={'area','count','width'}"},
             {"name":"half","kind":"namevalue","type":"choices={1,0}"},
             {"name":"bandwidth","kind":"namevalue","type":"numeric"},
@@ -276,27 +288,27 @@
             {"name":"slope","kind":"namevalue","type":"numeric"},
             {"name":"style","kind":"namevalue","type":"char"},
             {"name":"extent","kind":"namevalue","type":"numeric"},
-            {"name":"linewidth","kind":"namevalue","type":"numeric"}
+            {"name":"line_width","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_vline":
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
-            {"name":"xintercept","kind":"namevalue","type":"numeric"},
+            {"name":"xintercept","kind":"namevalue","type":[["numeric"],["datetime"],["duration"]]},
             {"name":"style","kind":"namevalue","type":"char"},
             {"name":"extent","kind":"namevalue","type":"numeric"},
-            {"name":"linewidth","kind":"namevalue","type":"numeric"}
+            {"name":"line_width","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_hline":
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
-            {"name":"yintercept","kind":"namevalue","type":"numeric"},
+            {"name":"yintercept","kind":"namevalue","type":[["numeric"],["datetime"],["duration"]]},
             {"name":"style","kind":"namevalue","type":"char"},
             {"name":"extent","kind":"namevalue","type":"numeric"},
-            {"name":"linewidth","kind":"namevalue","type":"numeric"}
+            {"name":"line_width","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_funline":
@@ -306,13 +318,14 @@
             {"name":"fun","kind":"namevalue","type":"function_handle"},
             {"name":"style","kind":"namevalue","type":"char"},
             {"name":"extent","kind":"namevalue","type":"numeric"},
-            {"name":"linewidth","kind":"namevalue","type":"numeric"}
+            {"name":"line_width","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_polygon":
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
             {"name":"x","kind":"namevalue","type":"numeric"},
             {"name":"y","kind":"namevalue","type":"numeric"},
             {"name":"alpha","kind":"namevalue","type":"numeric"},
@@ -364,6 +377,7 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
+            {"name":"unit","kind":"namevalue","type":"choices={'radians','degrees'}"},
             {"name":"closed","kind":"namevalue","type":"choices={1,0}"},
             {"name":"maxy","kind":"namevalue","type":"numeric"}
 		]
@@ -412,7 +426,8 @@
 			{"name":"base_size","kind":"namevalue","type":"numeric"},
             {"name":"step_size","kind":"namevalue","type":"numeric"},
             {"name":"use_input","kind":"namevalue","type":"choices={1,0}"},
-            {"name":"input_fun","kind":"namevalue","type":"numeric"}
+            {"name":"input_fun","kind":"namevalue","type":"numeric"},
+            {"name":"cap_size","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.set_order_options":
@@ -451,23 +466,30 @@
             {"name":"legend_title_scaling","kind":"namevalue","type":"numeric"},
 			{"name":"facet_scaling","kind":"namevalue","type":"numeric"},
             {"name":"title_scaling","kind":"namevalue","type":"numeric"},
-            {"name":"big_title_scaling","kind":"namevalue","type":"numeric"}
+            {"name":"big_title_scaling","kind":"namevalue","type":"numeric"},
+            {"name":"wrap","kind":"namevalue","type":"logical"}
+		]
+},
+"gramm.set_parent":
+{
+		"inputs":[
+			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"parent","kind":"required","type":[["matlab.ui.Figure"],["matlab.ui.container.Panel"],["matlab.graphics.layout.TiledChartLayout"]]},
+			{"name":"tile","kind":"namevalue","type":["numeric","positive","integer"]},
+			{"name":"span","kind":"namevalue","type":["numeric","numel=2","positive","integer"]}
 		]
 },
 "gramm.set_layout_options":
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
-			{"name":"position","kind":"namevalue","type":"choices={'auto'}"},
 			{"name":"legend","kind":"namevalue","type":"choices={1,0}"},
-			{"name":"legend_width","kind":"namevalue","type":"choices={'auto'}"},
 			{"name":"legend_position","kind":"namevalue","type":"choices={'auto'}"},
-			{"name":"title_centering","kind":"namevalue","type":"choices={'axes','plot'}"},
 			{"name":"redraw","kind":"namevalue","type":"choices={1,0}"},
-			{"name":"redraw_gap","kind":"namevalue","type":"numeric"},
-            {"name":"margin_height","kind":"namevalue","type":"numeric"},
-            {"name":"margin_width","kind":"namevalue","type":"numeric"},
-			{"name":"gap","kind":"namevalue","type":"choices={'auto'}"}
+            {"name":"multi_spacing","kind":"namevalue","type":"choices={'loose','compact','tight','none'}"},
+            {"name":"multi_padding","kind":"namevalue","type":"choices={'loose','compact','tight'}"},
+            {"name":"spacing","kind":"namevalue","type":"choices={'loose','compact','tight','none'}"},
+            {"name":"padding","kind":"namevalue","type":"choices={'loose','compact','tight'}"}
 		]
 },
 "gramm.axe_property":
@@ -502,6 +524,15 @@
 {
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"}
+		]
+},
+"gramm.set_scale":
+{
+		"inputs":[
+			{"name":"obj","kind":"required","type":"gramm"},
+            {"name":"x","kind":"namevalue","type":"choices={'linear','log'}"},
+            {"name":"y","kind":"namevalue","type":"choices={'linear','log'}"},
+            {"name":"z","kind":"namevalue","type":"choices={'linear','log'}"}
 		]
 },
 "gramm.set_datetick":

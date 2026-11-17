@@ -1,35 +1,35 @@
 function obj=geom_polygon(obj,varargin)
-% geom_polygon Create reference polygons in each facet
+% geom_polygon Display reference polygons in the background of each facet
 %
-% This function allows to draw polygons in the background of each facet.
-% Inputs are given as 'name',value pairs:
+% Example syntax: gramm_object.geom_polygon('x',{[0 1 1]},'y',{[0 0 1]},'color',[1 0 0])
+% The P polygons are given in one of two ways.
 %
-% 'x'   Cell array of vectors containing x coordinates
-% 'y'   Cell array of vectors containing y coordinates
+% With both 'x' and 'y', the i-th cell of each holds the x (or y)
+% coordinates of the vertices of the i-th polygon, as vectors of the same
+% length. 'x',{[0 1 1]},'y',{[0 0 1]} draws a triangle.
 %
-% When both 'x' and 'y' are provided, the lenght of each cell array should
-% correspond to the number of desired polygons n_polygons. The i_th cell of each cell array 
-% should contain equally-sized vectors which correspond to the coordinates of
-% the vertices of the i_th polygon.
+% With only 'x' (or only 'y'), vertical (or horizontal) bands spanning the
+% whole plot are drawn, each cell holding the [start end] of one band.
+% 'x',{[1 2] [5 6]} draws two vertical bands.
 %
-% When only 'x' (or only 'y') is given, geom_polygon() draws vertical (or
-% horizontal) rectangles that span the whole plot. In that case, 'x' (or 'y') should be a cell array which
-% length corresponds to the number of desired polygons n_polygons. Each cell of the
-% cell array should contain a vector of length 2 with the horizontal (or
-% vertical) start and end coordinates of the polygons.
+% The other options are given either once for all polygons, or once per
+% polygon (P values, P rows or P cells).
 %
-% Optional inputs (defaults) can be specified for all polygons in the call 
-% at once or specifically for each polygon:
-%
-% 'alpha' (0.2)             fill alpha (length 1  or n_polygons)
-% 'color' ([0 0 0])         RGB fill color of the polygon ( 1 x 3 or
-%                           n_polygons x 3 ). Or color index  with automatic colors (1 x
-%                           1 or n_polygons x 1 integers)
-% 'line_color' ([0 0 0])    RGB line color of the polygon ( 1 x 3 or 
-%                           n_polygons x 3 ). Or color index  with automatic colors (1 x
-%                           1 or n_polygons x 1 integers)
-% 'line_style' ({'none'})   line style of the polygon (length 1 or n_polygons) 
-% 
+% Parameters given as 'name',value pairs:
+% - 'x': Cell of P vectors with the x coordinates of the vertices, or the
+%            [start end] of vertical bands if 'y' is not given (default {})
+% - 'y': Cell of P vectors with the y coordinates of the vertices, or the
+%            [start end] of horizontal bands if 'x' is not given (default
+%            {})
+% - 'fill_alpha': Fill transparency, from 0 (transparent) to 1 (opaque),
+%            single value or array of length P (default [], uses 'alpha')
+% - 'alpha': Former name of 'fill_alpha' (default 0.2)
+% - 'color': Fill color, RGB as a 1x3 or Px3 matrix, or indices of colors
+%            of the gramm colormap (default [0 0 0])
+% - 'line_color': Edge color, same format as 'color' (default [0 0 0])
+% - 'line_style': Edge style, cell of length 1 or P (default {'none'})
+% - 'extent': Length of the bands, as a ratio of the axis range (default
+%            2: bands cross the whole axis)
 
 
 % created: 2017-Mar-03
@@ -43,16 +43,22 @@ function obj=geom_polygon(obj,varargin)
 
 p=inputParser;
 
-my_addParameter(p,'x',{});
-my_addParameter(p,'y',{});
-my_addParameter(p,'alpha',0.2);
-my_addParameter(p,'color',[0 0 0]);
-my_addParameter(p,'line_color',[0 0 0]);
-my_addParameter(p,'line_style',{'none'});
-my_addParameter(p,'extent',2);
+addParameter(p,'x',{});
+addParameter(p,'y',{});
+addParameter(p,'alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'fill_alpha',[],@(v) valid_range(v,0,1,true));
+addParameter(p,'color',[0 0 0]);
+addParameter(p,'line_color',[0 0 0]);
+addParameter(p,'line_style',{'none'});
+addParameter(p,'extent',2);
 parse(p,varargin{:});
 
 temp_results=p.Results;
+%'fill_alpha' is the name used by the other geoms
+if ~isempty(temp_results.fill_alpha)
+    temp_results.alpha=temp_results.fill_alpha;
+end
+temp_results=rmfield(temp_results,'fill_alpha');
 
 
 % Check inputs

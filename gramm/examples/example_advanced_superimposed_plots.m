@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Superimposed plots
+% <matlab:edit('example_advanced_superimposed_plots.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#update update() in the cheat sheet>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Superimposing plots: plotting all the data in the background of facets
@@ -11,7 +12,7 @@ load example_data;
 load fisheriris.mat
 
 clear g
-figure;
+figure('Position',[100 100 1100 660]);
 %Create an histogram of all the data in the background (no facet_ is given yet)
 g(1,1)=gramm('x',meas(:,2));
 g(1,1).set_names('x','Sepal Width','column','');
@@ -56,7 +57,7 @@ g.draw();
 % change the color options so that the fit appears in grey
 
 clear g10
-figure;
+figure('Position',[100 100 1100 450]);
 g10=gramm('x',cars.Horsepower,'y',cars.Acceleration,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
 g10.set_names('color','# Cylinders','x','Horsepower','y','Acceleration','Column','Origin');
 g10.set_color_options('chroma',0,'lightness',30);

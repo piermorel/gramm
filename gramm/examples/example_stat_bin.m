@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Binning
+% <matlab:edit('example_stat_bin.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#stat_bin stat_bin() in the cheat sheet>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %Create variables used throughout this example
@@ -48,7 +49,7 @@ g(2,3).set_title('''stairs''');
 
 g.set_title('''geom'' options for stat_bin()');
 
-figure;
+figure('Position',[100 100 1100 660]);
 g.draw();
 
 
@@ -94,7 +95,7 @@ g(2,3).set_title({'''normalization'',''countdensity'',' '''edges'',' '[-5 -4 -2 
 
 g.set_title('Normalization options for stat_bin()');
 
-figure;
+figure('Position',[100 100 1100 660]);
 g.draw();
 
 
@@ -133,5 +134,5 @@ g(2,3).set_title('''all''');
 
 g.set_title('''fill'' options for stat_bin()');
 
-figure;
+figure('Position',[100 100 1100 660]);
 g.draw();

@@ -381,6 +381,247 @@ g.set_title('Visualization of repeated trajectories ');
 figure;
 g.draw();
 
+%% Dates and durations
+% x and y data can be given as datetime or duration arrays. Axes then
+% display dates and durations natively (ticks, zoom, pan). Dates and
+% durations can also be used as grouping data (color, facets...), in which
+% case they are ordered chronologically.
+
+% Synthetic data: daily measurements over a year at two sites
+rng(1);
+t=datetime(2024,1,1)+days(0:365)';
+site=repmat({'North';'South'},ceil(numel(t)/2),1);
+site=site(1:numel(t));
+temperature=12-10*cos(2*pi*days(t-t(1))/365)+3*strcmp(site,'South')+2*randn(numel(t),1);
+
+clear g
+g=gramm('x',t,'y',temperature,'color',site);
+g.geom_point('alpha',0.4);
+g.stat_smooth();
+g.set_names('x','Date','y','Temperature (°C)','color','Site');
+g.set_title('Datetime x data');
+figure('Position',[100 100 800 450]);
+g.draw();
+
+% Calendar binning
+% stat_bin() and stat_summary() accept a 'bin_width' option, given as the
+% name of a time unit ('day','week','month','quarter','year'...), as a
+% duration or as a calendarDuration (or as a number for numeric x). Bins
+% then follow calendar boundaries. Bin edges ('edges' in stat_bin(),
+% 'bin_in' in stat_summary()) can also be given as datetime or duration
+% arrays.
+
+% Event times spread over a year, more frequent in summer
+event_time=datetime(2024,1,1)+days(mod(182+70*randn(800,1),365));
+
+clear g
+g(1,1)=gramm('x',event_time);
+g(1,1).stat_bin('bin_width','month');
+g(1,1).set_names('x','Date','y','Events per month');
+g(1,1).set_title('stat_bin(''bin_width'',''month'')');
+
+g(1,2)=gramm('x',t,'y',temperature,'color',site);
+g(1,2).stat_summary('bin_width',calweeks(2),'geom','area');
+g(1,2).set_names('x','Date','y','Temperature (°C)','color','Site');
+g(1,2).set_title('stat_summary(''bin_width'',calweeks(2))');
+
+figure('Position',[100 100 900 400]);
+g.draw();
+
+% Durations
+% Reaction times given as durations, with a reference line given as a
+% duration as well
+
+n=400;
+condition=repmat({'Easy';'Hard'},n/2,1);
+rt=milliseconds(350+120*strcmp(condition,'Hard')+exp(4+0.6*randn(n,1)));
+
+clear g
+g=gramm('x',condition,'y',rt,'color',condition);
+g.stat_boxplot();
+g.geom_hline('yintercept',milliseconds(500));
+g.set_names('x','Condition','y','Reaction time','color','Condition');
+g.set_title('Duration y data');
+figure('Position',[100 100 500 400]);
+g.draw();
+
+% Dates as grouping data and tick formats
+% Here facets are made from the quarter of each date. After draw(), the
+% format of date ticks can be changed with xtickformat() (or
+% ytickformat()) on the facet axes.
+
+quarter=dateshift(t,'start','quarter');
+quarter.Format='QQQ yyyy';
+
+clear g
+g=gramm('x',t,'y',temperature,'color',site);
+g.facet_wrap(quarter,'ncols',4,'scale','free_x');
+g.geom_line();
+g.set_names('x','','y','Temperature (°C)','color','Site','column','');
+g.set_title('Facets by quarter');
+figure('Position',[100 100 1000 350]);
+g.draw();
+for ax=g.facet_axes_handles(:)'
+    xtickformat(ax,'MMM d');
+end
+
+
+%% Polar plots: tuning curves
+% set_polar() draws on polar axes: x is the angle and y the radius. Angles
+% are in radians by default, or in degrees with set_polar('unit','degrees')
+% (the angle axis then shows degrees too). With 'closed', lines connect
+% the last and first angles. stat_summary() with 'interp','polar' smoothly
+% interpolates around the circle with interpft(), which needs angles
+% regularly spaced around the full circle. When x takes only a few
+% different angles, the angle ticks are placed at these angles. Polar
+% plots need MATLAB R2025a or newer.
+
+% Synthetic firing rates of three neurons recorded over repeated trials of
+% movements in 8 directions (every 45 degrees), before and after learning
+rng(1);
+directions=0:45:315;
+n_trials=15;
+[dir_ind,trial,neuron_ind,cond_ind]=ndgrid(1:8,1:n_trials,1:3,1:2);
+movement_direction=directions(dir_ind(:))';
+preferred=[45 160 270];
+gain=[12 18 10 ; 25 18 16];
+mean_rate=4+gain(sub2ind(size(gain),cond_ind(:),neuron_ind(:))).*exp(2*(cosd(movement_direction-preferred(neuron_ind(:))')-1));
+% Spike counts in 1-s trials follow a Poisson distribution (spikes are
+% drawn independently in 1-ms bins)
+rate=sum(rand(numel(mean_rate),1000)<mean_rate/1000,2);
+neuron_names={'Neuron 1','Neuron 2','Neuron 3'};
+neuron=neuron_names(neuron_ind(:))';
+cond_names={'Before','After'};
+condition=cond_names(cond_ind(:))';
+
+clear g
+g=gramm('x',movement_direction,'y',rate,'color',condition);
+g.facet_wrap(neuron,'ncols',3);
+g.set_polar('unit','degrees','closed',true);
+g.geom_point('alpha',0.2);
+g.stat_summary('geom',{'area','line'},'interp','polar');
+g.geom_hline('yintercept',4,'style','k:');
+g.set_order_options('color',{'Before','After'});
+g.set_names('x','Movement direction','y','Firing rate (Hz)','color','','column','');
+g.set_title('Tuning curves');
+figure('Position',[100 100 900 400]);
+g.draw();
+
+%% Polar histograms: wind rose
+% stat_bin() makes wedges in polar plots. Bin edges are given in the angle
+% unit. The orientation of the angle axis (here, compass orientation) is
+% set with axe_property()
+
+% Synthetic wind directions (in degrees) and speeds for two seasons
+n=1500;
+season=repmat({'Winter';'Summer'},n/2,1);
+wind_direction=mod(250+40*randn(n,1)-150*strcmp(season,'Summer').*(rand(n,1)>0.6),360);
+speed=categorical(discretize(abs(8+5*randn(n,1)),[0 5 10 15 Inf],...
+    'categorical',{'0-5','5-10','10-15','>15'}),{'0-5','5-10','10-15','>15'});
+
+clear g
+g=gramm('x',wind_direction,'color',speed);
+g.facet_grid([],season);
+g.set_polar('unit','degrees');
+g.stat_bin('edges',0:22.5:360,'geom','stacked_bar','fill','face');
+g.axe_property('ThetaZeroLocation','top','ThetaDir','clockwise');
+g.set_color_options('map','d3_10');
+g.set_names('x','Wind direction','y','Count','color','Wind speed (m/s)','column','');
+g.set_title('Wind rose');
+figure('Position',[100 100 900 450]);
+g.draw();
+
+%% Radar charts
+% Categorical x data is evenly spread around the circle, with the
+% categories as angle ticks. Here, attributes of cars (each rescaled
+% between 0 and 1 over all cars) are averaged by region of origin
+
+attributes={'MPG','Acceleration','Horsepower','Weight','Displacement'};
+value=[];
+attribute={};
+region={};
+for k=1:numel(attributes)
+    v=cars.(attributes{k});
+    value=[value ; (v-min(v))/(max(v)-min(v))];
+    attribute=[attribute ; repmat(attributes(k),numel(v),1)];
+    region=[region ; cars.Origin_Region];
+end
+
+clear g
+g=gramm('x',categorical(attribute,attributes),'y',value,'color',region);
+g.set_polar('closed',true,'maxy',1);
+g.stat_summary('geom',{'area','line','point'});
+g.axe_property('ThetaZeroLocation','top','ThetaDir','clockwise');
+g.set_names('x','','y','Rescaled value','color','Origin');
+g.set_title('Car attributes by region of origin');
+figure('Position',[100 100 600 500]);
+g.draw();
+
+
+%% Log axes: scatter plots
+% set_scale() makes axes logarithmic, here y with set_scale('y','log'), or
+% both x and y with set_scale('x','log','y','log'). The axis limits extend
+% proportionally beyond the data. Values at or below 0, which can't be
+% displayed on log axes, are left out of the limits.
+% axe_property('XScale','log') has the same effect as set_scale(). The
+% same data is shown with linear axes on the top row
+
+% US population from the census (MATLAB's census.mat), and power outages
+% in the US (MATLAB's outages.csv)
+load census
+outages=readtable('outages.csv');
+
+clear g
+for k=1:2
+    g(k,1)=gramm('x',cdate,'y',pop);
+    g(k,1).geom_line();
+    g(k,1).geom_point();
+    g(k,1).set_names('x','Year','y','US population (millions)');
+    g(k,2)=gramm('x',outages.Customers,'y',outages.Loss,'color',outages.Region);
+    g(k,2).geom_point('alpha',0.5);
+    g(k,2).set_names('x','Customers affected','y','Power loss (MW)','color','Region');
+end
+g(1,1).set_title('Linear axes');
+g(1,2).set_title('Linear axes');
+g(2,1).set_scale('y','log');
+g(2,1).set_title('Log y axis');
+g(2,2).set_scale('x','log','y','log');
+g(2,2).set_title('Log x and y axes');
+figure('Position',[100 100 1000 800]);
+g.draw();
+
+%% Log axes: histograms
+% On a log y axis, bars of stat_bin() (and geom_bar(), stat_summary()
+% bars) start from the bottom of the axis. The bins are computed on linear
+% values: on a log x axis, bins regularly spaced on the axis are given
+% with 'edges' and logspace(). The same data is shown with linear axes
+% and bins on the top row
+
+% Duration of power outages in the US (MATLAB's outages.csv)
+outages=readtable('outages.csv');
+duration=days(outages.RestorationTime-outages.OutageTime);
+cause_type=repmat({'Other'},height(outages),1);
+cause_type(contains(outages.Cause,{'storm','wind'}))={'Storm or wind'};
+
+clear g
+g(1,1)=gramm('x',duration);
+g(1,1).stat_bin('geom','bar');
+g(1,1).set_title('Linear axes');
+g(2,1)=gramm('x',duration);
+g(2,1).stat_bin('edges',logspace(-3.5,4.5,33),'geom','bar');
+g(2,1).set_scale('x','log');
+g(2,1).set_title('Log x axis');
+g(1,2)=gramm('x',duration,'color',cause_type);
+g(1,2).stat_bin('geom','overlaid_bar','fill','transparent');
+g(1,2).set_title('Linear axes');
+g(2,2)=gramm('x',duration,'color',cause_type);
+g(2,2).stat_bin('edges',logspace(-3.5,4.5,33),'geom','overlaid_bar','fill','transparent');
+g(2,2).set_scale('x','log','y','log');
+g(2,2).set_title('Log x and y axes');
+g.set_names('x','Outage duration (days)','y','Outages','color','Cause');
+figure('Position',[100 100 1000 750]);
+g.draw();
+
 %% Methods for visualizing repeated densities (e.g. spike densities)
 % With the support of 2D inputs for X and gramm's functionality for
 % representing the density of data, useful neuroscientific plots can be
@@ -674,7 +915,7 @@ g.draw();
 
 %Possibility to use axe handles of the inset axes to add elements or change
 %properties
-plot(g.results.stat_cornerhist(2).child_axe_handle,[-2 -2],[0 50],'k:','LineWidth',2)
+xline(g.results.stat_cornerhist(2).child_axe_handle,-2,':','LineWidth',2)
 %set([g.results.stat_cornerhist.child_axe_handle],'XTick',[])
 
 %% Graphic and normalization options in stat_violin()
@@ -759,9 +1000,9 @@ g.set_title('Options for geom_swarm()');
 g.draw();
 
 %Make the points marking the group averages more visible
-set([g(1,1).results.stat_summary.point_handle],'MarkerFaceColor',[0 0 0])
-set([g(1,1).results.stat_summary.point_handle],'Marker','s')
-set([g(1,1).results.stat_summary.point_handle],'MarkerSize',8)
+set([g(1,1).results.stat_summary.point_handle],'MarkerFaceColor',[0 0 0]);
+set([g(1,1).results.stat_summary.point_handle],'Marker','s');
+set([g(1,1).results.stat_summary.point_handle],'MarkerSize',8);
 
 
 %% Options for dodging and spacing graphic elements in |stat_summary()| and |stat_boxplot()|
@@ -986,14 +1227,14 @@ g(1,1).update('color',species); %Add color with update()
 g(1,1).facet_grid([],species); %Provide facets
 g(1,1).stat_bin('dodge',0); %Histogram (we set dodge to zero as facet_grid makes it useless)
 g(1,1).set_color_options(); %Reset to default colors
-g(1,1).no_legend();
+%g(1,1).no_legend();
 g(1,1).axe_property('ylim',[-2 30]); %We have to set y scale manually, as the automatic scaling from the first plot was forgotten
 
 g(2,1).update('color',species); %Add color with update()
 g(2,1).facet_grid([],species); %Provide facets
 g(2,1).geom_point();
 g(2,1).set_color_options();
-g(2,1).no_legend();
+%g(2,1).no_legend();
 
 %Set global axe properties
 g.axe_property('TickDir','out','XGrid','on','Ygrid','on','GridColor',[0.5 0.5 0.5]);
@@ -1002,53 +1243,160 @@ g.draw();
 
 
 %% Use custom layouts in gramm, marginal histogram example
-
+% Custom layouts are made by drawing gramm plots in tiles of a tiledlayout
+% with set_parent(layout,'tile',tile,'span',span), where tile and span work as
+% in nexttile(). Here the scatter plot spans 3x3 tiles of a 4x4 layout, with
+% the histograms in the top row and in the right column.
 
 load fisheriris.mat
 
-clear g
-figure;
+figure('Position',[100 100 600 550]);
+t=tiledlayout(4,4,'TileSpacing','compact','Padding','compact');
 
-%Create x data histogram on top
-g(1,1)=gramm('x',meas(:,2),'color',species);
-g(1,1).set_layout_options('Position',[0 0.8 0.8 0.2],... %Set the position in the figure (as in standard 'Position' axe property)
-    'legend',false,... % No need to display legend for side histograms
-    'margin_height',[0.02 0.05],... %We set custom margins, values must be coordinated between the different elements so that alignment is maintained
-    'margin_width',[0.1 0.02],...
-    'redraw',false); %We deactivate automatic redrawing/resizing so that the axes stay aligned according to the margin options
-g(1,1).set_names('x','');
-g(1,1).stat_bin('geom','stacked_bar','fill','all','nbins',15); %histogram
-g(1,1).axe_property('XTickLabel',''); % We deactivate tht ticks
+%Create x data histogram on top (first row, first 3 columns)
+g_top=gramm('x',meas(:,2),'color',species);
+g_top.set_parent(t,'tile',1,'span',[1 3]);
+g_top.set_layout_options('legend',false); % No need to display legend for side histograms
+g_top.set_names('x','','y','Count');
+g_top.stat_bin('geom','stacked_bar','fill','all','nbins',15); %histogram
+g_top.axe_property('XTickLabel',''); % We deactivate the ticks
 
-%Create a scatter plot
-g(2,1)=gramm('x',meas(:,2),'y',meas(:,1),'color',species);
-g(2,1).set_names('x','Sepal Width','y','Sepal Length','color','Species');
-g(2,1).geom_point(); %Scatter plot
-g(2,1).set_point_options('base_size',6);
-g(2,1).set_layout_options('Position',[0 0 0.8 0.8],...
-    'legend_pos',[0.83 0.75 0.2 0.2],... %We detach the legend from the plot and move it to the top right
-    'margin_height',[0.1 0.02],...
-    'margin_width',[0.1 0.02],...
-    'redraw',false);
-g(2,1).axe_property('Ygrid','on'); 
+%Create a scatter plot (rows 2 to 4, columns 1 to 3)
+g_main=gramm('x',meas(:,2),'y',meas(:,1),'color',species);
+g_main.set_parent(t,'tile',5,'span',[3 3]);
+g_main.set_names('x','Sepal Width','y','Sepal Length','color','Species');
+g_main.geom_point(); %Scatter plot
+g_main.set_point_options('base_size',6);
+%The legend is moved to the free top right corner (in normalized figure
+%units), so that the scatter plot keeps the width of the top histogram
+g_main.set_layout_options('legend_position',[0.8 0.78 0.18 0.2]);
+g_main.axe_property('Ygrid','on'); 
 
-%Create y data histogram on the right
-g(3,1)=gramm('x',meas(:,1),'color',species);
-g(3,1).set_layout_options('Position',[0.8 0 0.2 0.8],...
-    'legend',false,...
-    'margin_height',[0.1 0.02],...
-    'margin_width',[0.02 0.05],...
-    'redraw',false);
-g(3,1).set_names('x','');
-g(3,1).stat_bin('geom','stacked_bar','fill','all','nbins',15); %histogram
-g(3,1).coord_flip();
-g(3,1).axe_property('XTickLabel','');
+%Create y data histogram on the right (rows 2 to 4, last column)
+g_right=gramm('x',meas(:,1),'color',species);
+g_right.set_parent(t,'tile',8,'span',[3 1]);
+g_right.set_layout_options('legend',false);
+g_right.set_names('x','','y','Count');
+g_right.stat_bin('geom','stacked_bar','fill','all','nbins',15); %histogram
+g_right.coord_flip();
+g_right.axe_property('XTickLabel','');
 
-%Set global axe properties
+%Set global properties and draw the three plots
+g=[g_top g_main g_right];
 g.axe_property('TickDir','out','XGrid','on','GridColor',[0.5 0.5 0.5]);
-g.set_title('Fisher Iris, custom layout');
 g.set_color_options('map','d3_10');
+title(t,'Fisher Iris, custom layout','FontWeight','bold');
+for k=1:numel(g)
+    g(k).draw();
+end
+
+%% Plots of different sizes
+% gramm plots can be drawn in tiles of a tiledlayout with
+% set_parent(layout,'tile',tile,'span',span). tile and span work as in
+% nexttile(): tile is the number of the first tile (counted row by row, or
+% given as [row column]) and span is the number of [rows columns] covered
+% by the plot.
+
+figure('Position',[100 100 1000 600]);
+t=tiledlayout(2,3);
+
+%Large plot on the left, spanning 2 rows and 2 columns
+g_large=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
+g_large.set_parent(t,'tile',1,'span',[2 2]);
+g_large.geom_point();
+g_large.stat_glm();
+g_large.set_names('x','Horsepower','y','MPG','color','# Cyl');
+g_large.set_title('Fuel economy vs. horsepower');
+g_large.draw();
+
+%Two smaller plots on the right
+g_top=gramm('x',cars.Origin_Region,'y',cars.MPG,'color',cars.Origin_Region);
+g_top.set_parent(t,'tile',3);
+g_top.stat_boxplot();
+g_top.set_names('x','','y','MPG');
+g_top.set_layout_options('legend',false);
+g_top.set_title('Per region');
+g_top.draw();
+
+g_bottom=gramm('x',cars.Model_Year,'y',cars.MPG);
+g_bottom.set_parent(t,'tile',6);
+g_bottom.stat_summary('geom','area');
+g_bottom.set_names('x','Year','y','MPG');
+g_bottom.set_title('Over the years');
+g_bottom.draw();
+
+
+%% Combine gramm with regular Matlab axes
+% The other tiles of the tiledlayout can hold any Matlab plot, created with
+% nexttile() as usual
+
+figure('Position',[100 100 900 400]);
+t=tiledlayout(1,2);
+
+g=gramm('x',cars.Weight,'y',cars.Acceleration,'color',cars.Origin_Region);
+g.set_parent(t,'tile',1);
+g.geom_point();
+g.set_names('x','Weight','y','Acceleration','color','Origin');
+g.set_title('gramm plot');
 g.draw();
+
+ax=nexttile(t,2);
+imagesc(ax,corr([cars.Horsepower cars.Weight cars.Acceleration cars.MPG],'rows','complete'));
+axis(ax,'image');
+colorbar(ax);
+ax.XTick=1:4; ax.YTick=1:4;
+ax.XTickLabel={'Horsepower','Weight','Acceleration','MPG'};
+ax.YTickLabel=ax.XTickLabel;
+title(ax,'Regular Matlab axes (correlations)');
+
+
+%% Array of gramm plots in a tile
+% An array of gramm plots can itself be drawn in a tile: give the tile to
+% the whole array with set_parent()
+
+figure('Position',[100 100 1000 600]);
+t=tiledlayout(1,3);
+
+clear g
+g(1,1)=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Origin_Region);
+g(1,1).geom_point();
+g(1,1).set_title('Points');
+g(2,1)=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Origin_Region);
+g(2,1).stat_glm();
+g(2,1).set_title('Fits');
+g.set_names('x','Horsepower','y','MPG','color','Origin');
+g.set_title('Array of gramm plots spanning two tiles');
+g.set_parent(t,'tile',1,'span',[1 2]);
+g.draw();
+
+g2=gramm('x',cars.MPG,'color',cars.Origin_Region);
+g2.set_parent(t,'tile',3);
+g2.stat_density();
+g2.set_names('x','MPG','color','Origin');
+g2.set_title('Single plot');
+g2.draw();
+
+%% gramm plots in an app (uifigure)
+% gramm plots can be drawn in uifigures, like the ones of App Designer apps,
+% by giving a container of the app (figure, panel, tab, grid layout cell)
+% to set_parent(). uifigures don't redraw gramm plots when resized: call
+% redraw() on the gramm object from the app if needed
+
+app_fig=uifigure('Name','gramm in an app','Position',[100 100 1000 450]);
+grid=uigridlayout(app_fig,[1 2],'ColumnWidth',{'2x','1x'});
+
+p=uipanel(grid,'Title','gramm plot');
+g=gramm('x',cars.Model_Year,'y',cars.MPG,'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
+g.facet_grid([],cars.Origin_Region);
+g.geom_point();
+g.stat_glm();
+g.set_names('x','Year of production','y','Fuel economy (MPG)','color','# Cylinders','column','');
+g.set_parent(p);
+g.draw();
+
+[origin,~,ind]=unique(cars.Origin_Region);
+uitable(grid,'Data',table(origin,accumarray(ind,cars.MPG,[],@(v) mean(v,'omitnan')),...
+    'VariableNames',{'Origin','Mean MPG'}));
 
 %% Plot one variable against many others
 %Inspired by: https://drsimonj.svbtle.com/plot-some-variables-against-many-others
@@ -1090,6 +1438,8 @@ g(2,1).facet_axes_handles(1).XLim=[-5 6];
 g(2,1).facet_axes_handles(1).XTick=-5:5:5;
 g(2,1).facet_axes_handles(2).XLim=[50 90];
 g(2,1).facet_axes_handles(2).XTick=50:5:90;
+%Update the facet widths ('space' option) to the new axis limits
+g.redraw();
 
 %% Customizing color maps with set_color_options()
 % With the method set_color_options(), automatic color generation for
@@ -1199,9 +1549,10 @@ figure;
 g.draw();
 
 %% Using a continuous color scale
-% When the variable provided as 'color' contains too many different values
-% (>15), or when set_continuous_color is used, gramm switches from a
-% categorical color scale to a gradient-based continuous color scale.
+% By default, gramm uses a categorical color scale, with one group per
+% color value. With set_continuous_color(), numeric color values are shown
+% with a gradient-based continuous color scale: each point gets the color
+% of its value, and lines can be colored along their length.
 
 load example_spectra.mat
 
@@ -1213,6 +1564,59 @@ g18.set_continuous_color('colormap','hot');
 g18.geom_line;
 figure;
 g18.draw();
+
+%% Numeric colors with many values
+% Numeric 'color' values are categories: one group per value, with a
+% categorical palette (gramm warns above 15 values, where colors get hard
+% to tell apart). set_continuous_color() gives a continuous color scale:
+% each point gets the color of its value, and lines are colored along their
+% length and not split by color, so 'group' is needed for one line per value
+
+rng(1);
+n_subjects=30;
+session=repmat((1:6)',n_subjects,1);
+subject=repelem((1:n_subjects)',6);
+score=subject/5+0.3*session+0.5*randn(size(session));
+
+t=(1:60)'; %Time in s
+a=t/60*4*pi;
+
+clear g
+g(1,1)=gramm('x',session,'y',score,'color',subject,'subset',subject<=15);
+g(1,1).geom_line();
+g(1,1).set_title('15 subjects');
+
+g(1,2)=gramm('x',session,'y',score,'color',subject,'subset',subject<=16);
+g(1,2).geom_line();
+g(1,2).set_title('16 subjects (warning)');
+
+g(1,3)=gramm('x',session,'y',score,'color',subject,'group',subject);
+g(1,3).geom_line();
+g(1,3).set_continuous_color();
+g(1,3).set_title('30 subjects, continuous, ''group''');
+
+g(2,1)=gramm('x',session,'y',score,'color',subject);
+g(2,1).geom_line();
+g(2,1).set_continuous_color();
+g(2,1).set_title('Continuous without ''group'': one line');
+
+g(2,2)=gramm('x',a.*cos(a),'y',a.*sin(a),'color',t);
+g(2,2).geom_line();
+g(2,2).set_continuous_color();
+g(2,2).set_title('Color along a line');
+
+g(2,3)=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Weight);
+g(2,3).geom_point();
+g(2,3).set_continuous_color();
+g(2,3).set_title('Colored points');
+
+g(1,:).set_names('x','Session','y','Score','color','Subject');
+g(2,1).set_names('x','Session','y','Score','color','Subject');
+g(2,2).set_names('x','x','y','y','color','Time');
+g(2,3).set_names('x','Horsepower','y','MPG','color','Weight');
+g.set_title('Numeric colors with many values');
+figure('Position',[100 100 1200 750]);
+g.draw();
 
 %% Changing the order of elements with set_order_options()
 % By default, gramm uses grouping data in increasing order of the group
@@ -1382,7 +1786,7 @@ f=figure;
 %Create fake button
 c=uicontrol('Style','pushbutton','String','Dummy','Units','normalized','Position',[0.8 0.45 0.15 0.1]);
 %Create uipanel to put our gramm plots
-p=uipanel('Position',[0.05 0.1 0.7 0.8],'Parent',f,'BackgroundColor',[1 1 1]);
+p=uipanel('Position',[0.05 0.1 0.7 0.8],'Parent',f);
 
 % Starting with the example figure
 load example_data;
@@ -1406,7 +1810,7 @@ g.set_text_options('font','Courier',...
 g.draw();
 
 %It's possible to use the axes handles to add elements to single axes
-line([75 75],[0 50],'Color','k','LineStyle','--','Parent',g.facet_axes_handles(1));
+xline(g.facet_axes_handles(1),75,'--');
 text(75.3,47,{'Important' 'event'},'Parent',g.facet_axes_handles(1),'FontName','Courier');
 
 %It's also possible to change properties of graphical elements
@@ -1490,9 +1894,382 @@ g17.geom_line();
 g17.draw();
 
 
+%% Dev tests: facet_grid() 'space' option
+% Facet widths/heights should be proportional to the axis ranges for
+% free_x, free_y and free (also with coord_flip, where x is vertical), and
+% stay equal for 'independent' and facet_wrap(). Resizing the figure should
+% keep the proportions and keep row titles next to their facet
+
+clear g
+x=cars.Horsepower; y=cars.MPG;
+g(1,1)=gramm('x',x,'y',y,'color',cars.Cylinders);
+g(1,1).facet_grid(cars.Model_Year>76,cars.Origin_Region,'scale','free_x','space','free_x');
+g(1,1).set_title('free_x');
+g(1,2)=gramm('x',x,'y',y,'color',cars.Cylinders);
+g(1,2).facet_grid(cars.Origin_Region,cars.Model_Year>76,'scale','free_y','space','free_y');
+g(1,2).set_title('free_y');
+g(1,3)=gramm('x',x,'y',y,'color',cars.Cylinders);
+g(1,3).facet_grid(cars.Model_Year>76,cars.Origin_Region,'scale','free','space','free');
+g(1,3).set_title('free, tight spacing');
+g(2,1)=gramm('x',x,'y',y,'color',cars.Cylinders);
+g(2,1).facet_grid(cars.Model_Year>76,cars.Origin_Region,'scale','free_x','space','free_x');
+g(2,1).coord_flip();
+g(2,1).set_title('free_x with coord_flip()');
+g(2,2)=gramm('x',x,'y',y,'color',cars.Cylinders);
+g(2,2).facet_grid(cars.Model_Year>76,cars.Origin_Region,'scale','independent','space','free');
+g(2,2).set_title('independent (equal sizes)');
+g(2,3)=gramm('x',x,'y',y,'color',cars.Cylinders);
+g(2,3).facet_wrap(cars.Origin_Region,'scale','free_x');
+g(2,3).set_title('facet_wrap (equal sizes)');
+for k=1:numel(g)
+    g(k).geom_point();
+    g(k).set_layout_options('legend',false);
+end
+g(1,3).set_layout_options('legend',false,'spacing','tight');
+figure('Position',[100 100 1400 800]);
+g.draw();
+
+%% Dev tests: update() paths
+% Same facets, one to many facets, many to one facet, and one to many
+% inside an array (the untouched element is skipped without warning)
+
+figure('Position',[100 100 900 500]);
+g=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Cylinders);
+g.geom_point(); g.set_title('Same facets'); g.draw();
+g.update('color',cars.Origin_Region); g.stat_glm(); g.draw();
+
+figure('Position',[100 100 900 500]);
+g=gramm('x',cars.Model_Year,'y',cars.MPG,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
+g.stat_glm('geom','area'); g.set_color_options('chroma',0,'lightness',75);
+g.set_title('One to many'); g.draw();
+g.update('color',cars.Cylinders); g.facet_grid([],cars.Origin_Region);
+g.geom_point(); g.draw();
+
+figure('Position',[100 100 900 500]);
+g=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Origin_Region);
+g.facet_grid([],cars.Origin_Region); g.geom_point(); g.set_title('Many to one'); g.draw();
+g.update('color',[]); g.facet_grid([],[]); g.stat_glm(); g.draw();
+
+figure('Position',[100 100 900 500]);
+clear g
+g(1,1)=gramm('x',cars.Horsepower,'y',cars.MPG);
+g(1,1).geom_point(); g(1,1).set_title('Untouched');
+g(1,2)=gramm('x',cars.Model_Year,'y',cars.MPG);
+g(1,2).stat_glm('geom','area'); g(1,2).set_title('One to many in array');
+g.draw();
+g(1,2).update('color',cars.Cylinders); g(1,2).facet_grid([],cars.Origin_Region);
+g(1,2).geom_point(); g.draw();
+
+%% Dev tests: set_parent() tiles and removed layout options
+% update() from one to many facets in a tile must rebuild the facets in the
+% same tile and leave the plain axes untouched. Removed set_layout_options()
+% options must raise a gramm:removedOption error
+
+figure('Position',[100 100 1000 500]);
+t=tiledlayout(2,3);
+ax=nexttile(t,3); plot(ax,1:10); title(ax,'Plain axes');
+g=gramm('x',cars.Model_Year,'y',cars.MPG);
+g.set_parent(t,'tile',1,'span',[2 2]);
+g.stat_glm('geom','area'); g.set_title('One to many in a tile');
+g.draw();
+g.update('color',cars.Cylinders); g.facet_grid([],cars.Origin_Region);
+g.geom_point(); g.draw();
+fprintf('Layout tile %d span %s, plain axes still there: %d\n',g.layout.Layout.Tile,mat2str(g.layout.Layout.TileSpan),isgraphics(ax));
+
+try
+    g=gramm('x',1:3,'y',1:3);
+    g.set_layout_options('position',[0 0 1 1]);
+    disp('Removed option did not raise an error');
+catch err
+    fprintf('Removed option raises %s\n',err.identifier);
+end
+
+%Tiles that don't fit in the layout must raise an error, and tiles given as
+%[row column] must land in the right tile
+t=tiledlayout(figure,2,2);
+try
+    g=gramm('x',1:3,'y',1:3);
+    g.set_parent(t,'tile',2,'span',[1 2]);
+    disp('Tile outside of the layout did not raise an error');
+catch err
+    fprintf('Tile outside of the layout: %s\n',err.message);
+end
+g=gramm('x',1:3,'y',1:3);
+g.set_parent(t,'tile',[2 1]);
+g.geom_point();
+g.draw();
+fprintf('Tile [2 1] of a 2x2 layout is tile %d\n',g.layout.Layout.Tile);
+
+%% Dev tests: legends
+% The legend column should be as wide as the legend text (long labels,
+% several legends), arrays with and without legends should keep their plots
+% aligned, and legends should survive figure resizing
+
+lbl=strcat(cars.Origin_Region,' (a rather long label)');
+figure('Position',[100 100 900 500]);
+g=gramm('x',cars.Horsepower,'y',cars.MPG,'color',lbl,'marker',cars.Cylinders);
+g.geom_point();
+g.set_names('color','Region of origin of the car','marker','# Cyl');
+g.draw();
+
+f=figure('Position',[100 100 1000 700]);
+clear g
+g(1,1)=gramm('x',cars.Horsepower,'y',cars.MPG);
+g(1,1).geom_point(); g(1,1).set_title('No legend');
+g(1,2)=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Cylinders);
+g(1,2).geom_point(); g(1,2).set_title('Short legend');
+g(2,1)=gramm('x',cars.Horsepower,'y',cars.MPG,'color',lbl);
+g(2,1).geom_point(); g(2,1).set_title('Long legend');
+g(2,2)=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Cylinders);
+g(2,2).geom_point(); g(2,2).facet_grid([],cars.Origin_Region); g(2,2).set_title('Facets');
+g.set_names('color','# Cyl');
+g.draw();
+f.Position(3:4)=[700 500]; drawnow;
+f.Position(3:4)=[1000 700];
+
+
+%% Dev tests: polar plots
+% Every geom and stat supported in polar plots, in an array of gramm plots,
+% then facets, linked radius limits and update() in polar plots, and the
+% errors raised for what is not supported
+
+rng(2);
+n=400;
+grp=repmat({'A';'B'},n/2,1);
+th=mod(randn(n,1)*0.7+pi/3*strcmp(grp,'B'),2*pi); %Continuous angles (radians)
+r=1+rand(n,1)+0.5*cos(th);
+dir_deg=repmat(repelem((0:45:315)',2),n/16,1); %Directions sampled every 45 degrees, for both groups
+dir_rate=5+3*cosd(dir_deg-90*strcmp(grp,'B'))+randn(n,1);
+dir8=(0:45:315)'; %One value per direction
+val8=[2+rand(8,1) ; 3+rand(8,1)];
+grp8=[repmat({'A'},8,1) ; repmat({'B'},8,1)];
+skills={'Speed','Strength','Agility','Endurance','Precision','Balance'};
+skill=categorical(repmat(repelem(skills',2),ceil(n/12),1),skills); skill=skill(1:n);
+score=rand(n,1)+0.5*strcmp(grp,'B').*(skill=='Speed' | skill=='Agility');
+
+figure('Position',[50 50 1800 1400]);
+clear g
+g(1,1)=gramm('x',th,'y',r,'color',grp);
+g(1,1).set_polar(); g(1,1).geom_point(); g(1,1).set_title('geom_point() (radians)');
+g(1,2)=gramm('x',dir_deg,'y',dir_rate,'color',grp);
+g(1,2).set_polar('unit','degrees'); g(1,2).geom_jitter('width',8,'height',0); g(1,2).set_title('geom_jitter() (degrees)');
+g(1,3)=gramm('x',[dir8 ; dir8],'y',val8,'color',grp8);
+g(1,3).set_polar('unit','degrees','closed',true); g(1,3).geom_line(); g(1,3).set_title('geom_line() closed');
+g(1,4)=gramm('x',round(th*4)/4,'y',round(r*4)/4);
+g(1,4).set_polar(); g(1,4).geom_count(); g(1,4).set_title('geom_count()');
+g(1,5)=gramm('x',[dir8 ; dir8],'y',val8,'label',grp8,'color',grp8);
+g(1,5).set_polar('unit','degrees'); g(1,5).geom_label(); g(1,5).set_title('geom_label()');
+
+g(2,1)=gramm('x',[dir8 ; dir8],'y',val8,'color',grp8);
+g(2,1).set_polar('unit','degrees'); g(2,1).geom_bar('dodge',0.6,'width',0.5); g(2,1).set_title('geom_bar() dodged');
+g(2,2)=gramm('x',[dir8 ; dir8],'y',val8,'ymin',val8-0.3,'ymax',val8+0.3,'color',grp8);
+g(2,2).set_polar('unit','degrees','closed',true); g(2,2).geom_interval('geom','area'); g(2,2).set_title('geom_interval() closed');
+g(2,3)=gramm('x',rad2deg(th),'color',grp);
+g(2,3).set_polar('unit','degrees'); g(2,3).stat_bin('edges',0:22.5:360); g(2,3).set_title('stat_bin() edges in degrees');
+g(2,4)=gramm('x',th,'color',grp);
+g(2,4).set_polar(); g(2,4).stat_bin('nbins',16,'geom','stacked_bar'); g(2,4).set_title('stat_bin() stacked');
+g(2,5)=gramm('x',th,'color',grp);
+g(2,5).set_polar('closed',true); g(2,5).stat_bin('nbins',24,'geom','line'); g(2,5).set_title('stat_bin() line closed');
+
+g(3,1)=gramm('x',th,'color',grp);
+g(3,1).set_polar(); g(3,1).stat_bin('nbins',24,'geom','stairs'); g(3,1).set_title('stat_bin() stairs');
+g(3,2)=gramm('x',th,'color',grp);
+g(3,2).set_polar(); g(3,2).stat_bin('nbins',24,'geom','point'); g(3,2).set_title('stat_bin() point');
+g(3,3)=gramm('x',th,'color',grp);
+g(3,3).set_polar('closed',true); g(3,3).stat_density('bandwidth',0.3); g(3,3).set_title('stat_density() closed');
+g(3,4)=gramm('x',dir_deg,'y',dir_rate,'color',grp);
+g(3,4).set_polar('unit','degrees','closed',true); g(3,4).stat_summary('geom',{'area','line','point'}); g(3,4).set_title('stat_summary() closed');
+g(3,5)=gramm('x',dir_deg,'y',dir_rate,'color',grp);
+g(3,5).set_polar('unit','degrees','closed',true); g(3,5).stat_summary('geom',{'area','line'},'interp','polar'); g(3,5).set_title('stat_summary() ''interp'',''polar''');
+
+g(4,1)=gramm('x',dir_deg,'y',dir_rate,'color',grp);
+g(4,1).set_polar('unit','degrees'); g(4,1).stat_summary('geom',{'bar','black_errorbar'},'dodge',0.6,'width',0.5); g(4,1).set_title('stat_summary() bar');
+g(4,2)=gramm('x',th,'y',r,'color',grp);
+g(4,2).set_polar(); g(4,2).geom_point('alpha',0.2); g(4,2).stat_smooth(); g(4,2).set_title('stat_smooth()');
+g(4,3)=gramm('x',th,'y',r,'color',grp);
+g(4,3).set_polar(); g(4,3).stat_fit('fun',@(a,b,x)a+b*cos(x),'StartPoint',[1 0.5]); g(4,3).set_title('stat_fit()');
+g(4,4)=gramm('x',th,'y',r,'color',grp);
+g(4,4).set_polar(); g(4,4).stat_glm(); g(4,4).set_title('stat_glm()');
+g(4,5)=gramm('x',dir_deg,'y',dir_rate);
+g(4,5).set_polar('unit','degrees','maxy',12); g(4,5).geom_point('alpha',0.2);
+g(4,5).geom_hline('yintercept',5); g(4,5).geom_vline('xintercept',[45 225]);
+g(4,5).geom_abline('slope',1,'intercept',2,'style','r:'); g(4,5).geom_funline('fun',@(x)8+2*sin(3*x),'style','g-');
+g(4,5).set_title('Reference lines, ''maxy''');
+
+g(5,1)=gramm('x',skill,'y',score,'color',grp);
+g(5,1).set_polar('closed',true); g(5,1).stat_summary('geom',{'area','line','point'}); g(5,1).set_title('Radar (categorical x)');
+g(5,2)=gramm('x',skill,'color',grp);
+g(5,2).set_polar(); g(5,2).stat_bin('geom','bar','dodge',0.6,'width',0.5); g(5,2).set_title('stat_bin() categorical x');
+g(5,3)=gramm('x',rad2deg(th),'color',grp);
+g(5,3).set_polar('unit','degrees'); g(5,3).stat_bin('edges',0:30:360,'geom','stacked_bar','fill','face');
+g(5,3).axe_property('ThetaZeroLocation','top','ThetaDir','clockwise'); g(5,3).set_title('Compass orientation');
+g(5,4)=gramm('x',th,'y',r,'color',r);
+g(5,4).set_polar(); g(5,4).geom_point(); g(5,4).set_title('Continuous color');
+g(5,5)=gramm('x',repmat((0:7)'*pi/4,n/8,1),'y',dir_rate);
+g(5,5).set_polar(); g(5,5).geom_point('alpha',0.2); g(5,5).set_title('Ticks at few angles (radians)');
+
+g.set_names('x','','y','','color','');
+g.draw();
+
+%Facets: radius limits linked across facets ('fixed'), per row ('free_y'),
+%or per facet ('independent'). update() from one to many facets keeps the
+%polar axes
+figure('Position',[100 100 1200 450]);
+clear g
+facet=repmat(repelem({'f1';'f2';'f3';'f4'},2),n/8,1);
+facet_r=r.*(1+strcmp(facet,'f2')*2);
+scales={'fixed','free_y','independent'};
+for k=1:3
+    g(1,k)=gramm('x',th,'y',facet_r,'color',grp);
+    g(1,k).facet_wrap(facet,'ncols',2,'scale',scales{k});
+    g(1,k).set_polar(); g(1,k).geom_point();
+    g(1,k).set_title(['Scale ''' scales{k} '''']);
+end
+g.draw();
+
+figure('Position',[100 100 800 400]);
+g=gramm('x',th,'y',r);
+g.set_polar(); g.geom_point('alpha',0.3); g.set_title('update() one to many');
+g.draw();
+g.update('color',grp); g.facet_grid([],grp); g.stat_smooth(); g.draw();
+
+%Unsupported: each of these must raise a gramm:polarUnsupported error
+unsupported={'geom_swarm()',@(g) g.geom_swarm()
+    'geom_raster()',@(g) g.geom_raster()
+    'geom_polygon()',@(g) {g.geom_point(),g.geom_polygon('x',{[0 1 1]},'y',{[0 0 1]})}
+    'stat_violin()',@(g) g.stat_violin()
+    'stat_boxplot()',@(g) g.stat_boxplot()
+    'stat_ellipse()',@(g) g.stat_ellipse()
+    'stat_qq()',@(g) g.stat_qq()
+    'stat_bin2d()',@(g) g.stat_bin2d()
+    'stat_cornerhist()',@(g) g.stat_cornerhist()
+    'coord_flip()',@(g) {g.geom_point(),g.coord_flip()}
+    'facet_grid() ''space''',@(g) {g.geom_point(),g.facet_grid([],grp,'space','free')}
+    'set_datetick()',@(g) {g.geom_point(),g.set_datetick()}};
+f=figure('Visible','off');
+for k=1:size(unsupported,1)
+    clf(f);
+    g=gramm('x',th,'y',r);
+    unsupported{k,2}(g);
+    g.set_polar();
+    try
+        g.draw();
+        fprintf('%-24s no error\n',unsupported{k,1});
+    catch err
+        fprintf('%-24s %s\n',unsupported{k,1},err.identifier);
+    end
+end
+close(f);
+
+
+%% Dev tests: log axes
+% Every geom and stat on log axes, in an array of gramm plots (values at
+% or below 0 are left out of the limits, bars start from the bottom of
+% the axis), then facets, update() and the error in polar plots
+
+rng(3);
+n=300;
+lx=10.^(3*rand(n,1));
+ly=2*lx.^0.7.*exp(0.3*randn(n,1));
+ly(1:4)=[0 0 -1 -5]; %Not displayable
+lgrp=repmat({'A';'B';'C'},n/3,1);
+lcat=repmat({'u';'v';'w';'z'},n/4,1);
+lval=10.^(0.4*randn(n,1)+repmat((0:3)',n/4,1));
+lt=(1:20)';
+lsig=[10.^(lt/5) ; 10.^(lt/8)];
+lsig_grp=repelem({'A';'B'},20,1);
+
+figure('Position',[50 50 1800 1100]);
+clear g
+g(1,1)=gramm('x',lx,'y',ly,'color',lgrp);
+g(1,1).geom_point(); g(1,1).set_scale('x','log','y','log'); g(1,1).set_title('geom_point() with values <=0');
+g(1,2)=gramm('x',[lt ; lt],'y',lsig,'color',lsig_grp);
+g(1,2).geom_line('fill',0); g(1,2).set_scale('y','log'); g(1,2).set_title('geom_line() ''fill'' 0');
+g(1,3)=gramm('x',[lt ; lt],'y',lsig,'color',lsig_grp);
+g(1,3).geom_line('stacked',true); g(1,3).set_scale('y','log'); g(1,3).set_title('geom_line() stacked');
+g(1,4)=gramm('x',{'a','b','c','d','a','b','c','d'},'y',[1 20 300 5000 2 10 600 100],'color',{'1','1','1','1','2','2','2','2'});
+g(1,4).geom_bar('stacked',true); g(1,4).set_scale('y','log'); g(1,4).set_title('geom_bar() stacked');
+g(1,5)=gramm('x',repmat({'u';'v';'w';'z'},3,1),'y',10.^(rand(12,1)+repmat((0:3)',3,1)),'color',repelem({'A';'B';'C'},4,1));
+g(1,5).geom_bar('dodge',0.7,'width',0.6); g(1,5).set_scale('y','log'); g(1,5).set_title('geom_bar() dodged');
+
+g(2,1)=gramm('x',lx,'color',lgrp);
+g(2,1).stat_bin('edges',logspace(0,3,15),'geom','overlaid_bar','fill','transparent'); g(2,1).set_scale('x','log','y','log'); g(2,1).set_title('stat_bin() overlaid_bar');
+g(2,2)=gramm('x',lx,'color',lgrp);
+g(2,2).stat_bin('edges',logspace(0,3,15),'geom','stacked_bar'); g(2,2).set_scale('x','log','y','log'); g(2,2).set_title('stat_bin() stacked_bar');
+g(2,3)=gramm('x',lx,'color',lgrp);
+g(2,3).stat_bin('edges',logspace(0,3,15),'geom','line','fill','transparent'); g(2,3).set_scale('x','log','y','log'); g(2,3).set_title('stat_bin() line');
+g(2,4)=gramm('x',lx,'color',lgrp);
+g(2,4).stat_bin('edges',logspace(0,3,15),'geom','stairs','fill','transparent'); g(2,4).set_scale('x','log','y','log'); g(2,4).set_title('stat_bin() stairs');
+g(2,5)=gramm('x',log10(lx));
+g(2,5).stat_bin('nbins',15,'geom','point'); g(2,5).set_scale('y','log'); g(2,5).set_title('stat_bin() point, log y only');
+
+g(3,1)=gramm('x',lcat,'y',lval,'color',lgrp);
+g(3,1).stat_summary('geom',{'bar','black_errorbar'},'dodge',0.7,'width',0.6); g(3,1).set_scale('y','log'); g(3,1).set_title('stat_summary() bars');
+g(3,2)=gramm('x',lx,'y',ly,'color',lgrp);
+g(3,2).stat_fit('fun',@(a,b,x)a*x.^b,'StartPoint',[2 0.7],'intopt','functional'); g(3,2).set_scale('x','log','y','log'); g(3,2).set_title('stat_fit() power law');
+g(3,3)=gramm('x',lx,'y',ly);
+g(3,3).geom_point('alpha',0.3); g(3,3).stat_smooth(); g(3,3).set_scale('x','log'); g(3,3).set_title('stat_smooth(), log x only');
+g(3,4)=gramm('x',lx,'color',lgrp);
+g(3,4).stat_density(); g(3,4).set_scale('x','log'); g(3,4).set_title('stat_density(), log x only');
+g(3,5)=gramm('x',lx,'y',ly);
+g(3,5).geom_point('alpha',0.3); g(3,5).geom_hline('yintercept',100); g(3,5).geom_vline('xintercept',10); g(3,5).geom_abline('slope',1,'intercept',0);
+g(3,5).set_scale('x','log','y','log'); g(3,5).set_title('geom_hline/vline/abline()');
+
+g(4,1)=gramm('x',lcat,'y',lval,'ymin',lval/2,'ymax',lval*2,'color',lgrp);
+g(4,1).geom_interval('geom','black_errorbar','dodge',0.7); g(4,1).set_scale('y','log'); g(4,1).set_title('geom_interval()');
+g(4,2)=gramm('x',lx,'y',ly,'color',lgrp);
+g(4,2).geom_point(); g(4,2).axe_property('XScale','log','YScale','log'); g(4,2).set_title('axe_property(''XScale'',''log'')');
+g(4,3)=gramm('x',lx,'y',ly,'z',lx.*ly,'color',lgrp);
+g(4,3).geom_point(); g(4,3).set_scale('x','log','y','log','z','log'); g(4,3).set_title('3D, log z');
+g(4,4)=gramm('x',lcat,'y',lval);
+g(4,4).stat_summary('geom',{'bar','black_errorbar'}); g(4,4).set_scale('y','log'); g(4,4).coord_flip(); g(4,4).set_title('coord_flip()');
+g(4,5)=gramm('x',lx,'y',ly,'color',lx);
+g(4,5).geom_point(); g(4,5).set_scale('x','log','y','log'); g(4,5).set_title('Continuous color');
+g.set_title('Log axes: geoms and stats');
+g.draw();
+
+% Facets: shared log limits in 'fixed', per facet in 'independent'
+figure('Position',[50 50 1400 700]);
+clear g
+for k=1:2
+    scales={'fixed','independent'};
+    g(k,1)=gramm('x',lx.*(1+9*strcmp(lgrp,'C')),'y',ly,'color',lgrp);
+    g(k,1).facet_grid([],lgrp,'scale',scales{k});
+    g(k,1).geom_point();
+    g(k,1).set_scale('x','log','y','log');
+    g(k,1).set_title(['Facets, scale ''' scales{k} '''']);
+end
+g.draw();
+
+% update(): one to many facets, scale kept
+figure('Position',[50 50 1200 450]);
+clear g
+g=gramm('x',lx,'y',ly);
+g.geom_point('alpha',0.2);
+g.set_scale('x','log','y','log');
+g.draw();
+g.update('color',lgrp);
+g.facet_grid([],lgrp);
+g.stat_fit('fun',@(a,b,x)a*x.^b,'StartPoint',[2 0.7]);
+g.set_title('update() to facets on log axes');
+g.draw();
+
+% Polar plots don't support log axes: the error is printed
+clear g
+g=gramm('x',lx,'y',ly);
+g.geom_point();
+g.set_polar();
+g.set_scale('y','log');
+figure();
+try
+    g.draw();
+catch err
+    fprintf('Log axes in polar plots: %s\n',err.identifier);
+end
+
 %% Raw matlab code equivalent to the first figure (in paper.md)
 
-figure('Color',[1 1 1]);
+figure;
 
 % Define groups
 cyl = [4 6 8]; % Manually

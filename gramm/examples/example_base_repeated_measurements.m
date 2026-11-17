@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Repeated measurements
+% <matlab:edit('example_base_repeated_measurements.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#stat_summary stat_summary() in the cheat sheet>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Methods for visualizing repeated trajectories
@@ -43,7 +44,7 @@ g(2,2).set_title('stat_summary()');
 
 g.set_title('Visualization of repeated trajectories ');
 
-figure;
+figure('Position',[100 100 1100 660]);
 g.draw();
 
 
@@ -79,5 +80,5 @@ g(1,2).set_title('stat_bin()');
 g.set_names('x','Time','y','');
 g.set_title('Visualization of spike densities');
 
-figure;
+figure('Position',[100 100 1100 450]);
 g.draw();

@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Corner histograms
+% <matlab:edit('example_stat_cornerhist.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#stat_cornerhist stat_cornerhist() in the cheat sheet>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Visualize x-y difference with inset histogram using stat_cornerhist()
@@ -25,10 +26,10 @@ g.stat_cornerhist('edges',-4:0.1:2,'aspect',0.5);
 g.geom_abline();
 
 g.set_title('Visualize x-y with stat_cornerhist()');
-figure;
+figure('Position',[100 100 1100 450]);
 g.draw();
 
 %Possibility to use axe handles of the inset axes to add elements or change
 %properties
-plot(g.results.stat_cornerhist(2).child_axe_handle,[-2 -2],[0 50],'k:','LineWidth',2)
+xline(g.results.stat_cornerhist(2).child_axe_handle,-2,':','LineWidth',2)
 %set([g.results.stat_cornerhist.child_axe_handle],'XTick',[])

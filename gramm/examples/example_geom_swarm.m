@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Swarm plots
+% <matlab:edit('example_geom_swarm.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#geom_swarm geom_swarm() in the cheat sheet>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Options for geom_swarm()
@@ -16,7 +17,7 @@ c=categorical(c);
 x=categorical(x);
 c(x=="0" & c=="0") = "2";
 
-figure;
+figure('Position',[100 100 1100 660]);
 clear g
 g(1,1)=gramm('x',x,'y',y,'color',c);
 g(1,2) = copy(g(1,1));
@@ -39,10 +40,10 @@ g(2,1).geom_swarm('point_size',2,'type','square');
 g(2,1).set_title('method ''square''');
 
 g(2,2).geom_swarm('point_size',2,'corral','gutter','alpha',0.5,'dodge',0.8,'width',0.7);
-g(2,2).set_title('corral ''gutter'' and alpha 0.3');
+g(2,2).set_title('corral ''gutter'' and alpha 0.5');
 
 g(2,3).geom_swarm('point_size',2,'corral','omit','alpha',0.5,'dodge',0.8,'width',0.7);
-g(2,3).set_title('corral ''omit'' and alpha 0.3');
+g(2,3).set_title('corral ''omit'' and alpha 0.5');
 
 g.set_title('Options for geom_swarm()');
 g.draw();

@@ -2,27 +2,33 @@ function obj=geom_line(obj,varargin)
 % geom_line Display data as lines
 %
 % Example syntax: gramm_object.geom_line('ordered',false,'alpha',1)
-% This will add a layer that will display data as lines
-% If the data is not properly grouped/ordered things can look weird.
-% In simple cases without cell array inputs, setting the 'ordered'
-% parameter to true will order line nodes along the x axis
+% Supports color, lightness, linestyle and size groups. If x and y are 1D
+% arrays, all the points within a group are connected: if the data is not
+% properly grouped/ordered things can look weird.
 %
 % Parameters given as 'name',value pairs:
-% - 'dodge': Spacing between lines of different colors within an 
+% - 'dodge': Spacing between lines of different colors within an
 %            unique x value (default 0)
-% - 'alpha': Transparency of lines, from 0 (transparent) to 1 (opaque) (default 1)
-% - 'stacked': Set to true to create stacked area plot (default false)
-% - 'fill': Y value to fill from (creates filled area plot) (default [])
-% - 'fill_alpha': Transparency of fill area, from 0 to 1 (default 0.4)
-% - 'ordered': Set to true to order line nodes along x axis for simple arrays (default false)
+% - 'alpha': Transparency of lines, from 0 (transparent) to 1 (opaque)
+%            (default 1)
+% - 'stacked': Stack the lines of the different groups and shade the
+%            areas between them (only with 1D arrays for x and y)
+%            (default false)
+% - 'fill': If set to a y value, shade the area between the lines and
+%            this value (default [])
+% - 'fill_alpha': Transparency of the shaded areas, from 0 to 1
+%            (default 0.4)
+% - 'ordered': Order the points of each line along x, so that the line
+%            doesn't go back on itself (only with 1D arrays for x and y)
+%            (default false)
 
 p=inputParser;
-my_addParameter(p,'dodge',0);
-my_addParameter(p,'alpha',1);
-my_addParameter(p,'stacked',false);
-my_addParameter(p,'fill',[]); 
-my_addParameter(p,'fill_alpha',0.4);
-my_addParameter(p,'ordered',false);
+addParameter(p,'dodge',0,@(v) valid_range(v,0,Inf));
+addParameter(p,'alpha',1,@(v) valid_range(v,0,1));
+addParameter(p,'stacked',false);
+addParameter(p,'fill',[]); 
+addParameter(p,'fill_alpha',0.4,@(v) valid_range(v,0,1));
+addParameter(p,'ordered',false);
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_line(dobj,dd,p.Results)});
@@ -40,7 +46,7 @@ if obj.continuous_color_options.active
     obj.plot_lim.minc(obj.current_row,obj.current_column)=min(obj.plot_lim.minc(obj.current_row,obj.current_column),min(comb(draw_data.continuous_color)));
     
     if isempty(draw_data.z)
-        [x,y]=to_polar(obj,draw_data.x,draw_data.y);
+        [x,y]=close_polar(obj,draw_data.x,draw_data.y);
 
         %We fake continuous colors lines by creating patch objects
         %without fill. Since they need to be closed we draw the
@@ -125,8 +131,7 @@ else
             end
 
             xpatch = [xline(1:end-1) ; xline(2:end) ; xline(2:end) ; xline(1:end-1)];
-            ypatch = [top(1:end-1); top(2:end) ; bottom(2:end) ; bottom(1:end-1)];
-            [xpatch,ypatch]=to_polar(obj,xpatch,ypatch);
+            ypatch = log_base(obj,[top(1:end-1); top(2:end) ; bottom(2:end) ; bottom(1:end-1)]);
 
             obj.results.geom_line_fill_handle{obj.result_ind,1}=patch(xpatch,ypatch,[1 1 1],...
                 'FaceColor',draw_data.color,...
@@ -151,7 +156,7 @@ else
                 y=y(i);
             end
 
-            [x,y]=to_polar(obj,x,y);
+            [x,y]=close_polar(obj,x,y);
             hndl=patch('XData',combnan(x),'YData',combnan(y),...
                 'LineStyle',draw_data.line_style,'LineWidth',draw_data.line_size,'EdgeColor',draw_data.color);
         end

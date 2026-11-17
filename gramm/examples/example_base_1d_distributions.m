@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% 1D distributions
+% <matlab:edit('example_base_1d_distributions.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#stats Statistics in the cheat sheet>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Methods for visualizing X densities
@@ -25,7 +26,8 @@ g(1,1).set_title('geom_raster()');
 
 %Histogram
 g(1,2).facet_grid(cars.Origin_Region,[]);
-g(1,2).stat_bin('nbins',8);
+%Common bin edges for all colors, bars of different colors overlaid
+g(1,2).stat_bin('edges',40:20:240,'geom','overlaid_bar');
 g(1,2).set_title('stat_bin()');
 
 %Kernel smoothing density estimate
@@ -41,6 +43,6 @@ g(2,2).set_title('stat_qq()');
 
 g.set_names('x','Horsepower','color','# Cyl','row','','y','');
 g.set_title('Visualization of X densities');
-figure;
+figure('Position',[100 100 1100 900]);
 g.draw();
 

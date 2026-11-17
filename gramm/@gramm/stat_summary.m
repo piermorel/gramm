@@ -1,120 +1,125 @@
 function obj=stat_summary(obj,varargin)
-% stat_summary Display summarized data for each value of X
+% stat_summary Display the location and variability of y for each unique value of x
 %
-% Example syntax (default arguments): gramm_object.stat_summary('type','ci','geom','lines','setylim',false)
-% For each unique value of x, this can display various estimates of
-% the location and variability of the corresponding y distribution.
-% The optional 'name',value pairs can ne the following:
-% - 'type':
-%       - 'ci' : display the mean and the 95% confidence
-%       interval of the mean (based on the assumption of a normal
-%       distribution)
-%       - 'bootci' : display the mean and the 95% confidence
-%       interval of the mean computed by bootstrap
-%       - 'sem' : display the mean and the standard error of
-%       the mean
-%       - 'std' : display the mean and the standard deviation
-%       and the mean
-%       - 'quartile': display the 25% 50% (median) and 75%
-%       percentiles
-%       - '95percentile': display the median and 2.5 and 97.5
-%       percentiles
-%       - 'fitnormalci'
-%       - 'fitpoissonci'
-%       - 'fitbinomialci'
-%       - 'fit95percentile'
-%       - @function : provide a the handle to a custom function that takes 
-%       y values (as an n_repetitions x n_data_points matrix) and returns 
-%       both the central value and the CI with a matrix [y_central ; yc_CI_low ; y_CI_high]
-%       (with y_central, and y_CIs being 1 x n_data_points arrays).
-%       Example that uses the trimmed mean instead of regular mean:
+% Example syntax (default arguments): gramm_object.stat_summary('type','ci','geom','area','setylim',false)
+% By default, all y values with the same x value are summarized. If x and
+% y are 1D arrays but x values are not discrete enough, the summaries can
+% be computed over x bins with 'bin_in' or 'bin_width'. If x and y are
+% given as matrices or cells with non-aligned x values, 'interp_in' must
+% be used to align them by interpolation.
 %
-%       custom_statfun = @(y)([trimmean(y,2.5);bootci(500,{@(ty)trimmean(ty,2.5),y},'alpha',0.05)]); 
-%       gramm_object.stat_summary('type', custom_statfun)
+% Parameters given as 'name',value pairs:
+% - 'type': What is computed, or a function handle taking y values (as
+%            an n_repetitions x n_data_points matrix) and returning
+%            [y_central ; y_CI_low ; y_CI_high], see example below
+%            (default 'ci'):
+%       - 'ci': mean and 95% confidence interval of the mean (assuming
+%            normal data)
+%       - 'bootci': mean and bootstrapped 95% confidence interval of the
+%            mean
+%       - 'sem': mean and standard error of the mean
+%       - 'std': mean and standard deviation
+%       - 'quartile': median and 25%/75% percentiles
+%       - '95percentile': median and 2.5%/97.5% percentiles
+%       - 'fitnormalci': mean and 95% CI from a fitted normal distribution
+%       - 'fitpoissonci': mean and 95% CI from a fitted Poisson
+%            distribution
+%       - 'fitnegbinomialci': mean and 95% CI from a fitted negative
+%            binomial distribution
+%       - 'fitbinomialci': mean and 95% CI from a fitted binomial
+%            distribution
+%       - 'fitgammaci': scale and 95% CI from a fitted gamma distribution
+%       - 'fitinvgaussianci': mean and 95% CI from a fitted inverse
+%            Gaussian distribution
+%       - 'fit95percentile': median and 2.5%/97.5% percentiles of a fitted
+%            normal distribution
+% - 'geom': How the summaries are displayed, one or a cell of several of
+%            the following, e.g. {'bar','black_errorbar'} (default 'area'):
+%       - 'area': central values (mean or median) connected by a line,
+%            variability (CI, std...) as a shaded transparent area
+%       - 'lines': central values connected by a line, variability as
+%            thin lines
+%       - 'line': central values connected by a line
+%       - 'area_only': variability as a shaded transparent area, no line
+%       - 'solid_area': central values connected by a line, variability
+%            as a solid area
+%       - 'errorbar': variability as colored error bars
+%       - 'black_errorbar': variability as black error bars
+%       - 'bar': central values as colored bars
+%       - 'edge_bar': central values as colored bars with black edges
+%       - 'point': central values as points
+%       - 'black_point': central values as black points
+% - 'dodge': Spacing between elements of different colors within an
+%            unique x value, as a ratio of the x intervals. 0 deactivates
+%            dodging (default [], 0.6 for bars with several colors, 0
+%            otherwise)
+% - 'width': Width of the bars (default [], 0.8 times 'dodge' if dodging,
+%            0.5 otherwise). The size of error bar caps is set with
+%            set_line_options('cap_size',...)
+% - 'setylim': Set the y axis limits from the summaries instead of the
+%            data (default false)
+% - 'interp': Interpolate the output, with the interpolation methods of
+%            interp1() ('linear', 'spline'...). 'polar' (and closed polar
+%            plots) uses interpft(), which assumes a regular sampling around
+%            the circle (default 'none')
+% - 'interp_in': Number of x values over which the input is linearly
+%            interpolated. Must be used when x and y are given as cells
+%            and x values are not aligned. Ideally higher than the x
+%            resolution of the data, otherwise some data is unused
+%            (default -1, no interpolation)
+% - 'bin_in': Number of x bins over which the 1D input is summarized, or
+%            bin edges as an array (numeric, datetime or duration)
+%            (default [])
+% - 'bin_width': Bins the input like 'bin_in', with bins of a given width:
+%            numeric (in x units), a duration or calendarDuration (e.g.
+%            minutes(5) or calweeks(1)), or the name of a time unit for
+%            datetime/duration x data ('second', 'minute', 'hour', 'day',
+%            'week', 'month', 'quarter', 'year'...). Bins then fall on round
+%            values (calendar boundaries for dates). Takes precedence over
+%            'bin_in' (default [])
+% - 'fill_alpha': Transparency of the 'area' and 'area_only' geoms, from
+%            0 (transparent) to 1 (opaque) (default 0.2)
 %
-% - 'geom' (possibility to combine them using a cellstr, e.g. 'geom',{'bar','black_errorbar'} ):
-%       - 'line': displays a line that connects the central locations
-%       (mean,median)
-%       - 'lines': displays a line that connects the central locations
-%       and lighter lines for the variabilities
-%       - 'area': displays a line that connects the central locations
-%       and a transparent area for the variabilities.
-%       - 'area_only': displays the variabilities only, using a transparent area
-%       - 'solid_area': displays a line that connects the locations
-%       and a solid area for the variabilities. Use this for
-%       export to vector output.
-%       - 'errorbar': displays error bars for variabilities.
-%       - 'black_errorbar': displays black error bars for variabilities.
-%       - 'bar': displays the locations as bars
-%       - 'edge_bar': displays the locations as bars with black edge
-%       - 'point': displays the locations as points
-%       - 'black_point': displays the locations as black points
-% - 'setylim': set to true if you want the y axis limits to be
-% set by the summarized data instead of the underlying data
-% points.
-% - 'interp': Use to interpolate the output, takes the same parameters as
-% interp1 in order to specify the interpolation type. When the
-% polar mode is specified as closed, or when 'interp','polar' is used
-% the interpolation uses interpft, which supposes regular sampling around the circle.
-% - 'interp_in': Use to (linearly) interpolate the input. This is intended
-% for input given as cells when the x value is different for
-% each cell and not aligned. The argument corresponds to the
-% number of points used to generate the interpolation. Ideally
-% for this the number of number of points should be higher than
-% the x resolution of the data, otherwise some data will be
-% unused.
-% - 'bin_in': Use to bin the input. This is intended for input
-% given as a 1-D array, creates bins over x and computes the summary
-% over the binned data. Argument corresponds to the number of
-% bins. If given as array this will be interpreted as bin edges
-% - 'dodge': use to dodge the plotted elements depending on
-% color (recommended for 'bar', 'errorbar', 'black_errorbar').
-% A value of 0 deactivates dodging. Other values set the space
-% between the dodged elements as ratio of the x intervals.
-% - 'width': use to set the width of bars and error bars (error
-% bars are 1/4 th the width of bars).
+% Custom summary function, here the trimmed mean with bootstrapped CI:
+%   custom_statfun = @(y)([trimmean(y,2.5);bootci(500,{@(ty)trimmean(ty,2.5),y},'alpha',0.05)]);
+%   gramm_object.stat_summary('type', custom_statfun)
 %
-% A setting of 'dodge',1,'width',1 will create bars that are
-% fully dodged (ie don't overlap, but are not separated) and where
-% all bars occupy the full interval between the x values, e.g.:
-% * __    *
-% *|  |__ *
-% *|  |  |*
-% *|__|__|*
-%
-% A setting of 'dodge',0.8,'width',0.8 will have fully dodged bars that are
-% not separated, but only occupy 50% of the space between x
-% values, e.g.:
-% *  _    *
-% * | |_  *
-% * | | | *
-% * |_|_| *
-%
-%A setting of 'dodge',0.8,'width',0.6 will add some
-% spacing between the bars, e.g.:
-% *  _      *
-% * | |  _  *
-% * | | | | *
-% * |_| |_| *
-%
-% A setting of 'dodge',0.8,'width',1 will create dodged but overlapping
-% bars, e.g.:
-% *  ___    *
-% * |  _|_  *
-% * | |   | *
-% * |_|___| *
+% Effect of 'dodge' and 'width' on bars of two colors:
+%   'dodge',1,'width',1: fully dodged bars, not separated, occupying the
+%   full interval between x values
+%   * __    *
+%   *|  |__ *
+%   *|  |  |*
+%   *|__|__|*
+%   'dodge',0.8,'width',0.8: fully dodged bars, not separated
+%   *  _    *
+%   * | |_  *
+%   * | | | *
+%   * |_|_| *
+%   'dodge',0.8,'width',0.6: spacing between the bars
+%   *  _      *
+%   * | |  _  *
+%   * | | | | *
+%   * |_| |_| *
+%   'dodge',0.8,'width',1: dodged but overlapping bars
+%   *  ___    *
+%   * |  _|_  *
+%   * | |   | *
+%   * |_|___| *
 
 
 
 p=inputParser;
-my_addParameter(p,'type','ci'); %'95percentile'
-my_addParameter(p,'geom','area');
-my_addParameter(p,'dodge',[]);
-my_addParameter(p,'width',[]);
-my_addParameter(p,'setylim',false);
-my_addParameter(p,'interp','none');
-my_addParameter(p,'interp_in',-1);
-my_addParameter(p,'bin_in',[]);
+addParameter(p,'type','ci',@(v) isa(v,'function_handle') || valid_choice(v,{'ci','bootci','sem','std','quartile','95percentile','fitnormalci','fitpoissonci','fitnegbinomialci','fitbinomialci','fitgammaci','fitinvgaussianci','fit95percentile'})); %'95percentile'
+addParameter(p,'geom','area',@(v) valid_choice(v,{'line','lines','area','area_only','solid_area','errorbar','black_errorbar','bar','edge_bar','point','black_point'},true));
+addParameter(p,'dodge',[],@(v) valid_range(v,0,Inf,true));
+addParameter(p,'width',[],@(v) valid_range(v,0,Inf,true));
+addParameter(p,'setylim',false);
+addParameter(p,'interp','none');
+addParameter(p,'interp_in',-1);
+addParameter(p,'bin_in',[]);
+addParameter(p,'bin_width',[]);
+addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_summary(dobj,dd,p.Results)});
@@ -125,6 +130,8 @@ end
 
 
 function hndl=my_summary(obj,draw_data,params)
+
+params.geom=cellstr(params.geom); %char, string, cell or string array
 
 %Advanced defaults
 if isempty(params.dodge)
@@ -170,8 +177,8 @@ if iscell(draw_data.x) || iscell(draw_data.y) %If input was provided as cell/mat
         end
     end
     
-    if ~isempty(params.bin_in)
-        warning('bin_in in stat_summary() not supported for Matrix/Cell X/Y inputs');
+    if (~isempty(params.bin_in) || ~isempty(params.bin_width))
+        warning('bin_in/bin_width in stat_summary() not supported for Matrix/Cell X/Y inputs');
     end
     
     if (ischar(params.type) || isstring(params.type)) && ~isempty(strfind(params.type,'fit'))
@@ -197,15 +204,14 @@ else %If input was provided as 1D array
     x=comb(draw_data.x);
     y=comb(draw_data.y);
     
-    if ~isempty(params.bin_in)
+    if (~isempty(params.bin_in) || ~isempty(params.bin_width))
         %If X binning was requested we do it
-        if numel(params.bin_in)==1
-            binranges=linspace(obj.var_lim.minx,obj.var_lim.maxx,params.bin_in+1);
-            bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
-        else
-            binranges = params.bin_in;
-            bincenters = (params.bin_in(1:end-1)+params.bin_in(2:end))/2;
+        if isscalar(params.bin_in) %Number of bins
+            binranges=bin_edges(obj,[],params.bin_width,params.bin_in);
+        else %Bin edges
+            binranges=bin_edges(obj,params.bin_in,params.bin_width,[]);
         end
+        bincenters=(binranges(1:(end-1))+binranges(2:end))/2;
         [~,binind]=my_histcounts(x,binranges,'count');
         uni_x=bincenters;
         sel=binind~=0; %histcounts can return zero as bin index if NaN data we remove them here
@@ -319,7 +325,7 @@ if ~strcmp(params.interp,'none')
 end
 
 %If X were modified
-if ~isempty(params.bin_in) || params.interp_in>0 || ~strcmp(params.interp,'none')
+if (~isempty(params.bin_in) || ~isempty(params.bin_width)) || params.interp_in>0 || ~strcmp(params.interp,'none')
     %We reinitialize dodging parameters for plotci to work correctly
     draw_data.dodge_avl_w=uni_x(2)-uni_x(1);
     draw_data.dodge_fallback=true;
@@ -338,7 +344,7 @@ obj.results.stat_summary{obj.result_ind,1}.y=ymean;
 obj.results.stat_summary{obj.result_ind,1}.yci=yci;
 
 %Do the actual plotting
-hndl=plotci(obj,uni_x,ymean,yci,draw_data,params.geom,params.dodge,params.width);
+hndl=plotci(obj,uni_x,ymean,yci,draw_data,params.geom,params.dodge,params.width,params.fill_alpha);
 
 %Copy handles
 if isstruct(hndl)

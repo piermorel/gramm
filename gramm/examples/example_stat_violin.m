@@ -1,8 +1,9 @@
-% gramm examples and how-tos
-
-% Shared variable
-% We stat by loading the sample data (structure created from the carbig
+%% Violin plots
+% <matlab:edit('example_stat_violin.m') Open this example in the editor> - <index.html All gramm examples> - <../gramm_cheat_sheet.html#stat_violin stat_violin() in the cheat sheet>
+%
+% We start by loading the sample data (structure created from the carbig
 % dataset)
+%%
 load example_data;
 
 %% Graphic and normalization options in stat_violin()
@@ -40,6 +41,6 @@ g(2,3).set_title('with stat_boxplot()');
 g(2,3).set_color_options('map','brewer_dark');
 
 g.set_title('Options for stat_violin()');
-figure;
+figure('Position',[100 100 1100 660]);
 g.draw();
 

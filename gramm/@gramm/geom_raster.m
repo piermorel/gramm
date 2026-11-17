@@ -1,10 +1,17 @@
 function obj=geom_raster(obj,varargin)
-% geom_raster Plot X data as a raster plot
+% geom_raster Display x data as a raster plot (e.g. spike times)
 %
-% Option 'geom': 'line' or 'point'
+% Example syntax: gramm_object.geom_raster('geom','line')
+% Each element of x (usually a cell of arrays of event times) is displayed
+% on its own row.
+%
+% Parameters given as 'name',value pairs:
+% - 'geom': Raster elements (default 'line'):
+%       - 'line': vertical lines
+%       - 'point': points
 
 p=inputParser;
-my_addParameter(p,'geom','line');
+addParameter(p,'geom','line',@(v) valid_choice(v,{'line','point'}));
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_raster(dobj,dd,p.Results)});

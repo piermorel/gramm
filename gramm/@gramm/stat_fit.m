@@ -1,43 +1,43 @@
 function obj=stat_fit(obj,varargin)
-% stat_fit() Display a custom fit of the data
+% stat_fit Display a fit of the data with a custom function
 %
-% Example syntax gramm_object.stat_fit('fun',@(alpha,beta,x)alpha*cos(x-beta),'disp_fit',true)
+% Example syntax: gramm_object.stat_fit('fun',@(alpha,beta,x)alpha*cos(x-beta),'disp_fit',true)
+% Uses fit() from the Curve Fitting Toolbox, or fitnlm() from the
+% Statistics Toolbox when 'stats' is true. With 'stats', additional
+% 'name',value pairs for fitnlm() can be given.
 %
-% This fuction uses the curve fitting toolbox function fit() to
-% fit a provided anonymous function to the data. If the 'stats' argument is set
-% to true, the function uses fitnlm() from the statistics toolbox. 
-% Parameters:
-% - 'fun': anonymous function used for the fit. By default the format of
-% the arguments is (param1,param2,...paramN,x). With the 'stats' option set to true,
-% function arguments should be in the form (b,x) with b being a vector of parameters
-% - 'StartPoint': Array containing starting values for the
-% parameter to be fitted [start_param1,start_param2,...start_paramN]
-% - 'fit_options' : fit options as obtained using Matlab's fitoptions()
-% function. Overrides the 'StartPoint' option. With the 'stats' option set to true
-% version, options structure is provided by statset('fitnlm') and the
-% 'StartPoint' option is used
-% - 'intopt': Option passed to predint() for the type of bounds
-% to compute, 'observation' for bounds of a new observation
-% (default), or 'functional' for bounds of the fitted curve.
-% - 'geom', 'fullrange', 'disp_fit' options: see stat_glm()
-% - 'fullrange': set to true if you want the fits to be
-%   displayed over the whole width of each subplot instead of
-%   being displayed over the range of x values used for the fit
-% - 'disp_fit': set to true to display the fitted parameters
-% - 'stats' : set to true to use statistics toolbox instead of curve
-% fitting ('intopt' and 'fit_options' become inoperant
-% - Additional 'name',value agument pairs for fitnlm() can be provided when
-% using 'stats',true
+% Parameters given as 'name',value pairs:
+% - 'fun': Anonymous function fitted to the data, with the parameters as
+%            first arguments and x as last argument: @(param1,...,paramN,x).
+%            With 'stats', the parameters are given as a vector: @(b,x)
+% - 'StartPoint': Starting values of the parameters [param1_start
+%            ... paramN_start] (default [])
+% - 'fit_options': Fit options from fitoptions(), override 'StartPoint'.
+%            With 'stats', options from statset('fitnlm') (default [])
+% - 'intopt': Type of bounds computed by predint() (not with 'stats')
+%            (default 'observation'):
+%       - 'observation': 95% bounds for a new observation
+%       - 'functional': 95% bounds for the fitted function
+% - 'geom': How the fit is displayed, same as stat_summary() (default
+%            'area')
+% - 'fill_alpha': Transparency of the 'area' and 'area_only' geoms, from
+%            0 (transparent) to 1 (opaque) (default 0.2)
+% - 'fullrange': Display the fit over the whole x axis instead of the
+%            range of x values used for the fit (default false)
+% - 'disp_fit': Display the fitted parameters (default false)
+% - 'stats': Use fitnlm() from the Statistics Toolbox instead of fit()
+%            (default false)
 
 p=inputParser;
-my_addParameter(p,'fun',@(a,b,x)a*x+b);
-my_addParameter(p,'StartPoint',[]);
-my_addParameter(p,'fit_options',[]);
-my_addParameter(p,'intopt','observation');
-my_addParameter(p,'geom','area');
-my_addParameter(p,'fullrange',false);
-my_addParameter(p,'disp_fit',false);
-my_addParameter(p,'stats',false); 
+addParameter(p,'fun',@(a,b,x)a*x+b);
+addParameter(p,'StartPoint',[]);
+addParameter(p,'fit_options',[]);
+addParameter(p,'intopt','observation');
+addParameter(p,'geom','area',@(v) valid_choice(v,{'line','lines','area','area_only','solid_area','errorbar','black_errorbar','bar','edge_bar','point','black_point'},true));
+addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'fullrange',false);
+addParameter(p,'disp_fit',false);
+addParameter(p,'stats',false); 
 
 p.KeepUnmatched=true;
 parse(p,varargin{:});
@@ -115,7 +115,7 @@ obj.results.stat_fit{obj.result_ind,1}.model=mdl;
 obj.results.stat_fit{obj.result_ind,1}.gof=gof;
 
 %Plot fit
-hndl=plotci(obj,newx,newy,yci,draw_data,params.geom);
+hndl=plotci(obj,newx,newy,yci,draw_data,params.geom,[],[],params.fill_alpha);
 
 %Store plotted handles
 hnames=fieldnames(hndl);
