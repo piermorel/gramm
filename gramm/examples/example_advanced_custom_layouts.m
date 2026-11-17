@@ -92,3 +92,20 @@ g2.stat_density();
 g2.set_names('x','MPG','color','Origin');
 g2.set_title('Single plot');
 g2.draw();
+
+
+%% Plots in a panel, next to other interface components
+% set_parent() also accepts a uipanel or a uitab, e.g. to place a gramm
+% plot next to buttons of an interface. Copy this code in the command
+% window to run it (the result doesn't show because uicontrol/uipanel
+% figures do not get generated automatically):
+
+f=figure('Position',[100 100 1100 450]);
+uicontrol(f,'Style','pushbutton','String','Button','Units','normalized',...
+    'Position',[0.8 0.45 0.15 0.1]);
+p=uipanel(f,'Position',[0.05 0.1 0.7 0.8]);
+g=gramm('x',cars.Horsepower,'y',cars.MPG,'color',cars.Origin_Region);
+g.geom_point();
+g.set_names('x','Horsepower','y','MPG','color','Origin');
+g.set_parent(p);
+g.draw();

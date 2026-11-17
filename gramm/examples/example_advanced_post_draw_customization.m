@@ -22,19 +22,8 @@ load example_data;
 % * Similarly, all confidence areas are made grey |g.results.stat_glm.area_handle|
 % * A subset of the glm lines are made thicker by calling |set()| on a
 % subset of their handles |g.results.stat_glm(g.results.color==4).line_handle|
-% 
-% It is also possible to set where the gramm
-% axes are drawn by using the |set_parent(parent_handle)| function, which receives the
-% handle of a figure/uipanel/uitab object to use as parent as argument.
 
-f=figure('Position',[100 100 1100 450]);
-%Create fake button
-c=uicontrol('Style','pushbutton','String','Dummy','Units','normalized','Position',[0.8 0.45 0.15 0.1]);
-%Create uipanel to put our gramm plots
-p=uipanel('Position',[0.05 0.1 0.7 0.8],'Parent',f);
-
-% Starting with the example figure
-load example_data;
+figure('Position',[100 100 800 450]);
 g=gramm('x',cars.Model_Year,'y',cars.MPG,'color',cars.Cylinders,'subset',cars.Cylinders~=3 & cars.Cylinders~=5);
 g.facet_grid([],cars.Origin_Region);
 g.stat_glm();
@@ -42,7 +31,6 @@ g.geom_point();
 g.set_names('column','Origin','x','Year of production','y','Fuel economy (MPG)','color','# Cylinders');
 g.set_title('Fuel economy of new cars between 1970 and 1982');
 g.axe_property('YGrid','on');
-g.set_parent(p);
 
 g.set_text_options('font','Courier',...
     'base_size',12,...
