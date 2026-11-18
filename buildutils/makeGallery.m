@@ -157,7 +157,7 @@ g_right.stat_bin('geom','stacked_bar','fill','all','nbins',15);
 g_right.coord_flip();
 g_right.set_layout_options('legend',false);
 g_right.set_names('x','','y','');
-g_right.axe_property('XTickLabel','');
+g_right.axe_property('XTickLabel','','YTickLabel','');
 g = [g_top g_main g_right];
 g.set_text_options('base_size',12);
 for k = 1:numel(g)

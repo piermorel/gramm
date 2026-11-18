@@ -41,10 +41,10 @@ for k=1:numel(txt)
     w=text_width(ax,txt(k).String,txt(k));
     if ~isempty(obj.legend_transform) && isvalid(obj.legend_transform) && ...
             isequal(ancestor(txt(k),'hgtransform'),obj.legend_transform)
-        %Legend entries: scale_legend() makes legend units 8 pixels wide.
+        %Legend entries: scale_legend() makes legend units 6 points wide.
         %Using that directly (and not the current scaling) keeps the
         %reserved width independent of the axes width
-        left=(txt(k).Position(1)-ax.XLim(1))*8;
+        left=(txt(k).Position(1)-ax.XLim(1))*6*get(groot,'ScreenPixelsPerInch')/72;
     else
         left=(txt(k).Position(1)-ax.XLim(1))/diff(ax.XLim)*axes_width;
     end
