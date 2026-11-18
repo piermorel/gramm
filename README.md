@@ -31,7 +31,7 @@ Gramm 4 requires MATLAB R2022b or later; older releases of gramm work in older M
 
 This figure, made with the <code>carbig</code> dataset, shows the evolution of fuel economy of new cars with time, depending on the number of cylinders indicated by color, and regions of origin separated across subplot columns:
 
-<img src="https://piermorel.github.io/gramm/docs/gallery/facets.png" alt="Fuel economy of new cars, made with the code below" width="800">
+<img src="https://piermorel.github.io/gramm/docs/gallery/usage.png" alt="Fuel economy of new cars, made with the code below" width="800">
 
 ```matlab
 load example_data.mat % Load example dataset about cars

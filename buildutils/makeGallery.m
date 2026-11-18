@@ -19,7 +19,8 @@ for k = 1:numel(figures)
         g.draw();
     end
     drawnow % Lets gramm finish laying out the figure
-    exportgraphics(fig, fullfile(outDir, name + ".png"), Resolution=150);
+    % Whole figure, not cropped, so that all thumbnails have the same size
+    exportgraphics(fig, fullfile(outDir, name + ".png"), Resolution=150, Padding="figure");
     close(fig);
 end
 end
@@ -44,9 +45,7 @@ g.set_names('x','Day','y','Growth','color','Drug','lightness','Dose','column',''
 end
 
 function g = gallery_facets(cars)
-% Same code as the Usage section of README.md, which shows this figure at
-% a larger size than the gallery thumbnails: wider figure
-set(gcf, Position=[100 100 900 450]);
+% Same code as the Usage section of README.md (see gallery_usage)
 g = gramm('x',cars.Model_Year,'y',cars.MPG,'color',cars.Cylinders,...
     'subset',~mod(cars.Cylinders,2));
 g.facet_grid([],cars.Origin_Region);
@@ -55,6 +54,13 @@ g.stat_glm();
 g.set_names('column','Origin', 'x','Year of production', 'y','Fuel economy (MPG)',...
     'color','# Cylinders');
 g.set_title('Fuel economy of new cars between 1970 and 1982');
+end
+
+function g = gallery_usage(cars)
+% Figure of the Usage section of README.md: the facets figure, wider than
+% the thumbnails
+set(gcf, Position=[100 100 900 450]);
+g = gallery_facets(cars);
 end
 
 function g = gallery_bars(cars)

@@ -20,7 +20,10 @@ img { max-width:100%; height:auto; }
   padding-bottom:4px; border-bottom:1px solid var(--line); }
 .content p { margin:0 0 14px; }
 .content tt, .content code { font-family:var(--mono); font-size:0.9em; }
-.content pre { font-family:var(--mono); font-size:13px; line-height:1.5; overflow-x:auto; }
+/* Long code lines wrap instead of running out of the column (copying the
+   code still gives the original lines) */
+.content pre { font-family:var(--mono); font-size:13px; line-height:1.5;
+  white-space:pre-wrap; overflow-wrap:anywhere; }
 .content pre.codeinput { background:var(--code-bg); border:1px solid var(--line);
   border-radius:6px; padding:12px 14px; }
 .content pre.codeoutput { color:var(--muted); padding:4px 14px; }
@@ -37,7 +40,12 @@ img { max-width:100%; height:auto; }
   margin-top:36px; padding-bottom:4px; border-bottom:1px solid var(--line); }
 .rtcContent h3 { font-family:var(--sans); color:var(--fg); font-weight:600; }
 .rtcContent div, .rtcContent li { font-family:var(--sans); }
-.rtcContent .CodeBlock { background:var(--code-bg); border-radius:6px; }
+.rtcContent .CodeBlock { background:var(--code-bg); border-radius:6px; display:block; min-width:0; }
+/* Long code lines wrap, as in the published examples. Each code line is
+   the first div of an .inlineWrapper (the next ones are its outputs) */
+.rtcContent .inlineWrapper > div:first-child, .rtcContent .inlineWrapper > div:first-child span,
+.rtcContent .preformatted-matlab div, .rtcContent .preformatted-matlab span {
+  white-space:pre-wrap !important; overflow-wrap:anywhere; }
 .rtcContent .CodeBlock div, .rtcContent .preformatted-matlab div { font-family:var(--mono); }
 .rtcContent img { border-radius:6px; }
 .rtcContent .eoOutputWrapper { width:100% !important; overflow-x:auto; }
