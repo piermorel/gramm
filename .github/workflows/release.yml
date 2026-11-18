@@ -108,9 +108,10 @@ jobs:
       - name: Assemble site
         run: |
           cp website/* site/
-          cp README.md site/
-          cp -r images site/images
-          cp -r paper site/paper
+
+      # Navigation bar on the documentation pages (not in the help browser)
+      - name: Add navigation bar
+        run: python3 .github/scripts/add_site_nav.py site
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

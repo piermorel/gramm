@@ -10,18 +10,19 @@ reportFormat = matlab.unittest.plugins.codecoverage.CoverageReport('coverage-rep
 covPlugin = matlab.unittest.plugins.CodeCoveragePlugin.forFolder("gramm","Producing",  reportFormat);
 plan("runExample") = ExampleDrivenTesterTask("gramm/examples", CodeCoveragePlugin = covPlugin);
 
-plan("docs").Inputs = "gramm/doc/" + liveScripts() + ".mlx";
+plan("docs").Inputs = ["gramm/doc/" + liveScripts() + ".mlx" "buildutils/gramm_doc.css"];
 plan("docs").Outputs = "gramm/html/" + liveScripts() + ".html";
 
-plan("publish").Inputs = "gramm/examples/*.m";
+plan("publish").Inputs = ["gramm/examples/*.m" "buildutils/gramm_doc.css"];
 plan("publish").Outputs = "gramm/html/examples/**";
 
 plan("cheatsheet").Inputs = ["gramm/@gramm/**/*.m" "gramm/examples/example_*.m" "buildutils/makeCheatSheet.m" "buildutils/cheatsheet_template.html"];
 plan("cheatsheet").Outputs = "gramm/html/gramm_cheat_sheet.html";
 
-plan("readmeImages").Dependencies = "publish";
+plan("gallery").Inputs = ["gramm/@gramm/**/*.m" "buildutils/makeGallery.m"];
+plan("gallery").Outputs = "gramm/html/gallery/*.png";
 
-plan("package").Dependencies = ["check" "runExample" "docs" "publish" "cheatsheet"];
+plan("package").Dependencies = ["check" "runExample" "docs" "publish" "cheatsheet" "gallery"];
 
 plan.DefaultTasks = ["check" "runExample"];
 end
@@ -53,7 +54,7 @@ for name = liveScripts()
     % size instead (narrower in narrow windows)
     html = replace(fileread(htmlFile, Encoding="UTF-8"), ...
         "style=""width: 100%;""", "style=""max-width: 100%;""");
-    writelines(html, htmlFile, Encoding="UTF-8");
+    writelines(addDocStyle(html), htmlFile, Encoding="UTF-8");
 end
 end
 
@@ -76,14 +77,26 @@ for i = 1:numel(mFiles)
     fprintf("  %s\n", mFiles(i).name);
     htmlFile = publish(fullfile(examplesDir, mFiles(i).name), opts);
     close all
-    % Images narrower in narrow windows
-    html = replace(fileread(htmlFile, Encoding="UTF-8"), "<style type=""text/css"">", ...
-        "<style type=""text/css"">" + newline + "img { max-width: 100%; height: auto; }");
-    writelines(html, htmlFile, Encoding="UTF-8");
+    addDocStyleToFile(htmlFile);
 end
 
 opts.showCode = false;
-publish(fullfile(examplesDir, "index.m"), opts);
+addDocStyleToFile(publish(fullfile(examplesDir, "index.m"), opts));
+end
+
+function html = addDocStyle(html)
+% Add the style of the documentation pages (buildutils/gramm_doc.css) after
+% the styles written by MATLAB, so that it overrides them. The style is
+% inline so that each page works on its own (help browser, website). The
+% viewport tag makes phones show the pages at their width
+css = fileread(fullfile("buildutils", "gramm_doc.css"), Encoding="UTF-8");
+html = replace(html, "</head>", ...
+    "<meta name=""viewport"" content=""width=device-width, initial-scale=1"">" + newline + ...
+    "<style type=""text/css"">" + newline + css + "</style>" + newline + "</head>");
+end
+
+function addDocStyleToFile(htmlFile)
+writelines(addDocStyle(fileread(htmlFile, Encoding="UTF-8")), htmlFile, Encoding="UTF-8");
 end
 
 function cheatsheetTask(~)
@@ -99,26 +112,12 @@ if ~isempty(issues)
 end
 end
 
-function readmeImagesTask(~)
-% Update the images of README.md (run locally, then commit the images)
-% The tutorials save their README image with gramm's export() when they run
+function galleryTask(~)
+% Draw the gallery figures of the website home page and of README.md
 restoreTheme = onCleanup(lightFigures());
-cleanup = onCleanup(@removeLiveScriptFiles);
-for name = tutorials()
-    runTutorial(name, fullfile(tempdir, name + ".html"));
-end
-movefile(fullfile("gramm", "doc", "*_export.png"), "images");
-
-% The other images come from the published examples
-galleryImages = [
-    "overlaid_export"    "example_advanced_superimposed_plots_01"
-    "layout_export"      "example_advanced_marginal_histograms_01"
-    "scaling_export"     "example_facet_grid_scale_options_01"
-    "colorlegend_export" "example_color_palette_customization_02"];
-for k = 1:height(galleryImages)
-    copyfile(fullfile("gramm", "html", "examples", galleryImages(k,2) + ".png"), ...
-        fullfile("images", galleryImages(k,1) + ".png"));
-end
+addpath("buildutils");
+cleanup = onCleanup(@() rmpath("buildutils"));
+makeGallery(fullfile("gramm", "html", "gallery"));
 end
 
 function runTutorial(name, htmlFile)
