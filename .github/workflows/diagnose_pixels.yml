@@ -1,0 +1,26 @@
+# One-off diagnostic: pixel units of MATLAB graphics on the Linux runner
+# (run manually from Actions > Diagnose pixels, then delete this workflow)
+
+name: Diagnose pixels
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: R2025b
+          cache: true
+          products: Statistics_and_Machine_Learning_Toolbox Curve_Fitting_Toolbox
+
+      - name: Print pixel measures
+        uses: matlab-actions/run-command@v2
+        with:
+          command: addpath('gramm', '.github/scripts'); diagnose_pixels
