@@ -89,7 +89,7 @@ end
 probe=text(ax,0,0,str,'Units','pixels','Visible','off','HandleVisibility','off',...
     'FontName',ref.FontName,'FontSize',ref.FontSize,'FontWeight',ref.FontWeight,...
     'FontAngle',ref.FontAngle,'Interpreter',ref.Interpreter);
-w=probe.Extent(3);
+w=text_probe_width(probe);
 delete(probe);
 setappdata(holder,'gramm_width',struct('key',{key},'width',w));
 end

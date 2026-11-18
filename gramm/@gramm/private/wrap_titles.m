@@ -68,7 +68,7 @@ if ~isempty(state) && isequal(state.original,str) && isequal(state.font,font)
 else
     set_font(probe,font);
     probe.String=str;
-    full_width=probe.Extent(3);
+    full_width=text_probe_width(probe);
 end
 
 %Greedy wrapping: words are added to the current line as long as it fits
@@ -82,7 +82,7 @@ lines={};
 current=words{1};
 for k=2:numel(words)
     probe.String=[current ' ' words{k}];
-    if probe.Extent(3)>0.95*width %Small margin between neighboring titles
+    if text_probe_width(probe)>0.95*width %Small margin between neighboring titles
         lines{end+1}=current; %#ok<AGROW>
         current=words{k};
     else
