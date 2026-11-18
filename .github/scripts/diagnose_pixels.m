@@ -13,16 +13,23 @@ for visible = ["off" "on"]
     ax.Layout.Tile = 'east';
     drawnow;
     report(f, ax);
-    probe = text(ax,0,0,'# Cylinders','Units','pixels','FontSize',13,'FontWeight','bold');
-    fprintf('Text extent (pixels): %s\n', mat2str(probe.Extent,5));
-    probe.Units = 'points';
-    fprintf('Text extent (points): %s\n', mat2str(probe.Extent,5));
+    fprintf('Default font: %s\n', get(groot,'DefaultTextFontName'));
+    for str = ["# Cylinders" "M" "MMMMMMMMMM" "4"]
+        for weight = ["normal" "bold"]
+            probe = text(ax,0,0,str,'Units','pixels','FontSize',13,'FontWeight',weight);
+            before = probe.Extent;
+            drawnow;
+            fprintf('Extent of "%s" (%s): %s before drawnow, %s after\n', ...
+                str, weight, mat2str(before,4), mat2str(probe.Extent,4));
+            delete(probe);
+        end
+    end
     export_size(f);
     close(f);
 end
 
 fprintf('\n=== gramm figure (README usage), Visible=off ===\n');
-load example_data.mat cars
+load(fullfile('gramm','examples','sample_data','example_data.mat'),'cars');
 f = figure('Visible','off','Position',[100 100 900 450]);
 c = cars(~mod(cars.Cylinders,2),:);
 g = gramm('x',c.Model_Year,'y',c.MPG,'color',c.Cylinders);
