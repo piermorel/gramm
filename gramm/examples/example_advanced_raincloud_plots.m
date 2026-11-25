@@ -91,3 +91,63 @@ g.set_names('x','Origin','y','Horsepower');
 g.set_title('Raincloud variants');
 figure('Position',[100 100 1400 450]);
 g.draw();
+
+%% Customizing rainclouds after drawing
+% Most of the appearance of a raincloud can be changed after |draw()|
+% through the graphic handles stored in |g.results| (see also
+% <example_advanced_post_draw_customization.html Post-draw customization>).
+% Each layer is drawn once per group, in the same order, so element k of
+% |g.results.stat_violin|, |g.results.stat_boxplot| and
+% |g.results.geom_jitter_handle| all belong to the same group. Here:
+%
+% * The boxes are filled with the foreground color (black in a light
+% theme) and get a median in the background color (white in a light theme)
+% * The violins lose their outline and are made more transparent
+% * The points are made grey, and the outliers are drawn as empty circles.
+% They are found with the whisker limits stored in
+% |g.results.stat_boxplot(k).boxplot_data| (first and last columns, one
+% row per x value), as stat_boxplot() hides its own outliers when points
+% are displayed
+%
+% These changes work with both light and dark figure themes. Grey is
+% readable on both backgrounds. The box face uses MATLAB's automatic neutral
+% color ('FaceColorMode','auto' with 'SeriesIndex','none'), as the black
+% elements drawn by gramm, so it follows the theme even when it is changed
+% after drawing. There is no such automatic mode for the background color,
+% so the median takes the color of the axes background when it is set: it
+% doesn't follow a theme change made after drawing.
+
+clear g
+g=gramm('x',cars.Origin_Region,'y',cars.MPG,'color',cars.Origin_Region);
+g.stat_violin('half','right','width',0.7,'dodge',0);
+g.stat_boxplot('width',0.06,'nudge',-0.05,'dodge',0);
+g.geom_jitter('width',0.15,'nudge',-0.2);
+g.set_names('x','Origin','y','Fuel economy (MPG)');
+g.set_title('Customized raincloud plot');
+g.set_layout_options('legend',false);
+figure('Position',[100 100 700 450]);
+g.draw();
+
+%Boxes in the foreground color, with medians in the background color
+% Below we use MATLAB's automatic neutral color
+set([g.results.stat_boxplot.box_handle],'FaceColorMode','auto','SeriesIndex','none'); 
+set([g.results.stat_boxplot.median_handle],...
+    'Color',g.facet_axes_handles(1).Color,...
+    'LineWidth',3);
+
+%Violins without outline
+set([g.results.stat_violin.line_handle],'LineStyle','none');
+set([g.results.stat_violin.fill_handle],'FaceAlpha',0.6);
+
+%Grey points, with empty outliers: the face of each point gets its own
+%transparency through the AlphaData of the scatter object (0 for outliers)
+for k=1:numel(g.results.geom_jitter_handle)
+    hndl=g.results.geom_jitter_handle(k);
+    limits=g.results.stat_boxplot(k).boxplot_data;
+    sel_outlier=hndl.YData<limits(1,1) | hndl.YData>limits(1,end);
+    set(hndl,'MarkerFaceColor',[0.5 0.5 0.5],...
+        'MarkerEdgeColor',[0.5 0.5 0.5],...
+        'MarkerFaceAlpha','flat',...
+        'AlphaDataMapping','none',...
+        'AlphaData',double(~sel_outlier));
+end
