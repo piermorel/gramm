@@ -1,4 +1,4 @@
-function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha)
+function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha,nudge)
             
             if nargin<7 || isempty(dodge)
                 dodge=0;
@@ -8,6 +8,9 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha)
             end
             if nargin<9
                 fill_alpha=0.2;
+            end
+            if nargin<10
+                nudge=0;
             end
             
             x=shiftdim(x)';
@@ -32,7 +35,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha)
                 bar_width=draw_data.dodge_avl_w*width;
             end
             
-            x=dodger(x',draw_data,dodge)';
+            x=dodger(x',draw_data,dodge,nudge)';
             
             %Close the lines and CIs of closed polar plots
             [tmp_xci1,tmp_yci1]=close_polar(obj,x,yci(1,:));

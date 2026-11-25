@@ -1,4 +1,12 @@
-function x = dodger(x,draw_data,dodge)
+function x = dodger(x,draw_data,dodge,nudge)
+%Shifts x positions of the current color for dodging, then by a fixed
+%nudge (optional). The nudge is in the same units as the 'width' options
+%of the geoms: a fraction of the space available for each x value, divided
+%by the number of colors when dodging
+
+if nargin<4
+    nudge=0;
+end
 
 %dodging
 avl_w=draw_data.dodge_avl_w;
@@ -14,5 +22,14 @@ if dodge
     end
 end
 
+%Nudging is applied after dodging so that layers with the same 'dodge'
+%stay aligned with each other
+if nudge
+    if dodge>0
+        x=x+avl_w*nudge./(draw_data.n_colors);
+    else
+        x=x+avl_w*nudge;
+    end
 end
 
+end

@@ -12,15 +12,26 @@ function obj=stat_boxplot(obj,varargin)
 % - 'width': Width of the boxes, see stat_summary() (default 0.6)
 % - 'dodge': Spacing between boxes of different colors within an unique
 %            x value, see stat_summary() (default 0.7)
+% - 'nudge': Fixed horizontal shift of the boxes, in the same units as
+%            'width', e.g. to place them next to a half violin, see
+%            stat_violin() (default 0)
 % - 'notch': Display notches at median +/- 1.58*IQR/sqrt(N) (default
 %            false)
+% - 'lines': Summary lines drawn across the boxes (default 'median'):
+%            'median' (solid), 'mean' (dotted), 'quartiles'
+%            (semi-transparent, on the box edges), a cell of these, numeric
+%            quantiles between 0 and 1 (semi-transparent), or 'none', e.g.
+%            {'median','mean'}
 % - 'outliers': Display the outliers. If not set, outliers are hidden when
-%            geom_point() or geom_jitter() are used (default true)
+%            geom_point(), geom_jitter() or geom_swarm() are used (default
+%            true)
 
 p=inputParser;
 addParameter(p,'width',0.6,@(v) valid_range(v,0,Inf));
 addParameter(p,'dodge',0.7,@(v) valid_range(v,0,Inf));
+addParameter(p,'nudge',0,@(v) valid_range(v,-Inf,Inf));
 addParameter(p,'notch',false);
+addParameter(p,'lines','median',@(v) (isnumeric(v) && ~isempty(v) && all(v>=0 & v<=1)) || valid_choice(v,{'none','median','quartiles','mean'},true));
 addParameter(p,'outliers',true);
 
 parse(p,varargin{:});
@@ -113,7 +124,7 @@ if params.dodge>0
 else
     boxw=draw_data.dodge_avl_w*params.width;
 end
-boxmid=dodger(uni_x,draw_data,params.dodge);
+boxmid=dodger(uni_x,draw_data,params.dodge,params.nudge);
 
 
 boxleft=boxmid-0.5*boxw;
@@ -138,11 +149,33 @@ hndl=patch(xpatch,...
 
 obj.results.stat_boxplot{obj.result_ind,1}.box_handle=hndl;
 
-%Draw medians
-if params.notch
-    obj.results.stat_boxplot{obj.result_ind,1}.median_handle=line([notchleft' ; notchright'],[p(:,4)' ; p(:,4)'],'Color','k');
-else
-    obj.results.stat_boxplot{obj.result_ind,1}.median_handle=line([boxleft' ; boxright'],[p(:,3)' ; p(:,3)'],'Color','k');
+%Draw summary lines (median by default). The median spans the notch when
+%there is one, the other lines span the box
+sum_values=cell(length(uni_x),1);
+sum_kinds={};
+sum_left=[];
+sum_right=[];
+sum_y=[];
+for ind_x=1:length(uni_x)
+    ysel=y(abs(x-uni_x(ind_x))<1e-10);
+    [sum_values{ind_x},temp_kinds]=summary_lines(ysel,params.lines);
+    temp_left=boxleft(ind_x)+zeros(size(sum_values{ind_x}));
+    temp_right=boxright(ind_x)+zeros(size(sum_values{ind_x}));
+    if params.notch
+        sel_median=strcmp(temp_kinds,'median');
+        temp_left(sel_median)=notchleft(ind_x);
+        temp_right(sel_median)=notchright(ind_x);
+    end
+    sum_left=[sum_left temp_left];
+    sum_right=[sum_right temp_right];
+    sum_y=[sum_y sum_values{ind_x}];
+    sum_kinds=[sum_kinds temp_kinds];
+end
+sum_hndl=plot_summary_lines(sum_left,sum_right,sum_y,sum_kinds,'k',0.5);
+obj.results.stat_boxplot{obj.result_ind,1}.lines_values=sum_values;
+fields=fieldnames(sum_hndl);
+for k=1:length(fields)
+    obj.results.stat_boxplot{obj.result_ind,1}.(fields{k})=sum_hndl.(fields{k});
 end
 
 %Draw whiskers
@@ -151,15 +184,15 @@ obj.results.stat_boxplot{obj.result_ind,1}.upper_whisker_handle=line([boxmid' ; 
 
 %Auto detect geom_point and geom_jitter to deactivate outlier plotting if
 %not explicitly set
-if any(cellfun(@(f)string(func2str(f)).contains(["jitter" "point"]),obj.geom))
+if any(cellfun(@(f)string(func2str(f)).contains(["jitter" "point" "swarm"]),obj.geom))
     if params.default_outliers
         params.outliers = false;
         if any(obj.firstrun,"all")
-            disp("geom_jitter() or geom_point() are present, stat_boxplot() outliers ignored ");
+            disp("geom_jitter(), geom_point() or geom_swarm() are present, stat_boxplot() outliers ignored ");
         end
     else
         if params.outliers && any(obj.firstrun,"all")
-            disp("geom_jitter() or geom_point() are present and stat_boxplot() outliers are plotted");
+            disp("geom_jitter(), geom_point() or geom_swarm() are present and stat_boxplot() outliers are plotted");
         end
     end
 end

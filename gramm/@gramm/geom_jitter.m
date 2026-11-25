@@ -11,14 +11,19 @@ function obj=geom_jitter(obj,varargin)
 % - 'height': Vertical extent of the jitter, in y units (default 0)
 % - 'dodge': Spacing between points of different colors within an
 %            unique x value (default 0)
+% - 'nudge': Fixed horizontal shift of the points, in the same units as
+%            'width', e.g. to place them next to a boxplot or a half violin
+%            (default 0)
 % - 'alpha': Transparency of points, from 0 (transparent) to 1 (opaque)
 %            (default 1)
-% - 'raw_width': Set to true to give 'width' in x units (default false)
+% - 'raw_width': Set to true to give 'width' and 'nudge' in x units
+%            (default false)
 
 p=inputParser;
 addParameter(p,'width',0.2,@(v) valid_range(v,0,Inf));
 addParameter(p,'height',0,@(v) valid_range(v,0,Inf));
 addParameter(p,'dodge',0,@(v) valid_range(v,0,Inf));
+addParameter(p,'nudge',0,@(v) valid_range(v,-Inf,Inf));
 addParameter(p,'alpha',1,@(v) valid_range(v,0,1));
 addParameter(p,'raw_width',false);
 parse(p,varargin{:});
@@ -33,7 +38,12 @@ function  hndl=my_jitter(obj,draw_data,params)
 draw_data.x=comb(draw_data.x);
 draw_data.y=comb(draw_data.y);
 
-draw_data.x=dodger(draw_data.x,draw_data,params.dodge);
+if params.raw_width
+    %With raw_width the nudge is also in x units
+    draw_data.x=dodger(draw_data.x,draw_data,params.dodge)+params.nudge;
+else
+    draw_data.x=dodger(draw_data.x,draw_data,params.dodge,params.nudge);
+end
 
 if params.dodge>0
     params.avl_width=draw_data.dodge_avl_w*params.width./(draw_data.n_colors);

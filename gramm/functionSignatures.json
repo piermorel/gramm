@@ -66,6 +66,7 @@
 			{"name":"width","kind":"namevalue","type":"numeric"},
 			{"name":"height","kind":"namevalue","type":"numeric"},	
 			{"name":"dodge","kind":"namevalue","type":"numeric"},
+			{"name":"nudge","kind":"namevalue","type":"numeric"},
 			{"name":"alpha","kind":"namevalue","type":"numeric"},
 			{"name":"raw_width","kind":"namevalue","type":"logical"}
 		]
@@ -134,7 +135,8 @@
 			{"name":"bin_in","kind":"namevalue","type":[["numeric"],["datetime"],["duration"]]},
 			{"name":"bin_width","kind":"namevalue","type":[["numeric"],["duration"],["calendarDuration"],["choices={'second','minute','hour','day','week','month','quarter','year'}"]]},
 			{"name":"width","kind":"namevalue","type":"numeric"},
-			{"name":"dodge","kind":"namevalue","type":"numeric"}
+			{"name":"dodge","kind":"namevalue","type":"numeric"},
+			{"name":"nudge","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.stat_smooth":
@@ -248,7 +250,9 @@
 			{"name":"obj","kind":"required","type":"gramm"},
             {"name":"width","kind":"namevalue","type":"numeric"},
             {"name":"dodge","kind":"namevalue","type":"numeric"},
+            {"name":"nudge","kind":"namevalue","type":"numeric"},
             {"name":"notch","kind":"namevalue","type":"choices={1,0}"},
+            {"name":"lines","kind":"namevalue","type":"choices={'median','quartiles','mean','none'}"},
             {"name":"outliers","kind":"namevalue","type":"choices={1,0}"}
 		]
 },
@@ -258,14 +262,16 @@
 			{"name":"obj","kind":"required","type":"gramm"},
 			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
             {"name":"normalization","kind":"namevalue","type":"choices={'area','count','width'}"},
-            {"name":"half","kind":"namevalue","type":"choices={1,0}"},
+            {"name":"half","kind":"namevalue","type":"choices={'none','left','right','color'}"},
+            {"name":"lines","kind":"namevalue","type":"choices={'median','quartiles','mean','none'}"},
             {"name":"bandwidth","kind":"namevalue","type":"numeric"},
             {"name":"kernel","kind":"namevalue","type":"choices={'normal'}"},
             {"name":"npoints","kind":"namevalue","type":"numeric"},
             {"name":"extra_y","kind":"namevalue","type":"numeric"},
             {"name":"fill","kind":"namevalue","type":"choices={'face'}"},
             {"name":"width","kind":"namevalue","type":"numeric"},
-            {"name":"dodge","kind":"namevalue","type":"numeric"}
+            {"name":"dodge","kind":"namevalue","type":"numeric"},
+            {"name":"nudge","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.geom_swarm":
@@ -276,6 +282,8 @@
             {"name":"corral","kind":"namevalue","type":"choices={'none','gutter','wrap','omit','random'}"},
             {"name":"point_size","kind":"namevalue","type":"numeric"},
             {"name":"dodge","kind":"namevalue","type":"numeric"},
+            {"name":"nudge","kind":"namevalue","type":"numeric"},
+            {"name":"half","kind":"namevalue","type":"choices={'none','left','right','color'}"},
             {"name":"width","kind":"namevalue","type":"numeric"},
             {"name":"alpha","kind":"namevalue","type":"numeric"}
 		]

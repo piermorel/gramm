@@ -56,6 +56,9 @@ function obj=stat_summary(obj,varargin)
 % - 'width': Width of the bars (default [], 0.8 times 'dodge' if dodging,
 %            0.5 otherwise). The size of error bar caps is set with
 %            set_line_options('cap_size',...)
+% - 'nudge': Fixed horizontal shift of the summaries, in the same units
+%            as 'width', e.g. to place a mean and CI next to a boxplot
+%            (default 0)
 % - 'setylim': Set the y axis limits from the summaries instead of the
 %            data (default false)
 % - 'interp': Interpolate the output, with the interpolation methods of
@@ -114,6 +117,7 @@ addParameter(p,'type','ci',@(v) isa(v,'function_handle') || valid_choice(v,{'ci'
 addParameter(p,'geom','area',@(v) valid_choice(v,{'line','lines','area','area_only','solid_area','errorbar','black_errorbar','bar','edge_bar','point','black_point'},true));
 addParameter(p,'dodge',[],@(v) valid_range(v,0,Inf,true));
 addParameter(p,'width',[],@(v) valid_range(v,0,Inf,true));
+addParameter(p,'nudge',0,@(v) valid_range(v,-Inf,Inf));
 addParameter(p,'setylim',false);
 addParameter(p,'interp','none');
 addParameter(p,'interp_in',-1);
@@ -344,7 +348,7 @@ obj.results.stat_summary{obj.result_ind,1}.y=ymean;
 obj.results.stat_summary{obj.result_ind,1}.yci=yci;
 
 %Do the actual plotting
-hndl=plotci(obj,uni_x,ymean,yci,draw_data,params.geom,params.dodge,params.width,params.fill_alpha);
+hndl=plotci(obj,uni_x,ymean,yci,draw_data,params.geom,params.dodge,params.width,params.fill_alpha,params.nudge);
 
 %Copy handles
 if isstruct(hndl)

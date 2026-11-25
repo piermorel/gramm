@@ -25,6 +25,17 @@ function obj = geom_swarm(obj,varargin)
 %            don't change the size of swarm points
 % - 'dodge': Spacing between swarms of different colors within an unique
 %            x value (default 0.7), see stat_summary()
+% - 'nudge': Fixed horizontal shift of the swarms, in the same units as
+%            'width', e.g. to place them next to a half violin, see
+%            stat_violin() (default 0)
+% - 'half': Draw half swarms, same choices as in stat_violin() (default
+%            'none'):
+%       - 'none' (or false): points spread on both sides of the x value
+%       - 'left' or 'right': points spread on that side only, their edges
+%            touching the x value, e.g. next to the flat side of a half
+%            violin. 'corral' then uses half of 'width'
+%       - 'color' (or true): left or right depending on the color index,
+%            with two colors sharing the same x ('dodge' is ignored)
 % - 'width': Width available to each swarm, used by 'corral' (default 0.9)
 % - 'alpha': Transparency of the points, from 0 (transparent) to 1
 %            (opaque) (default 1)
@@ -34,6 +45,8 @@ addParameter(p,'type','up',@(v) valid_choice(v,{'up','down','fan','hex','square'
 addParameter(p,'corral','none',@(v) valid_choice(v,{'none','gutter','omit','wrap','random'}));
 addParameter(p,'point_size',3,@(v) valid_range(v,0,Inf));
 addParameter(p,'dodge',0.7,@(v) valid_range(v,0,Inf));
+addParameter(p,'nudge',0,@(v) valid_range(v,-Inf,Inf));
+addParameter(p,'half','none',@(v) (isscalar(v) && (islogical(v) || isnumeric(v))) || valid_choice(v,{'none','left','right','color'}));
 addParameter(p,'width',0.9,@(v) valid_range(v,0,Inf));
 addParameter(p,'alpha',1,@(v) valid_range(v,0,1));
 parse(p,varargin{:});
@@ -70,7 +83,10 @@ uni_x=unique(x);
 %potential numerical errors
 uni_x(diff(uni_x)<1e-10)=[];
 
-dodge_uni_x = dodger(uni_x,draw_data,params.dodge);
+%Side on which points are spread (no dodging in 'color' mode)
+[params.side,params.dodge]=half_side(params.half,draw_data.color_index,params.dodge);
+
+dodge_uni_x = dodger(uni_x,draw_data,params.dodge,params.nudge);
 
 if params.dodge>0
     params.avl_width=draw_data.dodge_avl_w*params.width./(draw_data.n_colors);
@@ -147,6 +163,7 @@ y = ypx/ysz;
 D = squareform(pdist(ypx)) < r*2;
 
 hex = strcmp(params.type,'hex');
+one_sided = ~strcmp(params.side,'none');
 ff=@(k)((-1)^(k+1)) * ceil(k/2); %function to alternate 1 -1 2 -2 3 -3
 
 xpx = zeros(length(y),1);
@@ -155,7 +172,15 @@ for k = 1:length(y)
     if hex %Special case of hex packing
         n_placed = sum(ypx(1:k-1)==ypx(k));
 
-        if mod(find(ypx(k)==binc),2)==0
+        if one_sided
+            %Points placed side by side from the center, every other row
+            %shifted by the hexagonal offset
+            if mod(find(ypx(k)==binc),2)==0
+                xpx(k) = 2*r*n_placed;
+            else
+                xpx(k) = r * sqrt(3) / 2 + 2*r*n_placed;
+            end
+        elseif mod(find(ypx(k)==binc),2)==0
             xpx(k) = -r * sqrt(3) / 4 + 2*r*ff(n_placed);
         else
             xpx(k) = r * sqrt(3) / 4 + 2*r*ff(n_placed);
@@ -178,12 +203,19 @@ for k = 1:length(y)
             end
 
 
+            %For half swarms we only keep locations on the positive side
+            %(flipped at the end for the left side). One of them is always
+            %free: the right of the rightmost point in contact
+            if one_sided
+                x_pot = x_pot(x_pot>=-1e-10);
+            end
+
             %Sort potential x locations by distance to center
             [~, tmp_i] = sort(abs(x_pot));
             x_pot = x_pot(tmp_i);
 
             %Compute distances between potential x locations and placed points
-            D_pot = pdist2([x_pot repmat(ypx(k),2*length(sel)+1,1)] , [xpx(sel) ypx(sel)]);
+            D_pot = pdist2([x_pot repmat(ypx(k),length(x_pot),1)] , [xpx(sel) ypx(sel)]);
 
             %Pick the first one that doesn't interfere with any previous point
             %(ie has any distance lower than 2*r)
@@ -195,21 +227,41 @@ for k = 1:length(y)
 
 end
 
+%Half swarms are shifted by one radius so that the edges of the first
+%points touch the x value
+if one_sided
+    xpx = xpx + r;
+end
+
 x = xpx/xsz; %Convert obtained x values in point units back to plot units
+
+%Limits of the corral: half swarms use half of the width, on one side
+if one_sided
+    lo = 0;
+else
+    lo = -params.avl_width/2;
+end
+hi = params.avl_width/2;
 
 switch(params.corral)
     case 'gutter'
-        x(x>params.avl_width/2) = params.avl_width/2;
-        x(x<-params.avl_width/2) = -params.avl_width/2;
+        x(x>hi) = hi;
+        x(x<lo) = lo;
     case 'omit'
-        x(abs(x)>params.avl_width/2) = NaN;
+        x(x>hi | x<lo) = NaN;
     case 'wrap'
-        while(any(abs(x)>params.avl_width/2))
-            x(x>params.avl_width/2) = params.avl_width/2 - (x(x>params.avl_width/2)-params.avl_width/2);
-            x(x<-params.avl_width/2) = -params.avl_width/2 - (x(x<-params.avl_width/2)+params.avl_width/2);
+        while(any(x>hi | x<lo))
+            x(x>hi) = hi - (x(x>hi)-hi);
+            x(x<lo) = lo - (x(x<lo)-lo);
         end
     case 'random'
-        x(abs(x)>params.avl_width/2) = rand(sum(abs(x)>params.avl_width/2),1)*params.avl_width-params.avl_width/2;
+        sel_out = x>hi | x<lo;
+        x(sel_out) = lo + rand(sum(sel_out),1)*(hi-lo);
+end
+
+%Left half swarms are mirrored
+if strcmp(params.side,'left')
+    x = -x;
 end
 
 end

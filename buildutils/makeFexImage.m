@@ -1,10 +1,13 @@
 function makeFexImage(outFile)
 % Draw the picture of gramm on File Exchange: a mosaic of four gramm plots
-% (facets with fits, time series, polar histogram, swarms), without text as
+% (facets with fits, time series, polar histogram, rainclouds), without text as
 % File Exchange shows it at about 330x250 pixels. It is uploaded by hand,
 % so this isn't a build task. Run from the repository root, e.g.
-%   addpath("gramm", "buildutils"); makeFexImage("fex_image.png")
-% Saves a 2400x1800 PNG (File Exchange recommends 4:3)
+%   addpath("gramm", "buildutils"); makeFexImage("fex_image.jpeg")
+% Saves an 800x600 JPEG (File Exchange doesn't seem to accept PNG): File
+% Exchange has no official size, 4:3 is the ratio that isn't cropped, and
+% this is about twice the size of the thumbnail. Larger images caused
+% problems
 
 % Light theme, whatever the desktop theme
 s = settings;
@@ -14,7 +17,7 @@ restoreTheme = onCleanup(@() clearTemporaryValue(s.matlab.appearance.figure.Grap
 rng(1);
 fig = figure(Visible="off", Position=[100 100 1200 900], Color="w");
 t = tiledlayout(fig, 2, 2, TileSpacing="compact", Padding="compact");
-g = [facets(t, 1) timeseries(t, 2) polar(t, 3) swarms(t, 4)];
+g = [facets(t, 1) timeseries(t, 2) polar(t, 3) rainclouds(t, 4)];
 for k = 1:numel(g)
     g(k).set_names('x', '', 'y', '', 'color', '', 'column', '', 'row', '');
     g(k).set_layout_options('legend', false);
@@ -28,9 +31,19 @@ end
 % color option)
 set(findobj(g(3).facet_axes_handles(1), 'Type', 'patch'), ...
     'EdgeColor', 'w', 'EdgeAlpha', 1, 'LineWidth', 2.5);
+% Raincloud violins: outlines as thick as the other lines (stat_violin has
+% no line width option)
+for k = 1:numel(g(4).results.stat_violin)
+    set(g(4).results.stat_violin(k).line_handle, 'LineWidth', 2.5);
+end
 drawnow % Lets gramm finish laying out the figure
-exportgraphics(fig, outFile, Resolution=192, Padding="figure");
+% exportgraphics has no JPEG quality option, so we export a lossless image
+% and compress it ourselves with little loss
+pngFile = [tempname '.png'];
+exportgraphics(fig, pngFile, Resolution=64, Padding="figure");
 close(fig);
+imwrite(imread(pngFile), outFile, 'jpg', 'Quality', 95);
+delete(pngFile);
 end
 
 function g = facets(t, tile)
@@ -91,14 +104,19 @@ map = parula(7);
 g.set_color_options('map', map([3 4 6], :), 'n_color', 3, 'n_lightness', 1);
 end
 
-function g = swarms(t, tile)
-% Two swarms of big points, in the red and blue of the facets
+function g = rainclouds(t, tile)
+% Two rainclouds (half violin and half swarm of big points), in the red and
+% blue of the facets
 n = 70;
 y = [1.3*randn(n, 1) ; 2 + 1.1*randn(n, 1)];
 grp = [repmat({'A'}, n, 1) ; repmat({'B'}, n, 1)];
 g = gramm('x', grp, 'y', y, 'color', grp);
 g.set_parent(t, 'tile', tile);
-g.geom_swarm('point_size', 4.5);
+g.stat_violin('half', 'right', 'dodge', 0, 'width', 1.1, 'nudge', 0.02, ...
+    'normalization', 'width', 'fill', 'transparent', 'fill_alpha', 0.5);
+g.geom_swarm('half', 'left', 'dodge', 0, 'width', 1.2, 'nudge', -0.02, ...
+    'point_size', 4, 'corral', 'gutter', 'type', 'square');
 g.set_color_options('map', [0.97 0.35 0.40 ; 0 0.65 0.94], 'n_color', 2, 'n_lightness', 1);
+g.set_line_options('base_size', 2.5);
 g.axe_property('XTick', [], 'YTick', [], 'LineWidth', 3);
 end

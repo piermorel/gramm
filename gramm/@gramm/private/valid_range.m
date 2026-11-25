@@ -8,7 +8,9 @@ if nargin>3 && allow_empty && isempty(value)
 end
 ok=isnumeric(value) && isreal(value) && ~isempty(value) && all(value(:)>=low & value(:)<=high);
 if ~ok
-    if isinf(high)
+    if isinf(low) && isinf(high)
+        range='real';
+    elseif isinf(high)
         range=sprintf('greater than or equal to %g',low);
     else
         range=sprintf('between %g and %g',low,high);
