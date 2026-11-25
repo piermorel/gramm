@@ -18,7 +18,8 @@ function obj = geom_interval( obj,varargin )
 %       - 'errorbar': interval as colored error bars
 %       - 'black_errorbar': interval as black error bars
 %       - 'bar': y as colored bars
-%       - 'edge_bar': y as colored bars with black edges
+%       - 'edge_bar': y as colored bars with black edges (same as 'bar'
+%            with 'fill','face')
 %       - 'point': y as points
 %       - 'black_point': y as black points
 % - 'dodge': Spacing between intervals of different colors within an
@@ -29,12 +30,14 @@ function obj = geom_interval( obj,varargin )
 %            set_line_options('cap_size',...)
 % - 'fill_alpha': Transparency of the 'area' geom, from 0 (transparent)
 %            to 1 (opaque) (default 0.2)
+% - 'fill': Aspect of the 'bar' geom, same as stat_summary() (default [])
 
 p=inputParser;
 addParameter(p,'geom','area',@(v) valid_choice(v,{'line','lines','area','area_only','solid_area','errorbar','black_errorbar','bar','edge_bar','point','black_point'},true));
 addParameter(p,'dodge',[],@(v) valid_range(v,0,Inf,true));
 addParameter(p,'width',[],@(v) valid_range(v,0,Inf,true));
 addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'fill',[],@(v) isempty(v) || valid_choice(v,{'edge','face','all','transparent'}));
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_ci(dobj,dd,p.Results)});
@@ -52,7 +55,7 @@ end
 
 %Advanced defaults
 if isempty(params.dodge)
-    if sum(strcmp(params.geom,'bar'))>0 && draw_data.n_colors>1 %If we have a bar as geom, we dodge
+    if sum(strcmp(params.geom,'bar'))>0 && draw_data.n_dodge>1 %If we have a bar as geom, we dodge
         params.dodge=0.6;
     else
         params.dodge=0;
@@ -69,10 +72,10 @@ end
 
 if iscell(draw_data.x)
     for k=1:length(draw_data.x)
-        hndl = plotci(obj,draw_data.x{k},draw_data.y{k},[draw_data.ymin{k} draw_data.ymax{k}],draw_data,params.geom,params.dodge,params.width,params.fill_alpha);
+        hndl = plotci(obj,draw_data.x{k},draw_data.y{k},[draw_data.ymin{k} draw_data.ymax{k}],draw_data,params.geom,params.dodge,params.width,params.fill_alpha,0,params.fill);
     end
 else
-    hndl=plotci(obj,draw_data.x,draw_data.y,[draw_data.ymin draw_data.ymax],draw_data,params.geom,params.dodge,params.width,params.fill_alpha);
+    hndl=plotci(obj,draw_data.x,draw_data.y,[draw_data.ymin draw_data.ymax],draw_data,params.geom,params.dodge,params.width,params.fill_alpha,0,params.fill);
 end
 
 obj.results.geom_interval{obj.result_ind,1}=hndl;

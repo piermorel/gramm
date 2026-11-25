@@ -14,8 +14,9 @@ function obj=geom_line(obj,varargin)
 % - 'stacked': Stack the lines of the different groups and shade the
 %            areas between them (only with 1D arrays for x and y)
 %            (default false)
-% - 'fill': If set to a y value, shade the area between the lines and
+% - 'fill_to': If set to a y value, shade the area between the lines and
 %            this value (default [])
+% - 'fill': Former name of 'fill_to' (default [])
 % - 'fill_alpha': Transparency of the shaded areas, from 0 to 1
 %            (default 0.4)
 % - 'ordered': Order the points of each line along x, so that the line
@@ -26,12 +27,18 @@ p=inputParser;
 addParameter(p,'dodge',0,@(v) valid_range(v,0,Inf));
 addParameter(p,'alpha',1,@(v) valid_range(v,0,1));
 addParameter(p,'stacked',false);
-addParameter(p,'fill',[]); 
+addParameter(p,'fill_to',[]);
+addParameter(p,'fill',[]); %Former name of 'fill_to'
 addParameter(p,'fill_alpha',0.4,@(v) valid_range(v,0,1));
 addParameter(p,'ordered',false);
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dobj,dd)my_line(dobj,dd,p.Results)});
+params=p.Results;
+if isempty(params.fill_to)
+    params.fill_to=params.fill;
+end
+
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_line(dobj,dd,params)});
 obj.results.geom_line_handle={};
 end
 
@@ -106,16 +113,16 @@ else
 
         
 
-        if params.stacked || ~isempty(params.fill)
+        if params.stacked || ~isempty(params.fill_to)
             
             if iscell(draw_data.x) || iscell(draw_data.y)
-                warning('stacked or fill options require simple array input for x and y');
+                warning('''stacked'' or ''fill_to'' options require simple array input for x and y');
                 obj.results.geom_line_handle{obj.result_ind,1}=[];
                 return;
             end
             
             if length(unique(draw_data.x))<length(draw_data.x)
-                warning('stacked or fill options will produce unexpected results with non unique x values');
+                warning('''stacked'' or ''fill_to'' options will produce unexpected results with non unique x values');
             end
 
             [x,i]=sort(draw_data.x);
@@ -123,10 +130,10 @@ else
 
 
             if params.stacked
-                [xline, bottom, top] = stacker(obj,x,y,draw_data.facet_x,params.fill,'line');
+                [xline, bottom, top] = stacker(obj,x,y,draw_data.facet_x,params.fill_to,'line');
             else
                 xline = x(:)';
-                bottom = zeros(1,length(x))+params.fill;
+                bottom = zeros(1,length(x))+params.fill_to;
                 top = y(:)';
             end
 

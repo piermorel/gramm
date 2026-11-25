@@ -2,7 +2,7 @@
 function obj=stat_boxplot(obj,varargin)
 % stat_boxplot Display box and whisker plots of y for each unique value of x
 %
-% Example syntax (default arguments): gramm_object.stat_boxplot('width',0.6,'dodge',0.7)
+% Example syntax (default arguments): gramm_object.stat_boxplot('width',0.6,'dodge',0.7,'fill','face')
 % The box is drawn between the 25 and 75 percentiles, with a line at the
 % median. The whiskers extend to the most extreme data points within 1.5
 % times the interquartile range from the box (Tukey boxplot). Points
@@ -25,6 +25,11 @@ function obj=stat_boxplot(obj,varargin)
 % - 'outliers': Display the outliers. If not set, outliers are hidden when
 %            geom_point(), geom_jitter() or geom_swarm() are used (default
 %            true)
+% - 'fill': Aspect of the boxes, same as stat_bin() (default 'face'). The
+%            whiskers and summary lines have the color of the edges (black
+%            summary lines with 'all')
+% - 'fill_alpha': Transparency of the faces, same as stat_bin() (default
+%            [], set by 'fill')
 
 p=inputParser;
 addParameter(p,'width',0.6,@(v) valid_range(v,0,Inf));
@@ -33,6 +38,8 @@ addParameter(p,'nudge',0,@(v) valid_range(v,-Inf,Inf));
 addParameter(p,'notch',false);
 addParameter(p,'lines','median',@(v) (isnumeric(v) && ~isempty(v) && all(v>=0 & v<=1)) || valid_choice(v,{'none','median','quartiles','mean'},true));
 addParameter(p,'outliers',true);
+addParameter(p,'fill','face',@(v) valid_choice(v,{'edge','face','all','transparent'}));
+addParameter(p,'fill_alpha',[],@(v) valid_range(v,0,1,true));
 
 parse(p,varargin{:});
 
@@ -120,7 +127,7 @@ obj.results.stat_boxplot{obj.result_ind,1}.boxplot_data=p;
 
 
 if params.dodge>0
-    boxw=draw_data.dodge_avl_w*params.width./(draw_data.n_colors);
+    boxw=draw_data.dodge_avl_w*params.width./(draw_data.n_dodge);
 else
     boxw=draw_data.dodge_avl_w*params.width;
 end
@@ -143,9 +150,11 @@ else
 end
 
 %Draw boxes
+[face_color,face_alpha,edge_color,edge_alpha]=parse_fill(params.fill,draw_data.color,params.fill_alpha);
 hndl=patch(xpatch,...
     ypatch,...
-    [1 1 1],'FaceColor',draw_data.color,'EdgeColor','k','FaceAlpha',1,'EdgeAlpha',1);
+    [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha,...
+    'LineWidth',draw_data.edge_size,'LineStyle',draw_data.line_style);
 
 obj.results.stat_boxplot{obj.result_ind,1}.box_handle=hndl;
 
@@ -171,7 +180,13 @@ for ind_x=1:length(uni_x)
     sum_y=[sum_y sum_values{ind_x}];
     sum_kinds=[sum_kinds temp_kinds];
 end
-sum_hndl=plot_summary_lines(sum_left,sum_right,sum_y,sum_kinds,'k',0.5);
+%Summary lines have the edge color, black when the boxes have no edges
+if strcmp(params.fill,'all')
+    sum_color='k';
+else
+    sum_color=edge_color;
+end
+sum_hndl=plot_summary_lines(sum_left,sum_right,sum_y,sum_kinds,sum_color,draw_data.summary_size);
 obj.results.stat_boxplot{obj.result_ind,1}.lines_values=sum_values;
 fields=fieldnames(sum_hndl);
 for k=1:length(fields)
@@ -179,8 +194,8 @@ for k=1:length(fields)
 end
 
 %Draw whiskers
-obj.results.stat_boxplot{obj.result_ind,1}.lower_whisker_handle=line([boxmid' ; boxmid'],[p(:,1)' ; p(:,2)'],'Color','k');
-obj.results.stat_boxplot{obj.result_ind,1}.upper_whisker_handle=line([boxmid' ; boxmid'],[p(:,end-1)' ; p(:,end)'],'Color','k');
+obj.results.stat_boxplot{obj.result_ind,1}.lower_whisker_handle=line([boxmid' ; boxmid'],[p(:,1)' ; p(:,2)'],'Color',edge_color,'LineWidth',draw_data.edge_size);
+obj.results.stat_boxplot{obj.result_ind,1}.upper_whisker_handle=line([boxmid' ; boxmid'],[p(:,end-1)' ; p(:,end)'],'Color',edge_color,'LineWidth',draw_data.edge_size);
 
 %Auto detect geom_point and geom_jitter to deactivate outlier plotting if
 %not explicitly set
@@ -199,7 +214,8 @@ end
 
 %Draw outliers
 if params.outliers
-    obj.results.stat_boxplot{obj.result_ind,1}.outliers_handle=plot(boxmid(outliersx),outliersy,'o','MarkerEdgeColor','none','MarkerFaceColor',draw_data.color);
+    point_props=marker_props(obj,draw_data);
+    obj.results.stat_boxplot{obj.result_ind,1}.outliers_handle=plot(boxmid(outliersx),outliersy,point_props{:});
 end
 
 %Adjust limits

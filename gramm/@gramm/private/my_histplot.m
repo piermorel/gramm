@@ -2,7 +2,7 @@ function [results] = my_histplot(obj,draw_data,params,setylim)
 
 %Presets for dodge parameter
 if isempty(params.dodge)
-    if strcmp(params.geom,'bar') && draw_data.n_colors>1  %With 'bar' do we dodge by default if there are several colors
+    if strcmp(params.geom,'bar') && draw_data.n_dodge>1  %With 'bar' do we dodge by default if there are several colors
         params.dodge=0.8;
     else
         params.dodge=0; %With all others we put don't dodge
@@ -126,13 +126,13 @@ end
 
 %Set up dodging & width for bars
 avl_w=diff(binranges);
-dodging=avl_w.*params.dodge./(draw_data.n_colors);
+dodging=avl_w.*params.dodge./(draw_data.n_dodge);
 if params.dodge>0
-    bar_width=avl_w.*params.width./(draw_data.n_colors);
+    bar_width=avl_w.*params.width./(draw_data.n_dodge);
 else
     bar_width=avl_w.*params.width;
 end
-bar_mid=bincenters-0.5*dodging*draw_data.n_colors+dodging*0.5+(draw_data.color_index-1)*dodging;
+bar_mid=bincenters-0.5*dodging*draw_data.n_dodge+dodging*0.5+(draw_data.dodge_index-1)*dodging;
 bar_left=bar_mid-0.5*bar_width;
 bar_right=bar_mid+0.5*bar_width;
 
@@ -150,7 +150,8 @@ switch params.geom
         [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
         results.bar_handle=patch(xpatch,...
             ypatch,...
-            [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
+            [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha,...
+            'LineWidth',draw_data.edge_size,'LineStyle',draw_data.line_style);
         
     case 'line'
         xtemp=bar_mid;
@@ -166,7 +167,8 @@ switch params.geom
         [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
         results.bar_handle=patch(xpatch,...
             ypatch,...
-            [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha);
+            [1 1 1],'FaceColor',face_color,'EdgeColor',edge_color,'FaceAlpha',face_alpha,'EdgeAlpha',edge_alpha,...
+            'LineWidth',draw_data.edge_size,'LineStyle',draw_data.line_style);
         obj.extra.stacked_bar_height=obj.extra.stacked_bar_height+bincounts';
     case 'stairs'
         xtemp=[binranges(1:end-1) ; binranges(2:end)];
@@ -183,7 +185,8 @@ switch params.geom
     case 'point'
         xtemp=bar_mid;
         ytemp=bincounts(1:end)';
-        results.point_handle=plot(xtemp,ytemp,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',draw_data.color);
+        point_props=marker_props(obj,draw_data);
+        results.point_handle=plot(xtemp,ytemp,point_props{:});
 end
 
 

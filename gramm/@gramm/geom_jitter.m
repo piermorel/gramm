@@ -46,7 +46,7 @@ else
 end
 
 if params.dodge>0
-    params.avl_width=draw_data.dodge_avl_w*params.width./(draw_data.n_colors);
+    params.avl_width=draw_data.dodge_avl_w*params.width./(draw_data.n_dodge);
 else
     params.avl_width=draw_data.dodge_avl_w*params.width;
 end
@@ -76,7 +76,9 @@ end
 %hndl=my_point(obj,draw_data);
 hndl=scatter(draw_data.x,draw_data.y,draw_data.point_size^2,...
     'Marker',draw_data.marker,...
-    'MarkerEdgeColor','none','MarkerFaceColor',draw_data.color);
+    'LineWidth',draw_data.border_width,...
+    'MarkerEdgeColor',draw_data.border_color,...
+    'MarkerFaceColor',draw_data.color);
 
 if ~isempty(hndl)
     hndl.MarkerFaceAlpha=params.alpha;

@@ -1,29 +1,48 @@
 function obj=stat_ellipse(obj,varargin)
 % stat_ellipse Display confidence ellipses around 2D groups of points
 %
-% Example syntax (default arguments): gramm_object.stat_ellipse('type','95percentile','geom','area')
+% Example syntax (default arguments): gramm_object.stat_ellipse('type','95percentile','fill','transparent')
 %
 % Parameters given as 'name',value pairs:
 % - 'type': What the ellipse contains (default '95percentile'):
 %       - '95percentile': 95% of the points (assuming a bivariate normal
 %            distribution)
 %       - 'ci': 95% of the bootstrapped 2D means
-% - 'geom': How the ellipse is displayed (default 'area'):
-%       - 'area': shaded area with outline
-%       - 'line': outline only
-% - 'fill_alpha': Transparency of the 'area' geom, from 0 (transparent)
-%            to 1 (opaque) (default 0.2)
+% - 'fill': Aspect of the ellipses, same as stat_bin() (default [], set by
+%            'geom': 'transparent' for 'area', 'edge' for 'line')
+% - 'fill_alpha': Transparency of the faces, from 0 (transparent) to 1
+%            (opaque) (default [], 0.2 with 'transparent', otherwise set by
+%            'fill')
+% - 'geom': Former way of setting 'fill' (default 'area'):
+%       - 'area': shaded area with outline, same as 'fill','transparent'
+%       - 'line': outline only, same as 'fill','edge'
 % - 'patch_opts': Additional patch() properties, as a cell of 'name',value
 %            pairs (default {})
 
 p=inputParser;
 addParameter(p,'type','95percentile',@(v) valid_choice(v,{'95percentile','ci'})); %ci
 addParameter(p,'geom','area',@(v) valid_choice(v,{'area','line'})); %line
-addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'fill',[],@(v) isempty(v) || valid_choice(v,{'edge','face','all','transparent'}));
+addParameter(p,'fill_alpha',[],@(v) valid_range(v,0,1,true));
 addParameter(p,'patch_opts',{});
 parse(p,varargin{:});
 
-obj.geom=vertcat(obj.geom,{@(dobj,dd)my_ellipse(dobj,dd,p.Results)});
+params=p.Results;
+
+%Advanced defaults: the fill style comes from the former 'geom' option,
+%and transparent ellipses are lighter than the general 'transparent' style
+if isempty(params.fill)
+    if strcmp(params.geom,'line')
+        params.fill='edge';
+    else
+        params.fill='transparent';
+    end
+end
+if isempty(params.fill_alpha) && strcmp(params.fill,'transparent')
+    params.fill_alpha=0.2;
+end
+
+obj.geom=vertcat(obj.geom,{@(dobj,dd)my_ellipse(dobj,dd,params)});
 obj.results.stat_ellipse={};
 end
 
@@ -92,13 +111,14 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         %plot([0 elaxes(1,1)]+m(1),[0 elaxes(2,1)]+m(2),'k')
         %plot([0 elaxes(1,2)]+m(1),[0 elaxes(2,2)]+m(2),'k')
         
-        switch params.geom
-            case 'area'
-                hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor',draw_data.color,'EdgeColor',draw_data.color,'LineWidth',2,'FaceAlpha',params.fill_alpha);
-                
-            case 'line'
-                hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,'FaceColor','none','EdgeColor',draw_data.color,'LineWidth',2);    
-        end
+        [face_color,face_alpha,edge_color,edge_alpha]=parse_fill(params.fill,draw_data.color,params.fill_alpha);
+        hndl=patch(conf_elpoints(1,:)+m(1),conf_elpoints(2,:)+m(2),draw_data.color,...
+            'FaceColor',face_color,...
+            'FaceAlpha',face_alpha,...
+            'EdgeColor',edge_color,...
+            'EdgeAlpha',edge_alpha,...
+            'LineWidth',draw_data.edge_size,...
+            'LineStyle',draw_data.line_style);
         %set() without property names would list all settable values
         if ~isempty(params.patch_opts)
             set(hndl,params.patch_opts{:});
@@ -106,7 +126,9 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         
         
         
-        center_hndl=plot(m(1),m(2),'+','MarkerFaceColor',draw_data.color,'MarkerEdgeColor',draw_data.color,'MarkerSize',10);
+        %The center is a data point, but keeps its '+' marker whatever the
+        %marker groups
+        center_hndl=plot(m(1),m(2),'+','MarkerFaceColor',draw_data.color,'MarkerEdgeColor',draw_data.color,'MarkerSize',draw_data.point_size);
     else
         
         r=[combx comby combz];
@@ -129,9 +151,15 @@ if sum(~isnan(combx))>2 && sum(~isnan(comby))>2
         
         conf_sphpoints=sphpoints;
         conf_sphpoints.vertices=bsxfun(@plus,sqrtm(cv)*conf_sphpoints.vertices'*k(obj.stat_options.alpha),m')';
-        hndl=patch(conf_sphpoints,'FaceColor',draw_data.color,'EdgeColor','none','LineWidth',2,'FaceAlpha',params.fill_alpha);
+        %Ellipsoids are always drawn as surfaces, without edges (a face
+        %transparency of 0 with 'edge' would hide them)
+        [face_color,face_alpha]=parse_fill(params.fill,draw_data.color,params.fill_alpha);
+        if face_alpha==0
+            face_alpha=0.2;
+        end
+        hndl=patch(conf_sphpoints,'FaceColor',face_color,'EdgeColor','none','FaceAlpha',face_alpha);
         
-        center_hndl=plot3(m(1),m(2),m(3),'+','MarkerFaceColor',draw_data.color,'MarkerEdgeColor',draw_data.color,'MarkerSize',10);
+        center_hndl=plot3(m(1),m(2),m(3),'+','MarkerFaceColor',draw_data.color,'MarkerEdgeColor',draw_data.color,'MarkerSize',draw_data.point_size);
     end
     obj.results.stat_ellipse{obj.result_ind,1}.ellipse_handle=hndl;
     obj.results.stat_ellipse{obj.result_ind,1}.center_handle=center_hndl;

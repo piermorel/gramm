@@ -23,8 +23,8 @@ function obj=geom_bar(obj,varargin)
 %       - 'transparent': colored edges and transparent colored faces
 % - 'fill_alpha': Transparency of the bar faces, from 0 (transparent) to
 %            1 (opaque) (default [], set by the fill style)
-% - 'LineWidth': Width of the bar edges (default [], line size of the
-%            data, see set_line_options())
+% - 'LineWidth': Width of the bar edges (default [], edge size, see
+%            set_line_options())
 
 if mod(numel(varargin),2)~=0
     error('Improper number of ''name'',value argument pairs')
@@ -91,7 +91,7 @@ else
 end
 
 if isempty(params.LineWidth)
-    LineWidth=draw_data.line_size;
+    LineWidth=draw_data.edge_size;
 else
     % overloaded LineWidth via input arguments
     LineWidth=params.LineWidth;
@@ -114,7 +114,7 @@ else
 
     % Calculate dodged positions
     if dodge>0
-        bar_width=draw_data.dodge_avl_w*width./(draw_data.n_colors);
+        bar_width=draw_data.dodge_avl_w*width./(draw_data.n_dodge);
     else
         bar_width=draw_data.dodge_avl_w*width;
     end
@@ -138,7 +138,8 @@ hndl=patch(xpatch,ypatch,[1 1 1],...
     'EdgeColor',EdgeColor,...
     'FaceAlpha',FaceAlpha,...
     'EdgeAlpha',EdgeAlpha,...
-    'LineWidth',LineWidth, args{:});
+    'LineWidth',LineWidth,...
+    'LineStyle',draw_data.line_style, args{:});
 
 % Assign bar handle to obj
 obj.results.geom_bar_handle{obj.result_ind,1}=hndl;

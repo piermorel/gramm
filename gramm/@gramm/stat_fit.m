@@ -22,6 +22,7 @@ function obj=stat_fit(obj,varargin)
 %            'area')
 % - 'fill_alpha': Transparency of the 'area' and 'area_only' geoms, from
 %            0 (transparent) to 1 (opaque) (default 0.2)
+% - 'fill': Aspect of the 'bar' geom, same as stat_summary() (default [])
 % - 'fullrange': Display the fit over the whole x axis instead of the
 %            range of x values used for the fit (default false)
 % - 'disp_fit': Display the fitted parameters (default false)
@@ -35,6 +36,7 @@ addParameter(p,'fit_options',[]);
 addParameter(p,'intopt','observation');
 addParameter(p,'geom','area',@(v) valid_choice(v,{'line','lines','area','area_only','solid_area','errorbar','black_errorbar','bar','edge_bar','point','black_point'},true));
 addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'fill',[],@(v) isempty(v) || valid_choice(v,{'edge','face','all','transparent'}));
 addParameter(p,'fullrange',false);
 addParameter(p,'disp_fit',false);
 addParameter(p,'stats',false); 
@@ -115,7 +117,7 @@ obj.results.stat_fit{obj.result_ind,1}.model=mdl;
 obj.results.stat_fit{obj.result_ind,1}.gof=gof;
 
 %Plot fit
-hndl=plotci(obj,newx,newy,yci,draw_data,params.geom,[],[],params.fill_alpha);
+hndl=plotci(obj,newx,newy,yci,draw_data,params.geom,[],[],params.fill_alpha,0,params.fill);
 
 %Store plotted handles
 hnames=fieldnames(hndl);

@@ -293,6 +293,9 @@ if obj.updater.first_draw
     obj.facet_axes_handles=gobjects(length(uni_row),length(uni_column));
 end
 
+%Dodging key of every data point and global dodging slots
+dodge=dodge_setup(obj,temp_aes,uni_color,uni_lightness,uni_marker,uni_linestyle,uni_size);
+
 %Set the dodge width across all facets (x values closer than rounding
 %errors count as the same value, as in dodger())
 x_gaps=diff(unique(comb(temp_aes.x)));
@@ -422,7 +425,7 @@ for ind_row=1:length(uni_row)
         draw_data.facet_x=temp_aes.x(sel_column);
         
         %Store data for advanced dodging
-        [dodge_data.fallback,dodge_data.x,dodge_data.color,dodge_data.lightness,dodge_data.ind,dodge_data.n]=dodge_comp(temp_aes.x(sel_column),temp_aes.color(sel_column),temp_aes.lightness(sel_column),uni_color,uni_lightness);
+        [dodge_data.fallback,dodge_data.x,dodge_data.keys,dodge_data.ind,dodge_data.n]=dodge_comp(temp_aes.x(sel_column),dodge.keys(sel_column(:),:));
         
         %Loop over point shapes
         for ind_marker=1:length(uni_marker)
@@ -459,24 +462,30 @@ for ind_row=1:length(uni_row)
                                 uni_group=num2cell(uni_group);
                             end
                             
-                            %Select dodging parameters for current color
-                            %and lightness
-                            if obj.continuous_color_options.active
-                                sel_dodge=true(size(dodge_data.color));
-                            else
-                                sel_dodge=multi_sel(dodge_data.color,uni_color{ind_color}) & multi_sel(dodge_data.lightness,uni_lightness{ind_lightness});
-                            end
-                            
-                            draw_data.dodge_fallback=dodge_data.fallback;
-                            draw_data.dodge_x=dodge_data.x(sel_dodge);
-                            draw_data.dodge_ind=dodge_data.ind(sel_dodge);
-                            draw_data.dodge_n=dodge_data.n(sel_dodge);
-                            
                             %Loop over groups
                             for ind_group=1:length(uni_group)
-                                
+
                                 sel=sel_lightness & multi_sel(temp_aes.group,uni_group{ind_group});
-                                
+
+                                %Dodging parameters of the current group:
+                                %all its data points have the same key
+                                draw_data.n_dodge=dodge.n;
+                                draw_data.dodge_index=1;
+                                draw_data.dodge_fallback=dodge_data.fallback;
+                                sel_dodge=false(size(dodge_data.x));
+                                first_sel=find(sel,1);
+                                if ~isempty(first_sel)
+                                    current_key=dodge.keys(first_sel,:);
+                                    sel_key=all(bsxfun(@eq,dodge.uni_keys,current_key),2);
+                                    if any(sel_key)
+                                        draw_data.dodge_index=dodge.key_index(sel_key);
+                                    end
+                                    sel_dodge=all(bsxfun(@eq,dodge_data.keys,current_key),2);
+                                end
+                                draw_data.dodge_x=dodge_data.x(sel_dodge);
+                                draw_data.dodge_ind=dodge_data.ind(sel_dodge);
+                                draw_data.dodge_n=dodge_data.n(sel_dodge);
+
                                 %Fill out results struct
                                 obj.results.row{obj.result_ind}=uni_row{ind_row};
                                 obj.results.column{obj.result_ind}=uni_column{ind_column};
@@ -532,12 +541,25 @@ for ind_row=1:length(uni_row)
                                     else
                                         draw_data.border_color=obj.point_options.border_color;
                                     end
-                                    if obj.line_options.use_input
+                                    if ~obj.line_options.size_aes
+                                        draw_data.line_size=obj.line_options.base_size;
+                                    elseif obj.line_options.use_input
                                         draw_data.line_size=obj.line_options.input_fun(uni_size{ind_size});
                                     else
                                         draw_data.line_size=obj.line_options.base_size+(ind_size-1)*obj.line_options.step_size;
                                     end
-                                    if obj.point_options.use_input
+                                    %The other kinds of lines are as much
+                                    %wider than their own width as the data
+                                    %lines are wider than base_size. With
+                                    %'use_input' the difference can be
+                                    %negative, hence the minimum width
+                                    size_offset=draw_data.line_size-obj.line_options.base_size;
+                                    draw_data.edge_size=max(obj.line_options.edge_size+size_offset,0.1);
+                                    draw_data.interval_size=max(obj.line_options.interval_size+size_offset,0.1);
+                                    draw_data.summary_size=max(obj.line_options.summary_size+size_offset,0.1);
+                                    if ~obj.point_options.size_aes
+                                        draw_data.point_size=obj.point_options.base_size;
+                                    elseif obj.point_options.use_input
                                         draw_data.point_size=obj.point_options.input_fun(uni_size{ind_size});
                                     else
                                         draw_data.point_size=obj.point_options.base_size+(ind_size-1)*obj.point_options.step_size;
@@ -804,8 +826,16 @@ if obj.layout_options.legend
             'o',obj.line_options.styles,obj.line_options.base_size,0);
     end
     
-    %Size legend
-    if length(str_uni_size)>1
+    %Size legend, showing lines and/or points depending on which follow
+    %the size groups (nothing when none do)
+    if obj.line_options.size_aes && obj.point_options.size_aes
+        size_legend_type='both';
+    elseif obj.line_options.size_aes
+        size_legend_type='line';
+    else
+        size_legend_type='point';
+    end
+    if length(str_uni_size)>1 && (obj.line_options.size_aes || obj.point_options.size_aes)
 
         % If size groups are the same as color groups we combine the
         % legends by drawing each size legend the corresponding color
@@ -830,7 +860,7 @@ if obj.layout_options.legend
         
         fill_legend(obj,obj.aes_names.size,...
             str_uni_size,...
-            'both',...
+            size_legend_type,...
             color_legend_map,...
             'o','-',temp_lw,temp_ps);
     end
@@ -1445,7 +1475,11 @@ for line_ind=1:length(obj.abline.intercept)
             xl(1)=1;
         end
     end
-    line_opts={obj.abline.style{line_ind},'LineWidth',obj.abline.linewidth(line_ind),'Parent',ca};
+    line_width=obj.abline.linewidth(line_ind);
+    if isnan(line_width)
+        line_width=obj.line_options.ref_size;
+    end
+    line_opts={obj.abline.style{line_ind},'LineWidth',line_width,'Parent',ca};
     if ~isnan(obj.abline.intercept(line_ind))
         %draw it properly (curved) if log axes
         if is_log

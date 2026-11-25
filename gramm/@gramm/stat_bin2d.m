@@ -11,11 +11,14 @@ function obj=stat_bin2d(obj,varargin)
 %       - 'image': heatmap
 %       - 'contour': contour plot
 %       - 'point': circles of varying size
+% - 'scale': Scaling factor between count and point area, for the
+%            'point' geom (default 10)
 
 p=inputParser;
 addParameter(p,'nbins',[30 30]);
 addParameter(p,'edges',{});
 addParameter(p,'geom','image',@(v) valid_choice(v,{'image','contour','point'})); %contour
+addParameter(p,'scale',10,@(v) valid_range(v,0,Inf));
 
 parse(p,varargin{:});
 
@@ -139,7 +142,7 @@ switch params.geom
         Y=reshape(Y,1,numel(Y));
         Nr=reshape(N',1,numel(N));
         sel=Nr>0;
-        hndl=scatter(X(sel),Y(sel),Nr(sel)*10,draw_data.marker,'MarkerEdgeColor',draw_data.color,'MarkerFaceColor','none');
+        hndl=scatter(X(sel),Y(sel),Nr(sel)*params.scale,draw_data.marker,'MarkerEdgeColor',draw_data.color,'MarkerFaceColor','none');
 end
 
 obj.results.stat_bin2d{obj.result_ind,1}.handle=hndl;

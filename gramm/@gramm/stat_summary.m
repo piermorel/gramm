@@ -47,6 +47,7 @@ function obj=stat_summary(obj,varargin)
 %       - 'black_errorbar': variability as black error bars
 %       - 'bar': central values as colored bars
 %       - 'edge_bar': central values as colored bars with black edges
+%            (same as 'bar' with 'fill','face')
 %       - 'point': central values as points
 %       - 'black_point': central values as black points
 % - 'dodge': Spacing between elements of different colors within an
@@ -82,6 +83,9 @@ function obj=stat_summary(obj,varargin)
 %            'bin_in' (default [])
 % - 'fill_alpha': Transparency of the 'area' and 'area_only' geoms, from
 %            0 (transparent) to 1 (opaque) (default 0.2)
+% - 'fill': Aspect of the 'bar' geom, same as stat_bin() (default [],
+%            'all' for 'bar' and 'face' for 'edge_bar'). The areas aren't
+%            affected, see 'fill_alpha'
 %
 % Custom summary function, here the trimmed mean with bootstrapped CI:
 %   custom_statfun = @(y)([trimmean(y,2.5);bootci(500,{@(ty)trimmean(ty,2.5),y},'alpha',0.05)]);
@@ -124,6 +128,7 @@ addParameter(p,'interp_in',-1);
 addParameter(p,'bin_in',[]);
 addParameter(p,'bin_width',[]);
 addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'fill',[],@(v) isempty(v) || valid_choice(v,{'edge','face','all','transparent'}));
 parse(p,varargin{:});
 
 obj.geom=vertcat(obj.geom,{@(dobj,dd)my_summary(dobj,dd,p.Results)});
@@ -139,7 +144,7 @@ params.geom=cellstr(params.geom); %char, string, cell or string array
 
 %Advanced defaults
 if isempty(params.dodge)
-    if (sum(strcmp(params.geom,'bar'))>0 || sum(strcmp(params.geom,'edge_bar'))>0) && draw_data.n_colors>1 %If we have a bar as geom, we dodge
+    if (sum(strcmp(params.geom,'bar'))>0 || sum(strcmp(params.geom,'edge_bar'))>0) && draw_data.n_dodge>1 %If we have a bar as geom, we dodge
         params.dodge=0.6;
     else
         params.dodge=0;
@@ -333,13 +338,6 @@ if (~isempty(params.bin_in) || ~isempty(params.bin_width)) || params.interp_in>0
     %We reinitialize dodging parameters for plotci to work correctly
     draw_data.dodge_avl_w=uni_x(2)-uni_x(1);
     draw_data.dodge_fallback=true;
-    draw_data.dodge_x=1;
-    draw_data.dodge_n=draw_data.n_colors;
-    draw_data.dodge_ind=draw_data.color_index;
-    
-    %draw_data.dodge_x=shiftdim(uni_x);
-    %draw_data.dodge_n=repmat(draw_data.n_colors,length(uni_x),1);
-    %draw_data.dodge_ind=repmat(draw_data.color_index,length(uni_x),1);
 end
 
 %Store results
@@ -348,7 +346,7 @@ obj.results.stat_summary{obj.result_ind,1}.y=ymean;
 obj.results.stat_summary{obj.result_ind,1}.yci=yci;
 
 %Do the actual plotting
-hndl=plotci(obj,uni_x,ymean,yci,draw_data,params.geom,params.dodge,params.width,params.fill_alpha,params.nudge);
+hndl=plotci(obj,uni_x,ymean,yci,draw_data,params.geom,params.dodge,params.width,params.fill_alpha,params.nudge,params.fill);
 
 %Copy handles
 if isstruct(hndl)

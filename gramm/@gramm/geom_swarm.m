@@ -89,7 +89,7 @@ uni_x(diff(uni_x)<1e-10)=[];
 dodge_uni_x = dodger(uni_x,draw_data,params.dodge,params.nudge);
 
 if params.dodge>0
-    params.avl_width=draw_data.dodge_avl_w*params.width./(draw_data.n_colors);
+    params.avl_width=draw_data.dodge_avl_w*params.width./(draw_data.n_dodge);
 else
     params.avl_width=draw_data.dodge_avl_w*params.width;
 end

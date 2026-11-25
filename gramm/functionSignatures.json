@@ -78,6 +78,7 @@
 			{"name":"dodge","kind":"namevalue","type":"numeric"},
 			{"name":"alpha","kind":"namevalue","type":["numeric", ">=0", "<=1"]},	
             {"name":"stacked","kind":"namevalue","type":"logical"},
+            {"name":"fill_to","kind":"namevalue","type":"numeric"},
             {"name":"fill","kind":"namevalue","type":"numeric"},
             {"name":"fill_alpha","kind":"namevalue","type":["numeric", ">=0", "<=1"]},
             {"name":"ordered","kind":"namevalue","type":"logical"}
@@ -109,6 +110,7 @@
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
 			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
+			{"name":"fill","kind":"namevalue","type":"choices={'edge','face','all','transparent'}"},
 			{"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
             {"name":"width","kind":"namevalue","type":"numeric"},
             {"name":"dodge","kind":"namevalue","type":"numeric"}
@@ -127,6 +129,7 @@
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
 			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
+			{"name":"fill","kind":"namevalue","type":"choices={'edge','face','all','transparent'}"},
 			{"name":"type","kind":"namevalue","type":"choices={'ci','bootci','sem','std','quartile','95percentile','fitnormalci','fitpoissonci','fitbinomialci'}"},
 			{"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
 			{"name":"setylim","kind":"namevalue","type":"choices={1,0}"},
@@ -144,6 +147,7 @@
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
 			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
+			{"name":"fill","kind":"namevalue","type":"choices={'edge','face','all','transparent'}"},
 			{"name":"method","kind":"namevalue","type":"choices={'eilers','smoothingspline','moving','lowess','loess','sgolay','rloess','rlowess'}"},
             {"name":"lambda","kind":"namevalue","type":"numeric"},
             {"name":"npoints","kind":"namevalue","type":"numeric"},
@@ -156,6 +160,7 @@
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
 			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
+			{"name":"fill","kind":"namevalue","type":"choices={'edge','face','all','transparent'}"},
 			{"name":"distribution","kind":"namevalue","type":"choices={'normal','binomial','poisson','gamma','inverse gaussian'}"},
             {"name":"geom","kind":"namevalue","type":"choices={'area','lines','line','solid_area','black_errorbar','errorbar','bar','point','area_only','black_point'}"},
             {"name":"fullrange","kind":"namevalue","type":"choices={1,0}"},
@@ -167,6 +172,7 @@
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
 			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
+			{"name":"fill","kind":"namevalue","type":"choices={'edge','face','all','transparent'}"},
 			{"name":"fun","kind":"namevalue","type":"function_handle"},
             {"name":"StartPoint","kind":"namevalue","type":"numeric"},
             {"name":"intopt","kind":"namevalue","type":"choices={'observation','functional'}"},
@@ -224,7 +230,8 @@
 			{"name":"obj","kind":"required","type":"gramm"},
 			{"name":"nbins","kind":"namevalue","type":"numeric"},
             {"name":"edges","kind":"namevalue","type":"numeric"},
-            {"name":"geom","kind":"namevalue","type":"choices={'image','contour'}"}
+            {"name":"geom","kind":"namevalue","type":"choices={'image','contour','point'}"},
+            {"name":"scale","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.stat_ellipse":
@@ -232,6 +239,7 @@
 		"inputs":[
 			{"name":"obj","kind":"required","type":"gramm"},
 			{"name":"fill_alpha","kind":"namevalue","type":"numeric"},
+			{"name":"fill","kind":"namevalue","type":"choices={'edge','face','all','transparent'}"},
             {"name":"type","kind":"namevalue","type":"choices={'95percentile','ci'}"},
             {"name":"geom","kind":"namevalue","type":"choices={'area','line'}"},
             {"name":"patch_opts","kind":"namevalue","type":"cell"}
@@ -253,7 +261,9 @@
             {"name":"nudge","kind":"namevalue","type":"numeric"},
             {"name":"notch","kind":"namevalue","type":"choices={1,0}"},
             {"name":"lines","kind":"namevalue","type":"choices={'median','quartiles','mean','none'}"},
-            {"name":"outliers","kind":"namevalue","type":"choices={1,0}"}
+            {"name":"outliers","kind":"namevalue","type":"choices={1,0}"},
+            {"name":"fill","kind":"namevalue","type":"choices={'edge','face','all','transparent'}"},
+            {"name":"fill_alpha","kind":"namevalue","type":"numeric"}
 		]
 },
 "gramm.stat_violin":
@@ -420,10 +430,18 @@
 			{"name":"markers","kind":"namevalue","type":"choices={'o','s','d','^','v','>','<','p','h','*','+','x'}"},
 			{"name":"base_size","kind":"namevalue","type":"numeric"},
             {"name":"step_size","kind":"namevalue","type":"numeric"},
+            {"name":"size_aes","kind":"namevalue","type":"choices={1,0}"},
             {"name":"use_input","kind":"namevalue","type":"choices={1,0}"},
             {"name":"border_width","kind":"namevalue","type":"numeric"},
             {"name":"border_color","kind":"namevalue","type":["char", "choices={'none','auto'}","numeric"]},
             {"name":"input_fun","kind":"namevalue","type":"numeric"}
+		]
+},
+"gramm.set_dodge_options":
+{
+		"inputs":[
+			{"name":"obj","kind":"required","type":"gramm"},
+			{"name":"by","kind":"namevalue","type":"cell"}
 		]
 },
 "gramm.set_line_options":
@@ -433,6 +451,11 @@
 			{"name":"styles","kind":"namevalue","type":"choices={'-','--',':','-.'}"},
 			{"name":"base_size","kind":"namevalue","type":"numeric"},
             {"name":"step_size","kind":"namevalue","type":"numeric"},
+            {"name":"edge_size","kind":"namevalue","type":"numeric"},
+            {"name":"interval_size","kind":"namevalue","type":"numeric"},
+            {"name":"summary_size","kind":"namevalue","type":"numeric"},
+            {"name":"ref_size","kind":"namevalue","type":"numeric"},
+            {"name":"size_aes","kind":"namevalue","type":"choices={1,0}"},
             {"name":"use_input","kind":"namevalue","type":"choices={1,0}"},
             {"name":"input_fun","kind":"namevalue","type":"numeric"},
             {"name":"cap_size","kind":"namevalue","type":"numeric"}

@@ -69,7 +69,7 @@ dens_pos=cell(length(uni_x),1);
 [side,params.dodge]=half_side(params.half,draw_data.color_index,params.dodge);
 
 if params.dodge>0
-    boxw=draw_data.dodge_avl_w*params.width./(draw_data.n_colors);
+    boxw=draw_data.dodge_avl_w*params.width./(draw_data.n_dodge);
 else
     boxw=draw_data.dodge_avl_w*params.width;
 end
@@ -77,7 +77,7 @@ boxmid=dodger(uni_x,draw_data,params.dodge,params.nudge);
 
 
 [face_color , face_alpha , edge_color , ~] = parse_fill (params.fill,draw_data.color,params.fill_alpha);
-temp_line_params={'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',1};
+temp_line_params={'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.edge_size};
 
 %Maximum area
 max_area=draw_data.dodge_avl_w*(obj.var_lim.maxy-obj.var_lim.miny);
@@ -211,7 +211,7 @@ if strcmp(params.fill,'all')
 else
     sum_color=edge_color;
 end
-sum_hndl=plot_summary_lines(sum_left,sum_right,sum_y,sum_kinds,sum_color,1);
+sum_hndl=plot_summary_lines(sum_left,sum_right,sum_y,sum_kinds,sum_color,draw_data.summary_size);
 
 obj.results.stat_violin{obj.result_ind,1}.densities=dens;
 obj.results.stat_violin{obj.result_ind,1}.densities_y=dens_pos;

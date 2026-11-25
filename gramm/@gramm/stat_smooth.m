@@ -31,6 +31,7 @@ function obj=stat_smooth(obj,varargin)
 %            'area')
 % - 'fill_alpha': Transparency of the 'area' and 'area_only' geoms, from
 %            0 (transparent) to 1 (opaque) (default 0.2)
+% - 'fill': Aspect of the 'bar' geom, same as stat_summary() (default [])
 % - 'npoints': Number of points over which the smooth is evaluated
 %            (default 200)
 % - 'setylim': Set the y axis limits from the smooth instead of the data
@@ -40,6 +41,7 @@ p=inputParser;
 addParameter(p,'lambda',[]);
 addParameter(p,'geom','area',@(v) valid_choice(v,{'line','lines','area','area_only','solid_area','errorbar','black_errorbar','bar','edge_bar','point','black_point'},true));
 addParameter(p,'fill_alpha',0.2,@(v) valid_range(v,0,1));
+addParameter(p,'fill',[],@(v) isempty(v) || valid_choice(v,{'edge','face','all','transparent'}));
 addParameter(p,'method','eilers',@(v) valid_choice(v,{'eilers','smoothingspline','moving','lowess','loess','sgolay','rlowess','rloess'}));
 addParameter(p,'npoints',200);
 addParameter(p,'setylim',false);
@@ -293,7 +295,7 @@ else
         end
     end
     
-    hndl=plotci(obj,newx,newy,yci,draw_data,params.geom,[],[],params.fill_alpha);
+    hndl=plotci(obj,newx,newy,yci,draw_data,params.geom,[],[],params.fill_alpha,0,params.fill);
     
     %Store plotted handles
     hnames=fieldnames(hndl);

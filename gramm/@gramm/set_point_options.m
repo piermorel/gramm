@@ -12,6 +12,9 @@ function obj = set_point_options( obj , varargin )
 %            (default 5)
 % - 'step_size': Size difference between successive size groups
 %            (default 2)
+% - 'size_aes': Points follow the 'size' groups (default true). With
+%            false, all points have the size 'base_size' and only the
+%            lines follow the 'size' groups (see set_line_options())
 % - 'use_input': Use the numeric values of the 'size' data as point
 %            sizes, instead of size groups (default false)
 % - 'input_fun': Function converting the 'size' data into point sizes
@@ -25,6 +28,7 @@ function obj = set_point_options( obj , varargin )
 p=inputParser;
 addParameter(p, 'base_size', 5 );
 addParameter(p, 'step_size', 2 );
+addParameter(p, 'size_aes', true );
 addParameter(p, 'use_input', false );
 addParameter(p, 'input_fun', @(v)v );
 addParameter(p, 'border_width', 0.5);

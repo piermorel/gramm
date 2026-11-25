@@ -121,6 +121,8 @@ classdef gramm < matlab.mixin.Copyable
         
         layout_options  %Structure holding layout options
         
+        dodge_options %Structure holding dodging options
+        
         legend_y=0 %Current y position of the legend text
         legend_transform %hgtransform scaling the legend vertically (see scale_legend())
         
@@ -219,6 +221,7 @@ classdef gramm < matlab.mixin.Copyable
             set_point_options(obj);
             set_stat_options(obj);
             set_layout_options(obj);
+            set_dodge_options(obj);
         end
         
         obj=update(obj,varargin)
@@ -240,6 +243,7 @@ classdef gramm < matlab.mixin.Copyable
         obj=set_point_options(obj,varargin)
         obj=set_order_options(obj,varargin)
         obj=set_stat_options(obj,varargin)
+        obj=set_dodge_options(obj,varargin)
         obj=set_continuous_color(obj,varargin)
         obj=no_legend(obj)
         obj=set_limit_extra(obj,x_extra,y_extra,z_extra)

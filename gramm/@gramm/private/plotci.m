@@ -1,4 +1,4 @@
-function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha,nudge)
+function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha,nudge,fill)
             
             if nargin<7 || isempty(dodge)
                 dodge=0;
@@ -11,6 +11,9 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha,nudge)
             end
             if nargin<10
                 nudge=0;
+            end
+            if nargin<11
+                fill=[];
             end
             
             x=shiftdim(x)';
@@ -30,7 +33,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha,nudge)
             end
             
             if dodge>0
-                bar_width=draw_data.dodge_avl_w*width./(draw_data.n_colors);
+                bar_width=draw_data.dodge_avl_w*width./(draw_data.n_dodge);
             else
                 bar_width=draw_data.dodge_avl_w*width;
             end
@@ -68,6 +71,10 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha,nudge)
             real_neighbors(1:end-1)=real_neighbors(1:end-1)+yreals(2:end);
             
             
+            %Markers of the 'point' geoms and of the isolated points
+            point_props=marker_props(obj,draw_data);
+            black_point_props=marker_props(obj,draw_data,[0 0 0]);
+            
             for k=1:length(geom)
                 switch geom{k}
                     case 'line'
@@ -76,10 +83,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha,nudge)
                             'Color',draw_data.color,...
                             'LineWidth',draw_data.line_size);
                         
-                        hndl.extra_point_handle=plot(x(real_neighbors==0),y(real_neighbors==0),'o',...
-                            'Color',draw_data.color,...
-                            'MarkerSize',draw_data.point_size,...
-                            'MarkerFaceColor',draw_data.color);
+                        hndl.extra_point_handle=plot(x(real_neighbors==0),y(real_neighbors==0),point_props{:});
                         
                     case 'lines'
                         hndl.line_handle=plot(x,y,...
@@ -87,10 +91,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha,nudge)
                             'Color',draw_data.color,...
                             'LineWidth',draw_data.line_size);
                         
-                        hndl.extra_point_handle=plot(x(real_neighbors==0),y(real_neighbors==0),'o',...
-                            'Color',draw_data.color,...
-                            'MarkerSize',draw_data.point_size,...
-                            'MarkerFaceColor',draw_data.color);
+                        hndl.extra_point_handle=plot(x(real_neighbors==0),y(real_neighbors==0),point_props{:});
                         
                         %hndl.lines_handle=plot(xci',yci','-','Color',draw_data.color+([1 1 1]-draw_data.color)*0.5);
                         hndl.lines_handle=plot(xci',yci','LineStyle',draw_data.line_style,...
@@ -110,10 +111,7 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha,nudge)
                             'Color',draw_data.color,...
                             'LineWidth',draw_data.line_size);
                         
-                        hndl.extra_point_handle=plot(x(real_neighbors==0),y(real_neighbors==0),'o',...
-                            'Color',draw_data.color,...
-                            'MarkerSize',draw_data.point_size,...
-                            'MarkerFaceColor',draw_data.color);
+                        hndl.extra_point_handle=plot(x(real_neighbors==0),y(real_neighbors==0),point_props{:});
                         
                     case 'area_only'
                         hndl.area_handle=patch('Vertices',vertices,'Faces',faces,'FaceColor',draw_data.color,'FaceAlpha',fill_alpha,'EdgeColor','none');
@@ -130,34 +128,42 @@ function hndl=plotci(obj,x,y,yci,draw_data,geom,dodge,width,fill_alpha,nudge)
                             'Color',draw_data.color,...
                             'LineWidth',draw_data.line_size);
                         
-                        hndl.extra_point_handle=plot(x(real_neighbors==0),y(real_neighbors==0),'o',...
-                            'Color',draw_data.color,...
-                            'MarkerSize',draw_data.point_size,...
-                            'MarkerFaceColor',draw_data.color);
+                        hndl.extra_point_handle=plot(x(real_neighbors==0),y(real_neighbors==0),point_props{:});
                         
                     case 'errorbar'
-                        hndl.errorbar_handle=my_errorbar(obj,x,yci(1,:),yci(2,:),draw_data.color,draw_data.line_size);
+                        hndl.errorbar_handle=my_errorbar(obj,x,yci(1,:),yci(2,:),draw_data.color,draw_data.interval_size);
                         
                     case 'black_errorbar'
-                        hndl.errorbar_handle=my_errorbar(obj,x,yci(1,:),yci(2,:),'k',draw_data.line_size);
+                        hndl.errorbar_handle=my_errorbar(obj,x,yci(1,:),yci(2,:),'k',draw_data.interval_size);
                         
-                    case 'bar'
+                    case {'bar','edge_bar'}
+                        %'edge_bar' is the former name of 'bar' with the
+                        %'face' fill style, 'bar' alone is 'all'
+                        bar_fill=fill;
+                        if isempty(bar_fill)
+                            if strcmp(geom{k},'edge_bar')
+                                bar_fill='face';
+                            else
+                                bar_fill='all';
+                            end
+                        end
+                        [face_color,face_alpha,edge_color,edge_alpha]=parse_fill(bar_fill,draw_data.color);
                         barleft=x-bar_width/2;
                         barright=x+bar_width/2;
                         [xpatch,ypatch]=bar_patch(obj,barleft,barright,zeros(1,length(y)),y);
                         [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
-                        hndl.bar_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','none');
-                   case 'edge_bar'
-                        barleft=x-bar_width/2;
-                        barright=x+bar_width/2;
-                        [xpatch,ypatch]=bar_patch(obj,barleft,barright,zeros(1,length(y)),y);
-                        [xpatch,ypatch]=polar_arcs(obj,xpatch,ypatch);
-                        hndl.bar_handle=patch(xpatch,ypatch,[1 1 1],'FaceColor',draw_data.color,'EdgeColor','k');
+                        hndl.bar_handle=patch(xpatch,ypatch,[1 1 1],...
+                            'FaceColor',face_color,...
+                            'FaceAlpha',face_alpha,...
+                            'EdgeColor',edge_color,...
+                            'EdgeAlpha',edge_alpha,...
+                            'LineWidth',draw_data.edge_size,...
+                            'LineStyle',draw_data.line_style);
                     case 'point'
-                        hndl.point_handle=plot(x,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',draw_data.color);
+                        hndl.point_handle=plot(x,y,point_props{:});
                     case 'black_point'
                         %Black follows the figure theme (see apply_theme)
-                        hndl.point_handle=plot(x,y,draw_data.marker,'Color',[0 0 0],'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',[0 0 0]);
+                        hndl.point_handle=plot(x,y,'Color',[0 0 0],black_point_props{:});
                 end
                 
             end

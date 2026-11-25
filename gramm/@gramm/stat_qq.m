@@ -54,7 +54,8 @@ end
 obj.results.stat_qq{obj.result_ind,1}.x=xdist;
 obj.results.stat_qq{obj.result_ind,1}.y=y;
 
-hndl=plot(xdist,y,draw_data.marker,'MarkerEdgeColor','none','markerSize',draw_data.point_size,'MarkerFaceColor',draw_data.color);
+point_props=marker_props(obj,draw_data);
+hndl=plot(xdist,y,point_props{:});
 
 obj.results.stat_qq{obj.result_ind,1}.point_handle=hndl;
 
