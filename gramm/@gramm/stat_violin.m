@@ -76,13 +76,11 @@ end
 boxmid=dodger(uni_x,draw_data,params.dodge,params.nudge);
 
 
-[face_color , face_alpha , edge_color , ~] = parse_fill (params.fill,draw_data.color,params.fill_alpha);
-temp_line_params={'LineStyle',draw_data.line_style,'Color',edge_color,'lineWidth',draw_data.edge_size};
+[face_color , face_alpha , edge_color , edge_alpha] = parse_fill (params.fill,draw_data.color,params.fill_alpha);
 
 %Maximum area
 max_area=draw_data.dodge_avl_w*(obj.var_lim.maxy-obj.var_lim.miny);
 
-lines=gobjects(1,length(uni_x));
 patches=gobjects(1,length(uni_x));
 
 %Summary lines: values and extents accumulated over x, drawn at the end
@@ -132,44 +130,27 @@ for ind_x=1:length(uni_x)
         dens{ind_x}=dens{ind_x}*boxw;
         
         
+        %Outline of the violin, from the middle at the lowest y value
         switch side
             case 'right'
-                xpatch=[boxmid(ind_x)+zeros(1,length(dens{ind_x})-1) ; ...
-                    boxmid(ind_x)+dens{ind_x}(1:end-1) ; ...
-                    boxmid(ind_x)+dens{ind_x}(2:end) ; ...
-                    boxmid(ind_x)+zeros(1,length(dens{ind_x})-1)];
+                xpatch=boxmid(ind_x)+[0 dens{ind_x} 0];
+                ypatch=[dens_pos{ind_x}(1) dens_pos{ind_x} dens_pos{ind_x}(end)];
             case 'left'
-                xpatch=[boxmid(ind_x)-dens{ind_x}(1:end-1) ; ...
-                    boxmid(ind_x)+zeros(1,length(dens{ind_x})-1) ; ...
-                    boxmid(ind_x)+zeros(1,length(dens{ind_x})-1);  ...
-                    boxmid(ind_x)-dens{ind_x}(2:end)];
+                xpatch=boxmid(ind_x)-[0 dens{ind_x} 0];
+                ypatch=[dens_pos{ind_x}(1) dens_pos{ind_x} dens_pos{ind_x}(end)];
             otherwise %Full violin
-                xpatch=[boxmid(ind_x)-dens{ind_x}(1:end-1) ; ...
-                    boxmid(ind_x)+dens{ind_x}(1:end-1) ; ...
-                    boxmid(ind_x)+dens{ind_x}(2:end);  ...
-                    boxmid(ind_x)-dens{ind_x}(2:end)];
+                xpatch=boxmid(ind_x)+[0 dens{ind_x} 0 -fliplr(dens{ind_x})];
+                ypatch=[dens_pos{ind_x}(1) dens_pos{ind_x} dens_pos{ind_x}(end) fliplr(dens_pos{ind_x})];
         end
-        
-        ypatch=[dens_pos{ind_x}(1:end-1) ; ...
-            dens_pos{ind_x}(1:end-1) ; ...
-            dens_pos{ind_x}(2:end) ; ...
-            dens_pos{ind_x}(2:end)];
         
         %Draw patch
-        patches(ind_x)=patch(xpatch,ypatch,[1 1 1],'EdgeAlpha',1,'FaceColor',face_color,'EdgeColor','none','FaceAlpha',face_alpha);
-        
-        %Draw lines
-        switch side
-            case 'right'
-                lines(ind_x)=line(boxmid(ind_x)+[0 dens{ind_x} 0 0] , ...
-                    [dens_pos{ind_x}(1) dens_pos{ind_x} dens_pos{ind_x}(end) dens_pos{ind_x}(1)],temp_line_params{:});
-            case 'left'
-                lines(ind_x)=line(boxmid(ind_x)-[0 dens{ind_x} 0 0] , ...
-                    [dens_pos{ind_x}(1) dens_pos{ind_x} dens_pos{ind_x}(end) dens_pos{ind_x}(1)],temp_line_params{:});
-            otherwise %Full violin
-                lines(ind_x)=line([boxmid(ind_x) dens{ind_x}+boxmid(ind_x) boxmid(ind_x) boxmid(ind_x)-fliplr(dens{ind_x}) boxmid(ind_x)] , ...
-                    [dens_pos{ind_x}(1) dens_pos{ind_x} dens_pos{ind_x}(end) fliplr(dens_pos{ind_x}) dens_pos{ind_x}(1)],temp_line_params{:});
-        end
+        patches(ind_x)=patch(xpatch,ypatch,[1 1 1],...
+            'FaceColor',face_color,...
+            'FaceAlpha',face_alpha,...
+            'EdgeColor',edge_color,...
+            'EdgeAlpha',edge_alpha,...
+            'LineStyle',draw_data.line_style,...
+            'LineWidth',draw_data.edge_size);
 
         %Summary lines go across the violin, so their half-width is the
         %density at their value
@@ -216,7 +197,9 @@ sum_hndl=plot_summary_lines(sum_left,sum_right,sum_y,sum_kinds,sum_color,draw_da
 obj.results.stat_violin{obj.result_ind,1}.densities=dens;
 obj.results.stat_violin{obj.result_ind,1}.densities_y=dens_pos;
 obj.results.stat_violin{obj.result_ind,1}.unique_x=uni_x;
-obj.results.stat_violin{obj.result_ind,1}.line_handle=lines;
+%The outline is the edge of the patch: line_handle is kept for code written
+%when it was a separate line
+obj.results.stat_violin{obj.result_ind,1}.line_handle=patches;
 obj.results.stat_violin{obj.result_ind,1}.fill_handle=patches;
 obj.results.stat_violin{obj.result_ind,1}.lines_values=sum_values;
 fields=fieldnames(sum_hndl);
