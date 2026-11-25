@@ -22,10 +22,10 @@ clear g
 g(1,1)=gramm('x',x,'y',y,'color',test);
 g(1,1).set_names('color','grp');
 g(1,1).geom_point();
-%'patch_opts' can be used to provide more options to the patch() internal
-%call
+%Lighter faces than the default (0.2), other properties of the ellipse
+%patches can be given with 'patch_opts'
 g(1,1).set_point_options('base_size',2);
-g(1,1).stat_ellipse('type','95percentile','geom','area','patch_opts',{'FaceAlpha',0.1,'LineWidth',2});
+g(1,1).stat_ellipse('type','95percentile','fill_alpha',0.1);
 g(1,1).set_title('stat_ellispe()');
 
 %Plot point density as contour plot

@@ -93,7 +93,14 @@ figure('Position',[100 100 1400 450]);
 g.draw();
 
 %% Customizing rainclouds after drawing
-% Most of the appearance of a raincloud can be changed after |draw()|
+% Part of the appearance of a raincloud is set with options:
+%
+% * The violins lose their outline (|'fill','all'|) and are made more
+% transparent (|'fill_alpha'|)
+% * The medians of the boxes are made thicker
+% (|set_line_options('summary_size',...)|)
+%
+% The rest can't be set with options, and is changed after |draw()|
 % through the graphic handles stored in |g.results| (see also
 % <example_advanced_post_draw_customization.html Post-draw customization>).
 % Each layer is drawn once per group, in the same order, so element k of
@@ -102,7 +109,6 @@ g.draw();
 %
 % * The boxes are filled with the foreground color (black in a light
 % theme) and get a median in the background color (white in a light theme)
-% * The violins lose their outline and are made more transparent
 % * The points are made grey, and the outliers are drawn as empty circles.
 % They are found with the whisker limits stored in
 % |g.results.stat_boxplot(k).boxplot_data| (first and last columns, one
@@ -119,9 +125,10 @@ g.draw();
 
 clear g
 g=gramm('x',cars.Origin_Region,'y',cars.MPG,'color',cars.Origin_Region);
-g.stat_violin('half','right','width',0.7,'dodge',0);
+g.stat_violin('half','right','width',0.7,'dodge',0,'fill','all','fill_alpha',0.6);
 g.stat_boxplot('width',0.06,'nudge',-0.05,'dodge',0);
 g.geom_jitter('width',0.15,'nudge',-0.2);
+g.set_line_options('summary_size',3);
 g.set_names('x','Origin','y','Fuel economy (MPG)');
 g.set_title('Customized raincloud plot');
 g.set_layout_options('legend',false);
@@ -131,13 +138,7 @@ g.draw();
 %Boxes in the foreground color, with medians in the background color
 % Below we use MATLAB's automatic neutral color
 set([g.results.stat_boxplot.box_handle],'FaceColorMode','auto','SeriesIndex','none'); 
-set([g.results.stat_boxplot.median_handle],...
-    'Color',g.facet_axes_handles(1).Color,...
-    'LineWidth',3);
-
-%Violins without outline
-set([g.results.stat_violin.line_handle],'LineStyle','none');
-set([g.results.stat_violin.fill_handle],'FaceAlpha',0.6);
+set([g.results.stat_boxplot.median_handle],'Color',g.facet_axes_handles(1).Color);
 
 %Grey points, with empty outliers: the face of each point gets its own
 %transparency through the AlphaData of the scatter object (0 for outliers)

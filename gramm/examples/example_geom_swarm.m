@@ -27,7 +27,7 @@ g(2,2) = copy(g(1,1));
 g(2,3) = copy(g(1,1));
 
 g(1,1).geom_swarm('point_size',2);
-g(1,1).stat_summary('geom','point','dodge',0.7,'width',0.9);
+g(1,1).stat_summary('geom','black_point','dodge',0.7,'width',0.9);
 g(1,1).set_title('default method ''up''');
 
 g(1,2).geom_swarm('point_size',2,'type','fan');
@@ -48,8 +48,8 @@ g(2,3).set_title('corral ''omit'' and alpha 0.5');
 g.set_title('Options for geom_swarm()');
 g.draw();
 
-%Make the points marking the group averages more visible
-set([g(1,1).results.stat_summary.point_handle],'MarkerFaceColor',[0 0 0])
+%Make the black points marking the group averages more visible (black
+%points follow the figure theme)
 set([g(1,1).results.stat_summary.point_handle],'Marker','s')
 set([g(1,1).results.stat_summary.point_handle],'MarkerSize',8)
 

@@ -33,7 +33,7 @@ g(1,3).set_title('Auto point border color and 0 point alpha');
 g(2,1)=gramm('x',x,'y',y,'size',sz);
 g(2,1).geom_point();
 g(2,1).geom_line();
-g(2,1).set_line_options('base_size',1,'step_size',0.2,'style',{':' '-' '--' '-.'});
+g(2,1).set_line_options('base_size',1,'step_size',0.2,'styles',{':' '-' '--' '-.'});
 g(2,1).set_point_options('base_size',4,'step_size',1);
 g(2,1).set_title('Modified point/line base & step size + line style');
 
