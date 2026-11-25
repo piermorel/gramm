@@ -34,6 +34,15 @@ for k=1:numel(black_markers)
     setappdata(black_markers(k),'gramm_black_marker',true);
 end
 match_markers(black_markers);
+%Black marker edges (point borders) have no automatic color mode either:
+%they get the neutral color of the axes, and are updated when the theme
+%changes
+black_edges=[findobj(h,'flat','Type','line','MarkerEdgeColor',[0 0 0]) ; ...
+    findobj(h,'flat','Type','scatter','MarkerEdgeColor',[0 0 0])];
+for k=1:numel(black_edges)
+    setappdata(black_edges(k),'gramm_black_edge',true);
+end
+match_edges(black_edges);
 set(findobj(h,'flat','Type','errorbar','Color',[0 0 0]),'ColorMode','auto','SeriesIndex','none');
 set(findobj(h,'flat','Type','scatter','CData',[0 0 0]),'CDataMode','auto','SeriesIndex','none');
 %Patch color modes are not documented, but behave like the others
@@ -50,12 +59,24 @@ for k=1:numel(containers)
     match_background(containers(k));
 end
 match_markers(findall(fig,'Type','line','-function',@(l) isappdata(l,'gramm_black_marker')));
+match_edges(findall(fig,'-function',@(l) isappdata(l,'gramm_black_edge')));
 end
 
 
 function match_markers(lines)
 for k=1:numel(lines)
     lines(k).MarkerFaceColor=lines(k).Color;
+end
+end
+
+
+function match_edges(objs)
+%The neutral color of lines in automatic color mode is the axes XColor
+for k=1:numel(objs)
+    ax=ancestor(objs(k),'axes');
+    if ~isempty(ax)
+        objs(k).MarkerEdgeColor=ax.XColor;
+    end
 end
 end
 
