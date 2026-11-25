@@ -37,6 +37,7 @@
 % <html><h2>Geom Layers</h2></html>
 %
 % * <example_geom_point_and_line_styles.html Point and line styles>
+% * <example_geom_lines_points_fills.html Lines, points and fills>
 % * <example_geom_interval.html Intervals>
 % * <example_geom_label.html Labels>
 % * <example_geom_polygon.html Polygons>

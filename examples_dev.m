@@ -2104,6 +2104,7 @@ g(5,3)=gramm('x',rad2deg(th),'color',grp);
 g(5,3).set_polar('unit','degrees'); g(5,3).stat_bin('edges',0:30:360,'geom','stacked_bar','fill','face');
 g(5,3).axe_property('ThetaZeroLocation','top','ThetaDir','clockwise'); g(5,3).set_title('Compass orientation');
 g(5,4)=gramm('x',th,'y',r,'color',r);
+g(5,4).set_continuous_color()
 g(5,4).set_polar(); g(5,4).geom_point(); g(5,4).set_title('Continuous color');
 g(5,5)=gramm('x',repmat((0:7)'*pi/4,n/8,1),'y',dir_rate);
 g(5,5).set_polar(); g(5,5).geom_point('alpha',0.2); g(5,5).set_title('Ticks at few angles (radians)');

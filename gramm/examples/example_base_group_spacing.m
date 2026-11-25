@@ -58,3 +58,62 @@ g.set_title('Dodge and spacing options for stat_boxplot()');
 
 figure('Position',[100 100 1100 660]);
 g.draw();
+
+%% Dodging groups of several aesthetics
+% Elements are dodged for each combination of the color, lightness,
+% marker, linestyle and size groups, colors being the outer level. Here a
+% 'linestyle' variable independent of color gives two boxes per color
+% (first panel).
+% Groups given as 'group' are not dodged: they usually are units drawn as
+% separate lines, such as subjects, which stay in the slot of their color
+% (second panel).
+% |set_dodge_options('by',...)| chooses the aesthetics that are dodged.
+% Summaries such as boxes need all their groups dodged, but points can
+% also share the slot of their color, with markers showing a secondary
+% attribute (last two panels).
+
+%Second grouping variable, independent of x and of the colors
+period=[repmat({'Before'},1,500) repmat({'After'},1,500)];
+y2=y+strcmp(period,'After')*3;
+sel=c<3 & ismember(catx,{'A','B','C','D'});
+
+%Synthetic repeated measures: 20 subjects in two treatment groups,
+%measured in three sessions
+n_subj=20;
+[session,subject]=ndgrid(1:3,1:n_subj);
+treatment=repmat({'Drug'},size(subject));
+treatment(subject>n_subj/2)={'Placebo'};
+sex=repmat({'F'},size(subject));
+sex(mod(subject,2)==0)={'M'};
+score=10+session.*strcmp(treatment,'Drug')+1.5*strcmp(sex,'M')+...
+    repmat(randn(1,n_subj),3,1)+0.5*randn(size(subject));
+session_names={'S1','S2','S3'};
+session_names=session_names(session(:));
+
+clear g
+g(1,1)=gramm('x',catx,'y',y2,'color',c,'linestyle',period,'subset',sel);
+g(1,1).stat_boxplot('fill','transparent');
+g(1,1).set_names('linestyle','Period');
+g(1,1).set_title('Color and linestyle groups dodged');
+
+g(1,2)=gramm('x',session_names,'y',score(:),'color',treatment(:),'group',subject(:));
+g(1,2).geom_line('dodge',0.4);
+g(1,2).geom_point('dodge',0.4);
+g(1,2).set_names('x','Session','y','Score','color','Treatment');
+g(1,2).set_title('Subjects (''group'') not dodged');
+
+g(2,1)=gramm('x',session_names,'y',score(:),'color',treatment(:),'marker',sex(:));
+g(2,1).geom_point('dodge',0.6);
+g(2,1).set_names('x','Session','y','Score','color','Treatment','marker','Sex');
+g(2,1).set_title('Color and marker groups dodged');
+
+g(2,2)=copy(g(2,1));
+g(2,2).geom_point('dodge',0.6);
+g(2,2).set_dodge_options('by',{'color'});
+g(2,2).set_title('set_dodge_options(''by'',{''color''})');
+
+g(2,:).set_point_options('base_size',7,'markers',{'o','^'});
+g.set_title('Dodging of groups of several aesthetics');
+
+figure('Position',[100 100 1100 760]);
+g.draw();
