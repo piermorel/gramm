@@ -317,7 +317,7 @@ if obj.updater.facet_updated==1
     else
         tmp_axes = axes(tmp_f);
     end
-    first_axes_children = copyobj(allchild(obj.facet_axes_handles(1,1)),tmp_axes);
+    first_axes_children = copy_children(allchild(obj.facet_axes_handles(1,1)),tmp_axes);
     obj.legend_axe_handle.Parent=tmp_f;
     delete(obj.layout);
     obj.facet_axes_handles=gobjects(length(uni_row),length(uni_column));
@@ -343,6 +343,9 @@ obj.data_size=numel(temp_aes.x);
 
 
 %% draw() looping
+%Number of children of each facet before this draw (see order_layers)
+n_old_children=zeros(length(uni_row),length(uni_column));
+
 %Loop over rows
 for ind_row=1:length(uni_row)
     
@@ -397,7 +400,7 @@ for ind_row=1:length(uni_row)
             set_rulers(obj,obj.facet_axes_handles(ind_row,ind_column));
             if obj.updater.facet_updated==1
                 %Copy the content of the former single facet
-                copyobj(first_axes_children,obj.facet_axes_handles(ind_row,ind_column));
+                copy_children(first_axes_children,obj.facet_axes_handles(ind_row,ind_column));
             end
         elseif obj.updater.facet_updated==-1 && ind_column==1 && ind_row==1
             %update() from many to one facet: new content is drawn in the
@@ -413,7 +416,12 @@ for ind_row=1:length(uni_row)
         
         hold on
         
-        %Draw polygons before plotting data, so data isn't covered up
+        %Content of the facet before this draw (after update()), kept
+        %below the new layers
+        facet_ax=obj.facet_axes_handles(ind_row,ind_column);
+        n_old_children(ind_row,ind_column)=numel(facet_ax.Children);
+        
+        %Polygons are drawn in the background, below all layers
         if obj.polygon.on
             draw_polygons(obj);
         end
@@ -571,8 +579,11 @@ for ind_row=1:length(uni_row)
                                     %Loop over geoms
                                     for geom_ind=1:length(obj.geom)
                                         
-                                        %Call each geom !
+                                        %Call each geom, and mark what
+                                        %it draws with its layer
+                                        n_before=numel(facet_ax.Children);
                                         obj.geom{geom_ind}(obj,draw_data);
+                                        set_layer(facet_ax,n_before,geom_ind);
                                         
                                     end
                                     obj.firstrun(obj.current_row,obj.current_column)=0;
@@ -891,14 +902,16 @@ reserve_legend_width(obj);
 %If we go from many to one facet, the new content is drawn only
 %on the first facet so needs to be copied in the other one
 if obj.updater.facet_updated==-1
+    %Layers in the order of their calls before copying them
+    order_layers(obj.facet_axes_handles(1,1),n_old_children(1,1));
     %Get all content from the first facet
     new_first_axes_children=allchild(obj.facet_axes_handles(1,1));
     %Check what is new there by comparing the handles with the
     %ones we stored before drawing new content
-    todraw=setdiff(new_first_axes_children,first_axes_children);
+    todraw=new_first_axes_children(~ismember(new_first_axes_children,first_axes_children));
     %Copy the new stuff to all other facets
     for k=2:numel(obj.facet_axes_handles)
-        copyobj(todraw,obj.facet_axes_handles(k));
+        copy_children(todraw,obj.facet_axes_handles(k));
     end
 end
 
@@ -1092,6 +1105,9 @@ for ind_row=1:length(uni_row) %Loop over rows
         if obj.abline.on
             draw_ablines(obj,ca,temp_aes);
         end
+        
+        %Layers are drawn in the order of their calls
+        order_layers(ca,n_old_children(ind_row,ind_column));
         
     end
 end
@@ -1486,7 +1502,7 @@ for line_ind=1:length(obj.abline.intercept)
             xl=xl(1):(xl(2)-xl(1))/50:xl(2);
         end
         %abline
-        plot(xl,xl*obj.abline.slope(line_ind)+obj.abline.intercept(line_ind),line_opts{:});
+        hndl=plot(xl,xl*obj.abline.slope(line_ind)+obj.abline.intercept(line_ind),line_opts{:});
     elseif ~isnan(obj.abline.xintercept(line_ind))
         %vline
         if is_polar
@@ -1500,14 +1516,15 @@ for line_ind=1:length(obj.abline.intercept)
             tmp_extent=(tmp_yl(2)-tmp_yl(1))*obj.abline.extent(line_ind)/2;
             yl=[mean(tmp_yl)-tmp_extent mean(tmp_yl)+tmp_extent];
         end
-        plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,line_opts{:});
+        hndl=plot([obj.abline.xintercept(line_ind) obj.abline.xintercept(line_ind)],yl,line_opts{:});
     elseif ~isnan(obj.abline.yintercept(line_ind))
         %hline
-        plot(xl,xl*0+obj.abline.yintercept(line_ind),line_opts{:});
+        hndl=plot(xl,xl*0+obj.abline.yintercept(line_ind),line_opts{:});
     else
         temp_x=linspace(xl(1),xl(end),500);
-        plot(temp_x,obj.abline.fun{line_ind}(temp_x),line_opts{:});
+        hndl=plot(temp_x,obj.abline.fun{line_ind}(temp_x),line_opts{:});
     end
+    setappdata(hndl,'gramm_layer',obj.abline.layer(line_ind));
 end
 end
 

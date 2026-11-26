@@ -49,6 +49,8 @@ for poly_ind = 1:length(obj.polygon.x)
             'EdgeColor',obj.polygon.line_color(poly_ind,:),...
             'LineWidth',obj.line_options.edge_size,...
         	'LineStyle',obj.polygon.line_style{poly_ind});
+    %Polygons stay in the background (see order_layers)
+    setappdata(p,'gramm_layer',0);
 
 end
 

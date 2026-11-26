@@ -19,6 +19,8 @@ ab.xintercept(end+1:end+l)=shiftdim(varargin{3});
 ab.yintercept(end+1:end+l)=shiftdim(varargin{4});
 ab.extent(end+1:end+l)=shiftdim(varargin{7});
 ab.linewidth(end+1:end+l)=shiftdim(varargin{8});
+%Position of the call among the layers (see order_layers)
+ab.layer(end+1:end+l)=varargin{9};
 
 %Because of the constructor these are initialized as empty
 %arrays

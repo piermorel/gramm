@@ -32,6 +32,6 @@ if isempty(line_width)
 end
 
 for obj_ind=1:numel(obj)
-    obj(obj_ind).abline=fill_abline(obj(obj_ind).abline,NaN,NaN,NaN,NaN,p.Results.fun,p.Results.style,p.Results.extent,line_width);
+    obj(obj_ind).abline=fill_abline(obj(obj_ind).abline,NaN,NaN,NaN,NaN,p.Results.fun,p.Results.style,p.Results.extent,line_width,length(obj(obj_ind).geom)+0.5);
 end
 end
